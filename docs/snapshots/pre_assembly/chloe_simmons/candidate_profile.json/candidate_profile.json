@@ -1,0 +1,129 @@
+{
+  "personal_info": {
+    "name": "Chloe Simmons",
+    "alternate_name": "",
+    "contact": {
+      "email": "chlo-bear99@email.com",
+      "phone": "0411 000 000",
+      "location": "12/45 Glenferrie Road, Hawthorn",
+      "linkedin": "",
+      "portfolio": "",
+      "github": ""
+    }
+  },
+  "professional_summary": "To find a fun and stable job in a child care center where I can use my skills to help kids learn and have the best time ever. I am looking for a part-time role that fits with my yoga classes on Tuesday nights.",
+  "work_history": [
+    {
+      "employer": "Happy Feet Early Learning Giant",
+      "position": "Assistant Educator",
+      "employment_type": "Full-time",
+      "start_date": "2020-01",
+      "end_date": "Present",
+      "duration_years": 6.1,
+      "responsibilities": [
+        "Looking after the babies in the nursery room (0-2 years).",
+        "Setting up the room in the morning with toys and books.",
+        "Helping with nappy changes (lots of them!).",
+        "Filling out the Storypark app for the parents so they know what the kids ate.",
+        "Cleaning the high chairs and the floor after lunch time."
+      ],
+      "achievements": [
+        "Awarded 'Employee of the Month' in March 2023 for a creative Easter display."
+      ]
+    },
+    {
+      "employer": "Local Families",
+      "position": "Babysitter",
+      "employment_type": "Casual",
+      "start_date": "2017",
+      "end_date": "2021",
+      "duration_years": 4.0,
+      "responsibilities": [
+        "Caring for children aged 6 months to 10 years.",
+        "Making dinner, bath time, and reading bedtime stories."
+      ],
+      "achievements": []
+    },
+    {
+      "employer": "Baker’s Delight Hawthorn",
+      "position": "Sales Assistant",
+      "employment_type": "Part-time",
+      "start_date": "2018-05",
+      "end_date": "2019-12",
+      "duration_years": 1.6,
+      "responsibilities": [
+        "Serving customers bread and scrolls.",
+        "Cleaning the windows and the floor.",
+        "Handling cash and using the EFTPOS machine."
+      ],
+      "achievements": [
+        "Developed strong customer service skills and politeness under pressure."
+      ]
+    }
+  ],
+  "skills": {
+    "core_competencies": [
+      "Early childhood care",
+      "Nursery room management (0-2 years)",
+      "Activity planning",
+      "Parent communication (Storypark)",
+      "Child safety and hygiene"
+    ],
+    "technical_skills": [
+      "Storypark app",
+      "EFTPOS operation"
+    ],
+    "soft_skills": [
+      "Patience",
+      "Creativity (Art & Displays)",
+      "Politeness",
+      "Singing",
+      "Gardening"
+    ],
+    "certifications": [
+      "Working with Children Check (Employee) - 1554321A-01",
+      "First Aid (Valid until 2027)"
+    ],
+    "languages": []
+  },
+  "education": [
+    {
+      "institution": "Swinburne TAFE",
+      "qualification": "Certificate III in Early Childhood Education and Care",
+      "field_of_study": "Early Childhood Education",
+      "completion_date": "2022",
+      "grade": ""
+    },
+    {
+      "institution": "Hawthorn Secondary College",
+      "qualification": "Victorian Certificate of Education (VCE)",
+      "field_of_study": "General",
+      "completion_date": "2019",
+      "grade": ""
+    }
+  ],
+  "additional_information": {
+    "publications": [],
+    "grants": [],
+    "awards": [
+      {
+        "title": "Employee of the Month",
+        "body": "Happy Feet Early Learning Giant",
+        "year": "2023"
+      }
+    ],
+    "memberships": [],
+    "volunteer": [
+      {
+        "organisation": "Auburn Childcare",
+        "role": "Placement Student (Toddler Room)",
+        "period": "3 weeks"
+      },
+      {
+        "organisation": "Camberwell Grammar ELC",
+        "role": "Placement Student",
+        "period": "3 weeks"
+      }
+    ]
+  }
+}

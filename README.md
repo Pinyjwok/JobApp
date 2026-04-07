@@ -28,21 +28,22 @@ A multi-agent AI pipeline that transforms a raw CV and job description into a ta
 JobApp/
 ├── client/       # React frontend (Vite + Tailwind)
 ├── server/       # Express server + SSE streaming
-├── JOBAPP/       # KEMU Edge export (recipe + services)
-└── .general/     # Agent instructions and test docs
+├── recipe/       # KEMU Edge export (recipe + services)
+├── docs/         # Agent instructions and test docs
+└── workspace/    # Runtime state files (gitignored — written by agents)
 ```
 
 ## Setup
 
 ### Prerequisites
 - Node.js 22.2.0+
-- API keys for OpenRouter and Tavily (add to `JOBAPP/.env`)
+- API keys for OpenRouter and Tavily (add to `recipe/.env`)
 
 ### Install
 
 ```bash
 # Install recipe dependencies
-cd JOBAPP && npm install
+cd recipe && npm install
 
 # Install server dependencies
 cd ../server && npm install
@@ -65,7 +66,7 @@ Open `http://localhost:5173`.
 
 ## Environment variables
 
-Create `JOBAPP/.env`:
+Create `recipe/.env`:
 
 ```
 OPENROUTER_API_KEY=your_key_here

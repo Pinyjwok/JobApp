@@ -1,0 +1,375 @@
+{
+  "enhanced_jd": {
+    "company_context": {
+      "culture": "Passionate, purpose-driven, and collaborative 'Team Melbourne' environment. Champions of diversity with a strong emphasis on continuous improvement and children as active agents in learning.",
+      "mission_values": "Placing families and community at the heart of service. Committed to Melbourne's liveability, health, and vibrancy through child-centered, inclusive leadership and integrity.",
+      "recent_news": [
+        "Victorian 'Best Start, Best Life' reforms driving sector growth.",
+        "Roll-out of ECEC Worker Retention Grant (15% wage increase).",
+        "Strategic focus on opening 50 new government-owned centers by 2026."
+      ],
+      "strategic_direction": "Workforce attraction and retention focus (2025-2029), integrating First Nations Employment Plans and multidisciplinary family support services."
+    },
+    "interview_preparation": {
+      "key_themes": [
+        "Reflective practice and QIP contribution",
+        "Building relationships with diverse families",
+        "Inclusion and Aboriginal cultural safety"
+      ],
+      "likely_focus_areas": "Regulatory compliance (NQS), curriculum frameworks (VEYLDF), and practical application of child-centered learning."
+    },
+    "metadata": {
+      "enhanced_at": "2026-04-02T10:10:00Z",
+      "research_quality": "SUFFICIENT",
+      "source_jd": "jd_raw.txt"
+    },
+    "original_jd_summary": "The City of Melbourne is seeking Diploma-qualified Early Childhood Educators for full-time and part-time roles at North Melbourne and Lady Huntingfield centers. The roles focus on delivering high-quality, inclusive, play-based education aligned with VEYLDF and NQS within a community-centric local government framework.",
+    "requirements": {
+      "cultural_fit_attributes": [
+        "Commitment to Aboriginal and Torres Strait Islander ways of knowing and being.",
+        "Collaborative, purpose-driven mindset aligned with 'Team Melbourne' values.",
+        "Advocate for child agency and inclusive environments."
+      ],
+      "preferred_qualifications": [
+        "Experience working with vulnerable families and diverse communities.",
+        "Familiarity with Victorian Early Years Learning and Development Framework (VEYLDF).",
+        "Interest in sustainability and outdoor learning pedagogies."
+      ],
+      "required_qualifications": [
+        "Diploma in Early Childhood Education and Care (or equivalent).",
+        "Sound knowledge of Early Years Learning Framework (EYLF) and National Quality Standards (NQS).",
+        "Demonstrated ability in reflective practice and continuous improvement."
+      ]
+    },
+    "role_details": {
+      "key_responsibilities": [
+        "Plan and evaluate developmentally appropriate programs reflecting service philosophy and NQS.",
+        "Foster outdoor learning with a specific focus on education for sustainability.",
+        "Document learning and observations in compliance with CoM policies and regulatory requirements.",
+        "Actively contribute to center Quality Improvement Plans (QIP) and reflective practice.",
+        "Build partnerships with families and collaborate with multi-disciplinary City of Melbourne teams."
+      ],
+      "overview": "Educators work with Educational Leaders to implement best-practice programs (EYLF/VEYLDF) at City-managed centers, serving as a vital link between families, the community, and council services.",
+      "success_metrics": "High engagement in the center community, successful documentation of learning outcomes, contribution to positive NQS assessment ratings, and effective supervision of students/colleagues."
+    },
+    "what_you_get": {
+      "challenges_to_tackle": [
+        "Meeting high demand amidst state-wide educator shortages.",
+        "Integrating family services within a multi-disciplinary care model.",
+        "Maintaining excellence during rapid Victorian ECEC reforms."
+      ],
+      "company_strengths": [
+        "Remuneration significantly above award rates ($73k-$85k + 12% super).",
+        "Industry-leading parental leave (20 weeks fully paid).",
+        "Professional development support and study assistance."
+      ],
+      "growth_opportunities": "Career progression within a diverse local government structure and support for further qualifications."
+    }
+  },
+  "gap_analysis": {
+    "ats_keywords": [
+      "Early Childhood Education",
+      "Storypark",
+      "EYLF",
+      "NQS",
+      "Nursery care",
+      "Play-based learning",
+      "Documentation",
+      "Family partnerships",
+      "First Aid",
+      "WWCC",
+      "Gardening",
+      "Childhood development",
+      "Inclusive education"
+    ],
+    "fit_rationale": "Moderate match - meets 57% of baseline requirements with notable gaps (most significantly the required Diploma qualification).",
+    "gaps": [
+      {
+        "gap_text": "Diploma in Early Childhood Education and Care (or equivalent).",
+        "id": "gap_1",
+        "mitigation_strategy": "Clarify if currently enrolled in a Diploma program or equivalent upgrade pathways.",
+        "requirement_id": "req_1",
+        "requirement_source": "enhanced_jd.requirements.required_qualifications[0]",
+        "severity": "High",
+        "tier": "Baseline"
+      },
+      {
+        "gap_text": "Demonstrated ability in reflective practice and continuous improvement.",
+        "id": "gap_2",
+        "mitigation_strategy": "Provide specific examples of how you have adjusted your practice based on feedback or self-reflection.",
+        "requirement_id": "req_3",
+        "requirement_source": "enhanced_jd.requirements.required_qualifications[2]",
+        "severity": "High",
+        "tier": "Baseline"
+      },
+      {
+        "candidate_provided_evidence": "no",
+        "evidence_source": "user_provided",
+        "gap_text": "Actively contribute to center Quality Improvement Plans (QIP).",
+        "id": "gap_3",
+        "mitigation_strategy": "Highlight any involvement in health/safety audits or contribution to team meetings regarding center improvement.",
+        "requirement_id": "resp_4",
+        "requirement_source": "enhanced_jd.role_details.key_responsibilities[3]",
+        "severity": "High",
+        "tier": "Baseline"
+      },
+      {
+        "gap_text": "Familiarity with Victorian Early Years Learning and Development Framework (VEYLDF).",
+        "id": "gap_4",
+        "mitigation_strategy": "Review VEYLDF guidelines and highlight transferable knowledge from National EYLF.",
+        "requirement_id": "pref_2",
+        "requirement_source": "enhanced_jd.requirements.preferred_qualifications[1]",
+        "severity": "Medium",
+        "tier": "Differentiator"
+      }
+    ],
+    "metadata": {
+      "analyst_version": "2.1",
+      "analyzed_at": "2026-04-02T10:20:00Z",
+      "candidate_profile_source": "candidate_profile.json",
+      "enhanced_jd_source": "project_memory.json"
+    },
+    "overall_fit_score": 5,
+    "recommendations": [
+      {
+        "action_items": [
+          "Explicitly state enrollment status in Diploma if applicable.",
+          "Highlight 4+ years of professional experience as equivalent competency justification if allowed."
+        ],
+        "priority": "High",
+        "recommendation": "Address the qualification gap immediately as the role mandates a Diploma level."
+      },
+      {
+        "action_items": [
+          "Detail specific outcomes achieved using Storypark for parent communication.",
+          "Connect Cert III qualifications and placement experience to NQS requirements."
+        ],
+        "priority": "High",
+        "recommendation": "Leverage consistent experience with documentation and nursery care."
+      },
+      {
+        "action_items": [
+          "Update CV to include VEYLDF and QIP keywords, even if only in the context of currently 'developing expertise'."
+        ],
+        "priority": "Medium",
+        "recommendation": "Optimise for ATS and Framework alignment."
+      }
+    ],
+    "requirements": [
+      {
+        "candidate_status": "Gap",
+        "confidence_level": null,
+        "evidence_source": null,
+        "id": "req_1",
+        "requirement_text": "Diploma in Early Childhood Education and Care (or equivalent).",
+        "source": "enhanced_jd.requirements.required_qualifications[0]",
+        "tier": "Baseline"
+      },
+      {
+        "candidate_status": "Met",
+        "confidence_level": 4,
+        "evidence_source": "candidate_profile.additional_information.placements[1]",
+        "id": "req_2",
+        "requirement_text": "Sound knowledge of Early Years Learning Framework (EYLF) and National Quality Standards (NQS).",
+        "source": "enhanced_jd.requirements.required_qualifications[1]",
+        "tier": "Baseline"
+      },
+      {
+        "candidate_status": "Gap",
+        "confidence_level": null,
+        "evidence_source": null,
+        "id": "req_3",
+        "requirement_text": "Demonstrated ability in reflective practice and continuous improvement.",
+        "source": "enhanced_jd.requirements.required_qualifications[2]",
+        "tier": "Baseline"
+      },
+      {
+        "candidate_status": "Gap",
+        "confidence_level": null,
+        "evidence_source": null,
+        "id": "pref_1",
+        "requirement_text": "Experience working with vulnerable families and diverse communities.",
+        "source": "enhanced_jd.requirements.preferred_qualifications[0]",
+        "tier": "Differentiator"
+      },
+      {
+        "candidate_status": "Gap",
+        "confidence_level": null,
+        "evidence_source": null,
+        "id": "pref_2",
+        "requirement_text": "Familiarity with Victorian Early Years Learning and Development Framework (VEYLDF).",
+        "source": "enhanced_jd.requirements.preferred_qualifications[1]",
+        "tier": "Differentiator"
+      },
+      {
+        "candidate_status": "Met",
+        "confidence_level": 3,
+        "evidence_source": "candidate_profile.skills.soft_skills[3]",
+        "id": "pref_3",
+        "requirement_text": "Interest in sustainability and outdoor learning pedagogies.",
+        "source": "enhanced_jd.requirements.preferred_qualifications[2]",
+        "tier": "Differentiator"
+      },
+      {
+        "candidate_status": "Met",
+        "confidence_level": 3,
+        "evidence_source": "candidate_profile.additional_information.placements[0]",
+        "id": "resp_1",
+        "requirement_text": "Plan and evaluate developmentally appropriate programs reflecting service philosophy and NQS.",
+        "source": "enhanced_jd.role_details.key_responsibilities[0]",
+        "tier": "Baseline"
+      },
+      {
+        "candidate_status": "Met",
+        "confidence_level": 3,
+        "evidence_source": "candidate_profile.skills.soft_skills[3]",
+        "id": "resp_2",
+        "requirement_text": "Foster outdoor learning with a specific focus on education for sustainability.",
+        "source": "enhanced_jd.role_details.key_responsibilities[1]",
+        "tier": "Baseline"
+      },
+      {
+        "candidate_status": "Met",
+        "confidence_level": 5,
+        "evidence_source": "candidate_profile.work_history[0].responsibilities[3]",
+        "id": "resp_3",
+        "requirement_text": "Document learning and observations in compliance with CoM policies and regulatory requirements.",
+        "source": "enhanced_jd.role_details.key_responsibilities[2]",
+        "tier": "Baseline"
+      },
+      {
+        "candidate_status": "Gap",
+        "confidence_level": null,
+        "evidence_source": null,
+        "id": "resp_4",
+        "requirement_text": "Actively contribute to center Quality Improvement Plans (QIP) and reflective practice.",
+        "source": "enhanced_jd.role_details.key_responsibilities[3]",
+        "tier": "Baseline"
+      },
+      {
+        "candidate_status": "Met",
+        "confidence_level": 3,
+        "evidence_source": "candidate_profile.work_history[2].responsibilities[3]",
+        "id": "resp_5",
+        "requirement_text": "Build partnerships with families and collaborate with multi-disciplinary City of Melbourne teams.",
+        "source": "enhanced_jd.role_details.key_responsibilities[4]",
+        "tier": "Baseline"
+      }
+    ],
+    "strengths": [
+      {
+        "confidence_level": 4,
+        "evidence_source": "candidate_profile.additional_information.placements[1]",
+        "id": "strength_1",
+        "impact": "High",
+        "requirement_id": "req_2",
+        "strength_text": "Sound knowledge of Early Years Learning Framework (EYLF) and National Quality Standards (NQS).",
+        "tier": "Baseline"
+      },
+      {
+        "confidence_level": 5,
+        "evidence_source": "candidate_profile.work_history[0].responsibilities[3]",
+        "id": "strength_2",
+        "impact": "High",
+        "requirement_id": "resp_3",
+        "strength_text": "Document learning and observations in compliance with policies and regulatory requirements.",
+        "tier": "Baseline"
+      }
+    ],
+    "summary": {
+      "baseline_met": 4,
+      "baseline_requirements": 8,
+      "critical_gaps": 3,
+      "differentiator_met": 1,
+      "differentiator_requirements": 3,
+      "gaps_count": 4,
+      "requirements_met": 6,
+      "strengths_count": 2,
+      "total_requirements": 11
+    }
+  },
+  "metadata": {
+    "companyName": "City of Melbourne",
+    "createdAt": "2026-04-02T10:00:00Z",
+    "cv_source": "cv_raw.txt",
+    "jd_source": "jd_raw.txt",
+    "lastUpdated": "2026-04-01T12:05:00Z",
+    "positionTitle": "Qualified Early Childhood Educator (Diploma)",
+    "sector": "Early Childhood Education",
+    "status": "TONE_ANALYZED",
+    "version": "1.0"
+  },
+  "research_data": {
+    "culture_overview": "The workplace culture is described as passionate, purpose-driven, and collaborative. There is a strong emphasis on being a champion of diversity and fostering an environment of continuous improvement. Team Melbourne values a forward-thinking approach where work is seen as making a meaningful impact on the city's future and ensuring children are treated as active agents in their own learning.",
+    "hiring_unit": "North Melbourne Children's Centre & Lady Huntingfield Early Learning & Family Services Centre",
+    "interview_focus": "Preparation should focus on the Victorian Early Years Learning and Development Framework (VEYLDF) and the National Quality Standards (NQS). Candidates should demonstrate experience in play-based educational programs, documenting learning according to regulatory requirements, and building relationships with vulnerable families. There is a strong emphasis on reflective practice and contributing to the Quality Improvement Plan (QIP).",
+    "key_strengths": [
+      "High-quality parental leave entitlements (20 weeks fully paid for primary carers).",
+      "Strong focus on education for sustainability and outdoor learning.",
+      "Commitment to Aboriginal and Torres Strait Islander ways of knowing and being.",
+      "Excellent pay packages above award rates combined with flexible working arrangements."
+    ],
+    "known_challenges": [
+      "State-wide shortage of qualified early childhood educators, with high projected demand through 2029.",
+      "The need to attract and retain staff in urban growth corridors in Melbourne.",
+      "Maintaining high standards of child safety and regulatory compliance amidst rapid sector growth."
+    ],
+    "mission_values": "City of Melbourne is committed to placing people, families, and community at the heart of their work. Their vision is to maintain Melbourne as a liveable, healthy, and vibrant city for all, emphasizing accessibility for a diverse population. Core values include being child-centered, inclusive, and acting with integrity and leadership in serving the community's needs.",
+    "recent_developments": [
+      "Implementation of the 'Best Start, Best Life' reforms in Victoria, significantly increasing demand for early childhood professionals.",
+      "Roll-out of the Australian Government's ECEC Worker Retention Grant providing a 15% wage increase above modern award rates.",
+      "Victorian Department of Education initiative to open 50 new government-owned childcare centers by 2026."
+    ],
+    "strategic_plan": "The strategic focus for 2025-2029 involves a comprehensive strategy to attract and retain the workforce in partnership with the sector. This includes the First Nations Employment Plan and supporting professional development to maximize child safety. The overarching goal is to ensure every community member can access support through high-quality childcare and family programs."
+  },
+  "review_audit": {
+    "approved_items": [
+      {
+        "category": "Strength",
+        "confidence_level": 5,
+        "item_id": "strength_1"
+      },
+      {
+        "category": "Gap",
+        "confidence_level": 5,
+        "item_id": "gap_1"
+      },
+      {
+        "category": "Gap",
+        "confidence_level": 5,
+        "item_id": "gap_2"
+      }
+    ],
+    "issues_found": [
+      {
+        "category": "Strength",
+        "confidence_level": 3,
+        "issue_type": "A - Evidence Mismatch",
+        "item_id": "strength_2",
+        "notes": "Evidence path found but lacked specific mention of regulatory/policy documentation context beyond app usage. User skipped resolution.",
+        "severity": "Medium",
+        "user_backed": false
+      }
+    ],
+    "metadata": {
+      "analyst_version": "2.1",
+      "reviewed_at": "2026-04-02T10:45:00Z",
+      "reviewer_version": "1.9"
+    },
+    "overall_verdict": "APPROVED",
+    "rejection_reason": null,
+    "summary": {
+      "approved_items": 3,
+      "critical_issues": 0,
+      "fit_score_accurate": true,
+      "high_issues": 0,
+      "low_issues": 0,
+      "medium_issues": 1,
+      "total_issues": 1,
+      "total_items_audited": 28,
+      "unresolved_issues": 1,
+      "user_backed_items": 0
+    }
+  },
+  "tailored_cv": null
+}

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(update-config)",
+      "Bash(wc -l /Users/piny/JobApp/.general/instructions/*.md /Users/piny/JobApp/.general/instructions/assembly/*.md)",
+      "Bash(grep -n \"SwitchAgent\\(\" .general/instructions/assembly/*.md)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Bash(ls /Users/piny/JobApp/*.json /Users/piny/JobApp/*.txt)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''Status:'''', d.get\\(''''metadata'''',{}\\).get\\(''''status''''\\)\\); print\\(''''Company:'''', d.get\\(''''metadata'''',{}\\).get\\(''''companyName''''\\)\\); print\\(''''Position:'''', d.get\\(''''metadata'''',{}\\).get\\(''''positionTitle''''\\)\\); print\\(''''Updated:'''', d.get\\(''''metadata'''',{}\\).get\\(''''lastUpdated''''\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''Status:'''', d.get\\(''''metadata'''',{}\\).get\\(''''status''''\\)\\); print\\(''''current_phase:'''', d.get\\(''''current_phase''''\\)\\)\" ls -la /Users/piny/JobApp/*.json /Users/piny/JobApp/*.txt)",
+      "Bash(find /Users/piny/JobApp -not -path */.general/* -not -path */.claude/*)",
+      "Bash(ls:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''Status:'''', d.get\\(''''metadata'''',{}\\).get\\(''''status''''\\)\\)\")",
+      "Bash(python3:*)",
+      "Bash(mkdir:*)",
+      "Bash(grep -E \"\\\\.\\(md|json\\)$\")",
+      "Bash(grep:*)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

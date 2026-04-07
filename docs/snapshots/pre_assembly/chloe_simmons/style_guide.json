@@ -1,0 +1,109 @@
+{
+  "metadata": {
+    "analyzed_at": "2026-03-31T12:20:00Z",
+    "analyzer_version": "1.4",
+    "source_files": {
+      "cv": "cv_raw.txt",
+      "cover_letter": "cover_letter_sample.txt"
+    },
+    "user_seniority": {
+      "level": "Senior",
+      "years_experience": 6,
+      "role_indicators": [
+        "leading",
+        "strategic",
+        "overseeing",
+        "driving"
+      ],
+      "user_confirmed": true
+    }
+  },
+  "cv_style": {
+    "word_choices": {
+      "diction_level": "Plain English Professional",
+      "jargon_usage": "Low",
+      "signature_words": [
+        "looking",
+        "setting",
+        "helping",
+        "filling",
+        "cleaning"
+      ]
+    },
+    "sentence_rhythm": {
+      "rhythm_style": "Punchy",
+      "avg_length": 8,
+      "clarity_level": "Straight to the point"
+    },
+    "perspective": {
+      "primary_perspective": "Mixed",
+      "percent_implicit": 50,
+      "percent_first_person": 50
+    },
+    "tone": {
+      "warmth_scale": "Professional",
+      "confidence_level": "Balanced",
+      "formality": "Semi-formal"
+    },
+    "emphasis_style": {
+      "achievement_style": "Descriptive",
+      "quantification_frequency": "Low"
+    },
+    "layout_preferences": {
+      "primary_format": "Bullets",
+      "bullet_style": "Concise single-line"
+    }
+  },
+  "cover_letter_style": {
+    "word_choices": {
+      "diction_level": "Warm/Conversational",
+      "jargon_usage": "Low"
+    },
+    "sentence_rhythm": {
+      "rhythm_style": "Narrative",
+      "avg_length": 14
+    },
+    "perspective": {
+      "primary_perspective": "First Person",
+      "percent_first_person": 100
+    },
+    "tone": {
+      "warmth_scale": "Warm",
+      "confidence_level": "Modest"
+    }
+  },
+  "agreed_approaches": {
+    "issue_resolutions": [
+      {
+        "issue": "Spelling/Typing Errors",
+        "user_decision": "Apply fix",
+        "constructor_instruction": "Correct to professional Australian English ('Educator', 'ad', 'Responsibilities')."
+      },
+      {
+        "issue": "Objective statement instead of professional summary",
+        "user_decision": "Apply fix",
+        "constructor_instruction": "Replace with strategic profile paragraph (C.A.R.E.R. framework) highlighting 6+ years seniority."
+      },
+      {
+        "issue": "Inconsistent Perspective",
+        "user_decision": "Apply fix",
+        "constructor_instruction": "Standardise to Implicit First Person for all bullet points."
+      },
+      {
+        "issue": "Missing quantification",
+        "user_decision": "Apply fix",
+        "constructor_instruction": "Add specific metrics where possible (%, $, team size, time frames) to descriptive achievements."
+      },
+      {
+        "issue": "Uses 'References available upon request'",
+        "user_decision": "Apply fix",
+        "constructor_instruction": "Remove - this is outdated convention. Assume references available."
+      },
+      {
+        "issue": "Weak action verbs",
+        "user_decision": "Apply fix",
+        "constructor_instruction": "Replace weak verbs with 'Facilitated', 'Sanitised', 'Documented'."
+      }
+    ]
+  }
+}

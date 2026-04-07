@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "last_updated": "2026-03-31T15:05:00Z",
+    "total_turns": 11
+  },
+  "turns": [
+    {
+      "agent": "Credentials Formatter",
+      "timestamp": "2026-03-31T14:45:00Z",
+      "action": "credentials_formatting_complete",
+      "message": "Formatted 2 education entries and 2 certifications.",
+      "next_agent": "Assembly Coordinator"
+    },
+    {
+      "agent": "CoverLetter Writer",
+      "timestamp": "2026-03-31T15:05:00Z",
+      "action": "coverletter_complete",
+      "message": "Cover letter written for Qualified Early Childhood Educator (Diploma) at City of Melbourne. 284 words.",
+      "next_agent": "Assembly Coordinator"
+    }
+  ]
+}

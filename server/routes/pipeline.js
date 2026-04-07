@@ -11,7 +11,7 @@ let recipe = null;
 let DataType = null;
 
 export async function initRecipe(projectDir) {
-  const recipePath = join(projectDir, 'JOBAPP');
+  const recipePath = join(projectDir, 'recipe');
 
   // Import edge runtime from the recipe's own node_modules using a file URL
   const runtimePath = join(recipePath, 'node_modules', '@kemu-io', 'edge-runtime', 'runner.js');
@@ -101,7 +101,7 @@ router.post('/message', async (req, res) => {
 // GET /api/status — read current pipeline status from project_memory.json
 router.get('/status', (req, res) => {
   try {
-    const memPath = join(dirname(dirname(__dirname)), 'project_memory.json');
+    const memPath = join(dirname(dirname(__dirname)), 'workspace', 'project_memory.json');
     const memory = JSON.parse(readFileSync(memPath, 'utf8'));
     res.json({
       status: memory?.metadata?.status ?? null,
