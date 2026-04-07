@@ -1,0 +1,199 @@
+{
+  "name": "kemu.io.file-system",
+  "version": "1.4.0",
+  "title": "File System",
+  "description": "Allows access to the file system to scan, read and write files and directories",
+  "processor": "js",
+  "widgetUI": true,
+  "processingTimeoutSec": 0,
+  "svgIcon": "scanner.svg",
+  "color": "#4e3eff",
+  "mdHelp": "/docs/help/service.md",
+  "inputs": [
+    {
+      "name": "path",
+      "type": "String",
+      "description": "The path to scan"
+    },
+    {
+      "name": "ignorePaths",
+      "type": "String",
+      "description": "A comma separated list of paths to ignore"
+    },
+    {
+      "name": "scan",
+      "description": "Executes the scan operation when this input is triggered",
+      "triggerPort": true,
+      "type": "Anything"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "files",
+      "description": "list of file paths",
+      "type": "Array"
+    }
+  ],
+  "defaultVariantInfo": {
+    "title": "Scan Directory",
+    "shortTitle": "Scan",
+    "description": "Scans a directory for files"
+  },
+  "variants": [
+    {
+      "id": "filter-glob",
+      "name": "Glob Filter",
+      "description": "Filters a list of files based on a list of glob patterns",
+      "svgIcon": "filter-glob.svg",
+      "inputs": [
+        {
+          "name": "files",
+          "type": "Array",
+          "description": "A list of file paths"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "files",
+          "type": "Array",
+          "description": "A filtered list of file paths"
+        }
+      ],
+      "color": "#4e3eff"
+    },
+    {
+      "id": "filter-mime-type",
+      "name": "Filter Mime Type",
+      "description": "Filters a list of files based on a list of mime types",
+      "svgIcon": "filter-mime-type.svg",
+      "color": "#4e3eff",
+      "inputs": [
+        {
+          "name": "files",
+          "type": "Array",
+          "description": "A list of file paths"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "files",
+          "type": "Array",
+          "description": "A filtered list of file paths"
+        }
+      ]
+    },
+    {
+      "id": "read-contents",
+      "name": "Read Contents",
+      "description": "Reads the contents of a file or a list of files. If a single file path is provided, the contents will be returned as a 'DataType.BinaryFile' object. If a list of file paths is provided, the contents will be returned as an 'Array' of 'DataType.BinaryFile' objects.",
+      "svgIcon": "read-contents.svg",
+      "color": "#4e3eff",
+      "inputs": [
+        {
+          "name": "files",
+          "type": [
+            "Array",
+            "String"
+          ],
+          "description": "A list of file paths to read or a single file path"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "contents",
+          "type": [
+            "Array",
+            "BinaryFile"
+          ],
+          "description": "A list of file contents in 'DataType.BinaryFile' format"
+        }
+      ]
+    },
+    {
+      "id": "write-contents",
+      "name": "Write Contents",
+      "description": "Writes the contents of a file",
+      "svgIcon": "write-contents.svg",
+      "color": "#4e3eff",
+      "inputs": [
+        {
+          "name": "path",
+          "type": "String",
+          "description": "The full path to the file to write"
+        },
+        {
+          "name": "contents",
+          "type": "BinaryFile",
+          "description": "The contents to write"
+        },
+        {
+          "name": "write",
+          "type": "Anything",
+          "description": "Executes the write operation when this input is triggered",
+          "triggerPort": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "success",
+          "type": "Boolean",
+          "description": "Whether the file was written successfully"
+        }
+      ]
+    },
+    {
+      "id": "file-to-text",
+      "name": "File To Text",
+      "description": "Converts a binary file to text using the specified encoding",
+      "svgIcon": "file-to-text.svg",
+      "color": "#4e3eff",
+      "inputs": [
+        {
+          "name": "file",
+          "type": "BinaryFile",
+          "description": "The binary file to convert to text"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "String",
+          "description": "The file contents as text in the specified encoding"
+        }
+      ]
+    },
+    {
+      "id": "delete-file",
+      "name": "Delete File",
+      "description": "Deletes a file or directory at the specified path",
+      "svgIcon": "delete-file.svg",
+      "color": "#4e3eff",
+      "inputs": [
+        {
+          "name": "path",
+          "type": "String",
+          "description": "The full path to the file or directory to delete"
+        },
+        {
+          "name": "delete",
+          "type": "Anything",
+          "description": "Executes the delete operation when this input is triggered",
+          "triggerPort": true
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "supportedPlatforms": [
+    "win-x86",
+    "win-x64",
+    "osx-x64",
+    "osx-arm64",
+    "linux-debian-x64",
+    "linux-debian-arm64",
+    "linux-rhel-x64",
+    "linux-rhel-arm64"
+  ],
+  "author": "0f998d5a-a8ce-4bf8-9f84-fa8c481cb40b",
+  "publicationId": "kemu.io.file-system-osx-arm64-1.4.0"
+}

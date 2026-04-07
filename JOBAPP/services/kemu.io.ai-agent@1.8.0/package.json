@@ -1,0 +1,35 @@
+{
+  "name": "test.kemu.io.ai-agent",
+  "version": "0.0.1",
+  "description": "AI Agent with tool calls and multi-model selection",
+  "main": "dist/widgetUI.js",
+  "files": [
+    "dist/**/*"
+  ],
+  "engines": {
+    "node": ">=22.2.0",
+    "npm": ">=10.7.0"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "release": "gulp release",
+    "start-server": "npm run copyFiles && npm run copyFolders && webpack serve",
+    "dev": "tsc-watch --noClear -p tsconfig.json --onSuccess \"npm run build\"",
+    "build:processor": "tsc -p tsconfig-processor.json && npm run copyFiles && npm run copyFolders",
+    "build": "rimraf dist/ && webpack --mode production && npm run build:processor",
+    "lint": "ESLINT_USE_FLAT_CONFIG=true eslint -c eslint.config.mjs src/**/*.ts",
+    "copyFolders": "copyfiles -u 1 src/assets/**/* src/customWidgets/*.json dist/",
+    "copyFiles": "copyfiles -f src/manifest.json src/*.svg src/assets/**/* dist/"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@kemu-io/hs": "^0.10.4",
+    "@napi-rs/canvas": "^0.1.80",
+    "openai": "^6.3.0",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "typeconv": "^2.3.1"
+  }
+}

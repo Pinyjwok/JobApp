@@ -1,0 +1,12 @@
+{
+  "name": "kemu-edge",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "services/kemu.io.ai-agent@1.8.0",
+    "services/kemu.io.file-system@1.4.0"
+  ],
+  "dependencies": {
+    "@kemu-io/edge-runtime": "^1.12.3"
+  }
+}

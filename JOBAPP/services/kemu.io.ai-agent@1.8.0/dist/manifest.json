@@ -1,0 +1,171 @@
+{
+  "name": "kemu.io.ai-agent",
+  "version": "1.8.0",
+  "title": "AI Agent",
+  "description": "Define AI agents and tools for automated workflows",
+  "processor": "js",
+  "widgetUI": true,
+  "settingsUI": false,
+  "eventEmitter": true,
+  "ignoreParentEvents": false,
+  "svgIcon": "icon.svg",
+  "color": "#42a5f5",
+  "mdHelp": "/docs/help/service.md",
+  "customWidgets": [
+    "customWidgets/memoryHistory.json"
+  ],
+  "inputs": [
+    {
+      "name": "config",
+      "description": "Configuration object containing query, attachments, sessionId, and systemInstructions. Can also be a string to be used as query or a boolean to trigger processing.",
+      "type": [
+        "JsonObj",
+        "Boolean",
+        "String",
+        "Anything"
+      ]
+    },
+    {
+      "name": "abort",
+      "description": "Abort current query signal",
+      "type": "Anything"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "tools",
+      "type": "JsonObj"
+    },
+    {
+      "name": "history",
+      "type": "JsonObj"
+    },
+    {
+      "name": "json",
+      "type": "JsonObj"
+    },
+    {
+      "name": "text",
+      "type": "String"
+    },
+    {
+      "name": "stream",
+      "type": "String"
+    },
+    {
+      "name": "reasoning",
+      "description": "Reasoning output from models that support extended thinking",
+      "type": "String"
+    },
+    {
+      "name": "images",
+      "description": "Generated images as ImageData array",
+      "type": "Array"
+    },
+    {
+      "name": "debug",
+      "description": "Includes debugging information for when things go wrong, including stopping reason",
+      "type": "JsonObj"
+    }
+  ],
+  "supportedPlatforms": [
+    "win-x86",
+    "win-x64",
+    "osx-x64",
+    "osx-arm64",
+    "linux-debian-arm64",
+    "linux-debian-x64",
+    "linux-rhel-arm64",
+    "linux-rhel-x64"
+  ],
+  "author": "0f998d5a-a8ce-4bf8-9f84-fa8c481cb40b",
+  "defaultVariantInfo": {
+    "title": "Agent",
+    "shortTitle": "Agent",
+    "description": "AI agent that processes queries with system instructions and attachments"
+  },
+  "variants": [
+    {
+      "id": "chatInterface",
+      "name": "Chat Interface",
+      "description": "Chat window UI that can invoke an Agent and display live outputs",
+      "svgIcon": "chat.svg",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "config",
+          "description": "Agent invocation config (wire to Agent.config)",
+          "type": "JsonObj"
+        },
+        {
+          "name": "abort",
+          "description": "Abort signal (wire to Agent.abort)",
+          "type": "Anything"
+        }
+      ],
+      "color": "#626060"
+    },
+    {
+      "id": "tool",
+      "name": "Tool",
+      "description": "Define tools with arguments and results for AI agents",
+      "svgIcon": "tool.svg",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Tool input data",
+          "type": "JsonObj"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "arguments",
+          "description": "Tool arguments",
+          "type": "JsonObj"
+        }
+      ],
+      "color": "#42a5f5"
+    },
+    {
+      "id": "submit",
+      "name": "Submit",
+      "description": "Submits data back to the agent after a tool execution or history retrieval",
+      "svgIcon": "submit.svg",
+      "inputs": [
+        {
+          "name": "input",
+          "description": "Data to submit",
+          "type": "Anything"
+        }
+      ],
+      "color": "#68bb6c"
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "description": "Manage conversation history and session storage for AI agents",
+      "svgIcon": "history.svg",
+      "inputs": [
+        {
+          "name": "agent",
+          "description": "Connect to the agent",
+          "type": "JsonObj"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "getHistory",
+          "description": "Invoked when the agent needs to retrieve the conversation history",
+          "type": "JsonObj"
+        },
+        {
+          "name": "updateHistory",
+          "description": "Invoked when the agent needs to update the conversation history",
+          "type": "JsonObj"
+        }
+      ],
+      "color": "#eac43e"
+    }
+  ],
+  "publicationId": "kemu.io.ai-agent-osx-arm64-1.8.0"
+}
