@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment / secrets
+.env
+**/.env
+
+# KEMU recipe binary/lock
+JOBAPP/node_modules/
+JOBAPP/package-lock.json
+
+# Build output
+client/dist/
+
+# Runtime state files (generated per job application)
+project_memory.json
+candidate_profile.json
+cv_assembly_state.json
+agent_reasoning.json
+conversation_history.json
+style_guide.json
+enhanced_jd.json
+cv_raw.txt
+jd_raw.txt
+cover_letter_sample.txt
+
+# macOS
+.DS_Store
+**/.DS_Store
