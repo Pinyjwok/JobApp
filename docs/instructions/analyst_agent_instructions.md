@@ -1004,4 +1004,4 @@ SwitchAgent(
 
 ---
 
-*End of Analyst Agent v2.2 Instructions*
+*End of Analyst Agent v2.3 Instructions*

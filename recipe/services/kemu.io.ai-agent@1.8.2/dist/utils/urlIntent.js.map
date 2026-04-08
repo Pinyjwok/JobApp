@@ -1,0 +1,1 @@
+{"version":3,"file":"urlIntent.js","sourceRoot":"","sources":["../../src/utils/urlIntent.ts"],"names":[],"mappings":"AAAA,MAAM,kBAAkB,GACtB,6OAA6O,CAAC;AAEhP;;;;;GAKG;AACH,MAAM,CAAC,MAAM,qBAAqB,GAAG,CAAC,MAAc,EAAW,EAAE;IAC/D,OAAO,kBAAkB,CAAC,IAAI,CAAC,MAAM,CAAC,CAAC;AACzC,CAAC,CAAC"}

@@ -27,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | JD Enhancer | v1.4 | `jd_enhancer_instructions.md` |
 | Analyst | v2.3 | `analyst_agent_instructions.md` |
 | Reviewer | v2.2 | `reviewer_agent_instructions.md` |
-| Tone Analyst | v1.9 | `tone_analyst_agent_instructions.md` |
+| Tone Analyst | v2.0 | `tone_analyst_agent_instructions.md` |
 | Assembly Coordinator | v3.9 | `assembly_coordinator_agent_instructions.md` |
 | Style Negotiator | v1.6 | `style_negotiator_instructions.md` |
 | Profile Builder | v1.6 | `profile_builder_instructions.md` |

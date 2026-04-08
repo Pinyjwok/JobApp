@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "services/kemu.io.ai-agent@1.8.0",
+    "services/kemu.io.ai-agent@1.8.2",
     "services/kemu.io.file-system@1.4.0"
   ],
   "dependencies": {

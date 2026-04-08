@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { ChatWindow } from './components/ChatWindow';
 import { MessageInput } from './components/MessageInput';
 import { StatusBar } from './components/StatusBar';
@@ -19,6 +19,24 @@ export default function App() {
   const [inspectorRefresh, setInspectorRefresh] = useState(0);
   const turnCounterRef = useRef(0);
   const stallTimerRef = useRef(null);
+
+  // Load persisted chat history on mount
+  useEffect(() => {
+    fetch('/api/history')
+      .then((r) => r.json())
+      .then((saved) => { if (saved.length) setMessages(saved); })
+      .catch(() => {});
+  }, []);
+
+  function saveHistory(msgs) {
+    // Strip ephemeral fields before saving
+    const clean = msgs.map(({ streaming, stalled, ...m }) => m);
+    fetch('/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(clean),
+    }).catch(() => {});
+  }
 
   useStream(
     useCallback((data) => {
@@ -51,10 +69,11 @@ export default function App() {
         clearTimeout(stallTimerRef.current);
         setMessages((prev) => {
           const last = prev[prev.length - 1];
-          if (last?.streaming) {
-            return [...prev.slice(0, -1), { ...last, streaming: false, stalled: false }];
-          }
-          return prev;
+          const next = last?.streaming
+            ? [...prev.slice(0, -1), { ...last, streaming: false, stalled: false }]
+            : prev;
+          saveHistory(next);
+          return next;
         });
         setInspectorRefresh((n) => n + 1);
         fetch('/api/status')
@@ -92,7 +111,11 @@ export default function App() {
 
   async function handleSend(text) {
     setLastUserMessage(text);
-    setMessages((prev) => [...prev, { role: 'user', text }]);
+    setMessages((prev) => {
+      const next = [...prev, { role: 'user', text }];
+      saveHistory(next);
+      return next;
+    });
     setSending(true);
     try {
       await fetch('/api/message', {
@@ -110,21 +133,25 @@ export default function App() {
     }
   }
 
-  async function handleUpload(name, fileObj) {
-    const lower = name.toLowerCase();
+  async function handleUpload(name, fileObj, forcedTarget = null) {
     let target;
-    if (lower.includes('cover') || lower.includes('cl_') || lower.includes('_cl')) {
-      target = 'cover_letter_sample';
-    } else if (lower.includes('cv') || lower.includes('resume')) {
-      target = 'cv_raw';
-    } else if (lower.includes('jd') || lower.includes('job')) {
-      target = 'jd_raw';
+    if (forcedTarget) {
+      target = forcedTarget;
     } else {
-      const choice = prompt(`What is "${name}"? Type "cv", "jd", or "cover":`);
-      if (choice?.toLowerCase().startsWith('cv')) target = 'cv_raw';
-      else if (choice?.toLowerCase().startsWith('jd')) target = 'jd_raw';
-      else if (choice?.toLowerCase().startsWith('cover')) target = 'cover_letter_sample';
-      else return;
+      const lower = name.toLowerCase();
+      if (lower.includes('cover') || lower.includes('cl_') || lower.includes('_cl')) {
+        target = 'cover_letter_sample';
+      } else if (lower.includes('cv') || lower.includes('resume')) {
+        target = 'cv_raw';
+      } else if (lower.includes('jd') || lower.includes('job')) {
+        target = 'jd_raw';
+      } else {
+        const choice = prompt(`What is "${name}"? Type "cv", "jd", or "cover":`);
+        if (choice?.toLowerCase().startsWith('cv')) target = 'cv_raw';
+        else if (choice?.toLowerCase().startsWith('jd')) target = 'jd_raw';
+        else if (choice?.toLowerCase().startsWith('cover')) target = 'cover_letter_sample';
+        else return;
+      }
     }
 
     try {

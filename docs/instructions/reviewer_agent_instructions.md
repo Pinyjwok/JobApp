@@ -1247,4 +1247,4 @@ SwitchAgent(
 | **Phase 8 — skip marker** | "skip" responses now write `__skipped__` marker so the gap is not re-asked on next invocation. |
 | **reviewer_version updated to 2.0** | Version string in reviewAudit.metadata updated to match. |
 
-*End of Reviewer Agent v2.0 Instructions*
+*End of Reviewer Agent v2.2 Instructions*

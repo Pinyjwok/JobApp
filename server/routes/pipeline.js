@@ -198,6 +198,8 @@ router.post('/reset', async (req, res) => {
     for (const f of files) {
       rmSync(join(WORKSPACE_DIR, f));
     }
+    // Clear chat history
+    try { rmSync(HISTORY_FILE); } catch {}
     // Reset routing
     await recipe.globalVariables.setValue('AgentSelector', 'Main Orchestrator');
     console.log('[reset] workspace cleared, AgentSelector → Main Orchestrator');
@@ -264,4 +266,28 @@ router.post('/inject', express.json(), (req, res) => {
   broadcast({ type: 'stream_token', chunk: message });
   broadcast({ type: 'stream_done' });
   res.json({ ok: true });
+});
+
+const HISTORY_FILE = join(PROJECT_DIR, 'chat_history.json');
+
+// GET /api/history — load persisted chat messages
+router.get('/history', (req, res) => {
+  try {
+    const data = readFileSync(HISTORY_FILE, 'utf8');
+    res.json(JSON.parse(data));
+  } catch {
+    res.json([]);
+  }
+});
+
+// POST /api/history — save full messages array
+router.post('/history', express.json({ limit: '10mb' }), (req, res) => {
+  try {
+    const messages = req.body;
+    if (!Array.isArray(messages)) return res.status(400).json({ error: 'array expected' });
+    writeFileSync(HISTORY_FILE, JSON.stringify(messages, null, 2));
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });

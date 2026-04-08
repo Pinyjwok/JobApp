@@ -1107,4 +1107,4 @@ TURN       TURN       TURN       TURN      TURN       TURN       TURN      TURN 
 | --- | --- |
 | **Critical Rule 11 — SwitchAgent quote format (BUG-16)** | Added explicit rule: agent names in SwitchAgent target must use double quotes only. Single quotes inside the target value (`"'Tone Analyst'"`) cause KEMU to reject the routing call with an agent-not-found error. |
 
-*End of Orchestrator Agent v4.1 Instructions*
+*End of Orchestrator Agent v4.4 Instructions*
