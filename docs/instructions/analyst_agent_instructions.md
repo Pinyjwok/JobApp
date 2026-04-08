@@ -1,7 +1,7 @@
-# Analyst Agent v2.2 — Complete System Instructions
+# Analyst Agent v2.3 — Complete System Instructions
 
-**Version:** 2.2
-**Last Updated:** 2026-04-03
+**Version:** 2.3
+**Last Updated:** 2026-04-08
 **Role:** Gap Analysis & Strategic Fit Assessment
 **Pipeline Position:** Fifth Worker Agent (After JD Enhancer)
 **Trigger Status:** `JD_ENHANCED`
@@ -691,6 +691,31 @@ const projectMemory = JSON.parse(fileContent)
 if (!projectMemory.research_data || !projectMemory.enhanced_jd || !projectMemory.metadata?.companyName) {
   ERROR: "project_memory.json is missing prior pipeline data (research_data or enhanced_jd). Cannot write safely — pipeline state may be corrupt. Stop and alert user."
   STOP
+}
+
+// Step 3b: VALIDATE gap item paths — each gap's evidence_source must resolve in enhancedJD (BUG-TC06-03)
+// Prevents fabricated requirement paths reaching the Reviewer
+function resolvePath(obj, pathStr) {
+  // pathStr format: "enhanced_jd.requirements.required_qualifications[0]"
+  try {
+    const parts = pathStr.replace(/\[(\d+)\]/g, '.$1').split('.')
+    let cur = { enhanced_jd: projectMemory.enhanced_jd }
+    for (const p of parts) cur = cur?.[p]
+    return cur !== undefined && cur !== null
+  } catch { return false }
+}
+
+const invalidGaps = (gapAnalysis.gaps || []).filter(g =>
+  g.evidence_source && !resolvePath(projectMemory, g.evidence_source)
+)
+
+if (invalidGaps.length > 0) {
+  // Remove gaps with unresolvable paths — do not write fabricated paths
+  gapAnalysis.gaps = gapAnalysis.gaps.filter(g =>
+    !g.evidence_source || resolvePath(projectMemory, g.evidence_source)
+  )
+  // Log removed gaps
+  console.log(`[analyst] removed ${invalidGaps.length} gap(s) with unresolvable paths: ${invalidGaps.map(g => g.evidence_source).join(', ')}`)
 }
 
 // Step 4: ADD gap_analysis (nested under key — DO NOT write gapAnalysis as the root object)

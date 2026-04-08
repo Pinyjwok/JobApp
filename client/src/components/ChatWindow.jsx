@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -24,6 +24,61 @@ const mdComponents = {
   td: ({ children }) => <td className="border border-slate-600 px-2 py-1 text-slate-300">{children}</td>,
 };
 
+const ERROR_RE = /\b(error|failed|critical|cannot|undefined)\b/i;
+
+function AgentBubble({ msg }) {
+  const [showReasoning, setShowReasoning] = useState(false);
+  const hasError = ERROR_RE.test(msg.text);
+  const hasReasoning = msg.reasoning?.trim().length > 0;
+
+  return (
+    <div className={`relative w-full max-w-[90%] rounded-2xl px-4 py-3 text-sm bg-slate-800 text-slate-300 ${hasError ? 'border border-red-700' : ''}`}>
+      {/* Header row */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs text-violet-400 font-medium">{msg.agent ?? 'Agent'}</span>
+        {msg.cost != null && (
+          <span className="text-xs text-slate-500">${msg.cost.toFixed(4)}</span>
+        )}
+        {msg.turn != null && (
+          <span className="text-xs text-slate-600 ml-auto">#{msg.turn}</span>
+        )}
+        {msg.streaming && !msg.stalled && (
+          <span className="inline-flex gap-0.5 ml-auto">
+            <span className="w-1 h-1 rounded-full bg-violet-400 animate-bounce [animation-delay:0ms]" />
+            <span className="w-1 h-1 rounded-full bg-violet-400 animate-bounce [animation-delay:150ms]" />
+            <span className="w-1 h-1 rounded-full bg-violet-400 animate-bounce [animation-delay:300ms]" />
+          </span>
+        )}
+        {msg.stalled && (
+          <span className="text-xs text-amber-400 ml-auto">⚠ Waiting…</span>
+        )}
+      </div>
+
+      {/* Message body */}
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+        {msg.text}
+      </ReactMarkdown>
+
+      {/* Reasoning toggle */}
+      {hasReasoning && (
+        <div className="mt-2 border-t border-slate-700 pt-2">
+          <button
+            onClick={() => setShowReasoning((v) => !v)}
+            className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            {showReasoning ? '▲ Hide reasoning' : '▼ Show reasoning'}
+          </button>
+          {showReasoning && (
+            <pre className="mt-2 text-xs text-slate-400 bg-slate-900 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
+              {msg.reasoning}
+            </pre>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ChatWindow({ messages }) {
   const bottomRef = useRef(null);
 
@@ -38,35 +93,13 @@ export function ChatWindow({ messages }) {
           key={i}
           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
-          <div
-            className={`rounded-2xl px-4 py-3 text-sm ${
-              msg.role === 'user'
-                ? 'max-w-[75%] bg-violet-600 text-white'
-                : 'w-full max-w-[90%] bg-slate-800 text-slate-300'
-            }`}
-          >
-            {msg.role === 'agent' && (
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs text-violet-400 font-medium">
-                  {msg.agent ?? 'Agent'}
-                </span>
-                {msg.streaming && (
-                  <span className="inline-flex gap-0.5">
-                    <span className="w-1 h-1 rounded-full bg-violet-400 animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1 h-1 rounded-full bg-violet-400 animate-bounce [animation-delay:150ms]" />
-                    <span className="w-1 h-1 rounded-full bg-violet-400 animate-bounce [animation-delay:300ms]" />
-                  </span>
-                )}
-              </div>
-            )}
-            {msg.role === 'user' ? (
+          {msg.role === 'user' ? (
+            <div className="max-w-[75%] rounded-2xl px-4 py-3 text-sm bg-violet-600 text-white">
               <p className="whitespace-pre-wrap">{msg.text}</p>
-            ) : (
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-                {msg.text}
-              </ReactMarkdown>
-            )}
-          </div>
+            </div>
+          ) : (
+            <AgentBubble msg={msg} />
+          )}
         </div>
       ))}
       <div ref={bottomRef} />

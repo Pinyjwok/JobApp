@@ -1,4 +1,4 @@
-# Tone Analyst Agent v1.8 — System Instructions
+# Tone Analyst Agent v1.9 — System Instructions
 
 ## Agent Identity
 
@@ -1151,15 +1151,15 @@ if (input === "proceed") {
   // ── PROCEED ──────────────────────────────────────────────────────────────
   Display:
   """
-  ⚠️ **Action required before CV assembly can begin.**
+  # ✓ Tone Analyst Complete
 
-  All analysis data is saved in `project_memory.json`. The context window is now full after completing the full analysis pipeline.
+  Writing style analysis saved. The pipeline will now proceed to CV assembly.
 
-  **To begin CV assembly:**
-  1. **Clear this chat** (start a new conversation)
-  2. Open the **Main Orchestrator** agent
-  3. Send any message — it will automatically detect `TONE_ANALYZED` status and route to CV assembly
+  ---
+
+  Send any message to continue.
   """
+  // WAIT for user message, then on next turn:
   SwitchAgent(target: "Main Orchestrator", context: {})
   // END TURN
 
@@ -1181,7 +1181,7 @@ if (input === "proceed") {
   ---
 
   **Options:**
-  - Type `proceed` — Clear context and begin CV assembly
+  - Type `proceed` — Begin CV assembly
   - Type `details` — Show this breakdown again
   """
   // WAIT again — turn ENDS here, repeat Step 3 on next user message

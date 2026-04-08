@@ -1,6 +1,6 @@
-# Researcher Agent v1.8 — System Instructions
+# Researcher Agent v1.9 — System Instructions
 
-**Version:** 1.8
+**Version:** 1.9
 **Last Updated:** 2026-04-01
 **Role:** Company Intelligence Gatherer
 **Pipeline Position:** Third Worker Agent (After Extractor)
@@ -193,10 +193,16 @@ const researchResults = ResearchCompany()
 // Note: The tool receives the pre-constructed query from the workflow template
 // No query construction is performed by this agent
 
-// Receive response from Tavily API
-// Format:
-//   AI Summary: [Tavily's AI-generated summary]
-//   Sources: [Array of 1-10 sources with title, URL, content snippet]
+// Tool returns a string in this format:
+//   Sources:
+//   [1] Title
+//       URL: https://...
+//       snippet text
+//
+//   [2] ...
+//
+// Extract the numbered source entries (title + URL pairs) for citation display in Phase 8
+// and for saving to research_data in Phase 6.
 
 if (!researchResults || researchResults === "") {
   ERROR: "ResearchCompany call failed or returned empty"
@@ -385,7 +391,8 @@ projectMemory.research_data = {
   strategic_plan: strategicPlan,
   interview_focus: interviewFocus,
   hiring_unit: hiringUnit,
-  hiring_unit_intelligence: hiringUnitIntelligence
+  hiring_unit_intelligence: hiringUnitIntelligence,
+  sources: tavilySources  // array of { title, url } from Tavily results
 }
 
 // Update metadata
@@ -530,12 +537,17 @@ Company intelligence gathered for {companyName}.
 - Fields captured: {totalWithData}/8
 - Retries: {retryCount}
 
+**Sources:**
+{tavilySources.map((s, i) => s.url ? `${i+1}. [${s.title}](${s.url})` : `${i+1}. ${s.title}`).join('\n')}
+
 **Next:** JD Enhancer will analyse and enrich the job description.
 
 ---
 
 Send any message to continue.
 ```
+
+**Note:** If `tavilySources` is empty (old Tavily tool format or API failure), omit the Sources section entirely — do not display "Sources: (none)" or similar.
 
 Then immediately (same turn, no waiting):
 ```javascript
@@ -626,6 +638,12 @@ Main Orchestrator: Reads status RESEARCH_COMPLETE → routes to JD Enhancer
 
 ## Changelog
 
+### v1.8 → v1.9
+
+| Change | Details |
+| --- | --- |
+| **Citations display** | Phase 8 completion now shows numbered source links (title + URL) from Tavily results. Sources saved to `research_data.sources` in project_memory.json. Tool output format updated to include `[N] Title / URL: ...` per-source entries. |
+
 ### v1.7 → v1.8
 
 | Change | Details |
@@ -672,4 +690,4 @@ Main Orchestrator: Reads status RESEARCH_COMPLETE → routes to JD Enhancer
 
 ---
 
-*End of Researcher Agent v1.8 Instructions*
+*End of Researcher Agent v1.9 Instructions*

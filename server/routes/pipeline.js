@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFileSync, rmSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, rmSync, mkdirSync } from 'fs';
+import { extractText } from 'unpdf';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_DIR = join(__dirname, '..', '..');
@@ -47,20 +48,53 @@ export async function initRecipe(projectDir) {
   // Debounce timer — fires stream_done if no new tokens arrive for 5s.
   // Covers the last agent in a sequence who never calls SwitchAgent.
   let streamDoneTimer = null;
+  let lastAgentOutput = '';
+  let lastAgentReasoning = '';
+  let lastAgentDebug = '';
 
   function scheduleStreamDone() {
     clearTimeout(streamDoneTimer);
-    streamDoneTimer = setTimeout(() => broadcast({ type: 'stream_done' }), 5000);
+    streamDoneTimer = setTimeout(() => {
+      lastAgentOutput = '';
+      lastAgentReasoning = '';
+      lastAgentDebug = '';
+      broadcast({ type: 'stream_done' });
+    }, 5000);
   }
 
   // AgentOutput is wired to each agent's `stream` port — fires per token chunk.
   recipe.globalVariables.onChange('AgentOutput', (variable) => {
-    const chunk = typeof variable.lastValue === 'string'
+    const fullText = typeof variable.lastValue === 'string'
       ? variable.lastValue
       : JSON.stringify(variable.lastValue);
+    const chunk = fullText.slice(lastAgentOutput.length);
+    lastAgentOutput = fullText;
+    if (!chunk) return;
     process.stdout.write(`[stream] ${chunk.slice(0, 60).replace(/\n/g, '↵')}${chunk.length > 60 ? '…' : ''}\n`);
     broadcast({ type: 'stream_token', chunk });
     scheduleStreamDone();
+  });
+
+  // AgentReasoning — wired to each agent's `reasoning` port.
+  recipe.globalVariables.onChange('AgentReasoning', (variable) => {
+    const fullText = typeof variable.lastValue === 'string'
+      ? variable.lastValue
+      : JSON.stringify(variable.lastValue);
+    const chunk = fullText.slice(lastAgentReasoning.length);
+    lastAgentReasoning = fullText;
+    if (!chunk) return;
+    broadcast({ type: 'reasoning_token', chunk });
+  });
+
+  // AgentDebug — wired to each agent's `debug` port.
+  recipe.globalVariables.onChange('AgentDebug', (variable) => {
+    const fullText = typeof variable.lastValue === 'string'
+      ? variable.lastValue
+      : JSON.stringify(variable.lastValue);
+    const chunk = fullText.slice(lastAgentDebug.length);
+    lastAgentDebug = fullText;
+    if (!chunk) return;
+    broadcast({ type: 'debug_token', chunk });
   });
 
   // AgentSelector changes when SwitchAgent fires — definitive end-of-stream signal.
@@ -74,7 +108,8 @@ export async function initRecipe(projectDir) {
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
-const router = (await import('express')).Router();
+const express = (await import('express')).default;
+const router = express.Router();
 export default router;
 
 // GET /api/stream — SSE connection for real-time agent output
@@ -86,6 +121,34 @@ router.get('/stream', (req, res) => {
   res.write(': heartbeat\n\n');
   sseClients.add(res);
   req.on('close', () => sseClients.delete(res));
+});
+
+// POST /api/upload — save uploaded txt or pdf files to workspace as cv_raw.txt / jd_raw.txt
+router.post('/upload', express.raw({ type: '*/*', limit: '10mb' }), async (req, res) => {
+  const originalName = req.query.filename ?? '';
+  const target = req.query.target;
+  const isPdf = originalName.toLowerCase().endsWith('.pdf');
+
+  if (!target || !/^(cv_raw|jd_raw|cover_letter_sample)$/.test(target)) {
+    return res.status(400).json({ error: 'target must be cv_raw, jd_raw, or cover_letter_sample' });
+  }
+
+  try {
+    let text;
+    if (isPdf) {
+      const { text: pages } = await extractText(new Uint8Array(req.body), { mergePages: true });
+      text = pages;
+      console.log(`[upload] ${originalName} → ${target}.txt (pdf, ${text.length} chars)`);
+    } else {
+      text = req.body.toString('utf8');
+      console.log(`[upload] ${originalName} → ${target}.txt (text, ${text.length} chars)`);
+    }
+    writeFileSync(join(WORKSPACE_DIR, `${target}.txt`), text, 'utf8');
+    res.json({ ok: true, filename: `${target}.txt` });
+  } catch (err) {
+    console.error('[upload] error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/message — send a user message to the active agent
@@ -155,4 +218,50 @@ router.post('/abort', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// GET /api/workspace — read a workspace file (dev/testing)
+const WORKSPACE_ALLOWED = [
+  'project_memory.json', 'cv_assembly_state.json',
+  'candidate_profile.json', 'style_guide.json', 'agent_reasoning.json',
+];
+router.get('/workspace', (req, res) => {
+  const file = req.query.file;
+  if (!WORKSPACE_ALLOWED.includes(file)) {
+    return res.status(400).json({ error: 'not allowed' });
+  }
+  try {
+    res.json(JSON.parse(readFileSync(join(WORKSPACE_DIR, file), 'utf8')));
+  } catch {
+    res.json(null);
+  }
+});
+
+// POST /api/dev/status — manually override project_memory.json status (dev/testing)
+router.post('/dev/status', express.json(), (req, res) => {
+  const { status } = req.body;
+  if (!status || typeof status !== 'string') {
+    return res.status(400).json({ error: 'status required' });
+  }
+  try {
+    const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
+    mem.metadata = mem.metadata ?? {};
+    mem.metadata.status = status;
+    writeFileSync(join(WORKSPACE_DIR, 'project_memory.json'), JSON.stringify(mem, null, 2));
+    console.log(`[dev] status overridden → ${status}`);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/inject — inject a message directly as agent output (dev/testing)
+router.post('/inject', express.json(), (req, res) => {
+  const { message } = req.body;
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'message required' });
+  }
+  broadcast({ type: 'stream_token', chunk: message });
+  broadcast({ type: 'stream_done' });
+  res.json({ ok: true });
 });

@@ -20,14 +20,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### ✅ All Agents Complete
 | Agent | Version | File |
 |-------|---------|------|
-| Main Orchestrator | v4.1 | `main_orchestrator_agent_instructions.md` |
+| Main Orchestrator | v4.4 | `main_orchestrator_agent_instructions.md` |
 | ProjectSetup | v1.9 | `project_setup_agent_instructions.md` |
 | Extractor | v2.1 | `extractor_agent_instructions.md` |
-| Researcher | v1.8 | `researcher_agent_instructions.md` |
+| Researcher | v1.9 | `researcher_agent_instructions.md` |
 | JD Enhancer | v1.4 | `jd_enhancer_instructions.md` |
-| Analyst | v2.2 | `analyst_agent_instructions.md` |
-| Reviewer | v2.1 | `reviewer_agent_instructions.md` |
-| Tone Analyst | v1.8 | `tone_analyst_agent_instructions.md` |
+| Analyst | v2.3 | `analyst_agent_instructions.md` |
+| Reviewer | v2.2 | `reviewer_agent_instructions.md` |
+| Tone Analyst | v1.9 | `tone_analyst_agent_instructions.md` |
 | Assembly Coordinator | v3.9 | `assembly_coordinator_agent_instructions.md` |
 | Style Negotiator | v1.6 | `style_negotiator_instructions.md` |
 | Profile Builder | v1.6 | `profile_builder_instructions.md` |
@@ -60,6 +60,38 @@ All fixes from `TC05_Developer_Brief.md` applied. Full details in `.general/test
 - **Skills Curator v1.5**: `tailoring_notes` field added to `phases[2].data`.
 - **Style Reviewer v1.5**: `verdict` and `fixes_applied` fields added to `phases[6].data`.
 - **agent_test_specs.md**: `analyst_version` → "2.1", `reviewer_version` → "2.0".
+
+### ✅ Frontend Integration Fixes (2026-04-08)
+
+**Agent instruction fixes (from live frontend run observations):**
+- **Main Orchestrator v4.2**: ONE CALL RULE added — SwitchAgent must be called exactly once per routing turn; do not re-call to verify or confirm. Addresses repeated SwitchAgent invocations observed via AgentReasoning port.
+- **Main Orchestrator v4.3**: REVIEW_FAILED deadlock fix — added explicit ⛔ block in ZERO OUTPUT section: display options menu then STOP, never call SwitchAgent. Calling SwitchAgent in REVIEW_FAILED state locks the frontend (textarea disabled, no output).
+- **Main Orchestrator v4.4**: BUG-TC06-01 — REVIEW_FAILED pre-routing check added before routing table switch; routing table entry now has explicit DO NOT call SwitchAgent/ChangeAgent. BUG-TC06-07 — added "You are now back with the Main Orchestrator." and "As instructed, please start a new conversation..." to banned phrases list.
+- **Tone Analyst v1.9**: BUG-TC06-04 — removed "Clear this chat" / "start a new conversation" instruction from proceed path; replaced with standard turn-based completion pattern (display ✓ complete, wait, SwitchAgent on next turn).
+- **Reviewer v2.2**: BUG-TC06-02 — re-invocation guard added in Phase 1: if review_audit already exists, skip to Phase 8 (gap interview) or Phase 9 (write) instead of re-running full audit. BUG-TC06-06 — Phase 11 fit score line now reads ANALYSIS_REJECTED from saved audit rather than defaulting to "✓ Accurate".
+- **Analyst v2.3**: BUG-TC06-03 — path validation added in Phase 10 before write: gaps with evidence_source paths that don't resolve in enhanced_jd are removed before writing gap_analysis. Prevents fabricated paths reaching the Reviewer.
+
+**Frontend (client/src/):**
+- SSE streaming fixed — delta computation prevents duplicate message accumulation (AgentOutput fires with full accumulated text, not just delta)
+- Streaming deduplication: `lastAgentOutput` tracker in `server/routes/pipeline.js`
+- AgentReasoning + AgentDebug global variables wired — reasoning logged to console, debug (token costs) parsed for timeline
+- File upload: `.pdf` and `.txt` supported; `cover_letter_sample.txt` target added for Tone Analyst
+- 10 testing/debug UI features added:
+  1. **Workspace inspector** — "Files" button, floating panel with 5 file tabs, auto-refreshes on stream_done (`GET /api/workspace`)
+  2. **Reasoning panel** — collapsible "▼ Show reasoning" under each agent bubble
+  3. **Agent timeline** — "Timeline" sidebar: agent name, elapsed time, cost per turn
+  4. **Error highlighting** — red border on bubbles matching error/failed/critical/cannot/undefined
+  5. **Stall indicator** — "⚠ Waiting…" in amber after 4s with no tokens
+  6. **Re-send button** — ↩ resends last user message
+  7. **Turn counter** — #N in top-right of each agent bubble
+  8. **Cost display** — $0.0xxx next to agent name (from debug tokens)
+  9. **Status override** — "Set status" button → prompt → `POST /api/dev/status`
+  10. **Inject mode** — "User/Inject" toggle in input bar → `POST /api/inject` bypasses KEMU
+
+**New server endpoints (`server/routes/pipeline.js`):**
+- `GET /api/workspace?file=<name>` — read workspace JSON file (allowlist enforced)
+- `POST /api/dev/status` — override `project_memory.json` metadata.status
+- `POST /api/inject` — broadcast stream_token/stream_done directly (bypass KEMU)
 
 ### ✅ TC06 Assembly Fixes Applied (2026-04-07) — 18 changes
 
@@ -148,8 +180,8 @@ Expected: bug count 10–15, zero P0s = PASS. Switch to new persona for TC07.
 
 ### ⏳ Next Steps
 
-1. **Run TC06** — Chloe Simmons, regression validation
-2. **TC07 (after TC06 PASS)** — new candidate persona (academic or career-transition) to surface new failure modes
+1. **TC07** — new candidate persona (career-changer or senior professional) to surface failure modes not triggered by Chloe Simmons profile
+2. **MO ChangeAgent vs SwitchAgent confusion** — model oscillates between tool names in reasoning; may need stronger instruction or KEMU tool name clarification
 3. **Tone Analyst chat-clear UX** — add instruction to clear chat before CV assembly begins
 
 ---
@@ -159,7 +191,7 @@ Expected: bug count 10–15, zero P0s = PASS. Switch to new persona for TC07.
 ### Orchestration Flow
 
 ```
-Main Orchestrator v4.0 [Pro 2.5] (status router)
+Main Orchestrator v4.3 [Flash 3] (status router)
 ├─ Main Pipeline
 │  ├─ ProjectSetup → Extractor → Researcher → JD Enhancer   [Flash 3]
 │  └─ Analyst [Pro 2.5] → Reviewer [Pro 2.5] → Tone Analyst [Pro 2.5]
@@ -468,7 +500,7 @@ const INVALIDATION = {
 | `.general/instructions/main_orchestrator_agent_instructions.md` | Main Orchestrator | v3.6 |
 | `.general/instructions/project_setup_agent_instructions.md` | ProjectSetup | v1.6 |
 | `.general/instructions/extractor_agent_instructions.md` | Extractor | v1.9 |
-| `.general/instructions/researcher_agent_instructions.md` | Researcher | v1.7 |
+| `.general/instructions/researcher_agent_instructions.md` | Researcher | v1.9 |
 | `.general/instructions/jd_enhancer_instructions.md` | JD Enhancer | v1.2 |
 | `.general/instructions/analyst_agent_instructions.md` | Analyst | v2.0 |
 | `.general/instructions/reviewer_agent_instructions.md` | Reviewer | v2.0 |

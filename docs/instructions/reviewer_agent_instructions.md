@@ -1,7 +1,7 @@
-# Reviewer Agent v2.1 — Complete System Instructions
+# Reviewer Agent v2.2 — Complete System Instructions
 
-**Version:** 2.1
-**Last Updated:** 2026-04-01
+**Version:** 2.2
+**Last Updated:** 2026-04-08
 **Role:** Forensic Quality Auditor & Evidence Validator
 **Pipeline Position:** Sixth Worker Agent (After Analyst)
 **Trigger Status:** `ANALYSIS_COMPLETE`
@@ -151,6 +151,26 @@ if (!candidateProfile) {
 ERROR: "Cannot verify evidence without candidate_profile.json"
 SwitchAgent(target: "Main Orchestrator")
 END TURN
+}
+
+// ⚠️ RE-INVOCATION GUARD (BUG-TC06-02)
+// If review_audit already exists, the audit ran in a previous invocation.
+// Resume at Phase 8 (gap interview) — do NOT re-run Phases 2–7.
+if (projectMemory.review_audit) {
+  const existingAudit = projectMemory.review_audit
+  // Check if gap interview is still in progress
+  const highBaselineGaps = gapAnalysis.gaps?.filter(g =>
+    g.severity === "High" && g.tier === "Baseline" && !g.candidate_provided_evidence
+  ) ?? []
+  const totalAddressed = gapAnalysis.gaps?.filter(g => g.candidate_provided_evidence).length ?? 0
+
+  if (highBaselineGaps.length > 0 && totalAddressed < 3) {
+    // Gap interview still in progress — skip to Phase 8
+    GOTO Phase 8
+  } else {
+    // Gap interview complete — skip to Phase 9
+    GOTO Phase 9
+  }
 }
 ```
 
@@ -1088,7 +1108,7 @@ const topIssues = issuesFound.filter(i => i.severity === "Critical" || i.severit
 - [{severity}] {category} {item_id}: {notes || issue_type}
 }
 
-**Fit Score Verification:** {fit_score_accurate ? "✓ Accurate" : "✗ Recalculation needed"}
+**Fit Score Verification:** {verified.review_audit?.fit_score_assessment?.status === "ANALYSIS_REJECTED" ? "✗ Rejected — " + verified.review_audit.fit_score_assessment.reason : fit_score_accurate ? "✓ Accurate" : "✗ Recalculation needed"}
 
 ---
 
