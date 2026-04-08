@@ -7,6 +7,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // SSE clients waiting for agent output
 const sseClients = new Set();
 
+function broadcast(payload) {
+  const line = `data: ${JSON.stringify(payload)}\n\n`;
+  for (const client of sseClients) {
+    client.write(line);
+  }
+}
+
 let recipe = null;
 let DataType = null;
 
@@ -29,26 +36,29 @@ export async function initRecipe(projectDir) {
   // Note: Settings.Project_Directory cannot be set via SDK (dots not allowed in variable names).
   // The recipe uses the value stored from the last KEMU session.
 
-  // Stream agent output to all connected SSE clients
+  // Debounce timer — fires stream_done if no new tokens arrive for 5s.
+  // This covers the last agent in a sequence who never calls SwitchAgent.
+  let streamDoneTimer = null;
+
+  function scheduleStreamDone() {
+    clearTimeout(streamDoneTimer);
+    streamDoneTimer = setTimeout(() => broadcast({ type: 'stream_done' }), 5000);
+  }
+
+  // AgentOutput is wired to each agent's `stream` port — fires per token chunk.
   recipe.globalVariables.onChange('AgentOutput', (variable) => {
-    const payload = JSON.stringify({
-      type: 'agent_output',
-      value: variable.lastValue,
-    });
-    for (const client of sseClients) {
-      client.write(`data: ${payload}\n\n`);
-    }
+    const chunk = typeof variable.lastValue === 'string'
+      ? variable.lastValue
+      : JSON.stringify(variable.lastValue);
+    broadcast({ type: 'stream_token', chunk });
+    scheduleStreamDone();
   });
 
-  // Forward agent selector changes so the UI knows which agent is active
+  // AgentSelector changes when SwitchAgent fires — definitive end-of-stream signal.
   recipe.globalVariables.onChange('AgentSelector', (variable) => {
-    const payload = JSON.stringify({
-      type: 'agent_switch',
-      agent: variable.lastValue,
-    });
-    for (const client of sseClients) {
-      client.write(`data: ${payload}\n\n`);
-    }
+    clearTimeout(streamDoneTimer);
+    broadcast({ type: 'stream_done' });
+    broadcast({ type: 'agent_switch', agent: variable.lastValue });
   });
 }
 

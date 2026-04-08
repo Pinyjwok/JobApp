@@ -13,15 +13,30 @@ export default function App() {
 
   useStream(
     useCallback((data) => {
-      if (data.type === 'agent_output') {
-        const text =
-          typeof data.value === 'string'
-            ? data.value
-            : JSON.stringify(data.value, null, 2);
-        setMessages((prev) => [
-          ...prev,
-          { role: 'agent', agent: activeAgent, text },
-        ]);
+      if (data.type === 'stream_token') {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === 'agent' && last?.streaming) {
+            // Append chunk to the current streaming message
+            return [
+              ...prev.slice(0, -1),
+              { ...last, text: last.text + data.chunk },
+            ];
+          }
+          // Start a new streaming message
+          return [
+            ...prev,
+            { role: 'agent', agent: activeAgent, text: data.chunk, streaming: true },
+          ];
+        });
+      } else if (data.type === 'stream_done') {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.streaming) {
+            return [...prev.slice(0, -1), { ...last, streaming: false }];
+          }
+          return prev;
+        });
         fetch('/api/status')
           .then((r) => r.json())
           .then((d) => setStatus(d.status))
