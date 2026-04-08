@@ -1,8 +1,10 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFileSync } from 'fs';
+import { readFileSync, rmSync, mkdirSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROJECT_DIR = join(__dirname, '..', '..');
+const WORKSPACE_DIR = join(PROJECT_DIR, 'workspace');
 
 // SSE clients waiting for agent output
 const sseClients = new Set();
@@ -33,11 +35,17 @@ export async function initRecipe(projectDir) {
 
   recipe = await kemuEdge.start();
 
-  // Note: Settings.Project_Directory cannot be set via SDK (dots not allowed in variable names).
-  // The recipe uses the value stored from the last KEMU session.
+  // Reset AgentSelector to Main Orchestrator so every fresh server start
+  // routes the first message correctly regardless of last KEMU session state.
+  try {
+    await recipe.globalVariables.setValue('AgentSelector', 'Main Orchestrator');
+    console.log('AgentSelector → Main Orchestrator');
+  } catch (err) {
+    console.warn('Could not reset AgentSelector:', err.message);
+  }
 
   // Debounce timer — fires stream_done if no new tokens arrive for 5s.
-  // This covers the last agent in a sequence who never calls SwitchAgent.
+  // Covers the last agent in a sequence who never calls SwitchAgent.
   let streamDoneTimer = null;
 
   function scheduleStreamDone() {
@@ -50,12 +58,14 @@ export async function initRecipe(projectDir) {
     const chunk = typeof variable.lastValue === 'string'
       ? variable.lastValue
       : JSON.stringify(variable.lastValue);
+    process.stdout.write(`[stream] ${chunk.slice(0, 60).replace(/\n/g, '↵')}${chunk.length > 60 ? '…' : ''}\n`);
     broadcast({ type: 'stream_token', chunk });
     scheduleStreamDone();
   });
 
   // AgentSelector changes when SwitchAgent fires — definitive end-of-stream signal.
   recipe.globalVariables.onChange('AgentSelector', (variable) => {
+    console.log(`[agent] → ${variable.lastValue}`);
     clearTimeout(streamDoneTimer);
     broadcast({ type: 'stream_done' });
     broadcast({ type: 'agent_switch', agent: variable.lastValue });
@@ -73,15 +83,9 @@ router.get('/stream', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
-
-  // Send a heartbeat immediately so the client knows the connection is alive
   res.write(': heartbeat\n\n');
-
   sseClients.add(res);
-
-  req.on('close', () => {
-    sseClients.delete(res);
-  });
+  req.on('close', () => sseClients.delete(res));
 });
 
 // POST /api/message — send a user message to the active agent
@@ -91,11 +95,11 @@ router.post('/message', async (req, res) => {
   if (!message || typeof message !== 'string') {
     return res.status(400).json({ error: 'message is required' });
   }
-
   if (!recipe) {
     return res.status(503).json({ error: 'Recipe not ready' });
   }
 
+  console.log(`[user] ${message.slice(0, 80)}`);
   try {
     await recipe.sendToInputWidget(' Message', {
       type: DataType.JsonObj,
@@ -111,14 +115,34 @@ router.post('/message', async (req, res) => {
 // GET /api/status — read current pipeline status from project_memory.json
 router.get('/status', (req, res) => {
   try {
-    const memPath = join(dirname(dirname(__dirname)), 'workspace', 'project_memory.json');
-    const memory = JSON.parse(readFileSync(memPath, 'utf8'));
+    const memory = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
     res.json({
       status: memory?.metadata?.status ?? null,
       phase: memory?.metadata?.current_phase ?? null,
     });
   } catch {
     res.json({ status: null, phase: null });
+  }
+});
+
+// POST /api/reset — clear workspace and reset agent to Main Orchestrator
+router.post('/reset', async (req, res) => {
+  if (!recipe) return res.status(503).json({ error: 'Recipe not ready' });
+  try {
+    // Clear workspace files (JSON + txt)
+    const { readdirSync } = await import('fs');
+    const files = readdirSync(WORKSPACE_DIR).filter(f => f.endsWith('.json') || f.endsWith('.txt'));
+    for (const f of files) {
+      rmSync(join(WORKSPACE_DIR, f));
+    }
+    // Reset routing
+    await recipe.globalVariables.setValue('AgentSelector', 'Main Orchestrator');
+    console.log('[reset] workspace cleared, AgentSelector → Main Orchestrator');
+    broadcast({ type: 'agent_switch', agent: 'Main Orchestrator' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('reset error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

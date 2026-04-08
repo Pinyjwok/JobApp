@@ -66,13 +66,27 @@ export default function App() {
     }
   }
 
+  async function handleReset() {
+    if (!confirm('Clear workspace and start a new session?')) return;
+    await fetch('/api/reset', { method: 'POST' }).catch(() => {});
+    setMessages([]);
+    setStatus(null);
+    setActiveAgent('Main Orchestrator');
+  }
+
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-base">
       <div className="px-6 py-4 border-b border-slate-700 flex items-center gap-3">
         <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
-        <h1 className="text-lg font-semibold text-slate-100">
+        <h1 className="text-lg font-semibold text-slate-100 flex-1">
           JobApp CV Optimizer
         </h1>
+        <button
+          onClick={handleReset}
+          className="text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors"
+        >
+          New session
+        </button>
       </div>
 
       <StatusBar status={status} activeAgent={activeAgent} />
