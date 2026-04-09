@@ -20,14 +20,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### ✅ All Agents Complete
 | Agent | Version | File |
 |-------|---------|------|
-| Main Orchestrator | v4.4 | `main_orchestrator_agent_instructions.md` |
-| ProjectSetup | v1.9 | `project_setup_agent_instructions.md` |
+| Main Orchestrator | v5.3 | `main_orchestrator_agent_instructions.md` |
+| ProjectSetup | v1.14 | `project_setup_agent_instructions.md` |
 | Extractor | v2.1 | `extractor_agent_instructions.md` |
-| Researcher | v1.9 | `researcher_agent_instructions.md` |
+| Researcher | v2.0 | `researcher_agent_instructions.md` |
 | JD Enhancer | v1.4 | `jd_enhancer_instructions.md` |
 | Analyst | v2.3 | `analyst_agent_instructions.md` |
-| Reviewer | v2.2 | `reviewer_agent_instructions.md` |
-| Tone Analyst | v2.0 | `tone_analyst_agent_instructions.md` |
+| Reviewer | v2.3 | `reviewer_agent_instructions.md` |
+| Tone Analyst | v2.1 | `tone_analyst_agent_instructions.md` |
 | Assembly Coordinator | v3.9 | `assembly_coordinator_agent_instructions.md` |
 | Style Negotiator | v1.6 | `style_negotiator_instructions.md` |
 | Profile Builder | v1.6 | `profile_builder_instructions.md` |
@@ -93,6 +93,69 @@ All fixes from `TC05_Developer_Brief.md` applied. Full details in `.general/test
 - `POST /api/dev/status` — override `project_memory.json` metadata.status
 - `POST /api/inject` — broadcast stream_token/stream_done directly (bypass KEMU)
 
+### ✅ Server-Side Routing + Complete-Message Architecture (2026-04-09)
+
+**Root cause:** KEMU fires `AgentSelector` change (from `SwitchAgent`) *before* streaming text output — causing output to appear under the wrong agent label in the UI. Also, MO was being invoked for every happy-path transition, creating latency and narration risks.
+
+**Architectural changes (this session):**
+
+**Server-side pre-message routing** (`server/routes/pipeline.js`):
+- `/api/message` now reads `project_memory.json` status before forwarding to KEMU
+- Sets `AgentSelector` directly, then waits 150ms (let agent_switch SSE reach client), then sends message
+- MO no longer handles happy-path routing — server owns it entirely
+- `HAPPY_PATH` map: `FILES_SAVED→Extractor, INITIALIZED→Researcher, RESEARCH_COMPLETE→JD Enhancer, JD_ENHANCED→Analyst, ANALYSIS_COMPLETE→Reviewer, REVIEW_COMPLETE→Tone Analyst, TONE_ANALYZED→AC, CV_BUILDING→AC`
+- `EXCEPTION_STATUSES`: `REVIEW_FAILED, RESEARCH_FAILED, ANALYSIS_FAILED, EXTRACTION_FAILED, CV_TAILORED` → route to MO
+
+**Complete-message output model** (text port, not stream port):
+- `AgentOutput` wired to agent's `text` port in KEMU — fires once per turn with full text
+- Eliminates streaming race conditions, delta tracking, debounce timer, stall indicators
+- SSE event: `agent_message` (replaces `stream_token`) carries complete text in one shot
+- `AgentReasoning` wired to `reasoning` port — fires once per turn, buffered in `pendingReasoningRef`, attached to next `agent_message`
+
+**StartModal + hardcoded welcome:**
+- On page load, fetches `GET /api/history`; if messages exist shows "Resume session" option
+- New session: calls `POST /api/reset` (clears workspace, sets `AgentSelector=ProjectSetup`), then injects hardcoded welcome message into React state — no agent call needed
+- Welcome message lives in `App.jsx` `WELCOME_MESSAGE` constant — removed from MO and ProjectSetup instructions
+- `modalState`: `null` (loading) → `'pending'` (show modal) → `'hidden'` (in session)
+
+**Agent instruction changes (this session):**
+- **Main Orchestrator v5.1**: Phase 2 (welcome message) removed entirely. Routing table: `if (!status || isInit) → SwitchAgent("ProjectSetup") immediately, no output`. Banned phrases: "You are now talking to the ProjectSetup agent." (and any agent name).
+- **ProjectSetup v1.13**: Critical Rule 11 rewritten from "Always call SwitchAgent" to "⛔ DO NOT call SwitchAgent". Phase 0 guard strengthened. Phase 9 stale comment fixed (was "routes to MO", now "Extractor, server-handled"). ZERO NARRATION RULE corrected (frontend shows welcome, not PS).
+- **Reviewer v2.3**: After completion display — hard ⛔ DO NOT call SwitchAgent. Server reads status and routes automatically. Critical Rule 10 changed from "Use SwitchAgent" to "Never call SwitchAgent on completion."
+- **Tone Analyst v2.1**: STARTUP ZERO NARRATION RULE added. Bans: "You are now talking to the Tone Analyst.", apology messages, repeating Reviewer's completion text, pipeline narration.
+
+**Removed from frontend:**
+- `stallTimerRef`, `turnCounterRef`, streaming state, pre-connect buffer, bouncing dots, stall indicator (⚠ Waiting…), turn counter badge (#N)
+- `stream_token` SSE event no longer used (server no longer broadcasts it)
+
+### ✅ TC07 Fixes Applied (2026-04-09) — 4 changes
+
+TC07 aborted at Analyst due to pipeline-fatal fabrication in cv_raw.txt (BUG-91) and malformed JSON from Analyst (BUG-98). Fixes applied mid-run.
+
+**P0 fix:**
+- **ProjectSetup v1.14**: Phase 1 pre-check added — always attempt `ReadFile("cv_raw.txt")` and `ReadFile("jd_raw.txt")` before any MODE A/B logic. If both exist and non-empty, skip Phase 2/3 and proceed directly to Phase 4. Fixes root cause of cv_raw.txt fabrication: server upload writes files correctly to disk, but PS was overwriting them with hallucinated content because the file bytes were not in the KEMU context.
+
+**P1 fixes:**
+- **Main Orchestrator v5.3**: Critical Rule 6 added — explicit ⛔ ban on `ChangeAgent`. "The routing tool is `SwitchAgent`. `ChangeAgent` does not exist in KEMU." TC07 observed MO calling `ChangeAgent("Main Orchestrator")` three times in one turn.
+- **`client/src/App.jsx`**: `handleBegin()` trigger message changed from `"Files uploaded — CV: ${cv_raw}, JD: ${jd_raw}. Please begin."` → `"Files are saved to disk as cv_raw.txt and jd_raw.txt. Please initialise the project."` Old message referenced original filenames (e.g. `alistair_cv.txt`) that don't exist on disk.
+
+**P2 fix:**
+- **`agent_test_specs.md`**: All agent versions updated to current; all main pipeline agent routing updated from `SwitchAgent("Main Orchestrator")` → `DO NOT call SwitchAgent — server routes automatically`; Analyst spec gains JSON integrity note; ProjectSetup spec gains verbatim content rule.
+
+### ✅ Live Pipeline Fixes (2026-04-09) — Session 2
+
+**Server (`server/routes/pipeline.js`):**
+- **Rerun intent detection**: `/api/message` checks for "rerun/redo/retry" keywords before HAPPY_PATH lookup. Matches target agent name (`RERUN_MAP`), resets `project_memory.json` status to correct pre-agent value, broadcasts "Re-running **Agent**…" via SSE, sets `AgentSelector` directly. MO not involved — avoids Flash 3 read-modify-write reasoning loops.
+- **Tavily fix**: `Kemu.helpers.http` → native `fetch` (was "HTTP service not found" in edge runtime). `max_results` bumped 5→10.
+- **Tavily sector-aware keywords**: Widget now takes `companyName` + `sector` as additional inputs. Detects academic institutions (`/university|college|institute.../i`) and switches keyword set — academic keywords cover research priorities/faculty/grants/supervision; corporate keywords cover culture/metrics/career growth.
+
+**Frontend (`client/src/`):**
+- **Thinking indicator**: `isWaiting` state in App.jsx — set on `handleSend`, cleared on `agent_message`. `ChatWindow` shows animated bouncing-dots bubble ("Thinking…") while waiting for agent response.
+
+**Agent instructions:**
+- **ProjectSetup v1.13**: Critical Rule 11 "Always call SwitchAgent when done" → "⛔ DO NOT call SwitchAgent". Phase 0 guard strengthened with explicit warning. Phase 9 stale comment "routes to Main Orchestrator" → "routes to Extractor (server-handled)". ZERO NARRATION RULE corrected — frontend shows welcome, not PS.
+- **Main Orchestrator v5.2**: Phase 2 (Rerun Intent) added — handles rerun/redo/retry messages routed from server. `RERUN_MAP` resets status and calls SwitchAgent to target agent. Falls back to menu if target unrecognisable.
+
 ### ✅ TC06 Assembly Fixes Applied (2026-04-07) — 18 changes
 
 Post-continuation fixes after TC06 full run. Full details in `TC06_Developer_Brief.md`.
@@ -144,11 +207,11 @@ All fixes from `TC06_Developer_Brief.md`. Full details in `.general/tests/TC06_D
 
 | Agent | Version |
 |-------|---------|
-| Main Orchestrator | v4.0 |
-| ProjectSetup | v1.11 |
-| Extractor | v2.0 |
-| Researcher | v1.8 |
-| JD Enhancer | v1.3 |
+| Main Orchestrator | v5.3 |
+| ProjectSetup | v1.14 |
+| Extractor | v2.1 |
+| Researcher | v2.0 |
+| JD Enhancer | v1.4 |
 | Style Negotiator | v1.6 |
 | Profile Builder | v1.6 |
 | Skills Curator | v1.6 |
@@ -168,21 +231,13 @@ All fixes from `TC06_Developer_Brief.md`. Full details in `.general/tests/TC06_D
 | TC03 | Flash 3 | FAIL | 4.5/10 | 83 | First post-fix run; MO/AC compliance failures systemic |
 | TC04 | Flash 3 | ABORTED | N/A | 6 | EISDIR infrastructure blocker; testing infra built |
 | TC05 | Flash 3 + Pro 2.5 (MO only) | PARTIAL PASS | ~6.5/10 | 29 | First end-to-end completion; final CV unsaved, IC passed fabrications |
-| TC06 | Flash 3 + Pro 2.5 (5 agents) | — | — | — | **ACTIVE** — regression validation on Chloe Simmons |
-
-**TC06 critical validations:**
-1. BUG-08 fix — does Analyst overwrite guard hold?
-2. BUG-26 fix — does IC v1.7 catch fabricated skills?
-3. BUG-28/29 fix — does AC final CV persist to both files?
-4. Reviewer gap interview — does it cover all 3 high-severity gaps now?
-
-Expected: bug count 10–15, zero P0s = PASS. Switch to new persona for TC07.
+| TC06 | Flash 3 + Pro 2.5 (5 agents) | PARTIAL | — | 18 (assembly) | ✅ Complete — assembly phase fixes applied |
+| TC07 | Flash 3 + Pro 2.5 | ABORTED | — | 8 (BUG-90–97) | Aborted at ProjectSetup: cv_raw.txt fabricated (BUG-91), Analyst wrote malformed JSON (BUG-98). MO calling ChangeAgent (BUG-95/96). Fixes applied. |
 
 ### ⏳ Next Steps
 
-1. **TC07** — new candidate persona (career-changer or senior professional) to surface failure modes not triggered by Chloe Simmons profile
-2. **MO ChangeAgent vs SwitchAgent confusion** — model oscillates between tool names in reasoning; may need stronger instruction or KEMU tool name clarification
-3. **Tone Analyst chat-clear UX** — add instruction to clear chat before CV assembly begins
+1. **Re-upload instructions** — MO v5.3, ProjectSetup v1.14 must be re-pasted into KEMU before TC08
+2. **TC08** — resume Alistair Whitmore run from current state (ANALYSIS_COMPLETE) — Reviewer onwards; or reset for a clean full run to validate PS v1.14 fix
 
 ---
 
@@ -191,12 +246,12 @@ Expected: bug count 10–15, zero P0s = PASS. Switch to new persona for TC07.
 ### Orchestration Flow
 
 ```
-Main Orchestrator v4.3 [Flash 3] (status router)
-├─ Main Pipeline
+Express Server (server/routes/pipeline.js) — status router
+├─ Main Pipeline (server pre-routes before each message)
 │  ├─ ProjectSetup → Extractor → Researcher → JD Enhancer   [Flash 3]
 │  └─ Analyst [Pro 2.5] → Reviewer [Pro 2.5] → Tone Analyst [Pro 2.5]
 │
-└─ Assembly Coordinator v3.6 [Pro 2.5] (sub-orchestrator)
+└─ Assembly Coordinator v3.9 [Pro 2.5] (sub-orchestrator, self-routing)
    ├─ Style Negotiator      (Phase 1) [Flash 3]
    ├─ Profile Builder       (Phase 2) [Flash 3]
    ├─ Skills Curator        (Phase 3) [Flash 3]
@@ -205,28 +260,43 @@ Main Orchestrator v4.3 [Flash 3] (status router)
    ├─ CoverLetter Writer    (Phase 6) [Flash 3]
    ├─ Style Reviewer        (Phase 7) [Flash 3]
    └─ Integrity Checker     (Phase 8) [Pro 2.5]
+
+Main Orchestrator v5.3 [Flash 3] — exception handler only
+  Invoked for: REVIEW_FAILED, RESEARCH_FAILED, ANALYSIS_FAILED, EXTRACTION_FAILED, CV_TAILORED
+  NOT invoked for any happy-path transition
 ```
 
-### Routing Logic (Main Orchestrator)
+### Routing Logic (Server-Side)
 
-**Simple status switch — no global variables:**
+**Happy-path routing is owned by the Express server** (`/api/message` endpoint), not by Main Orchestrator:
 
 ```javascript
-const status = projectMemory.metadata.status
+// server/routes/pipeline.js — HAPPY_PATH map
+const HAPPY_PATH = {
+  'FILES_SAVED':        'Extractor',
+  'INITIALIZED':        'Researcher',
+  'RESEARCH_COMPLETE':  'JD Enhancer',
+  'RESEARCH_PARTIAL':   'Main Orchestrator',  // surfaces to user
+  'JD_ENHANCED':        'Analyst',
+  'ANALYSIS_COMPLETE':  'Reviewer',
+  'REVIEW_COMPLETE':    'Tone Analyst',
+  'TONE_ANALYZED':      'Assembly Coordinator',
+  'CV_BUILDING':        'Assembly Coordinator',
+};
 
-switch(status) {
-  case "FILES_SAVED":       SwitchAgent("Extractor"); break;
-  case "INITIALIZED":       SwitchAgent("Researcher"); break;
-  case "RESEARCH_COMPLETE": SwitchAgent("JD Enhancer"); break;
-  case "JD_ENHANCED":       SwitchAgent("Analyst"); break;
-  case "ANALYSIS_COMPLETE": SwitchAgent("Reviewer"); break;
-  case "REVIEW_COMPLETE":   SwitchAgent("Tone Analyst"); break;
-  case "TONE_ANALYZED":     SwitchAgent("Assembly Coordinator"); break;
-  case "CV_BUILDING":       SwitchAgent("Assembly Coordinator"); break;
-  case "CV_TAILORED":       Display completion; break;
-  case "REVIEW_FAILED":     Wait for user choice; break;
-}
+const EXCEPTION_STATUSES = new Set([
+  'REVIEW_FAILED', 'RESEARCH_FAILED', 'ANALYSIS_FAILED',
+  'EXTRACTION_FAILED', 'CV_TAILORED',
+]);
+
+// On each POST /api/message:
+// 1. Read project_memory.json → get status
+// 2. Set AgentSelector to next agent
+// 3. Wait 150ms (agent_switch SSE propagates to client)
+// 4. sendToInputWidget (forward user message to KEMU)
 ```
+
+**Main Orchestrator** is only invoked for exception statuses. In the `ANALYSIS_COMPLETE` + `review_audit` case, auto-continue pauses and routes to Reviewer for gap interview.
 
 ### Assembly Phase Routing
 
@@ -288,21 +358,24 @@ Send any message to continue.
 
 **On next turn (after user message):**
 ```javascript
-// Main pipeline agents return to Main Orchestrator:
-SwitchAgent(target: "Main Orchestrator", context: {})
+// ⚠️ Main pipeline agents (Extractor, Researcher, JD Enhancer, Analyst, Reviewer, Tone Analyst):
+// DO NOT call SwitchAgent. The server reads project_memory.json status and routes automatically.
+// Just write status to project_memory.json, display completion, wait.
 
 // Assembly phase agents return to Assembly Coordinator:
 SwitchAgent(target: "Assembly Coordinator", context: {})
 ```
 
-**Main Orchestrator produces ZERO text output during routing** — it reads status and calls SwitchAgent. No greetings, no summaries, no menus, no options. The flow is:
+**Server-side routing flow:**
 ```
-Worker displays summary → waits → user sends message →
-Worker routes to Orchestrator →
-Orchestrator: ReadFile + SwitchAgent (ZERO OUTPUT) →
+Worker writes status → displays summary → waits → user sends message →
+Server reads status → sets AgentSelector → sends message to KEMU →
 Next Worker processes and displays output → waits
 ```
-One user message per step. Orchestrator is silent and invisible.
+
+**Main Orchestrator produces ZERO text output during routing** — only invoked for exception statuses (REVIEW_FAILED etc.). No greetings, no summaries, no agent-switch narration.
+
+**⛔ Banned in all agents:** "You are now talking to [Agent Name].", hand-off narration, apology messages about pipeline transitions, repeating the previous agent's output.
 
 ### 4. Timestamps
 - Use actual current date from system context: `"Today's date is 2026-03-18"`
@@ -497,28 +570,28 @@ const INVALIDATION = {
 
 | File | Agent | Version |
 |------|-------|---------|
-| `.general/instructions/main_orchestrator_agent_instructions.md` | Main Orchestrator | v3.6 |
-| `.general/instructions/project_setup_agent_instructions.md` | ProjectSetup | v1.6 |
-| `.general/instructions/extractor_agent_instructions.md` | Extractor | v1.9 |
+| `.general/instructions/main_orchestrator_agent_instructions.md` | Main Orchestrator | v5.2 |
+| `.general/instructions/project_setup_agent_instructions.md` | ProjectSetup | v1.13 |
+| `.general/instructions/extractor_agent_instructions.md` | Extractor | v2.1 |
 | `.general/instructions/researcher_agent_instructions.md` | Researcher | v1.9 |
-| `.general/instructions/jd_enhancer_instructions.md` | JD Enhancer | v1.2 |
-| `.general/instructions/analyst_agent_instructions.md` | Analyst | v2.0 |
-| `.general/instructions/reviewer_agent_instructions.md` | Reviewer | v2.0 |
-| `.general/instructions/tone_analyst_agent_instructions.md` | Tone Analyst | v1.7 |
+| `.general/instructions/jd_enhancer_instructions.md` | JD Enhancer | v1.4 |
+| `.general/instructions/analyst_agent_instructions.md` | Analyst | v2.3 |
+| `.general/instructions/reviewer_agent_instructions.md` | Reviewer | v2.3 |
+| `.general/instructions/tone_analyst_agent_instructions.md` | Tone Analyst | v2.1 |
 
 **Assembly Phase:**
 
 | File | Agent | Version |
 |------|-------|---------|
-| `.general/instructions/assembly/assembly_coordinator_agent_instructions.md` | Assembly Coordinator | v3.8 |
-| `.general/instructions/assembly/style_negotiator_instructions.md` | Style Negotiator | v1.5 |
+| `.general/instructions/assembly/assembly_coordinator_agent_instructions.md` | Assembly Coordinator | v3.9 |
+| `.general/instructions/assembly/style_negotiator_instructions.md` | Style Negotiator | v1.6 |
 | `.general/instructions/assembly/profile_builder_instructions.md` | Profile Builder | v1.6 |
-| `.general/instructions/assembly/skills_curator_agent_instructions.md` | Skills Curator | v1.5 |
-| `.general/instructions/assembly/history_formatter_agent_instructions.md` | History Formatter | v1.3 |
-| `.general/instructions/assembly/credentials_formatter_agent_instructions.md` | Credentials Formatter | v1.5 |
-| `.general/instructions/assembly/coverletter_writer_agent_instructions.md` | CoverLetter Writer | v1.3 |
+| `.general/instructions/assembly/skills_curator_agent_instructions.md` | Skills Curator | v1.6 |
+| `.general/instructions/assembly/history_formatter_agent_instructions.md` | History Formatter | v1.5 |
+| `.general/instructions/assembly/credentials_formatter_agent_instructions.md` | Credentials Formatter | v1.6 |
+| `.general/instructions/assembly/coverletter_writer_agent_instructions.md` | CoverLetter Writer | v1.4 |
 | `.general/instructions/assembly/style_reviewer_agent_instructions.md` | Style Reviewer | v1.5 |
-| `.general/instructions/assembly/integrity_checker_agent_instructions.md` | Integrity Checker | v1.7 |
+| `.general/instructions/assembly/integrity_checker_agent_instructions.md` | Integrity Checker | v1.8 |
 
 ---
 

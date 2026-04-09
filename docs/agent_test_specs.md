@@ -4,24 +4,27 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 
 ---
 
-## Main Orchestrator (MO)
+## Main Orchestrator (v5.3)
 
 **Files:** none written by MO
-**Routing target:** Reads `project_memory.json` metadata.status → SwitchAgent to next agent (zero output)
+**Role:** Exception handler only — NOT invoked for any happy-path transition. Server routes happy path directly.
 **Legitimate output cases (only):**
-- Case A/B welcome — when project_memory.json missing/unreadable
+- First message with no project_memory.json → SwitchAgent("ProjectSetup"), no text output
 - REVIEW_FAILED options display
 - CV_TAILORED completion display
 - UNKNOWN STATUS error display
-**Banned:** Any narration during routing (summaries, descriptions, confirmations, greetings)
+- Rerun intent (user says "redo/retry/rerun X") — reset status, SwitchAgent to target, display one-line confirmation
+**Banned:** Any narration during routing; `ChangeAgent` (does not exist — only `SwitchAgent`); calling SwitchAgent more than once per turn; calling SwitchAgent for happy-path statuses (FILES_SAVED, INITIALIZED, RESEARCH_COMPLETE, JD_ENHANCED, ANALYSIS_COMPLETE, REVIEW_COMPLETE, TONE_ANALYZED, CV_BUILDING)
 **Welcome display must start with:** `# Welcome to Your Job Application Assistant` (no preamble)
 
 ---
 
-## ProjectSetup (v1.11)
+## ProjectSetup (v1.14)
 
 **Files:** `project_memory.json`, `cv_assembly_state.json`; confirm `cv_raw.txt` + `jd_raw.txt` exist as files (not directories)
 **Status after:** `metadata.status = "FILES_SAVED"`
+
+**⚠️ Critical content rule:** `cv_raw.txt` and `jd_raw.txt` must contain the user's raw uploaded content verbatim — no summarization, reformatting, or generation. PS should detect files already on disk (written by server upload endpoint) and skip Phase 3 entirely. If files are fabricated or summarized, flag P0.
 
 **Schema — project_memory.json:**
 | Field | Expected |
@@ -55,7 +58,7 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 | final_cv | `null` |
 | change_log | `[]` |
 
-**Routing:** Phase 0 on next user message → SwitchAgent("Main Orchestrator")
+**Routing:** DO NOT call SwitchAgent — server reads FILES_SAVED and routes to Extractor automatically
 **Required display:** `# ✓ Project Setup Complete`, cv_raw.txt, jd_raw.txt, "Send any message to continue"
 **Banned:** Company name pre-populated, any routing narration, SwitchAgent called in same turn as completion display
 
@@ -86,12 +89,12 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 **Award schema (if present):** `{title, body, year}`
 
 **Cross-check:** If candidate surname appears in publication authors — confirmed or updated via Phase 7.5 name check
-**Routing:** SwitchAgent("Main Orchestrator")
+**Routing:** DO NOT call SwitchAgent — server reads INITIALIZED and routes to Researcher automatically
 **Required display:** Summary of extracted sections, counts (N roles, N qualifications, etc.)
 
 ---
 
-## Researcher (v1.8)
+## Researcher (v2.0)
 
 **Files:** `project_memory.json` → `research_data`
 **Status after:** `metadata.status = "RESEARCH_COMPLETE"`
@@ -110,8 +113,8 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 | hiring_unit_intelligence | Non-empty string |
 
 **Field count logged:** Should show "/8" in display
-**Routing:** SwitchAgent("Main Orchestrator")
-**Banned:** Fabricated company data not traceable to Tavily results
+**Routing:** DO NOT call SwitchAgent — server reads RESEARCH_COMPLETE and routes to JD Enhancer automatically
+**Banned:** Fabricated company data not traceable to Tavily results; pipeline narration ("Next: JD Enhancer will…")
 
 ---
 
@@ -140,14 +143,16 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 | metadata.research_quality | `"SUFFICIENT"` or `"INSUFFICIENT"` |
 | metadata.source_jd | `"jd_raw.txt"` |
 
-**Routing:** SwitchAgent("Main Orchestrator")
+**Routing:** DO NOT call SwitchAgent — server reads JD_ENHANCED and routes to Analyst automatically
 
 ---
 
-## Analyst (v2.1)
+## Analyst (v2.3)
 
 **Files:** `project_memory.json` → `gap_analysis`
 **Status after:** `metadata.status = "ANALYSIS_COMPLETE"`
+
+**⚠️ JSON integrity:** Analyst must produce valid JSON. Any stray character (e.g. `.`) in the WriteFile contents will corrupt project_memory.json and break server routing. Verify file is parseable after writing.
 
 **Schema — gap_analysis:**
 | Field | Expected |
@@ -160,17 +165,17 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 | overall_fit_score | Number 0–10 |
 | fit_rationale | Non-empty string |
 | ats_keywords | Array |
-| candidate_provided_evidence | Present (may be empty array — added by Reviewer v1.8) |
+| candidate_provided_evidence | Present (may be empty array — added by Reviewer) |
 | metadata.analyst_version | `"2.1"` |
-| metadata.analyzed_at | ISO date |
+| metadata.analyzed_at | ISO date (not hardcoded — must reflect today) |
 
 **Display check:** Fit score shown with three-line breakdown (Baseline / Differentiator / Total)
-**Routing:** SwitchAgent("Main Orchestrator")
-**Banned:** `evidence_source` on a "Met" item pointing to a path that doesn't exist in candidate_profile.json
+**Routing:** DO NOT call SwitchAgent — server reads ANALYSIS_COMPLETE and routes to Reviewer automatically
+**Banned:** `evidence_source` on a "Met" item pointing to a path that doesn't exist in candidate_profile.json; hardcoded timestamps; spurious root keys in project_memory.json (e.g. `candidate_profile: null`)
 
 ---
 
-## Reviewer (v2.1)
+## Reviewer (v2.3)
 
 **Files:** `project_memory.json` → `review_audit`, `metadata.status`
 **Status after:** `metadata.status = "REVIEW_COMPLETE"` or `"REVIEW_FAILED"`
@@ -188,16 +193,16 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 | summary.approved_items | Number |
 | summary.critical_issues | Number |
 | summary.unresolved_issues | Number |
-| metadata.reviewer_version | `"2.1"` |
-| metadata.reviewed_at | ISO date |
+| metadata.reviewer_version | `"2.3"` |
+| metadata.reviewed_at | ISO date (not hardcoded) |
 
 **Gap Interview (Phase 8):** If high-severity baseline gaps exist, reviewer must ask candidate about up to 3 — responses stored in `gap_analysis.candidate_provided_evidence`
-**Routing:** SwitchAgent("Main Orchestrator")
+**Routing:** DO NOT call SwitchAgent — server reads REVIEW_COMPLETE and routes to Tone Analyst automatically
 **REVIEW_FAILED path:** MO presents redo/accept options — does NOT auto-route
 
 ---
 
-## Tone Analyst (v1.6)
+## Tone Analyst (v2.1)
 
 **Files:** `style_guide.json`, `project_memory.json` status
 **Status after:** `metadata.status = "TONE_ANALYZED"`
@@ -212,12 +217,13 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 | formatting | Object with preferences |
 | examples | Array of extracted phrases (optional) |
 
-**Routing:** SwitchAgent("Main Orchestrator") — must happen automatically after user approves style (no manual step)
-**Display:** Style profile summary, must ask user to confirm before routing
+**Routing:** DO NOT call SwitchAgent — server reads TONE_ANALYZED and routes to Assembly Coordinator automatically
+**Display:** Style profile summary, must ask user to confirm before writing status
+**Banned:** "Clear this chat", "start a new conversation", pipeline narration, agent introduction phrases
 
 ---
 
-## Assembly Coordinator (v3.6)
+## Assembly Coordinator (v3.9)
 
 **Files:** `cv_assembly_state.json` (current_phase, metadata.status), `project_memory.json` (status → CV_BUILDING on first invocation)
 **First invocation:** Sets `project_memory.json` metadata.status = `"CV_BUILDING"`
@@ -242,11 +248,12 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 - Phase 8 pass check: `integrityData.integrity_status === "PASSED"` (NOT `.passed`)
 - Phase 4 completion check: object presence (NOT `historyData.length`)
 - Phase 5 completion check: object presence (NOT `credentialsData.length`)
+- INTEGRITY_FAILED handler: reads `unsupported_claims_detail` array (NOT `unsupported_claims` count)
 **Banned:** Any narration after routing — zero output between phases
 
 ---
 
-## Style Negotiator (v1.3) — Phase 1
+## Style Negotiator (v1.6) — Phase 1
 
 **Files:** `cv_assembly_state.json` → `phases[0]`
 **Phase advance:** current_phase `1 → 2`, phases[0].status `PENDING → COMPLETE`
@@ -255,7 +262,7 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 | Field | Expected |
 |-------|----------|
 | agreed_overrides | Object (may be empty `{}` if no overrides) |
-| agreed_overrides keys | Style preference names |
+| agreed_overrides keys | Style preference names (snake_case) |
 | negotiation_summary | Non-empty string |
 | completed_at | Today's ISO date |
 
@@ -265,7 +272,7 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 
 ---
 
-## Profile Builder (v1.4) — Phase 2
+## Profile Builder (v1.6) — Phase 2
 
 **Files:** `cv_assembly_state.json` → `phases[1]`
 **Phase advance:** current_phase `2 → 3`, phases[1].status `PENDING → COMPLETE`
@@ -283,7 +290,7 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 
 ---
 
-## Skills Curator (v1.4) — Phase 3
+## Skills Curator (v1.6) — Phase 3
 
 **Files:** `cv_assembly_state.json` → `phases[2]`
 **Phase advance:** current_phase `3 → 4`, phases[2].status `PENDING → COMPLETE`
@@ -294,7 +301,7 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 | technical_skills | Array of strings |
 | soft_skills | Array of strings |
 | certifications | Array of strings |
-| tailoring_notes | Non-empty string |
+| tailoring_notes | Non-empty string (joined, NOT an array) |
 
 **Tech detection:** `allTechSkills` list checked first (primary), then context
 **Always shows full list for user confirmation** — no conditional auto-approve
@@ -302,7 +309,7 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 
 ---
 
-## History Formatter (v1.4) — Phase 4
+## History Formatter (v1.5) — Phase 4
 
 **Files:** `cv_assembly_state.json` → `phases[3]`
 **Phase advance:** current_phase `4 → 5`, phases[3].status `PENDING → COMPLETE`
@@ -310,7 +317,7 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 **Schema — phases[3].data:**
 | Field | Expected |
 |-------|----------|
-| work_history | Array, matches candidate_profile work_history count |
+| work_history | Array, matches candidate_profile work_history count (field name is `work_history`, NOT `formatted_entries`) |
 | work_history[*].employer | Non-empty |
 | work_history[*].role | Non-empty |
 | work_history[*].dates | Non-empty |
@@ -318,31 +325,32 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 
 **Display:** Header says "Display for User Review" (NOT "auto-approve")
 **Routing:** SwitchAgent("Assembly Coordinator")
-**Banned:** Routing to Main Orchestrator
+**Banned:** Routing to Main Orchestrator; using field name `formatted_entries`
 
 ---
 
-## Credentials Formatter (v1.3) — Phase 5
+## Credentials Formatter (v1.6) — Phase 5
 
 **Files:** `cv_assembly_state.json` → `phases[4]`
 **Phase advance:** current_phase `5 → 6`, phases[4].status `PENDING → COMPLETE`
 
-**Schema — phases[4].data:**
+**Schema — phases[4].data (flat — NOT nested under `formatted_credentials`):**
 | Field | Expected |
 |-------|----------|
-| education | Array |
+| education | Array at root of phases[4].data |
 | education[*].institution | Non-empty |
 | education[*].qualification | Non-empty |
 | education[*].year | Present |
-| certifications | Array |
+| certifications | Array at root of phases[4].data |
 
+**Certifications path:** `skills?.certifications || additional_information?.certifications`
 **Display:** Header says "Display for User Review" (NOT "auto-approve")
 **Routing:** SwitchAgent("Assembly Coordinator")
-**Banned:** Routing to Main Orchestrator
+**Banned:** Routing to Main Orchestrator; nesting output under `formatted_credentials`
 
 ---
 
-## CoverLetter Writer (v1.3) — Phase 6
+## CoverLetter Writer (v1.4) — Phase 6
 
 **Files:** `cv_assembly_state.json` → `phases[5]`
 **Phase advance:** current_phase `6 → 7`, phases[5].status `PENDING → COMPLETE`
@@ -365,7 +373,7 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 
 ---
 
-## Style Reviewer (v1.4) — Phase 7
+## Style Reviewer (v1.5) — Phase 7
 
 **Files:** `cv_assembly_state.json` → `phases[6]`, `metadata.status`
 **Phase advance:** current_phase `7 → 8`, phases[6].status `PENDING → COMPLETE`
@@ -407,4 +415,4 @@ Concise verification criteria for each agent. Used by `/test-agent` skill — re
 **FAILED path:** metadata.status = `"INTEGRITY_FAILED"`, AC exception handler fires
 **additional_information check:** Publications and awards verified against cv_raw.txt
 **Routing:** SwitchAgent("Assembly Coordinator")
-**Banned:** Passing fabrications through; routing to Main Orchestrator
+**Banned:** Passing fabrications through; routing to Main Orchestrator; single quotes escaped as `\'` in JSON output
