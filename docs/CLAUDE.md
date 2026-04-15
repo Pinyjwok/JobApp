@@ -20,15 +20,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### ✅ All Agents Complete
 | Agent | Version | File |
 |-------|---------|------|
-| Main Orchestrator | v5.3 | `main_orchestrator_agent_instructions.md` |
+| Main Orchestrator | v5.5 | `main_orchestrator_agent_instructions.md` |
 | ProjectSetup | v1.14 | `project_setup_agent_instructions.md` |
 | Extractor | v2.1 | `extractor_agent_instructions.md` |
 | Researcher | v2.0 | `researcher_agent_instructions.md` |
-| JD Enhancer | v1.4 | `jd_enhancer_instructions.md` |
-| Analyst | v2.3 | `analyst_agent_instructions.md` |
-| Reviewer | v2.3 | `reviewer_agent_instructions.md` |
-| Tone Analyst | v2.1 | `tone_analyst_agent_instructions.md` |
-| Assembly Coordinator | v3.9 | `assembly_coordinator_agent_instructions.md` |
+| JD Enhancer | v1.5 | `jd_enhancer_instructions.md` |
+| Analyst | v2.5 | `analyst_agent_instructions.md` |
+| Reviewer | v2.5 | `reviewer_agent_instructions.md` |
+| Tone Analyst | v2.2 | `tone_analyst_agent_instructions.md` |
+| Assembly Coordinator | v3.10 | `assembly_coordinator_agent_instructions.md` |
 | Style Negotiator | v1.6 | `style_negotiator_instructions.md` |
 | Profile Builder | v1.6 | `profile_builder_instructions.md` |
 | Skills Curator | v1.6 | `skills_curator_agent_instructions.md` |
@@ -128,6 +128,46 @@ All fixes from `TC05_Developer_Brief.md` applied. Full details in `.general/test
 - `stallTimerRef`, `turnCounterRef`, streaming state, pre-connect buffer, bouncing dots, stall indicator (⚠ Waiting…), turn counter badge (#N)
 - `stream_token` SSE event no longer used (server no longer broadcasts it)
 
+### ⏳ TC08 Ongoing Fixes (2026-04-13) — Analyst re-run + Reviewer write bug
+
+**Root cause confirmed — Reviewer BUG-117:**
+Reviewer called `WriteFile("workspaceproject_memory.json", ...)` — prepended literal "workspace" to the filename. KEMU created a directory `workspaceproject_memory.json/` at the repo root instead of writing to the workspace. Content was also wrapped in an extra `{"project_memory": {...}}` key.
+
+**KEMU workspace root:** `/Users/piny/JobApp/workspace/` (not the repo root). All runtime files live here.
+
+**Fix applied:**
+- **Reviewer v2.4**: `filename.startsWith('workspace')` guard added. `Object.keys(projectMemory).includes("metadata")` sanity check added to catch extra-wrapper pattern. Both Phase 7 (interim) and Phase 9 (final) write blocks hardened with inline WRONG/CORRECT comments.
+
+**Analyst re-run bugs found (pending fixes → Analyst v2.5):**
+
+| Bug | Severity | Description |
+|-----|----------|-------------|
+| BUG-120 | P0 | `strength_2` fabricates "peer-reviewed journals" — `publications: []`, evidence path resolves to PI role description |
+| BUG-121 | P1 | Grant gap overstated: candidate has Lead CI grant (`grants[1]`, Internal Seed Grant $45k 2022) — Analyst missed it, incorrectly classified as High severity gap |
+| BUG-122 | P1 | Reviewer audit score recalculation wrong: stated 6.3 but 6.3 is only baseline component; correct total 7.8 (caused ~50 reasoning cycles of re-run Analyst self-contradiction) |
+| BUG-123 | P1 | Analyst re-run doesn't delete stale `review_audit` — latent risk: Reviewer re-invocation guard would skip Phase 1–7 if workspace had prior audit |
+| BUG-124 | P1 | `candidate_provided_evidence` absent from gap_analysis (recurring BUG-112) — Analyst v2.4 still doesn't initialize as `[]` |
+| BUG-125 | P2 | `strength_7` and `strength_9` share same evidence path |
+| BUG-126 | P3 | `analyzed_at` hardcoded to stale date (recurring) |
+
+**Pending before next TC09:**
+1. Upload Reviewer v2.4 to KEMU
+2. Fix Analyst v2.5: publications guard before claiming journal evidence, grants evidence scan for gap scoring, `candidate_provided_evidence: []` init, `delete projectMemory.review_audit` on re-run
+3. Fix Reviewer v2.5: score recalculation must include differentiator term (`baseline_score + differentiator_score`, not baseline alone)
+
+---
+
+### ✅ TC08 Fixes Applied (2026-04-10) — 5 changes
+
+**P0 fix:**
+- **`server/routes/pipeline.js`**: 500ms debounce added to `AgentOutput` onChange handler — prevents double-broadcast when agents set AgentOutput twice in one turn (BUG-106). Also fixes auto-continue race condition where stream_done fired before WriteFile completed, causing JD Enhancer self-loop (BUG-107).
+
+**P1 fixes:**
+- **Extractor v2.2**: Phase 7.5 fail-fast name mismatch — replaces blocking multi-turn question with EXTRACTION_FAILED stop (writes `failure_reason: "name_mismatch"` + `alternate_name_detected`). On re-invocation reads `pending_name_resolution` from MO and applies it. Phase 6 clears resolution fields before writing INITIALIZED (BUG-103, BUG-104).
+- **Main Orchestrator v5.4**: Phase 8 EXTRACTION_FAILED handler now branches on `failure_reason`. `name_mismatch` shows user-friendly 3-option menu (same person / name change / different person). "Different person" offers sub-menu: remove them or upload new CV (BUG-103, BUG-104).
+- **JD Enhancer v1.5**: Critical Rule 15 rewritten — explicit ⛔ DO NOT call SwitchAgent on completion (BUG-108). Phase 8.2 `next_agent` corrected from "Main Orchestrator" to "Analyst (server-handled)" (BUG-109). Version and date corrected throughout.
+- **Main Orchestrator v5.5**: Phase 1 "YOU ARE ALREADY MO" block added — model was calling ChangeAgent("Main Orchestrator") to transition into itself (BUG-116). Phase 4 zero-preamble enforcement — output must begin with `⚠` symbol (BUG-115). Banned phrases expanded with reasoning-level narration patterns ("shifting gears", "Activating Orchestrator Task", "putting on the MO hat").
+
 ### ✅ TC07 Fixes Applied (2026-04-09) — 4 changes
 
 TC07 aborted at Analyst due to pipeline-fatal fabrication in cv_raw.txt (BUG-91) and malformed JSON from Analyst (BUG-98). Fixes applied mid-run.
@@ -197,21 +237,21 @@ All fixes from `TC06_Developer_Brief.md`. Full details in `.general/tests/TC06_D
 
 | Agent | Version | Reason |
 |-------|---------|--------|
-| Analyst | v2.2 | Complex evidence matching, read-modify-write on large JSON |
-| Reviewer | v2.0 | Multi-phase forensic audit, gap interview state tracking |
-| Tone Analyst | v1.8 | Schema compliance under long instruction file |
-| Assembly Coordinator | v3.9 | ZERO OUTPUT enforcement, exception routing, completion writes |
+| Analyst | v2.5 | Complex evidence matching, read-modify-write on large JSON |
+| Reviewer | v2.5 | Multi-phase forensic audit, gap interview state tracking |
+| Tone Analyst | v2.2 | Schema compliance under long instruction file |
+| Assembly Coordinator | v3.10 | ZERO OUTPUT enforcement, exception routing, completion writes |
 | Integrity Checker | v1.8 | Strict PASSED/FAILED gate, fabrication detection |
 
 **Gemini Flash 3.0 preview (deterministic / simple tasks):**
 
 | Agent | Version |
 |-------|---------|
-| Main Orchestrator | v5.3 |
+| Main Orchestrator | v5.4 |
 | ProjectSetup | v1.14 |
-| Extractor | v2.1 |
+| Extractor | v2.2 |
 | Researcher | v2.0 |
-| JD Enhancer | v1.4 |
+| JD Enhancer | v1.5 |
 | Style Negotiator | v1.6 |
 | Profile Builder | v1.6 |
 | Skills Curator | v1.6 |
@@ -233,11 +273,14 @@ All fixes from `TC06_Developer_Brief.md`. Full details in `.general/tests/TC06_D
 | TC05 | Flash 3 + Pro 2.5 (MO only) | PARTIAL PASS | ~6.5/10 | 29 | First end-to-end completion; final CV unsaved, IC passed fabrications |
 | TC06 | Flash 3 + Pro 2.5 (5 agents) | PARTIAL | — | 18 (assembly) | ✅ Complete — assembly phase fixes applied |
 | TC07 | Flash 3 + Pro 2.5 | ABORTED | — | 8 (BUG-90–97) | Aborted at ProjectSetup: cv_raw.txt fabricated (BUG-91), Analyst wrote malformed JSON (BUG-98). MO calling ChangeAgent (BUG-95/96). Fixes applied. |
+| TC08 | Flash 3 + Pro 2.5 | IN PROGRESS | — | 17 (BUG-103–119) + 7 (BUG-120–126) = 24 | Reached Analyst re-run (2026-04-13). Reviewer v2.4 fix applied (BUG-117 path bug). Analyst re-run: publications fabrication (BUG-120), grants evidence miss (BUG-121). Pending: Analyst v2.5 + Reviewer v2.5 fixes before continuing. |
 
-### ⏳ Next Steps
+### ⏳ Next Steps — TC09
 
-1. **Re-upload instructions** — MO v5.3, ProjectSetup v1.14 must be re-pasted into KEMU before TC08
-2. **TC08** — resume Alistair Whitmore run from current state (ANALYSIS_COMPLETE) — Reviewer onwards; or reset for a clean full run to validate PS v1.14 fix
+1. **Fix Analyst v2.5** — address BUG-120/121/123/124: publications guard, grants evidence scan for gap scoring, `candidate_provided_evidence: []` init, delete stale `review_audit` on re-run
+2. **Fix Reviewer v2.5** — address BUG-122: score recalculation must sum baseline + differentiator components
+3. **Upload to KEMU** — Analyst v2.5, Reviewer v2.5
+4. **TC09** — clean full run from scratch to validate all fixes
 
 ---
 
@@ -251,7 +294,7 @@ Express Server (server/routes/pipeline.js) — status router
 │  ├─ ProjectSetup → Extractor → Researcher → JD Enhancer   [Flash 3]
 │  └─ Analyst [Pro 2.5] → Reviewer [Pro 2.5] → Tone Analyst [Pro 2.5]
 │
-└─ Assembly Coordinator v3.9 [Pro 2.5] (sub-orchestrator, self-routing)
+└─ Assembly Coordinator v3.10 [Pro 2.5] (sub-orchestrator, self-routing)
    ├─ Style Negotiator      (Phase 1) [Flash 3]
    ├─ Profile Builder       (Phase 2) [Flash 3]
    ├─ Skills Curator        (Phase 3) [Flash 3]
@@ -261,7 +304,7 @@ Express Server (server/routes/pipeline.js) — status router
    ├─ Style Reviewer        (Phase 7) [Flash 3]
    └─ Integrity Checker     (Phase 8) [Pro 2.5]
 
-Main Orchestrator v5.3 [Flash 3] — exception handler only
+Main Orchestrator v5.5 [Flash 3] — exception handler only
   Invoked for: REVIEW_FAILED, RESEARCH_FAILED, ANALYSIS_FAILED, EXTRACTION_FAILED, CV_TAILORED
   NOT invoked for any happy-path transition
 ```
@@ -570,11 +613,11 @@ const INVALIDATION = {
 
 | File | Agent | Version |
 |------|-------|---------|
-| `.general/instructions/main_orchestrator_agent_instructions.md` | Main Orchestrator | v5.2 |
-| `.general/instructions/project_setup_agent_instructions.md` | ProjectSetup | v1.13 |
-| `.general/instructions/extractor_agent_instructions.md` | Extractor | v2.1 |
+| `.general/instructions/main_orchestrator_agent_instructions.md` | Main Orchestrator | v5.5 |
+| `.general/instructions/project_setup_agent_instructions.md` | ProjectSetup | v1.14 |
+| `.general/instructions/extractor_agent_instructions.md` | Extractor | v2.2 |
 | `.general/instructions/researcher_agent_instructions.md` | Researcher | v1.9 |
-| `.general/instructions/jd_enhancer_instructions.md` | JD Enhancer | v1.4 |
+| `.general/instructions/jd_enhancer_instructions.md` | JD Enhancer | v1.5 |
 | `.general/instructions/analyst_agent_instructions.md` | Analyst | v2.3 |
 | `.general/instructions/reviewer_agent_instructions.md` | Reviewer | v2.3 |
 | `.general/instructions/tone_analyst_agent_instructions.md` | Tone Analyst | v2.1 |
@@ -583,7 +626,7 @@ const INVALIDATION = {
 
 | File | Agent | Version |
 |------|-------|---------|
-| `.general/instructions/assembly/assembly_coordinator_agent_instructions.md` | Assembly Coordinator | v3.9 |
+| `.general/instructions/assembly/assembly_coordinator_agent_instructions.md` | Assembly Coordinator | v3.10 |
 | `.general/instructions/assembly/style_negotiator_instructions.md` | Style Negotiator | v1.6 |
 | `.general/instructions/assembly/profile_builder_instructions.md` | Profile Builder | v1.6 |
 | `.general/instructions/assembly/skills_curator_agent_instructions.md` | Skills Curator | v1.6 |

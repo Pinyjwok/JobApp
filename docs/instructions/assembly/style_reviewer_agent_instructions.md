@@ -177,7 +177,7 @@ delete cvState.metadata.current_phase  // Remove any metadata.current_phase poll
 cvState.metadata.completed_phases += 1
 cvState.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: JSON.stringify(cvState, null, 2 }))
+WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
 ```
 
 Then display and return:
@@ -220,7 +220,7 @@ Style consistency check complete.
 
 1. **Use bare filenames** — `"cv_assembly_state.json"` not `"/cv_assembly_state.json"`
 2. **No leading slashes** — Never start filename with `/`
-3. **Always stringify JSON** — `WriteFile({ fileName: "file.json", filePath: "", contents: JSON.stringify(data, null, 2 }))`
+3. **Always stringify JSON** — `WriteFile("file.json", JSON.stringify(data, null, 2))`
 4. **Read section data from phases array** — `cvState.phases[N].data`, not `cvState.sections`
 5. **Read style overrides from phases[0].data** — Not from old sections schema
 6. **Update phases[6] only** — Array index 6

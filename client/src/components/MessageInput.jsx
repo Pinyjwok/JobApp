@@ -9,7 +9,7 @@ const UPLOAD_TARGETS = [
 export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
   const [text, setText] = useState('');
   const [injectMode, setInjectMode] = useState(false);
-  const [uploadTarget, setUploadTarget] = useState(null); // null = auto-detect
+  const [uploadTarget, setUploadTarget] = useState(null);
   const [showTargetMenu, setShowTargetMenu] = useState(false);
   const fileRef = useRef(null);
 
@@ -49,16 +49,12 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
     setTimeout(() => fileRef.current?.click(), 50);
   }
 
-  function handleUploadClick() {
-    setShowTargetMenu((v) => !v);
-  }
-
   const targetLabel = UPLOAD_TARGETS.find((t) => t.value === uploadTarget)?.label ?? 'Auto';
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-end gap-2 px-4 py-3 border-t border-slate-700"
+      className="flex items-end gap-2 px-5 py-3 border-t border-slate-800 bg-slate-900/50 backdrop-blur-sm"
     >
       <input
         ref={fileRef}
@@ -69,14 +65,14 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
         className="hidden"
       />
 
-      {/* Upload button + target popover */}
+      {/* Upload */}
       <div className="relative">
         {showTargetMenu && (
-          <div className="absolute bottom-full mb-2 left-0 z-50 bg-slate-800 border border-slate-600 rounded-xl shadow-lg overflow-hidden min-w-max">
+          <div className="absolute bottom-full mb-2 left-0 z-50 bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl shadow-black/40 overflow-hidden min-w-max animate-fade-in-up">
             <button
               type="button"
               onClick={() => pickTarget(null)}
-              className="w-full text-left px-4 py-2 text-xs text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-colors"
+              className="w-full text-left px-4 py-2.5 text-xs text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 transition-colors"
             >
               Auto-detect
             </button>
@@ -85,7 +81,7 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
                 key={t.value}
                 type="button"
                 onClick={() => pickTarget(t.value)}
-                className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                className="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
               >
                 {t.label}
               </button>
@@ -95,32 +91,32 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
 
         <button
           type="button"
-          onClick={handleUploadClick}
+          onClick={() => setShowTargetMenu((v) => !v)}
           disabled={disabled}
-          className={`flex items-center gap-1.5 rounded-xl border text-sm px-3 py-3 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+          className={`flex items-center gap-1.5 rounded-xl text-sm px-3 py-2.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
             uploadTarget
-              ? 'bg-violet-900 border-violet-600 text-violet-300'
-              : 'bg-slate-800 border-slate-600 text-slate-400 hover:border-violet-500 hover:text-violet-400'
+              ? 'bg-violet-900/40 border border-violet-600/50 text-violet-300'
+              : 'bg-slate-800/60 border border-slate-700/50 text-slate-500 hover:text-violet-400 hover:border-violet-500/50'
           }`}
           title={`Upload as: ${targetLabel}`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
           {uploadTarget && (
-            <span className="text-xs">{targetLabel}</span>
+            <span className="text-[10px]">{targetLabel}</span>
           )}
         </button>
       </div>
 
-      {/* Textarea */}
+      {/* Input */}
       <textarea
-        className="flex-1 resize-none rounded-xl bg-slate-800 border border-slate-600 text-sm text-slate-100 placeholder-slate-500 px-4 py-3 focus:outline-none focus:border-violet-500 transition-colors"
+        className="flex-1 resize-none rounded-xl bg-slate-800/40 border border-slate-700/40 text-sm text-slate-100 placeholder-slate-600 px-4 py-2.5 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
         rows={1}
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={injectMode ? 'Inject agent message…' : 'Type a message…'}
+        placeholder={injectMode ? 'Inject agent message...' : 'Type a message...'}
         disabled={disabled && !injectMode}
       />
 
@@ -129,10 +125,12 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
         <button
           type="button"
           onClick={() => onSend(lastUserMessage)}
-          className="rounded-xl bg-slate-800 border border-slate-600 hover:border-violet-500 text-slate-400 hover:text-violet-400 text-xs px-3 py-3 transition-colors whitespace-nowrap"
+          className="rounded-xl bg-slate-800/40 border border-slate-700/40 hover:border-violet-500/50 text-slate-500 hover:text-violet-400 text-xs px-2.5 py-2.5 transition-all"
           title={`Resend: "${lastUserMessage.slice(0, 30)}"`}
         >
-          ↩
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4" />
+          </svg>
         </button>
       )}
 
@@ -140,10 +138,10 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
       <button
         type="button"
         onClick={() => setInjectMode((v) => !v)}
-        className={`rounded-xl border text-xs px-3 py-3 transition-colors whitespace-nowrap ${
+        className={`rounded-xl border text-[10px] px-2.5 py-2.5 transition-all font-medium tracking-wide uppercase ${
           injectMode
-            ? 'bg-amber-900 border-amber-600 text-amber-300'
-            : 'bg-slate-800 border-slate-600 text-slate-500 hover:text-slate-300'
+            ? 'bg-amber-900/30 border-amber-600/50 text-amber-400'
+            : 'bg-slate-800/40 border-slate-700/40 text-slate-600 hover:text-slate-400'
         }`}
         title="Toggle inject mode (bypass KEMU)"
       >
@@ -154,9 +152,11 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
       <button
         type="submit"
         disabled={(disabled && !injectMode) || !text.trim()}
-        className="rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-3 transition-colors"
+        className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 transition-all active:scale-95 shadow-lg shadow-violet-600/10 hover:shadow-violet-500/20"
       >
-        Send
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </svg>
       </button>
     </form>
   );

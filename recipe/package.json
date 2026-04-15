@@ -7,6 +7,6 @@
     "services/kemu.io.file-system@1.4.0"
   ],
   "dependencies": {
-    "@kemu-io/edge-runtime": "^1.12.3"
+    "@kemu-io/edge-runtime": "^1.13.0"
   }
 }

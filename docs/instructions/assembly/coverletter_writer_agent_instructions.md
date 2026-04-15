@@ -330,7 +330,7 @@ if (filename.startsWith('/') || filename.includes('/')) {
   STOP
 }
 
-WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: JSON.stringify(cvState, null, 2 }))
+WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
 
 const verified = JSON.parse(ReadFile("cv_assembly_state.json"))
 if (verified.current_phase !== 7) {
@@ -367,7 +367,7 @@ existingLog.reasoning_log.push({
 existingLog.metadata.total_entries = (existingLog.metadata.total_entries || 0) + 1
 existingLog.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: JSON.stringify(existingLog, null, 2 }))
+WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
 
 let existingHistory
 try {
@@ -387,7 +387,7 @@ existingHistory.turns.push({
 existingHistory.metadata.total_turns = (existingHistory.metadata.total_turns || 0) + 1
 existingHistory.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "conversation_history.json", filePath: "", contents: JSON.stringify(existingHistory, null, 2 }))
+WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
 ```
 
 ---

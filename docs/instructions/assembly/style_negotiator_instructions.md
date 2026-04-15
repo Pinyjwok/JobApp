@@ -99,14 +99,17 @@ Before generating ANY timestamp:
 
 ### The Simple Rule
 
-**Write files using bare filenames only. No leading slash. No path construction.**
+**Write files using bare filenames only. No leading slash. No path construction. Always use positional parameters.**
 ```javascript
 ✅ CORRECT:
-WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: jsonString })
-WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: jsonString })
+WriteFile("cv_assembly_state.json", jsonString)
+WriteFile("agent_reasoning.json", jsonString)
 
-❌ WRONG - Leading slash:
-WriteFile({ fileName: "/cv_assembly_state.json", filePath: "", contents: jsonString })
+❌ WRONG — named params (creates directory instead of file):
+WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: jsonString })
+
+❌ WRONG — leading slash:
+WriteFile("/cv_assembly_state.json", jsonString)
 ```
 
 ### Mandatory Pre-Write Check
@@ -371,7 +374,7 @@ if (filename.startsWith('/') || filename.includes('/')) {
 
 // Write
 const jsonString = JSON.stringify(cvState, null, 2)
-WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: jsonString })
+WriteFile("cv_assembly_state.json", jsonString)
 
 // Verify
 const verify = ReadFile("cv_assembly_state.json")
@@ -418,7 +421,7 @@ existingLog.reasoning_log.push(reasoningEntry)
 existingLog.metadata.total_entries = (existingLog.metadata.total_entries || 0) + 1
 existingLog.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: JSON.stringify(existingLog, null, 2 }))
+WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
 
 // Log to conversation_history.json
 const historyEntry = {
@@ -441,7 +444,7 @@ existingHistory.turns.push(historyEntry)
 existingHistory.metadata.total_turns = (existingHistory.metadata.total_turns || 0) + 1
 existingHistory.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "conversation_history.json", filePath: "", contents: JSON.stringify(existingHistory, null, 2 }))
+WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
 ```
 
 ---
@@ -552,7 +555,7 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 
 1. **Use bare filenames** - `"cv_assembly_state.json"` not `"/cv_assembly_state.json"`
 2. **No leading slashes** - Never start filename with `/`
-3. **Always stringify JSON** - `WriteFile({ fileName: "file.json", filePath: "", contents: JSON.stringify(data, null, 2 }))`
+3. **Always stringify JSON** - `WriteFile("file.json", JSON.stringify(data, null, 2))`
 4. **Verify write succeeded** - Read file back after writing
 5. **Always log** - Update history files before switching
 6. **Use actual current date** - Never hardcode timestamps

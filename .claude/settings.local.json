@@ -23,7 +23,16 @@
       "Bash(git branch:*)",
       "Bash(git remote:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git -C /Users/piny/JobApp add server/routes/pipeline.js client/src/App.jsx)",
+      "Bash(git -C /Users/piny/JobApp commit -m 'Fix startup routing + add reset endpoint:*)",
+      "Bash(git -C /Users/piny/JobApp push)",
+      "Bash(node index.js)",
+      "Bash(sed -n '200,215p' /Users/piny/JobApp/docs/instructions/extractor_agent_instructions.md)",
+      "Bash(sed -n '220,235p' /Users/piny/JobApp/docs/instructions/extractor_agent_instructions.md)",
+      "Bash(sed -n '437,450p' /Users/piny/JobApp/docs/instructions/extractor_agent_instructions.md)",
+      "Bash(sed -n '473,515p' /Users/piny/JobApp/docs/instructions/extractor_agent_instructions.md)",
+      "Bash(npx vite:*)"
     ]
   }
 }

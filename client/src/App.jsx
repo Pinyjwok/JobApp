@@ -40,6 +40,7 @@ export default function App() {
   }, []);
 
   function saveHistory(msgs) {
+    // eslint-disable-next-line no-unused-vars
     const clean = msgs.map(({ streaming, stalled, ...m }) => m);
     fetch('/api/history', {
       method: 'POST',
@@ -89,6 +90,10 @@ Upload your CV/resume and job description using the upload button below.`,
   function handleModalResume() {
     setMessages(historyForModal);
     setModalState('hidden');
+    fetch('/api/status')
+      .then((r) => r.json())
+      .then((d) => setStatus(d.status))
+      .catch(() => {});
   }
 
   useStream(
@@ -198,6 +203,9 @@ Upload your CV/resume and job description using the upload button below.`,
         { role: 'user', text: `Uploaded ${name} → ${target}.txt` },
       ]);
       setUploadedFiles((prev) => ({ ...prev, [target]: name }));
+      if (target === 'cover_letter_sample' && activeAgent === 'Tone Analyst') {
+        await handleSend('Cover letter uploaded — please proceed with the analysis.');
+      }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -257,7 +265,7 @@ Upload your CV/resume and job description using the upload button below.`,
   const bothFilesReady = uploadedFiles.cv_raw && uploadedFiles.jd_raw;
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-950 text-base">
+    <div className="flex flex-col h-screen w-screen bg-[#0a0c10] text-base">
       {modalState === 'pending' && (
         <StartModal
           hasHistory={historyForModal.length > 0}
@@ -266,52 +274,65 @@ Upload your CV/resume and job description using the upload button below.`,
         />
       )}
 
-      <div className="px-6 py-4 border-b border-slate-700 flex items-center gap-3">
-        <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
-        <h1 className="text-lg font-semibold text-slate-100 flex-1">
-          JobApp CV Optimizer
+      {/* Header */}
+      <div className="px-5 py-3 border-b border-slate-800 flex items-center gap-3 bg-slate-900/40 backdrop-blur-sm">
+        <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/30 animate-pulse" />
+        <h1 className="text-sm font-semibold text-slate-200 flex-1 tracking-tight">
+          JobApp
         </h1>
-        <button
-          onClick={() => setShowInspector((v) => !v)}
-          className="text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Files
-        </button>
-        <button
-          onClick={() => setShowTimeline((v) => !v)}
-          className="text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Timeline
-        </button>
-        <button
-          onClick={handleAutoContinue}
-          className={`text-xs rounded-lg px-3 py-1.5 transition-colors border ${
-            autoContinue
-              ? 'text-green-300 border-green-700 bg-green-950 hover:border-green-500'
-              : 'text-slate-400 border-slate-600 hover:text-slate-200 hover:border-slate-400'
-          }`}
-          title={autoContinue ? 'Auto-continue ON — click to pause' : 'Auto-continue OFF — click to enable'}
-        >
-          {autoContinue ? 'Auto ●' : 'Auto'}
-        </button>
-        <button
-          onClick={handleSetStatus}
-          className="text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Set status
-        </button>
-        <button
-          onClick={handleAbort}
-          className="text-xs text-red-400 hover:text-red-300 border border-red-800 hover:border-red-600 rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Abort
-        </button>
-        <button
-          onClick={handleReset}
-          className="text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors"
-        >
-          New session
-        </button>
+
+        {/* View toggles */}
+        <div className="flex items-center gap-1 bg-slate-800/40 rounded-lg p-0.5 border border-slate-700/30">
+          <button
+            onClick={() => setShowInspector((v) => !v)}
+            className={`text-[10px] rounded-md px-2.5 py-1 transition-all ${
+              showInspector ? 'bg-slate-700/60 text-slate-200' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            Files
+          </button>
+          <button
+            onClick={() => setShowTimeline((v) => !v)}
+            className={`text-[10px] rounded-md px-2.5 py-1 transition-all ${
+              showTimeline ? 'bg-slate-700/60 text-slate-200' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            Timeline
+          </button>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleAutoContinue}
+            className={`text-[10px] rounded-lg px-2.5 py-1.5 transition-all border ${
+              autoContinue
+                ? 'text-emerald-300 border-emerald-700/50 bg-emerald-950/40'
+                : 'text-slate-500 border-slate-700/30 hover:text-slate-300 hover:border-slate-600'
+            }`}
+            title={autoContinue ? 'Auto-continue ON' : 'Auto-continue OFF'}
+          >
+            {autoContinue ? 'Auto ON' : 'Auto'}
+          </button>
+          <button
+            onClick={handleSetStatus}
+            className="text-[10px] text-slate-500 hover:text-slate-300 border border-slate-700/30 hover:border-slate-600 rounded-lg px-2.5 py-1.5 transition-all"
+          >
+            Status
+          </button>
+          <button
+            onClick={handleAbort}
+            className="text-[10px] text-red-400/70 hover:text-red-300 border border-red-900/30 hover:border-red-700/50 rounded-lg px-2.5 py-1.5 transition-all"
+          >
+            Abort
+          </button>
+          <button
+            onClick={handleReset}
+            className="text-[10px] text-slate-500 hover:text-slate-300 border border-slate-700/30 hover:border-slate-600 rounded-lg px-2.5 py-1.5 transition-all"
+          >
+            New
+          </button>
+        </div>
       </div>
 
       <StatusBar status={status} activeAgent={activeAgent} />
@@ -326,16 +347,19 @@ Upload your CV/resume and job description using the upload button below.`,
       )}
 
       {bothFilesReady && (
-        <div className="px-4 py-2 bg-indigo-950 border-t border-indigo-800 flex items-center justify-between">
-          <span className="text-xs text-indigo-300">
-            CV and JD uploaded — ready to begin
-          </span>
+        <div className="px-5 py-2.5 bg-gradient-to-r from-violet-950/40 to-indigo-950/40 border-t border-violet-800/30 flex items-center justify-between shimmer-bg">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs text-violet-300/80">
+              CV and JD uploaded
+            </span>
+          </div>
           <button
             onClick={handleBegin}
             disabled={sending}
-            className="text-xs bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg px-4 py-1.5 font-medium transition-colors"
+            className="text-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-40 text-white rounded-lg px-4 py-1.5 font-medium transition-all shadow-lg shadow-violet-600/10 active:scale-95"
           >
-            Begin →
+            Begin
           </button>
         </div>
       )}

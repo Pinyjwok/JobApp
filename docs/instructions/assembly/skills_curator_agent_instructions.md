@@ -295,7 +295,7 @@ cvState.change_log.push({
 
 // Write back to file (IMPORTANT: Use JSON.stringify)
 const jsonString = JSON.stringify(cvState, null, 2)
-WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: jsonString })
+WriteFile("cv_assembly_state.json", jsonString)
 
 // Verify write succeeded
 const verified = JSON.parse(ReadFile("cv_assembly_state.json"))

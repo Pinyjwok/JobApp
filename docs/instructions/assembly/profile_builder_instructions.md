@@ -313,7 +313,7 @@ cvState.current_phase = 3
 cvState.metadata.completed_phases += 1
 cvState.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: JSON.stringify(cvState, null, 2 }))
+WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
 ```
 
 ---
@@ -354,7 +354,7 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 1. **Use bare filenames** — `"cv_assembly_state.json"` not `"/cv_assembly_state.json"`
 2. **No leading slashes** — Never start filename with `/`
 3. **No path separators** — Never use `/` or `\` in filename
-4. **Always stringify JSON** — `WriteFile({ fileName: "file.json", filePath: "", contents: JSON.stringify(data, null, 2 }))`
+4. **Always stringify JSON** — `WriteFile("file.json", JSON.stringify(data, null, 2))`
 5. **Verify writes** — Read file back after writing
 6. **candidate_profile.json** — NEVER user_profile.json
 7. **Read style overrides from phases[0].data** — Not from old sections schema

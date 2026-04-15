@@ -185,7 +185,7 @@ Type **'yes'** to confirm or **'edit'** to request changes.
   // Set a flag in cvState so next invocation knows display has occurred.
   cvState.phases[3].status = "AWAITING_CONFIRMATION"
   cvState.metadata.last_updated = getCurrentISOTimestamp()
-  WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: JSON.stringify(cvState, null, 2 }))
+  WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
   END TURN
 }
 
@@ -202,7 +202,7 @@ if (response.includes("yes") || response.includes("looks good") || response.incl
   // [Apply changes to formattedEntries]
   // Re-display with updated content and ask again
   cvState.metadata.last_updated = getCurrentISOTimestamp()
-  WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: JSON.stringify(cvState, null, 2 }))
+  WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
   Display: [updated formatted history + confirm prompt]
   END TURN
 } else {
@@ -238,7 +238,7 @@ if (filename.startsWith('/') || filename.includes('/')) {
   STOP
 }
 
-WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: JSON.stringify(cvState, null, 2 }))
+WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
 
 // Verify write
 const verified = JSON.parse(ReadFile("cv_assembly_state.json"))
@@ -283,7 +283,7 @@ existingLog.reasoning_log.push({
 existingLog.metadata.total_entries = (existingLog.metadata.total_entries || 0) + 1
 existingLog.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: JSON.stringify(existingLog, null, 2 }))
+WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
 
 // Log to conversation_history.json
 let existingHistory
@@ -304,7 +304,7 @@ existingHistory.turns.push({
 existingHistory.metadata.total_turns = (existingHistory.metadata.total_turns || 0) + 1
 existingHistory.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "conversation_history.json", filePath: "", contents: JSON.stringify(existingHistory, null, 2 }))
+WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
 ```
 
 ---

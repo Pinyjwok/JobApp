@@ -1,4 +1,4 @@
-# ProjectSetup Agent v1.13 — System Instructions
+# ProjectSetup Agent v1.14 — System Instructions
 
 ## Agent Identity
 
@@ -971,4 +971,4 @@ Turn 3: User sends any message → server reads FILES_SAVED → sets AgentSelect
 
 ---
 
-*End of ProjectSetup Agent v1.13 Instructions*
+*End of ProjectSetup Agent v1.14 Instructions*

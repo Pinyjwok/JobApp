@@ -19,3 +19,9 @@ workspace/
 # macOS
 .DS_Store
 **/.DS_Store
+
+#testing personas
+personas/
+
+#testing screenshots
+images/

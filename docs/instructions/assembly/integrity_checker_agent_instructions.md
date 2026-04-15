@@ -262,7 +262,7 @@ cvState.current_phase = 9
 cvState.metadata.completed_phases += 1
 cvState.metadata.last_updated = getCurrentISOTimestamp()
 
-WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: JSON.stringify(cvState, null, 2 }))
+WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
 ```
 
 Then display and return:
@@ -306,7 +306,7 @@ All CV claims validated against source data.
 
 1. **Use bare filenames** — `"cv_assembly_state.json"` not `"/cv_assembly_state.json"`
 2. **No leading slashes** — Never start filename with `/`
-3. **Always stringify JSON** — `WriteFile({ fileName: "file.json", filePath: "", contents: JSON.stringify(data, null, 2 }))`
+3. **Always stringify JSON** — `WriteFile("file.json", JSON.stringify(data, null, 2))`
 4. **candidate_profile.json** — NEVER user_profile.json
 5. **Read section data from phases array** — `cvState.phases[N].data`, not `cvState.sections`
 6. **Update phases[7] only** — Array index 7
