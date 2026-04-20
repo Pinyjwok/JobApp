@@ -315,13 +315,7 @@ Skills section organized and ATS-optimized.
 - Soft skills: {formattedSkills.soft_skills.length}
 - Certifications: {formattedSkills.certifications.length}
 
----
-
-Send any message to continue.
-`
-
-// Return to Assembly Coordinator
-SwitchAgent(target: "Assembly Coordinator", context: {})
+// TURN ENDS. Canvas fires done_SC = 1 from text output. Server handles dispatch.
 ```
 
 ---
@@ -348,8 +342,8 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 4. **Update phases[2] only** - Array index 2
 5. **Advance to Phase 4** - Set current_phase = 4
 6. **candidate_profile.json** - NEVER user_profile.json
-7. **Turn-based pattern** - Display "# ✓ Skills Curator Complete" before SwitchAgent
-8. **Return to Assembly Coordinator** - Always SwitchAgent("Assembly Coordinator") when done
+7. **Turn-based pattern** - Display "# ✓ Skills Curator Complete" and end turn naturally
+8. **No SwitchAgent on completion** — canvas fires `done_SC = 1`; server handles dispatch
 
 ---
 

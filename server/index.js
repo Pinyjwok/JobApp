@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import pipelineRouter, { initRecipe } from './routes/pipeline.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -53,7 +53,14 @@ app.use(cors());
 app.use(express.json());
 app.use('/api', pipelineRouter);
 
-const PORT = 3001;
+// Serve built React frontend in production
+const CLIENT_DIST = join(__dirname, '..', 'client', 'dist');
+if (existsSync(CLIENT_DIST)) {
+  app.use(express.static(CLIENT_DIST));
+  app.get('*', (_req, res) => res.sendFile(join(CLIENT_DIST, 'index.html')));
+}
+
+const PORT = process.env.PORT || 3001;
 
 async function main() {
   // Ensure workspace directory exists

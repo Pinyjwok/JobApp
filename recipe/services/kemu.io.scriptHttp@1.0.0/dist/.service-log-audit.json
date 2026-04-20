@@ -1,0 +1,30 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 5
+    },
+    "auditLog": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/.service-log-audit.json",
+    "files": [
+        {
+            "date": 1776319431479,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-16.log",
+            "hash": "f33ee0f74a33585ad9e646e0997d9895edc5bc72341fcdc74f9de5ea76322899"
+        },
+        {
+            "date": 1776506612871,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-18.log",
+            "hash": "025b653f4eef8450828aea358265f4c6eafd0ca9141ddbe8ac82e28180c5a735"
+        },
+        {
+            "date": 1776524646035,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-19.log",
+            "hash": "a8160994d1856b8439dbe27b760447bb4e8290277023dd00a4ac29cbcba96343"
+        },
+        {
+            "date": 1776664370568,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-20.log",
+            "hash": "38b5f3f63b3f61f9bca55819623a0a580b98858cfaf7cd4cb7893f4250815224"
+        }
+    ],
+    "hashType": "sha256"
+}

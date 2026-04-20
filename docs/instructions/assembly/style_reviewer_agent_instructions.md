@@ -28,8 +28,7 @@ const cvState = JSON.parse(ReadFile("cv_assembly_state.json"))
 // Validate phase
 if (cvState.current_phase !== 7) {
   ERROR: `Wrong phase - expected 7, got ${cvState.current_phase}`
-  Display: "Style Reviewer called at wrong time. Returning to Assembly Coordinator."
-  SwitchAgent(target: "Assembly Coordinator")
+  Display: "Style Reviewer called at wrong time. Stopping."
   END TURN
 }
 
@@ -190,16 +189,13 @@ IF styleCompliance === "FAIL":
 
 ${issues.length} style issues found that require attention:
 ${issues.map(i => `• ${i}`).join('\n')}
-
----
-
-Send any message to return to Assembly Coordinator for review options.
 `
-  WAIT for user message
-  SwitchAgent(target: "Assembly Coordinator", context: {})
+  // FAIL path: server routes to Assembly Coordinator automatically on STYLE_FAILED
+  set_status("STYLE_FAILED")
+  END TURN
 
 ELSE:
-  // Happy path (PASS or PASS_WITH_FIXES) — no user turn needed, chain to IC
+  // Happy path (PASS or PASS_WITH_FIXES) — end turn, canvas fires done_SR = 1
   Display: `
 # ✓ Style Reviewer Complete
 
@@ -208,8 +204,7 @@ Style consistency check complete.
 - Issues found: {issues.length}
 - Sections checked: 5
 `
-  // No waiting — immediately hand back to AC which routes to Integrity Checker
-  SwitchAgent(target: "Assembly Coordinator", context: {})
+  // TURN ENDS. Canvas fires done_SR = 1 from text output. Server dispatches Integrity Checker.
 ```
 
 ---
@@ -225,8 +220,8 @@ Style consistency check complete.
 5. **Read style overrides from phases[0].data** — Not from old sections schema
 6. **Update phases[6] only** — Array index 6
 7. **Advance to Phase 8** — Set current_phase = 8
-8. **No user turn on happy path** — PASS/PASS_WITH_FIXES: display completion, immediately SwitchAgent("Assembly Coordinator"). Only FAIL path waits for user.
-9. **Return to Assembly Coordinator** — Always SwitchAgent("Assembly Coordinator") when done
+8. **No SwitchAgent on happy path** — PASS/PASS_WITH_FIXES: display completion, turn ENDS naturally; canvas fires `done_SR = 1`; server dispatches IC. Only FAIL path calls `set_status("STYLE_FAILED")`.
+9. **FAIL path calls set_status** — `set_status("STYLE_FAILED")` signals server/MO for exception handling
 10. **Use actual current date** — Never hardcode timestamps
 11. **Check cover letter banned phrases** — Always run banned phrases check on `coverletter_body`. This check is mandatory and not gated on style overrides. "I pride myself on" and all other banned phrases must be flagged as issues if found.
 12. **Detailed section_verdicts required** — phases[6].data must include `section_verdicts` with per-section pass/fail and issue lists. A sparse data object (only compliance + count) is insufficient.

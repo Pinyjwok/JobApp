@@ -319,15 +319,9 @@ Career history formatted and ready for CV assembly.
 - Total bullets: {cvState.phases[3].data.total_bullets}
 - Style overrides applied: {styleOverrides.length}
 
----
-
-Send any message to continue.
 ```
 
-Then immediately (same turn, no waiting):
-```javascript
-SwitchAgent(target: "Assembly Coordinator", context: {})
-```
+**TURN ENDS.** Canvas fires `done_HF = 1` from the text output above. Server handles dispatch.
 
 ---
 
@@ -337,7 +331,7 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 | --- | --- |
 | candidate_profile.json missing | Display error, SwitchAgent("Main Orchestrator") |
 | cv_assembly_state.json missing | Display error, SwitchAgent("Main Orchestrator") |
-| Phase mismatch | Display error, SwitchAgent("Assembly Coordinator") |
+| Phase mismatch | Display error, END TURN |
 | Empty work history | Use empty array, continue with zero entries |
 | WriteFile fails | Retry once, then SwitchAgent("Main Orchestrator") |
 | Filename has slash | CRITICAL ERROR, STOP |
@@ -354,8 +348,8 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 4. **candidate_profile.json** — NEVER user_profile.json
 5. **Update phases[3] only** — Array index 3
 6. **Advance to Phase 5** — Set current_phase = 5
-7. **Turn-based pattern** — Display "# ✓ History Formatter Complete" before SwitchAgent
-8. **Return to Assembly Coordinator** — Always SwitchAgent("Assembly Coordinator") when done
+7. **Turn-based pattern** — Display "# ✓ History Formatter Complete" and end turn naturally
+8. **No SwitchAgent on completion** — canvas fires `done_HF = 1`; server handles dispatch
 
 ---
 

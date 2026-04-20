@@ -477,10 +477,6 @@ WriteFile("conversation_history.json", content)
 The enhanced job description includes company intelligence to provide deeper context for gap analysis.
 
 **Next:** Analyst will assess your fit for the {positionTitle} role at {companyName}.
-
----
-
-Send any message to continue.
 ```
 
 Turn ENDS here. The server will automatically route to the next agent.
@@ -538,7 +534,7 @@ project_directory/
 11. **Combine JD + research** - Don't just copy original JD
 12. **Set status to JD_ENHANCED** - Even if quality is partial
 13. **Display completion message** - Show user what was enhanced
-14. **Prompt for continuation** - "Send any message to continue"
+14. **⛔ DO NOT display "Send any message to continue"** - Server routes automatically; no user prompt needed
 15. **⛔ DO NOT call SwitchAgent on completion** - Server reads JD_ENHANCED and routes to Analyst automatically. Only call SwitchAgent("Main Orchestrator") on errors.
 16. **Preserve existing project data** - Don't overwrite other fields
 

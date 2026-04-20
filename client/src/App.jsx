@@ -8,6 +8,23 @@ import { StartModal } from './components/StartModal';
 import { useStream } from './hooks/useStream';
 import './index.css';
 
+const PIPELINE_STAGES = [
+  { id: 'setup',    label: 'Setup',    statuses: ['FILES_SAVED'] },
+  { id: 'extract',  label: 'Extract',  statuses: ['INITIALIZED'] },
+  { id: 'research', label: 'Research', statuses: ['RESEARCH_COMPLETE'] },
+  { id: 'enhance',  label: 'JD',       statuses: ['JD_ENHANCED'] },
+  { id: 'analysis', label: 'Analyse',  statuses: ['PARALLEL_ANALYSIS', 'ANALYSIS_COMPLETE', 'TONE_ANALYZED'] },
+  { id: 'review',   label: 'Review',   statuses: ['GAP_INTERVIEW', 'REVIEW_COMPLETE', 'REVIEW_FAILED'] },
+  { id: 'style',    label: 'Style',    statuses: ['STYLE_NEGOTIATING', 'SN_START'] },
+  { id: 'build',    label: 'Build',    statuses: ['ASSEMBLY_PARALLEL', 'STYLE_REVIEWING', 'INTEGRITY_CHECKING'] },
+  { id: 'done',     label: 'Done',     statuses: ['CV_TAILORED'] },
+];
+
+const STATUS_STAGE_INDEX = {};
+PIPELINE_STAGES.forEach((stage, i) => {
+  stage.statuses.forEach(s => { STATUS_STAGE_INDEX[s] = i; });
+});
+
 export default function App() {
   const [messages, setMessages] = useState([]);
   const [activeAgent, setActiveAgent] = useState(null);
@@ -18,29 +35,27 @@ export default function App() {
   const [showTimeline, setShowTimeline] = useState(false);
   const [showInspector, setShowInspector] = useState(false);
   const [inspectorRefresh, setInspectorRefresh] = useState(0);
-  const [autoContinue, setAutoContinue] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [modalState, setModalState] = useState(null);
+  const [modalUploading, setModalUploading] = useState(false);
   const [historyForModal, setHistoryForModal] = useState([]);
-  // pending reasoning — attached to next agent_message that arrives
+  const [pipelineMode, setPipelineMode] = useState('user_turn');
+  const [runningAgent, setRunningAgent] = useState(null);
+
   const pendingReasoningRef = useRef('');
 
-  // Load persisted chat history on mount, then decide what modal to show
   useEffect(() => {
     fetch('/api/history')
       .then((r) => r.json())
       .then((saved) => {
         setHistoryForModal(saved);
-        setModalState('pending'); // show modal now that we know whether history exists
-      })
-      .catch(() => {
         setModalState('pending');
-      });
+      })
+      .catch(() => setModalState('pending'));
   }, []);
 
   function saveHistory(msgs) {
-    // eslint-disable-next-line no-unused-vars
     const clean = msgs.map(({ streaming, stalled, ...m }) => m);
     fetch('/api/history', {
       method: 'POST',
@@ -61,30 +76,46 @@ I'll help you create tailored application materials in 3 steps:
    - Research the company deeply
    - Analyse your fit with detailed gap analysis
 
-**2. Style Optimisation** (brief discussion)
-   - Understand your writing preferences
+**2. Style Optimisation** (discussion)
+   - Understand your writing preferences and ideal tone
 
 **3. CV Assembly** (interactive)
    - Build each CV section with your approval
    - Write tailored cover letter
    - Verify accuracy and consistency
 
----
-
-Upload your CV/resume and job description using the upload button below.`,
+Setting up your analysis — this takes about a minute.`,
   };
 
-  async function handleModalNew() {
+  async function handleModalStart(cvFile, jdFile) {
+    setModalUploading(true);
+
     await fetch('/api/reset', { method: 'POST' }).catch(() => {});
+
+    const uploadFile = async (file, target) => {
+      const body = await file.arrayBuffer();
+      await fetch(`/api/upload?target=${target}&filename=${encodeURIComponent(file.name)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body,
+      });
+    };
+    await uploadFile(cvFile, 'cv_raw');
+    await uploadFile(jdFile, 'jd_raw');
+
     setStatus(null);
     setActiveAgent('ProjectSetup');
     setTurns([{ agent: 'ProjectSetup', timestamp: Date.now(), cost: null }]);
     setLastUserMessage(null);
-    setUploadedFiles({});
+    setUploadedFiles({ cv_raw: cvFile.name, jd_raw: jdFile.name });
+    setPipelineMode('user_turn');
     const initial = [WELCOME_MESSAGE];
     setMessages(initial);
     saveHistory(initial);
+    setModalUploading(false);
     setModalState('hidden');
+
+    await handleSend('Files are saved to disk as cv_raw.txt and jd_raw.txt. Please initialise the project.');
   }
 
   function handleModalResume() {
@@ -92,8 +123,26 @@ Upload your CV/resume and job description using the upload button below.`,
     setModalState('hidden');
     fetch('/api/status')
       .then((r) => r.json())
-      .then((d) => setStatus(d.status))
+      .then((d) => {
+        if (d.status) setStatus(d.status);
+      })
       .catch(() => {});
+  }
+
+  async function handleAction(id) {
+    // Mark the action message as used
+    setMessages(prev => prev.map(m =>
+      m.role === 'actions' && !m.used ? { ...m, used: true } : m
+    ));
+    try {
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Action failed: ${err.message}` }]);
+    }
   }
 
   useStream(
@@ -103,7 +152,13 @@ Upload your CV/resume and job description using the upload button below.`,
         const reasoning = pendingReasoningRef.current;
         pendingReasoningRef.current = '';
         setMessages((prev) => {
-          const next = [...prev, { role: 'agent', agent: activeAgent, text: data.text, reasoning }];
+          const next = [...prev, {
+            role: 'agent',
+            agent: data.agent ?? activeAgent,
+            text: data.text,
+            reasoning,
+            background: data.background ?? false,
+          }];
           saveHistory(next);
           return next;
         });
@@ -114,8 +169,22 @@ Upload your CV/resume and job description using the upload button below.`,
           .catch(() => {});
       } else if (data.type === 'reasoning') {
         pendingReasoningRef.current = data.text;
-      } else if (data.type === 'stream_done') {
-        // stream_done still fires — used for auto-continue signalling only
+      } else if (data.type === 'action_required') {
+        setMessages((prev) => {
+          const next = [...prev, {
+            role: 'actions',
+            context: data.context,
+            prompt: data.prompt,
+            actions: data.actions,
+            used: false,
+          }];
+          saveHistory(next);
+          return next;
+        });
+      } else if (data.type === 'pipeline_mode') {
+        setPipelineMode(data.mode);
+        if (data.agent) setRunningAgent(data.agent);
+        if (data.mode === 'user_turn') setIsWaiting(false);
       } else if (data.type === 'debug_token') {
         try {
           const debug = JSON.parse(data.chunk);
@@ -137,10 +206,8 @@ Upload your CV/resume and job description using the upload button below.`,
           if (last?.agent === data.agent && Date.now() - last.timestamp < 2000) return prev;
           return [...prev, { agent: data.agent, timestamp: Date.now(), cost: null }];
         });
-      } else if (data.type === 'auto_continue_changed') {
-        setAutoContinue(data.enabled);
-      } else if (data.type === 'auto_continue_paused') {
-        setAutoContinue(false);
+      } else if (data.type === 'status_changed') {
+        setStatus(data.status);
       }
     }, [activeAgent])
   );
@@ -161,10 +228,7 @@ Upload your CV/resume and job description using the upload button below.`,
         body: JSON.stringify({ message: text }),
       });
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'agent', agent: 'System', text: `Error: ${err.message}` },
-      ]);
+      setMessages((prev) => [...prev, { role: 'agent', agent: 'System', text: `Error: ${err.message}` }]);
     } finally {
       setSending(false);
     }
@@ -198,43 +262,22 @@ Upload your CV/resume and job description using the upload button below.`,
         headers: { 'Content-Type': 'application/octet-stream' },
         body,
       });
-      setMessages((prev) => [
-        ...prev,
-        { role: 'user', text: `Uploaded ${name} → ${target}.txt` },
-      ]);
+      setMessages((prev) => [...prev, { role: 'user', text: `Uploaded ${name} → ${target}.txt` }]);
       setUploadedFiles((prev) => ({ ...prev, [target]: name }));
       if (target === 'cover_letter_sample' && activeAgent === 'Tone Analyst') {
         await handleSend('Cover letter uploaded — please proceed with the analysis.');
       }
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'agent', agent: 'System', text: `Upload failed: ${err.message}` },
-      ]);
+      setMessages((prev) => [...prev, { role: 'agent', agent: 'System', text: `Upload failed: ${err.message}` }]);
     }
-  }
-
-  async function handleBegin() {
-    setUploadedFiles({});
-    const msg = `Files are saved to disk as cv_raw.txt and jd_raw.txt. Please initialise the project.`;
-    await handleSend(msg);
   }
 
   async function handleAbort() {
     await fetch('/api/abort', { method: 'POST' }).catch(() => {});
     setSending(false);
     setIsWaiting(false);
+    setPipelineMode('user_turn');
     setMessages((prev) => [...prev, { role: 'agent', agent: 'System', text: '⏹ Processing aborted.' }]);
-  }
-
-  async function handleAutoContinue() {
-    const next = !autoContinue;
-    await fetch('/api/auto-continue', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: next }),
-    }).catch(() => {});
-    setAutoContinue(next);
   }
 
   async function handleReset() {
@@ -246,7 +289,8 @@ Upload your CV/resume and job description using the upload button below.`,
     setTurns([]);
     setLastUserMessage(null);
     setUploadedFiles({});
-    // Re-show modal so user can explicitly start fresh
+    setPipelineMode('user_turn');
+    setModalUploading(false);
     setHistoryForModal([]);
     setModalState('pending');
   }
@@ -262,58 +306,41 @@ Upload your CV/resume and job description using the upload button below.`,
     setStatus(s);
   }
 
-  const bothFilesReady = uploadedFiles.cv_raw && uploadedFiles.jd_raw;
+  const inputDisabled = pipelineMode !== 'user_turn' || sending;
+  const stageIndex = STATUS_STAGE_INDEX[status] ?? -1;
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#0a0c10] text-base">
       {modalState === 'pending' && (
         <StartModal
           hasHistory={historyForModal.length > 0}
-          onNew={handleModalNew}
+          onStart={handleModalStart}
           onResume={handleModalResume}
+          uploading={modalUploading}
         />
       )}
 
       {/* Header */}
       <div className="px-5 py-3 border-b border-slate-800 flex items-center gap-3 bg-slate-900/40 backdrop-blur-sm">
         <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/30 animate-pulse" />
-        <h1 className="text-sm font-semibold text-slate-200 flex-1 tracking-tight">
-          JobApp
-        </h1>
+        <h1 className="text-sm font-semibold text-slate-200 flex-1 tracking-tight">JobApp</h1>
 
-        {/* View toggles */}
         <div className="flex items-center gap-1 bg-slate-800/40 rounded-lg p-0.5 border border-slate-700/30">
           <button
             onClick={() => setShowInspector((v) => !v)}
-            className={`text-[10px] rounded-md px-2.5 py-1 transition-all ${
-              showInspector ? 'bg-slate-700/60 text-slate-200' : 'text-slate-500 hover:text-slate-300'
-            }`}
+            className={`text-[10px] rounded-md px-2.5 py-1 transition-all ${showInspector ? 'bg-slate-700/60 text-slate-200' : 'text-slate-500 hover:text-slate-300'}`}
           >
             Files
           </button>
           <button
             onClick={() => setShowTimeline((v) => !v)}
-            className={`text-[10px] rounded-md px-2.5 py-1 transition-all ${
-              showTimeline ? 'bg-slate-700/60 text-slate-200' : 'text-slate-500 hover:text-slate-300'
-            }`}
+            className={`text-[10px] rounded-md px-2.5 py-1 transition-all ${showTimeline ? 'bg-slate-700/60 text-slate-200' : 'text-slate-500 hover:text-slate-300'}`}
           >
             Timeline
           </button>
         </div>
 
-        {/* Controls */}
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleAutoContinue}
-            className={`text-[10px] rounded-lg px-2.5 py-1.5 transition-all border ${
-              autoContinue
-                ? 'text-emerald-300 border-emerald-700/50 bg-emerald-950/40'
-                : 'text-slate-500 border-slate-700/30 hover:text-slate-300 hover:border-slate-600'
-            }`}
-            title={autoContinue ? 'Auto-continue ON' : 'Auto-continue OFF'}
-          >
-            {autoContinue ? 'Auto ON' : 'Auto'}
-          </button>
           <button
             onClick={handleSetStatus}
             className="text-[10px] text-slate-500 hover:text-slate-300 border border-slate-700/30 hover:border-slate-600 rounded-lg px-2.5 py-1.5 transition-all"
@@ -337,8 +364,33 @@ Upload your CV/resume and job description using the upload button below.`,
 
       <StatusBar status={status} activeAgent={activeAgent} />
 
+      {stageIndex >= 0 && (
+        <div className="flex items-center gap-0 px-5 py-2 bg-slate-900/60 border-b border-slate-800/50 text-xs overflow-x-auto">
+          {PIPELINE_STAGES.map((stage, i) => {
+            const done   = i < stageIndex;
+            const active = i === stageIndex;
+            return (
+              <span key={stage.id} className="flex items-center shrink-0">
+                <span className={`flex items-center gap-1.5 px-1 ${done ? 'text-violet-400' : active ? 'text-white' : 'text-slate-600'}`}>
+                  {done
+                    ? <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    : active
+                      ? <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse inline-block" />
+                      : <span className="w-1.5 h-1.5 rounded-full bg-slate-700 inline-block" />
+                  }
+                  {stage.label}
+                </span>
+                {i < PIPELINE_STAGES.length - 1 && (
+                  <span className={`mx-1 ${i < stageIndex ? 'text-violet-700' : 'text-slate-700'}`}>›</span>
+                )}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
-        <ChatWindow messages={messages} isWaiting={isWaiting} />
+        <ChatWindow messages={messages} isWaiting={isWaiting} onAction={handleAction} />
         {showTimeline && <AgentTimeline turns={turns} />}
       </div>
 
@@ -346,28 +398,12 @@ Upload your CV/resume and job description using the upload button below.`,
         <WorkspaceInspector refresh={inspectorRefresh} onClose={() => setShowInspector(false)} />
       )}
 
-      {bothFilesReady && (
-        <div className="px-5 py-2.5 bg-gradient-to-r from-violet-950/40 to-indigo-950/40 border-t border-violet-800/30 flex items-center justify-between shimmer-bg">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-violet-300/80">
-              CV and JD uploaded
-            </span>
-          </div>
-          <button
-            onClick={handleBegin}
-            disabled={sending}
-            className="text-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-40 text-white rounded-lg px-4 py-1.5 font-medium transition-all shadow-lg shadow-violet-600/10 active:scale-95"
-          >
-            Begin
-          </button>
-        </div>
-      )}
-
       <MessageInput
         onSend={handleSend}
         onUpload={handleUpload}
-        disabled={sending}
+        disabled={inputDisabled}
+        pipelineMode={pipelineMode}
+        runningAgent={runningAgent}
         lastUserMessage={lastUserMessage}
       />
     </div>

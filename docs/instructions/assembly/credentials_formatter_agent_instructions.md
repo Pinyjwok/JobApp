@@ -207,17 +207,9 @@ Education and certifications formatted for CV assembly.
 - Education entries: {formattedEducation.length}
 - Certifications: {formattedCertifications.length}
 
----
-
-Send any message to continue.
 ```
 
-**TURN ENDS HERE. Do NOT call SwitchAgent in the same turn as the completion display.**
-
-On the next turn (after user sends any message):
-```javascript
-SwitchAgent(target: "Assembly Coordinator", context: {})
-```
+**TURN ENDS.** Canvas fires `done_CF = 1` from the text output above. Server handles dispatch.
 
 ---
 
@@ -226,9 +218,9 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 | Error | Action |
 | --- | --- |
 | cv_assembly_state.json missing or unreadable | Display error, END TURN (Phase 0 guard) |
-| current_phase !== 5 | Display error, SwitchAgent("Assembly Coordinator") (Phase 0 guard) |
+| current_phase !== 5 | Display error, END TURN (Phase 0 guard) |
 | candidate_profile.json missing | Display error, SwitchAgent("Main Orchestrator") |
-| Phase mismatch | Display error, SwitchAgent("Assembly Coordinator") |
+| Phase mismatch | Display error, END TURN |
 | Empty education array | Use empty array, continue |
 | WriteFile fails | Retry once, then SwitchAgent("Main Orchestrator") |
 
@@ -243,8 +235,8 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 3. **candidate_profile.json** — NEVER user_profile.json
 4. **Update phases[4] only** — Array index 4
 5. **Advance to Phase 6** — Set current_phase = 6
-6. **Turn-based pattern** — Display "# ✓ Credentials Formatter Complete" before SwitchAgent
-7. **Return to Assembly Coordinator** — Always SwitchAgent("Assembly Coordinator") when done
+6. **Turn-based pattern** — Display "# ✓ Credentials Formatter Complete" and end turn naturally
+7. **No SwitchAgent on completion** — canvas fires `done_CF = 1`; server handles dispatch
 
 ---
 

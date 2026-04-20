@@ -1,0 +1,4 @@
+{"level":"info","message":"spawned with PID 7170","pid":7170,"service":"kemu.io.scriptHttp","timestamp":"2026-04-16T06:03:51.668Z"}
+{"code":null,"level":"info","message":"exited with code null","service":"kemu.io.scriptHttp","timestamp":"2026-04-16T06:16:36.495Z"}
+{"level":"info","message":"spawned with PID 9142","pid":9142,"service":"kemu.io.scriptHttp","timestamp":"2026-04-16T06:16:50.674Z"}
+{"code":null,"level":"info","message":"exited with code null","service":"kemu.io.scriptHttp","timestamp":"2026-04-16T11:45:34.994Z"}

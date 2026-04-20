@@ -570,10 +570,6 @@ Company intelligence gathered for {companyName}.
 {allSources.map((s, i) => s.url ? `${i+1}. [${s.title}](${s.url}) _(${s.origin})_` : `${i+1}. ${s.title} _(${s.origin})_`).join('\n')}
 
 **Next:** JD Enhancer will analyse and enrich the job description.
-
----
-
-Send any message to continue.
 ```
 
 **Note:** If both source arrays are empty, omit the Sources section entirely — do not display "Sources: (none)" or similar.

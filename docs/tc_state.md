@@ -1,3 +1,3 @@
-last_bug_id: BUG-138
-running_totals: 106 bugs (14 P0, 41 P1, 30 P2, 21 P3)
-current_tc: TC08
+last_bug_id: BUG-145
+running_totals: 113 bugs (17 P0, 43 P1, 31 P2, 22 P3)
+current_tc: TC10

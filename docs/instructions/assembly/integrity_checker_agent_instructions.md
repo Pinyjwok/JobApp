@@ -31,8 +31,7 @@ const cvRawContent = ReadFile("cv_raw.txt")
 // Validate phase
 if (cvState.current_phase !== 8) {
   ERROR: `Wrong phase - expected 8, got ${cvState.current_phase}`
-  Display: "Integrity Checker called at wrong time. Returning to Assembly Coordinator."
-  SwitchAgent(target: "Assembly Coordinator")
+  Display: "Integrity Checker called at wrong phase. Stopping."
   END TURN
 }
 
@@ -269,22 +268,20 @@ Then display and return:
 
 ```javascript
 IF integrityStatus === "FAILED":
-  // Exception path — user must review before continuing
+  // Exception path
   Display: `
 ## ⚠ Integrity Check Failed
 
 ${unsupportedClaims.length} unsupported claims found across CV sections:
 ${unsupportedClaims.map(c => `• [${c.section}] ${c.claim} — ${c.evidence_status}`).join('\n')}
 
----
-
-Send any message to return to Assembly Coordinator for review options.
 `
-  WAIT for user message
-  SwitchAgent(target: "Assembly Coordinator", context: {})
+  // Signal server — INTEGRITY_FAILED routes to MO via EXCEPTION_STATUSES for user options
+  set_status("INTEGRITY_FAILED")
+  END TURN
 
 ELSE:  // integrityStatus === "PASSED"
-  // Happy path — no user turn needed, chain directly to AC
+  // Happy path — signal CV_TAILORED, turn ENDS
   Display: `
 # ✓ Integrity Checker Complete
 
@@ -294,8 +291,9 @@ All CV claims validated against source data.
 - Unsupported claims: 0
 - IC corrections made: {icCorrections.length}
 `
-  // No waiting — immediately hand back to AC which will display final CV
-  SwitchAgent(target: "Assembly Coordinator", context: {})
+  // Signal completion — routes to MO via EXCEPTION_STATUSES → MO shows final summary
+  set_status("CV_TAILORED")
+  // TURN ENDS — canvas also fires done_IC = 1 from text output
 ```
 
 ---
@@ -311,8 +309,8 @@ All CV claims validated against source data.
 5. **Read section data from phases array** — `cvState.phases[N].data`, not `cvState.sections`
 6. **Update phases[7] only** — Array index 7
 7. **Set current_phase = 9** — Signals all 8 phases complete to Assembly Coordinator
-8. **Turn-based pattern** — Display "# ✓ Integrity Checker Complete" before SwitchAgent
-9. **Return to Assembly Coordinator** — Always SwitchAgent("Assembly Coordinator") when done
+8. **Turn-based pattern** — Display "# ✓ Integrity Checker Complete" and end turn naturally
+9. **set_status on completion** — `set_status("CV_TAILORED")` on PASS; `set_status("INTEGRITY_FAILED")` on FAIL. No SwitchAgent.
 10. **Use actual current date** — Never hardcode timestamps
 11. **JSON string escaping (BUG-79)** — Single quotes (`'`) in JSON string values are NOT special characters and must NOT be escaped. Write `"it's"` not `"it\'s"`. Only `"`, `\`, and control characters require escaping in JSON strings.
 

@@ -564,15 +564,11 @@ if (pendingResolution) {
     projectMemory.metadata.alternate_name_detected = nameDiscrepancy
     WriteFile({ fileName: "project_memory.json", filePath: "", contents: JSON.stringify(projectMemory, null, 2) })
 
-    Display: `⚠ There's a name discrepancy in your CV — I've paused so we can sort it out before continuing.
+    Display: `⚠ There's a name discrepancy in your CV — pausing to resolve before continuing.
 
-Your CV header shows **${candidateName}** but the publications section lists **${nameDiscrepancy}** as the author.
+Your CV header shows **${candidateName}** but the publications section lists **${nameDiscrepancy}** as the author.`
 
----
-
-Send any message to continue.`
-
-    // ⛔ DO NOT call SwitchAgent — server reads EXTRACTION_FAILED and routes to MO
+    // ⛔ DO NOT call SwitchAgent — server reads EXTRACTION_FAILED and fires Main Orchestrator automatically
     END TURN
   }
   // No discrepancy: Phase 7.5 completes silently, continue to Phase 8
@@ -670,10 +666,6 @@ Extracted and structured data from CV and JD.
 - Extraction quality: {extractionQuality}
 
 **Next:** Researcher will gather company intelligence on {companyName}.
-
----
-
-Send any message to continue.
 ```
 
 Turn ENDS here. The server will automatically route to the next agent.

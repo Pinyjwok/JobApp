@@ -459,19 +459,9 @@ WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
 Format standards agreed for CV assembly.
 - Overrides applied: {agreedOverrides.length}
 - Outcome: {negotiation_outcome}
-
----
-
-Send any message to continue.
 ```
 
-**TURN ENDS HERE.** Wait for user message. (BUG-38: do not call SwitchAgent in the same turn as the completion display)
-
-**On next turn** (user sends any message — the phase mismatch check at the top will route to Assembly Coordinator since current_phase is now 2):
-```javascript
-// Phase mismatch check fires: current_phase (2) !== 1 → SwitchAgent("Assembly Coordinator")
-SwitchAgent(target: "Assembly Coordinator", context: {})
-```
+**TURN ENDS HERE.** Canvas fires `done_SN = 1` from the text output above. Server's `dispatchAssemblyParallel()` fires Profile Builder, Skills Curator, History Formatter, Credentials Formatter, and CoverLetter Writer simultaneously — no user message or SwitchAgent needed.
 
 ---
 
@@ -564,8 +554,8 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 9. **Offer options** - Multiple paths (full/minimal/custom/skip)
 10. **Record agreed overrides** - Other sub-agents depend on this data
 11. **Update phases[0]** - Set status COMPLETE, data, advance current_phase to 2
-12. **Turn-based pattern** - Display "# ✓ Style Negotiator Complete" before SwitchAgent
-13. **Return to Assembly Coordinator** - Always SwitchAgent("Assembly Coordinator") when done
+12. **Turn-based pattern** - Display "# ✓ Style Negotiator Complete" and end turn naturally
+13. **No SwitchAgent on completion** — canvas fires `done_SN = 1` from text output; server dispatches parallel assembly agents
 
 ---
 
@@ -582,8 +572,9 @@ Style Negotiator: Record agreed overrides in cv_assembly_state.json phases[0].da
 Style Negotiator: Set phases[0].status = "COMPLETE", current_phase = 2
 Style Negotiator: Log to history files
 Style Negotiator: Display "# ✓ Style Negotiator Complete"
-Style Negotiator → SwitchAgent("Assembly Coordinator")
-Assembly Coordinator: current_phase = 2 → routes to Profile Builder
+Style Negotiator: display "# ✓ Style Negotiator Complete", TURN ENDS
+Canvas: done_SN = 1 fires from text output
+Server: dispatchAssemblyParallel() → fires PB + SC + HF + CF + CLW simultaneously
 ```
 
 ---

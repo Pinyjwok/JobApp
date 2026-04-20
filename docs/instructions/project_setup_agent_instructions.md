@@ -814,15 +814,9 @@ Your CV and job description have been saved and the project has been initialised
 - State files created: project_memory.json, cv_assembly_state.json
 
 **Next:** Extractor will parse your CV and job description.
-
----
-
-Send any message to continue.
 ```
 
-**Turn ENDS here.** Do NOT call SwitchAgent in this turn. The user must send a message to continue.
-
-When the user sends any message, the server reads `status = "FILES_SAVED"` and routes to **Extractor** automatically. Phase 0 then fires and outputs nothing.
+**Turn ENDS here.** Do NOT call SwitchAgent. Server reads `status = "FILES_SAVED"` and routes to Extractor automatically.
 
 ---
 

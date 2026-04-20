@@ -27,7 +27,6 @@ const mdComponents = {
   td: ({ children }) => <td className="border border-slate-700/50 px-2.5 py-1.5 text-slate-300">{children}</td>,
 };
 
-// Agent color map — each pipeline stage gets a distinct accent
 const AGENT_COLORS = {
   'JobApp':                 'border-l-violet-500',
   'System':                 'border-l-slate-500',
@@ -72,7 +71,6 @@ const AGENT_DOT_COLORS = {
   'Integrity Checker':      'bg-lime-400',
 };
 
-// Only flag genuine failure states
 const ERROR_RE = /\bFAILED\b|✗\s|\bError:/;
 
 function AgentBubble({ msg }) {
@@ -82,9 +80,22 @@ function AgentBubble({ msg }) {
   const borderColor = AGENT_COLORS[msg.agent] ?? 'border-l-slate-600';
   const dotColor = AGENT_DOT_COLORS[msg.agent] ?? 'bg-slate-600';
 
+  // Background agents get a more compact, dimmer style
+  if (msg.background) {
+    return (
+      <div className={`animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 ${borderColor} bg-slate-900/50 text-xs text-slate-500 max-w-[85%]`}>
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+        <span className="font-medium text-slate-500">{msg.agent}</span>
+        <svg className="w-3 h-3 shrink-0 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        <span className="text-slate-600 truncate">{msg.text?.split('\n')[0]?.replace(/^#+\s*/, '') ?? 'Complete'}</span>
+      </div>
+    );
+  }
+
   return (
     <div className={`animate-fade-in-up relative w-full max-w-[85%] rounded-xl border-l-[3px] ${borderColor} bg-slate-800/70 backdrop-blur-sm px-4 py-3 text-sm text-slate-300 ${hasError ? 'ring-1 ring-red-700/40' : ''}`}>
-      {/* Header */}
       <div className="flex items-center gap-2 mb-2">
         <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
         <span className="text-xs text-slate-400 font-medium">{msg.agent ?? 'Agent'}</span>
@@ -92,15 +103,11 @@ function AgentBubble({ msg }) {
           <span className="text-[10px] text-slate-600 font-mono">${msg.cost.toFixed(4)}</span>
         )}
       </div>
-
-      {/* Body */}
       <div className="prose-sm">
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
           {msg.text}
         </ReactMarkdown>
       </div>
-
-      {/* Reasoning */}
       {hasReasoning && (
         <div className="mt-2.5 border-t border-slate-700/50 pt-2">
           <button
@@ -121,6 +128,40 @@ function AgentBubble({ msg }) {
   );
 }
 
+// Inline action buttons — rendered when server sends action_required event
+function ActionBubble({ msg, onAction }) {
+  return (
+    <div className="animate-fade-in-up w-full max-w-[85%] rounded-xl bg-slate-800/50 border border-slate-700/40 px-4 py-3">
+      {msg.prompt && (
+        <div className="text-sm text-slate-300 mb-3 prose-sm">
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+            {msg.prompt}
+          </ReactMarkdown>
+        </div>
+      )}
+      <div className="flex gap-2 flex-wrap">
+        {msg.actions?.map((action) => (
+          <button
+            key={action.id}
+            onClick={() => !msg.used && onAction(action.id)}
+            disabled={msg.used}
+            className={`text-sm rounded-lg px-4 py-2 transition-all font-medium disabled:opacity-40 disabled:cursor-not-allowed ${
+              action.variant === 'primary'
+                ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-600/10'
+                : 'bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-slate-500 text-slate-300 hover:text-slate-100'
+            } ${msg.used ? '' : 'active:scale-95'}`}
+          >
+            {action.label}
+          </button>
+        ))}
+      </div>
+      {msg.used && (
+        <p className="text-xs text-slate-600 mt-2">Option selected.</p>
+      )}
+    </div>
+  );
+}
+
 function ThinkingIndicator() {
   return (
     <div className="flex justify-start animate-fade-in-up">
@@ -136,7 +177,7 @@ function ThinkingIndicator() {
   );
 }
 
-export function ChatWindow({ messages, isWaiting }) {
+export function ChatWindow({ messages, isWaiting, onAction }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -154,6 +195,8 @@ export function ChatWindow({ messages, isWaiting }) {
             <div className="animate-fade-in-up max-w-[70%] rounded-xl rounded-br-sm bg-gradient-to-br from-violet-600 to-indigo-600 text-white px-4 py-2.5 text-sm shadow-lg shadow-violet-600/10">
               <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
             </div>
+          ) : msg.role === 'actions' ? (
+            <ActionBubble msg={msg} onAction={onAction} />
           ) : (
             <AgentBubble msg={msg} />
           )}

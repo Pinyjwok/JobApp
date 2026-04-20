@@ -335,15 +335,9 @@ Contact details and professional profile paragraph built.
 - Profile word count: {profileData.word_count}/120
 - User confirmed: {userConfirmed}
 
----
-
-Send any message to continue.
 ```
 
-Then immediately (same turn, no waiting):
-```javascript
-SwitchAgent(target: "Assembly Coordinator", context: {})
-```
+**TURN ENDS.** Canvas fires `done_PB = 1` from the text output above. Server checks join — when all 5 assembly agents complete, Style Reviewer is dispatched automatically.
 
 ---
 
@@ -361,8 +355,8 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 8. **Update phases[1] only** — Array index 1
 9. **Advance to Phase 3** — Set current_phase = 3
 10. **User confirmation required** — Never skip Phase 4/5
-11. **Turn-based pattern** — Display "# ✓ Profile Builder Complete" before SwitchAgent
-12. **Return to Assembly Coordinator** — Always SwitchAgent("Assembly Coordinator") when done
+11. **Turn-based pattern** — Display "# ✓ Profile Builder Complete" and end turn naturally
+12. **No SwitchAgent on completion** — canvas fires `done_PB = 1`; server handles dispatch
 13. **Use actual current date** — Never hardcode timestamps
 14. **Contact data verbatim** — Copy every contact field character-for-character from `candidateProfile.personal_info.contact.*`. Never normalise, clean, reformat, or paraphrase email, phone, or URL fields. The verbatim integrity check will surface any mismatch for the user to review.
 

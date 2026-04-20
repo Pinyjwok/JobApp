@@ -1,17 +1,13 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFileSync, writeFileSync, rmSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, rmSync, readdirSync, mkdirSync } from 'fs';
 import { extractText } from 'unpdf';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_DIR = join(__dirname, '..', '..');
 const WORKSPACE_DIR = join(PROJECT_DIR, 'workspace');
 
-// SSE clients waiting for agent output
 const sseClients = new Set();
-
-// Auto-continue: server auto-routes after each stream_done
-let autoContinue = false;
 
 function broadcast(payload) {
   const line = `data: ${JSON.stringify(payload)}\n\n`;
@@ -20,13 +16,50 @@ function broadcast(payload) {
   }
 }
 
+function broadcastMode(mode, agent = null) {
+  broadcast({ type: 'pipeline_mode', mode, agent });
+}
+
+const AGENT_OUTPUT_VARS = {
+  ps_output:        { agent: 'ProjectSetup',           foreground: false },
+  extractor_output: { agent: 'Extractor',              foreground: false },
+  researcher_output:{ agent: 'Researcher',             foreground: false },
+  jde_output:       { agent: 'JD Enhancer',            foreground: false },
+  analyst_output:   { agent: 'Analyst',                foreground: false },
+  ta_output:        { agent: 'Tone Analyst',           foreground: true  },
+  reviewer_output:  { agent: 'Reviewer',               foreground: true  },
+  ac_output:        { agent: 'Assembly Coordinator',   foreground: true  },
+  sn_output:        { agent: 'Style Negotiator',       foreground: true  },
+  mo_output:        { agent: 'Main Orchestrator',      foreground: true  },
+  pb_output:        { agent: 'Profile Builder',        foreground: false },
+  sc_output:        { agent: 'Skills Curator',         foreground: false },
+  hf_output:        { agent: 'History Formatter',      foreground: false },
+  cf_output:        { agent: 'Credentials Formatter',  foreground: false },
+  clw_output:       { agent: 'CoverLetter Writer',     foreground: false },
+  sr_output:        { agent: 'Style Reviewer',         foreground: false },
+  ic_output:        { agent: 'Integrity Checker',      foreground: false },
+};
+
 let recipe = null;
 let DataType = null;
+let fallbackAgent = null;
+
+const KNOWN_AGENTS = new Set(Object.values(AGENT_OUTPUT_VARS).map(v => v.agent));
+
+function serializeVar(variable) {
+  return typeof variable.lastValue === 'string'
+    ? variable.lastValue
+    : JSON.stringify(variable.lastValue);
+}
+
+function logText(text, maxLen = 80) {
+  return `${text.slice(0, maxLen).replace(/\n/g, '↵')}${text.length > maxLen ? '…' : ''}`;
+}
 
 export async function initRecipe(projectDir) {
+  if (recipe) return;
   const recipePath = join(projectDir, 'recipe');
 
-  // Import edge runtime from the recipe's own node_modules using a file URL
   const runtimePath = join(recipePath, 'node_modules', '@kemu-io', 'edge-runtime', 'runner.js');
   const runtimeUrl = new URL(`file://${runtimePath}`).href;
   const edgeModule = await import(runtimeUrl);
@@ -34,13 +67,9 @@ export async function initRecipe(projectDir) {
   const kemuEdge = edgeModule.default;
   DataType = edgeModule.DataType;
 
-  // Change working directory so the recipe can find its files
   process.chdir(recipePath);
-
   recipe = await kemuEdge.start();
 
-  // Reset AgentSelector to Main Orchestrator so every fresh server start
-  // routes the first message correctly regardless of last KEMU session state.
   try {
     await recipe.globalVariables.setValue('AgentSelector', 'Main Orchestrator');
     console.log('AgentSelector → Main Orchestrator');
@@ -48,132 +77,342 @@ export async function initRecipe(projectDir) {
     console.warn('Could not reset AgentSelector:', err.message);
   }
 
-  // AgentOutput is wired to each agent's `text` port — fires once per turn with complete text.
-  // Some agents (e.g. Researcher) set AgentOutput more than once per turn (intermediate + final).
-  // Debounce: wait 500ms after the last fire, then broadcast only the final value.
+  for (const [varName, { agent: agentName, foreground }] of Object.entries(AGENT_OUTPUT_VARS)) {
+    recipe.globalVariables.onChange(varName, (variable) => {
+      const text = serializeVar(variable);
+      if (!text) return;
+      console.log(`[${agentName}] ${logText(text)}`);
+      broadcast({ type: 'agent_message', text, agent: agentName, background: !foreground });
+      if (foreground) {
+        broadcast({ type: 'stream_done' });
+        broadcastMode('user_turn', agentName);
+      }
+    });
+  }
+
   let agentOutputTimer = null;
   let pendingAgentOutput = null;
   recipe.globalVariables.onChange('AgentOutput', (variable) => {
-    const text = typeof variable.lastValue === 'string'
-      ? variable.lastValue
-      : JSON.stringify(variable.lastValue);
+    const text = serializeVar(variable);
     if (!text) return;
+    if (KNOWN_AGENTS.has(fallbackAgent)) return;
     pendingAgentOutput = text;
     if (agentOutputTimer) clearTimeout(agentOutputTimer);
     agentOutputTimer = setTimeout(() => {
       agentOutputTimer = null;
       const finalText = pendingAgentOutput;
       pendingAgentOutput = null;
-      console.log(`[agent output] ${finalText.slice(0, 80).replace(/\n/g, '↵')}${finalText.length > 80 ? '…' : ''}`);
-      broadcast({ type: 'agent_message', text: finalText });
+      console.log(`[fallback output:${fallbackAgent}] ${logText(finalText, 60)}`);
+      broadcast({ type: 'agent_message', text: finalText, agent: fallbackAgent });
       broadcast({ type: 'stream_done' });
-      if (autoContinue) routeFromStatus();
     }, 500);
   });
 
-  // AgentReasoning — wired to each agent's `reasoning` port — fires once per turn.
   recipe.globalVariables.onChange('AgentReasoning', (variable) => {
-    const text = typeof variable.lastValue === 'string'
-      ? variable.lastValue
-      : JSON.stringify(variable.lastValue);
+    const text = serializeVar(variable);
     if (!text) return;
     broadcast({ type: 'reasoning', text });
   });
 
-  // AgentDebug — wired to each agent's `debug` port — fires once per turn.
   recipe.globalVariables.onChange('AgentDebug', (variable) => {
-    const text = typeof variable.lastValue === 'string'
-      ? variable.lastValue
-      : JSON.stringify(variable.lastValue);
+    const text = serializeVar(variable);
     if (!text) return;
     broadcast({ type: 'debug_token', chunk: text });
   });
 
-  // AgentSelector changes when SwitchAgent fires.
   recipe.globalVariables.onChange('AgentSelector', (variable) => {
-    const agent = variable.lastValue;
-    console.log(`[agent] → ${agent}`);
-    broadcast({ type: 'agent_switch', agent });
-    if (agent === 'Main Orchestrator' && autoContinue) {
-      autoContinue = false;
-      broadcast({ type: 'auto_continue_paused' });
+    fallbackAgent = variable.lastValue;
+    console.log(`[agent] → ${fallbackAgent}`);
+    broadcast({ type: 'agent_switch', agent: fallbackAgent });
+  });
+
+  recipe.globalVariables.onChange('pipeline_status', async (variable) => {
+    const status = variable.lastValue;
+    if (!status) return;
+    console.log(`[pipeline_status] → ${status}`);
+    broadcast({ type: 'status_changed', status });
+    updateProjectMemoryStatus(status);
+
+    if (EXCEPTION_STATUSES.has(status)) {
+      broadcastMode('user_turn', 'Main Orchestrator');
+      await sendToNode(' Message', 'Main Orchestrator');
+      return;
+    }
+
+    if (status === 'JD_ENHANCED') {
+      broadcastMode('auto_running', 'Analysis');
+      await Promise.all([
+        sendToNode('tone_analyst_input', 'Tone Analyst', '__begin_interview__'),
+        sendToNode('analyst_background_input', null, '__analyze__'),
+      ]);
+      await recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
+      updateProjectMemoryStatus('PARALLEL_ANALYSIS');
+      return;
+    }
+
+    if (status === 'RESEARCH_REDO') {
+      broadcastMode('auto_running', 'Researcher');
+      await recipe.globalVariables.setValue('research_confirmed', 0);
+      await recipe.globalVariables.setValue('done_researcher', null);
+      await sendToNode('researcher_input', 'Researcher', '__redo__');
+      await recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
+      updateProjectMemoryStatus('PARALLEL_ANALYSIS');
+      return;
+    }
+
+    if (status === 'ANALYSIS_COMPLETE') {
+      await recipe.globalVariables.setValue('done_analysis', 1);
+      await checkJoin();
+      return;
+    }
+
+    if (status === 'TONE_ANALYZED') {
+      return;
+    }
+
+    if (status === 'SN_START') {
+      broadcastMode('auto_running', 'Style Negotiator');
+      await sendToNode('style_negotiator_input', 'Style Negotiator');
+      await recipe.globalVariables.setValue('pipeline_status', 'STYLE_NEGOTIATING');
+      updateProjectMemoryStatus('STYLE_NEGOTIATING');
+      return;
+    }
+
+    if (AUTO_FIRE_STATUSES.has(status)) {
+      const node = INPUT_NODE_MAP[status];
+      const agent = HAPPY_PATH[status];
+      broadcastMode('auto_running', agent);
+      if (node) {
+        console.log(`[pipeline_status] auto-fire ${status} → ${node}`);
+        await sendToNode(node, agent);
+      }
     }
   });
 
-  // Init trigger is now client-driven (StartModal) — no server-side auto-trigger.
+  recipe.globalVariables.onChange('done_researcher', checkResearchRedoJoin);
+  recipe.globalVariables.onChange('done_TA', checkJoin);
+  recipe.globalVariables.onChange('done_analysis', checkJoin);
+  recipe.globalVariables.onChange('done_SN', dispatchAssemblyParallel);
+  for (const flag of ['done_PB', 'done_SC', 'done_HF', 'done_CF', 'done_CLW']) {
+    recipe.globalVariables.onChange(flag, checkAssemblyJoin);
+  }
+  recipe.globalVariables.onChange('done_SR', dispatchIntegrityChecker);
 }
 
-// ── Server-side pipeline routing ──────────────────────────────────────────────
+const INPUT_NODE_MAP = {
+  'FILES_SAVED':        'extractor_input',
+  'INITIALIZED':        'researcher_input',
+  'RESEARCH_COMPLETE':  'jd_enhancer_input',
+  'JD_ENHANCED':        'analyst_background_input',
+  'PARALLEL_ANALYSIS':  'tone_analyst_input',
+  'GAP_INTERVIEW':      'reviewer_input',
+  'REVIEW_COMPLETE':    'assembly_coordinator_input',
+  'CV_BUILDING':        'assembly_coordinator_input',
+  'SN_START':           'style_negotiator_input',
+};
 
 const HAPPY_PATH = {
   'FILES_SAVED':        'Extractor',
   'INITIALIZED':        'Researcher',
   'RESEARCH_COMPLETE':  'JD Enhancer',
-  'RESEARCH_PARTIAL':   'Main Orchestrator',  // surfaces to user
+  'RESEARCH_PARTIAL':   'Main Orchestrator',
   'JD_ENHANCED':        'Analyst',
-  'ANALYSIS_COMPLETE':  'Reviewer',
-  'REVIEW_COMPLETE':    'Tone Analyst',
-  'TONE_ANALYZED':      'Assembly Coordinator',
+  'PARALLEL_ANALYSIS':  'Tone Analyst',
+  'GAP_INTERVIEW':      'Reviewer',
+  'REVIEW_COMPLETE':    'Assembly Coordinator',
   'CV_BUILDING':        'Assembly Coordinator',
+  'STYLE_NEGOTIATING':  'Style Negotiator',
 };
 
 const EXCEPTION_STATUSES = new Set([
   'REVIEW_FAILED', 'RESEARCH_FAILED', 'ANALYSIS_FAILED',
   'EXTRACTION_FAILED', 'CV_TAILORED',
+  'INTEGRITY_FAILED', 'STYLE_FAILED',
 ]);
 
-// Called after stream_done when auto-continue is on.
-// Reads project_memory.json, sets AgentSelector, sends continuation message.
-async function routeFromStatus() {
-  if (!recipe) return;
-  let status;
+// Auto-fire next agent with no user message. JD_ENHANCED handled separately (fork).
+const AUTO_FIRE_STATUSES = new Set([
+  'FILES_SAVED', 'INITIALIZED', 'RESEARCH_COMPLETE', 'REVIEW_COMPLETE',
+]);
+
+async function sendToNode(nodeName, agentName, query = '__auto__', sessionId = 'default') {
+  if (agentName) {
+    await recipe.globalVariables.setValue('AgentSelector', agentName);
+    await new Promise((r) => setTimeout(r, 150));
+  }
   try {
-    const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
-    status = mem?.metadata?.status;
+    await recipe.sendToInputWidget(nodeName, {
+      type: DataType.JsonObj,
+      value: { query, sessionId },
+    });
   } catch {
-    return; // no project_memory yet (e.g. before first upload)
-  }
-
-  if (!status) return;
-
-  // Special case: ANALYSIS_COMPLETE with review_audit present = Reviewer gap interview loop.
-  // Pause auto-continue so the user can type their gap answer manually.
-  if (status === 'ANALYSIS_COMPLETE') {
-    try {
-      const mem2 = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
-      if (mem2.review_audit) {
-        // Gap interview in progress — set AgentSelector to Reviewer but don't auto-send
-        await recipe.globalVariables.setValue('AgentSelector', 'Reviewer');
-        if (autoContinue) {
-          autoContinue = false;
-          broadcast({ type: 'auto_continue_paused' });
-          console.log('[route] Gap interview active — auto-continue paused');
-        }
-        return;
-      }
-    } catch {}
-  }
-
-  let nextAgent;
-  if (EXCEPTION_STATUSES.has(status)) {
-    nextAgent = 'Main Orchestrator';
-  } else if (HAPPY_PATH[status]) {
-    nextAgent = HAPPY_PATH[status];
-  } else {
-    // Unknown or mid-assembly status — let AC handle internally
-    return;
-  }
-
-  console.log(`[route] ${status} → ${nextAgent}`);
-  try {
-    await recipe.globalVariables.setValue('AgentSelector', nextAgent);
     await recipe.sendToInputWidget(' Message', {
       type: DataType.JsonObj,
-      value: { query: '__auto__', sessionId: 'default' },
+      value: { query, sessionId },
     });
-  } catch (err) {
-    console.error('[route] error:', err.message);
   }
+}
+
+// Join: both done_TA and done_analysis set → merge gap_analysis.json into project_memory.json → dispatch Reviewer.
+async function checkJoin() {
+  if (!recipe) return;
+  try {
+    const doneTA = await recipe.globalVariables.getValue('done_TA');
+    const doneAnalysis = await recipe.globalVariables.getValue('done_analysis');
+
+    if (doneTA && doneAnalysis) {
+      // BUG-142 fix: Analyst writes gap_analysis.json to avoid race condition with TA.
+      // Server merges here — single writer, no concurrent project_memory.json writes.
+      let fitScore = '?';
+      try {
+        const gapAnalysis = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
+        const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
+        mem.gap_analysis = gapAnalysis;
+        // BUG-123 server-side: delete stale review_audit from prior run
+        if (mem.review_audit) delete mem.review_audit;
+        mem.metadata = mem.metadata ?? {};
+        mem.metadata.status = 'GAP_INTERVIEW';
+        mem.metadata.lastUpdated = new Date().toISOString();
+        writeFileSync(join(WORKSPACE_DIR, 'project_memory.json'), JSON.stringify(mem, null, 2));
+        fitScore = gapAnalysis.overall_fit_score ?? fitScore;
+        console.log(`[join] merged gap_analysis.json → project_memory.json, fit score ${fitScore}`);
+      } catch (mergeErr) {
+        console.error('[join] merge error:', mergeErr.message);
+      }
+
+      broadcast({
+        type: 'agent_message',
+        agent: 'System',
+        text: `Gap analysis complete. Fit score: **${fitScore}/10**.`,
+      });
+      broadcastMode('auto_running', 'Reviewer');
+      await recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
+      await sendToNode('reviewer_input', 'Reviewer', '__begin_gap_interview__');
+      // Mode switches to user_turn when Reviewer produces first question
+    } else if (doneTA && !doneAnalysis) {
+      broadcast({
+        type: 'agent_message',
+        agent: 'System',
+        text: 'Analysis still running in background — will begin gap review shortly…',
+      });
+      broadcastMode('auto_running', 'Analyst');
+    }
+  } catch (err) {
+    console.error('[join] error:', err.message);
+  }
+}
+
+// Assembly join: all 5 agents done → Style Reviewer.
+async function checkAssemblyJoin() {
+  if (!recipe) return;
+  try {
+    const flags = await Promise.all(
+      ['done_PB', 'done_SC', 'done_HF', 'done_CF', 'done_CLW'].map(f =>
+        recipe.globalVariables.getValue(f)
+      )
+    );
+    if (flags.every(Boolean)) {
+      console.log('[join] all assembly agents done — dispatching Style Reviewer');
+      broadcastMode('auto_running', 'Style Reviewer');
+      await sendToNode('style_reviewer_input', 'Style Reviewer');
+    }
+  } catch (err) {
+    console.error('[assembly join] error:', err.message);
+  }
+}
+
+// Research redo join: Researcher re-done mid-TA-interview.
+async function checkResearchRedoJoin() {
+  if (!recipe) return;
+  try {
+    const researchConfirmed = await recipe.globalVariables.getValue('research_confirmed');
+    if (researchConfirmed !== 0) return;
+
+    const doneResearcher = await recipe.globalVariables.getValue('done_researcher');
+    if (!doneResearcher) return;
+
+    let researchSummary = 'Research updated.';
+    try {
+      const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
+      const r = mem.research_data || {};
+      const company = mem.metadata?.company_name || 'the company';
+      const priorities = (r.company_priorities || []).slice(0, 3).join(', ') || 'not captured';
+      researchSummary = `Updated research for **${company}**:\n- Key priorities: ${priorities}`;
+    } catch {}
+
+    const doneTA = await recipe.globalVariables.getValue('done_TA');
+    if (doneTA) {
+      // Both complete — ask user to confirm via action buttons
+      broadcast({
+        type: 'action_required',
+        context: 'research_confirm',
+        prompt: researchSummary + '\n\nConfirm to proceed with gap analysis, or run research again.',
+        actions: [
+          { id: 'research_confirm', label: 'Confirm — proceed with analysis', variant: 'primary' },
+          { id: 'research_redo',    label: 'Run research again',               variant: 'ghost'   },
+        ],
+      });
+      broadcastMode('action_required');
+      await recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
+      updateProjectMemoryStatus('RESEARCH_CONFIRM');
+    } else {
+      // TA still in progress — passive notification
+      broadcast({
+        type: 'agent_message',
+        agent: 'System',
+        text: researchSummary + '\n\n*(Research updated — gap analysis will use this once your style interview completes.)*',
+      });
+    }
+  } catch (err) {
+    console.error('[research redo join] error:', err.message);
+  }
+}
+
+// Dispatch 5 assembly agents in parallel after Style Negotiator completes.
+async function dispatchAssemblyParallel() {
+  if (!recipe) return;
+  try {
+    const doneSN = await recipe.globalVariables.getValue('done_SN');
+    if (!doneSN) return;
+    console.log('[assembly] Style Negotiator done — dispatching 5 agents in parallel');
+    broadcastMode('auto_running', 'Building CV sections…');
+    await Promise.all([
+      sendToNode('profile_builder_input',      'Profile Builder',      '__build__'),
+      sendToNode('skills_curator_input',        'Skills Curator',       '__curate__'),
+      sendToNode('history_formatter_input',     'History Formatter',    '__format__'),
+      sendToNode('credentials_formatter_input', 'Credentials Formatter','__format__'),
+      sendToNode('coverletter_writer_input',    'CoverLetter Writer',   '__write__'),
+    ]);
+    await recipe.globalVariables.setValue('pipeline_status', 'ASSEMBLY_PARALLEL');
+    updateProjectMemoryStatus('ASSEMBLY_PARALLEL');
+  } catch (err) {
+    console.error('[assembly parallel] error:', err.message);
+  }
+}
+
+// Dispatch Integrity Checker after Style Reviewer.
+async function dispatchIntegrityChecker() {
+  if (!recipe) return;
+  try {
+    const doneSR = await recipe.globalVariables.getValue('done_SR');
+    if (!doneSR) return;
+    console.log('[assembly] Style Reviewer done — dispatching Integrity Checker');
+    broadcastMode('auto_running', 'Integrity Checker');
+    await sendToNode('integrity_checker_input', 'Integrity Checker', '__check__');
+    await recipe.globalVariables.setValue('pipeline_status', 'INTEGRITY_CHECKING');
+    updateProjectMemoryStatus('INTEGRITY_CHECKING');
+  } catch (err) {
+    console.error('[integrity checker] error:', err.message);
+  }
+}
+
+function updateProjectMemoryStatus(status) {
+  try {
+    const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
+    mem.metadata = mem.metadata ?? {};
+    mem.metadata.status = status;
+    writeFileSync(join(WORKSPACE_DIR, 'project_memory.json'), JSON.stringify(mem, null, 2));
+  } catch { /* project_memory may not exist yet */ }
 }
 
 // ── Routes ────────────────────────────────────────────────────────────────────
@@ -182,19 +421,18 @@ const express = (await import('express')).default;
 const router = express.Router();
 export default router;
 
-// GET /api/stream — SSE connection for real-time agent output
+// GET /api/stream
 router.get('/stream', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
   res.write(': heartbeat\n\n');
-
   sseClients.add(res);
   req.on('close', () => sseClients.delete(res));
 });
 
-// POST /api/upload — save uploaded txt or pdf files to workspace as cv_raw.txt / jd_raw.txt
+// POST /api/upload
 router.post('/upload', express.raw({ type: '*/*', limit: '10mb' }), async (req, res) => {
   const originalName = req.query.filename ?? '';
   const target = req.query.target;
@@ -209,12 +447,11 @@ router.post('/upload', express.raw({ type: '*/*', limit: '10mb' }), async (req, 
     if (isPdf) {
       const { text: pages } = await extractText(new Uint8Array(req.body), { mergePages: true });
       text = pages;
-      console.log(`[upload] ${originalName} → ${target}.txt (pdf, ${text.length} chars)`);
     } else {
       text = req.body.toString('utf8');
-      console.log(`[upload] ${originalName} → ${target}.txt (text, ${text.length} chars)`);
     }
     writeFileSync(join(WORKSPACE_DIR, `${target}.txt`), text, 'utf8');
+    console.log(`[upload] ${originalName} → ${target}.txt (${text.length} chars)`);
     res.json({ ok: true, filename: `${target}.txt` });
   } catch (err) {
     console.error('[upload] error:', err);
@@ -222,7 +459,7 @@ router.post('/upload', express.raw({ type: '*/*', limit: '10mb' }), async (req, 
   }
 });
 
-// POST /api/message — send a user message to the active agent
+// POST /api/message — send user message to active agent
 router.post('/message', async (req, res) => {
   const { message, sessionId = 'default' } = req.body;
 
@@ -233,20 +470,15 @@ router.post('/message', async (req, res) => {
     return res.status(503).json({ error: 'Recipe not ready' });
   }
 
-  // Detect user rerun/redo/retry intent — server handles status reset + routing
-  // directly, keeping MO out of it (Flash 3 loops on read-modify-write instructions).
   const RERUN_RE = /\b(rerun|re-run|redo|re-do|retry|re-try)\b/i;
   const RERUN_MAP = [
-    { pattern: /extractor/i,             resetStatus: 'FILES_SAVED',       agent: 'Extractor' },
-    { pattern: /researcher|research/i,   resetStatus: 'INITIALIZED',       agent: 'Researcher' },
-    { pattern: /jd.?enhancer|jd/i,       resetStatus: 'RESEARCH_COMPLETE', agent: 'JD Enhancer' },
-    { pattern: /analyst/i,               resetStatus: 'JD_ENHANCED',       agent: 'Analyst' },
-    { pattern: /reviewer|review/i,       resetStatus: 'ANALYSIS_COMPLETE', agent: 'Reviewer' },
-    { pattern: /tone.?analyst|tone/i,    resetStatus: 'REVIEW_COMPLETE',   agent: 'Tone Analyst' },
+    { pattern: /extractor/i,           resetStatus: 'FILES_SAVED',       agent: 'Extractor'   },
+    { pattern: /researcher|research/i, resetStatus: 'INITIALIZED',       agent: 'Researcher'  },
+    { pattern: /jd.?enhancer|jd/i,     resetStatus: 'RESEARCH_COMPLETE', agent: 'JD Enhancer' },
+    { pattern: /analyst/i,             resetStatus: 'JD_ENHANCED',       agent: 'Analyst'     },
+    { pattern: /reviewer|review/i,     resetStatus: 'ANALYSIS_COMPLETE', agent: 'Reviewer'    },
   ];
 
-  // Route to the correct agent based on current status before forwarding.
-  // This keeps MO out of the happy path entirely — the server owns routing.
   const userWantsRerun = RERUN_RE.test(message);
   try {
     const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
@@ -256,18 +488,15 @@ router.post('/message', async (req, res) => {
     if (userWantsRerun) {
       const match = RERUN_MAP.find(r => r.pattern.test(message));
       if (match) {
-        // Reset status so target agent sees the correct pre-state
         mem.metadata = mem.metadata ?? {};
         mem.metadata.status = match.resetStatus;
         writeFileSync(join(WORKSPACE_DIR, 'project_memory.json'), JSON.stringify(mem, null, 2));
         nextAgent = match.agent;
         console.log(`[route] rerun "${match.agent}" — status reset to ${match.resetStatus}`);
-        // Broadcast confirmation to chat so user sees feedback immediately
-        broadcast({ type: 'agent_message', text: `Re-running **${match.agent}**…` });
+        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running **${match.agent}**…` });
+        broadcastMode('auto_running', match.agent);
       } else {
-        // Could not identify target — route to MO for clarification
         nextAgent = 'Main Orchestrator';
-        console.log(`[route] rerun intent but no agent match — routing to MO`);
       }
     } else if (status && HAPPY_PATH[status]) {
       nextAgent = HAPPY_PATH[status];
@@ -276,11 +505,13 @@ router.post('/message', async (req, res) => {
     }
 
     if (nextAgent) {
-      await recipe.globalVariables.setValue('AgentSelector', nextAgent);
-      if (!userWantsRerun) console.log(`[route] ${status} → ${nextAgent} (pre-message)`);
-      await new Promise((r) => setTimeout(r, 150));
+      const node = INPUT_NODE_MAP[status] ?? ' Message';
+      if (!userWantsRerun) console.log(`[route] ${status} → ${nextAgent} via ${node}`);
+      await sendToNode(node, nextAgent, message, sessionId);
+      res.json({ ok: true });
+      return;
     }
-  } catch { /* no project_memory yet — leave AgentSelector as-is */ }
+  } catch { /* no project_memory yet */ }
 
   console.log(`[user] ${message.slice(0, 80)}`);
   try {
@@ -295,35 +526,94 @@ router.post('/message', async (req, res) => {
   }
 });
 
-// GET /api/status — read current pipeline status from project_memory.json
+// POST /api/action — handle structured action button clicks
+router.post('/action', express.json(), async (req, res) => {
+  const { id } = req.body;
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({ error: 'id required' });
+  }
+  if (!recipe) {
+    return res.status(503).json({ error: 'Recipe not ready' });
+  }
+
+  try {
+    switch (id) {
+      case 'research_confirm':
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed — running gap analysis…' });
+        broadcastMode('auto_running', 'Analyst');
+        await recipe.globalVariables.setValue('research_confirmed', 1);
+        await recipe.globalVariables.setValue('done_analysis', null);
+        await sendToNode('analyst_background_input', null, '__analyze__');
+        await recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
+        updateProjectMemoryStatus('PARALLEL_ANALYSIS');
+        break;
+
+      case 'research_redo':
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research…' });
+        broadcastMode('auto_running', 'Researcher');
+        await recipe.globalVariables.setValue('done_researcher', null);
+        await sendToNode('researcher_input', 'Researcher', '__redo__');
+        await recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
+        updateProjectMemoryStatus('PARALLEL_ANALYSIS');
+        break;
+
+      default:
+        return res.status(400).json({ error: `unknown action: ${id}` });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[action] error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/status
 router.get('/status', (req, res) => {
   try {
     const memory = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
     res.json({
       status: memory?.metadata?.status ?? null,
-      phase: memory?.metadata?.current_phase ?? null,
+      phase:  memory?.metadata?.current_phase ?? null,
     });
   } catch {
     res.json({ status: null, phase: null });
   }
 });
 
-// POST /api/reset — clear workspace and reset agent to Main Orchestrator
+// POST /api/reset — clear workspace and reset pipeline vars
 router.post('/reset', async (req, res) => {
   if (!recipe) return res.status(503).json({ error: 'Recipe not ready' });
   try {
-    // Clear workspace files (JSON + txt)
-    const { readdirSync } = await import('fs');
-    const files = readdirSync(WORKSPACE_DIR).filter(f => f.endsWith('.json') || f.endsWith('.txt'));
-    for (const f of files) {
-      rmSync(join(WORKSPACE_DIR, f));
-    }
+    // Preserve only uploaded source files — clear everything else (BUG-145 fix)
+    const PRESERVE = new Set(['cv_raw.txt', 'jd_raw.txt', 'cover_letter_sample.txt']);
+    try {
+      const files = readdirSync(WORKSPACE_DIR);
+      for (const f of files) {
+        if (!PRESERVE.has(f)) rmSync(join(WORKSPACE_DIR, f), { force: true });
+      }
+    } catch {}
+
     // Clear chat history
     try { rmSync(HISTORY_FILE); } catch {}
-    // Point directly to ProjectSetup — no __init__ needed
+
+    // Clear all pipeline global vars + per-agent output vars
+    const ALL_PIPELINE_VARS = [
+      'pipeline_status',
+      'done_researcher', 'done_TA', 'done_analysis', 'done_RV',
+      'research_confirmed', 'fit_score',
+      'done_SN', 'done_PB', 'done_SC', 'done_HF', 'done_CF', 'done_CLW',
+      'done_SR', 'done_IC',
+      ...Object.keys(AGENT_OUTPUT_VARS),
+    ];
+    for (const v of ALL_PIPELINE_VARS) {
+      try { await recipe.globalVariables.setValue(v, null); } catch {}
+    }
+
     await recipe.globalVariables.setValue('AgentSelector', 'ProjectSetup');
-    console.log('[reset] workspace cleared, AgentSelector → ProjectSetup');
+    fallbackAgent = 'ProjectSetup';
+    console.log('[reset] workspace cleared, pipeline vars reset, AgentSelector → ProjectSetup');
     broadcast({ type: 'agent_switch', agent: 'ProjectSetup' });
+    broadcastMode('user_turn', 'ProjectSetup');
     res.json({ ok: true });
   } catch (err) {
     console.error('reset error:', err);
@@ -331,14 +621,12 @@ router.post('/reset', async (req, res) => {
   }
 });
 
-// POST /api/abort — stop processing and route to MO for stall recovery
+// POST /api/abort
 router.post('/abort', async (req, res) => {
   if (!recipe) return res.status(503).json({ error: 'Recipe not ready' });
   try {
-    autoContinue = false;
-    broadcast({ type: 'auto_continue_changed', enabled: false });
+    broadcastMode('user_turn', 'Main Orchestrator');
     await recipe.globalVariables.setValue('Settings.Abort_All_Processing', true);
-    // Route to MO so it can inform user and offer retry
     await recipe.globalVariables.setValue('AgentSelector', 'Main Orchestrator');
     await recipe.sendToInputWidget(' Message', {
       type: DataType.JsonObj,
@@ -350,10 +638,11 @@ router.post('/abort', async (req, res) => {
   }
 });
 
-// GET /api/workspace — read a workspace file (dev/testing)
+// GET /api/workspace
 const WORKSPACE_ALLOWED = [
   'project_memory.json', 'cv_assembly_state.json',
   'candidate_profile.json', 'style_guide.json', 'agent_reasoning.json',
+  'gap_analysis.json',
 ];
 router.get('/workspace', (req, res) => {
   const file = req.query.file;
@@ -367,7 +656,7 @@ router.get('/workspace', (req, res) => {
   }
 });
 
-// POST /api/dev/status — manually override project_memory.json status (dev/testing)
+// POST /api/dev/status
 router.post('/dev/status', express.json(), (req, res) => {
   const { status } = req.body;
   if (!status || typeof status !== 'string') {
@@ -385,38 +674,27 @@ router.post('/dev/status', express.json(), (req, res) => {
   }
 });
 
-// POST /api/inject — inject a message directly as agent output (dev/testing)
+// POST /api/inject
 router.post('/inject', express.json(), (req, res) => {
   const { message } = req.body;
   if (!message || typeof message !== 'string') {
     return res.status(400).json({ error: 'message required' });
   }
-  broadcast({ type: 'stream_token', chunk: message });
+  broadcast({ type: 'agent_message', agent: 'System', text: message });
   broadcast({ type: 'stream_done' });
   res.json({ ok: true });
 });
 
-// POST /api/auto-continue — toggle server-side auto-routing on/off
-router.post('/auto-continue', express.json(), (req, res) => {
-  autoContinue = req.body?.enabled ?? !autoContinue;
-  console.log(`[auto-continue] ${autoContinue ? 'ON' : 'OFF'}`);
-  broadcast({ type: 'auto_continue_changed', enabled: autoContinue });
-  res.json({ enabled: autoContinue });
-});
-
 const HISTORY_FILE = join(PROJECT_DIR, 'chat_history.json');
 
-// GET /api/history — load persisted chat messages
 router.get('/history', (req, res) => {
   try {
-    const data = readFileSync(HISTORY_FILE, 'utf8');
-    res.json(JSON.parse(data));
+    res.json(JSON.parse(readFileSync(HISTORY_FILE, 'utf8')));
   } catch {
     res.json([]);
   }
 });
 
-// POST /api/history — save full messages array
 router.post('/history', express.json({ limit: '10mb' }), (req, res) => {
   try {
     const messages = req.body;

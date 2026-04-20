@@ -401,15 +401,9 @@ Cover letter written and confirmed for {positionTitle} at {companyName}.
 - Word count: {wordCount}
 - Strengths featured: {topStrengths.map(s => s.skill_or_attribute).join(", ")}
 
----
-
-Send any message to continue.
 ```
 
-Then immediately (same turn, no waiting):
-```javascript
-SwitchAgent(target: "Assembly Coordinator", context: {})
-```
+**TURN ENDS.** Canvas fires `done_CLW = 1` from the text output above. Server handles dispatch.
 
 ---
 
@@ -419,7 +413,7 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 | --- | --- |
 | candidate_profile.json missing | Display error, SwitchAgent("Main Orchestrator") |
 | project_memory.json missing | Display error, SwitchAgent("Main Orchestrator") |
-| Phase mismatch | Display error, SwitchAgent("Assembly Coordinator") |
+| Phase mismatch | Display error, END TURN |
 | research_data empty | Use generic company reference, continue |
 | gap_analysis empty | Use work history directly for strengths |
 | WriteFile fails | Retry once, then SwitchAgent("Main Orchestrator") |
@@ -438,8 +432,8 @@ SwitchAgent(target: "Assembly Coordinator", context: {})
 6. **Update phases[5] only** — Array index 5
 7. **Advance to Phase 7** — Set current_phase = 7
 8. **User confirmation required** — Never skip Phase 4
-9. **Turn-based pattern** — Display "# ✓ CoverLetter Writer Complete" before SwitchAgent
-10. **Return to Assembly Coordinator** — Always SwitchAgent("Assembly Coordinator") when done
+9. **Turn-based pattern** — Display "# ✓ CoverLetter Writer Complete" and end turn naturally
+10. **No SwitchAgent on completion** — canvas fires `done_CLW = 1`; server handles dispatch
 11. **Register-aware writing** — Classify as peer-collegial (academic), confident-professional (corporate), or direct-practical (operational) based on sector/position. Never default to corporate-deferential. Banned phrases (e.g. "I am writing to express my strong interest", "I look forward to hearing from you") must not appear in the final letter.
 
 ---

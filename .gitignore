@@ -25,3 +25,12 @@ personas/
 
 #testing screenshots
 images/
+
+#testing temp workspace
+temp/
+
+#docker
+.dockerignore
+package.json
+railway.json
+Dockerfile

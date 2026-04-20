@@ -6,17 +6,21 @@ const UPLOAD_TARGETS = [
   { label: 'Cover Letter Sample', value: 'cover_letter_sample' },
 ];
 
-export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
+export function MessageInput({ onSend, onUpload, disabled, pipelineMode, runningAgent, lastUserMessage }) {
   const [text, setText] = useState('');
   const [injectMode, setInjectMode] = useState(false);
   const [uploadTarget, setUploadTarget] = useState(null);
   const [showTargetMenu, setShowTargetMenu] = useState(false);
   const fileRef = useRef(null);
 
+  const isAutoRunning = pipelineMode === 'auto_running';
+  const isActionRequired = pipelineMode === 'action_required';
+  const effectivelyDisabled = disabled && !injectMode;
+
   function handleSubmit(e) {
     e.preventDefault();
     const trimmed = text.trim();
-    if (!trimmed || disabled) return;
+    if (!trimmed || effectivelyDisabled) return;
     if (injectMode) {
       fetch('/api/inject', {
         method: 'POST',
@@ -30,16 +34,12 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      handleSubmit(e);
-    }
+    if (e.key === 'Enter' && !e.shiftKey) handleSubmit(e);
   }
 
   async function handleFiles(e) {
     const files = Array.from(e.target.files);
-    for (const file of files) {
-      await onUpload(file.name, file, uploadTarget);
-    }
+    for (const file of files) await onUpload(file.name, file, uploadTarget);
     e.target.value = '';
   }
 
@@ -50,6 +50,15 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
   }
 
   const targetLabel = UPLOAD_TARGETS.find((t) => t.value === uploadTarget)?.label ?? 'Auto';
+
+  // Placeholder text depends on pipeline state
+  const placeholder = injectMode
+    ? 'Inject agent message...'
+    : isAutoRunning
+      ? `Running: ${runningAgent ?? 'Pipeline'}…`
+      : isActionRequired
+        ? 'Select an option above…'
+        : 'Type a message…';
 
   return (
     <form
@@ -88,7 +97,6 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
             ))}
           </div>
         )}
-
         <button
           type="button"
           onClick={() => setShowTargetMenu((v) => !v)}
@@ -103,22 +111,34 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
-          {uploadTarget && (
-            <span className="text-[10px]">{targetLabel}</span>
-          )}
+          {uploadTarget && <span className="text-[10px]">{targetLabel}</span>}
         </button>
       </div>
 
-      {/* Input */}
-      <textarea
-        className="flex-1 resize-none rounded-xl bg-slate-800/40 border border-slate-700/40 text-sm text-slate-100 placeholder-slate-600 px-4 py-2.5 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
-        rows={1}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={injectMode ? 'Inject agent message...' : 'Type a message...'}
-        disabled={disabled && !injectMode}
-      />
+      {/* Input area */}
+      <div className="relative flex-1">
+        <textarea
+          className={`w-full resize-none rounded-xl bg-slate-800/40 border text-sm text-slate-100 px-4 py-2.5 focus:outline-none transition-all ${
+            effectivelyDisabled
+              ? 'border-slate-700/20 text-slate-600 placeholder-slate-700 cursor-not-allowed'
+              : 'border-slate-700/40 placeholder-slate-600 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20'
+          }`}
+          rows={1}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={effectivelyDisabled}
+        />
+        {/* Pulse dot when auto_running */}
+        {isAutoRunning && !injectMode && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse [animation-delay:0.2s]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse [animation-delay:0.4s]" />
+          </span>
+        )}
+      </div>
 
       {/* Re-send */}
       {lastUserMessage && !disabled && (
@@ -151,7 +171,7 @@ export function MessageInput({ onSend, onUpload, disabled, lastUserMessage }) {
       {/* Send */}
       <button
         type="submit"
-        disabled={(disabled && !injectMode) || !text.trim()}
+        disabled={effectivelyDisabled || !text.trim()}
         className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 transition-all active:scale-95 shadow-lg shadow-violet-600/10 hover:shadow-violet-500/20"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
