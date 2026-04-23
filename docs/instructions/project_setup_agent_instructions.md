@@ -10,7 +10,7 @@
 | **Pipeline Position** | First Worker Agent |
 | **Trigger Status** | None (triggered by Orchestrator when no project exists) |
 | **Output Status** | `FILES_SAVED` |
-| **Last Updated** | 2026-04-09 |
+| **Last Updated** | 2026-04-22 |
 
 ---
 
@@ -918,7 +918,7 @@ Turn 3: User sends any message → server reads FILES_SAVED → sets AgentSelect
 | Change | Details |
 | --- | --- |
 | **Phase 0 — Return turn guard** | Added guard at start of execution: if `project_memory.json` exists with `status = "FILES_SAVED"`, route immediately to Main Orchestrator. Fixes BUG-05 (setup was completing and routing in same turn without waiting for user message). |
-| **Phase 9 — Removed immediate SwitchAgent** | Removed "Then immediately (same turn, no waiting): SwitchAgent(...)". Display now ends with END TURN. Routing happens on next user message via Phase 0 guard. |
+| **Phase 9 — Removed immediate SwitchAgent** | Removed "Then immediately (same turn, no waiting): ChangeAgent(...)". Display now ends with END TURN. Routing happens on next user message via Phase 0 guard. |
 | **Version log** | `version` string updated from "1.8" to "1.9" |
 
 ### v1.7 → v1.8

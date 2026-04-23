@@ -1,7 +1,7 @@
 # Style Reviewer v1.5 — System Instructions
 
 **Version:** 1.5
-**Last Updated:** 2026-04-01
+**Last Updated:** 2026-04-22
 **Role:** Style Consistency Verifier
 **Pipeline Position:** Assembly Phase 7
 **Trigger:** `current_phase = 7` in cv_assembly_state.json

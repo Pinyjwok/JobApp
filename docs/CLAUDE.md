@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Platform:** KEMU (turn-based agent execution)
 - **Routing:** Status-based using `project_memory.json.status` — simple switch statement, NO global variables
-- **Routing Tool:** `SwitchAgent(target: ...)` — ChangeAgent does not exist
+- **Routing Tool:** `ChangeAgent(agent: ...)` — SwitchAgent does not exist
 - **Tech Stack:** JSON state management, file-based context passing, evidence-based gap analysis
 
 ---
@@ -20,21 +20,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### ✅ All Agents Complete
 | Agent | Version | File |
 |-------|---------|------|
-| Main Orchestrator | v5.5 | `main_orchestrator_agent_instructions.md` |
+| Main Orchestrator | v5.6 | `main_orchestrator_agent_instructions.md` |
 | ProjectSetup | v1.14 | `project_setup_agent_instructions.md` |
-| Extractor | v2.1 | `extractor_agent_instructions.md` |
+| Extractor | v2.3 | `extractor_agent_instructions.md` |
 | Researcher | v2.0 | `researcher_agent_instructions.md` |
 | JD Enhancer | v1.5 | `jd_enhancer_instructions.md` |
 | Analyst | v2.5 | `analyst_agent_instructions.md` |
-| Reviewer | v2.5 | `reviewer_agent_instructions.md` |
-| Tone Analyst | v2.2 | `tone_analyst_agent_instructions.md` |
-| Assembly Coordinator | v3.10 | `assembly_coordinator_agent_instructions.md` |
-| Style Negotiator | v1.6 | `style_negotiator_instructions.md` |
-| Profile Builder | v1.6 | `profile_builder_instructions.md` |
-| Skills Curator | v1.6 | `skills_curator_agent_instructions.md` |
-| History Formatter | v1.5 | `history_formatter_agent_instructions.md` |
-| Credentials Formatter | v1.6 | `credentials_formatter_agent_instructions.md` |
-| CoverLetter Writer | v1.4 | `coverletter_writer_agent_instructions.md` |
+| Reviewer | v3.2 | `reviewer_agent_instructions.md` |
+| Tone Analyst | v3.1 | `tone_analyst_agent_instructions.md` |
+| Assembly Coordinator | v4.1 | `assembly_coordinator_agent_instructions.md` |
+| Style Negotiator | v1.9 | `style_negotiator_instructions.md` |
+| Profile Builder | v1.8 | `profile_builder_instructions.md` |
+| Skills Curator | v1.8 | `skills_curator_agent_instructions.md` |
+| History Formatter | v1.7 | `history_formatter_agent_instructions.md` |
+| Credentials Formatter | v1.8 | `credentials_formatter_agent_instructions.md` |
+| CoverLetter Writer | v1.6 | `coverletter_writer_agent_instructions.md` |
 | Style Reviewer | v1.5 | `style_reviewer_agent_instructions.md` |
 | Integrity Checker | v1.8 | `integrity_checker_agent_instructions.md` |
 
@@ -346,8 +346,8 @@ const EXCEPTION_STATUSES = new Set([
 Phase agents return directly to **Assembly Coordinator** (not Main Orchestrator). Assembly Coordinator reads `current_phase` and routes to the next phase agent, looping until all 8 phases are done.
 
 ```
-Phase Agent → SwitchAgent("Assembly Coordinator")
-Assembly Coordinator: reads current_phase → SwitchAgent("Next Phase Agent")
+Phase Agent → ChangeAgent(agent: "Assembly Coordinator")
+Assembly Coordinator: reads current_phase → ChangeAgent(agent: "Next Phase Agent")
 ```
 
 **CV_BUILDING status:** Assembly Coordinator sets `status = CV_BUILDING` in `project_memory.json` on its first invocation (when it sees `TONE_ANALYZED`). This is idempotent — subsequent invocations skip the write.
@@ -402,11 +402,11 @@ Send any message to continue.
 **On next turn (after user message):**
 ```javascript
 // ⚠️ Main pipeline agents (Extractor, Researcher, JD Enhancer, Analyst, Reviewer, Tone Analyst):
-// DO NOT call SwitchAgent. The server reads project_memory.json status and routes automatically.
+// DO NOT call ChangeAgent. The server reads project_memory.json status and routes automatically.
 // Just write status to project_memory.json, display completion, wait.
 
 // Assembly phase agents return to Assembly Coordinator:
-SwitchAgent(target: "Assembly Coordinator", context: {})
+ChangeAgent(agent: "Assembly Coordinator")
 ```
 
 **Server-side routing flow:**
@@ -532,7 +532,7 @@ READ: cv_assembly_state.json, project_memory.json, candidate_profile.json
 WRITE: cv_assembly_state.json only
 PRESERVE: All other files
 
-## Tools: ReadFile, WriteFile, SwitchAgent
+## Tools: ReadFile, WriteFile, ChangeAgent
 
 ## Execution Protocol
 ### Phase 1: Load State
@@ -557,7 +557,7 @@ WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
 ---
 Send any message to continue.
 
-SwitchAgent(target: "Assembly Coordinator", context: {})
+ChangeAgent(agent: "Assembly Coordinator")
 
 ## ⚠️ Critical Rules
 1. Bare filenames, no leading slashes

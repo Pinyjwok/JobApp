@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 
 const FILES = [
   'project_memory.json',
+  'gap_analysis.json',
   'cv_assembly_state.json',
   'candidate_profile.json',
   'style_guide.json',
   'agent_reasoning.json',
 ];
+const KEMU_TAB = '__kemu__';
 
 export function WorkspaceInspector({ refresh, onClose }) {
   const [activeFile, setActiveFile] = useState(FILES[0]);
@@ -16,8 +18,13 @@ export function WorkspaceInspector({ refresh, onClose }) {
   async function load(file) {
     setLoading(true);
     try {
-      const r = await fetch(`/api/workspace?file=${file}`);
-      setData(await r.json());
+      if (file === KEMU_TAB) {
+        const r = await fetch('/api/debug/vars');
+        setData(await r.json());
+      } else {
+        const r = await fetch(`/api/workspace?file=${file}`);
+        setData(await r.json());
+      }
     } catch {
       setData(null);
     } finally {
@@ -28,9 +35,9 @@ export function WorkspaceInspector({ refresh, onClose }) {
   useEffect(() => { load(activeFile); }, [activeFile, refresh]);
 
   return (
-    <div className="animate-fade-in-up absolute bottom-20 right-4 z-50 w-[580px] max-h-[60vh] flex flex-col bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-2xl shadow-black/40">
+    <div className="animate-fade-in-up absolute bottom-20 right-4 z-50 w-[580px] max-h-[60vh] flex flex-col overflow-hidden bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-2xl shadow-black/40">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-800">
+      <div className="shrink-0 flex items-center gap-2 px-4 py-2.5 border-b border-slate-800">
         <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
         </svg>
@@ -52,7 +59,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-0.5 px-3 pt-2 pb-0 overflow-x-auto">
+      <div className="shrink-0 flex gap-0.5 px-3 pt-2 pb-0 overflow-x-auto">
         {FILES.map((f) => (
           <button
             key={f}
@@ -66,6 +73,16 @@ export function WorkspaceInspector({ refresh, onClose }) {
             {f.replace('.json', '')}
           </button>
         ))}
+        <button
+          onClick={() => setActiveFile(KEMU_TAB)}
+          className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all ${
+            activeFile === KEMU_TAB
+              ? 'bg-amber-900/40 text-amber-300 font-medium border-t border-x border-amber-700/40'
+              : 'text-amber-700 hover:text-amber-500 hover:bg-slate-800/30'
+          }`}
+        >
+          KEMU vars
+        </button>
       </div>
 
       {/* Content */}

@@ -1,7 +1,7 @@
 # Analyst Agent v2.8 — Complete System Instructions
 
 **Version:** 2.8
-**Last Updated:** 2026-04-20
+**Last Updated:** 2026-04-22
 **Role:** Gap Analysis & Strategic Fit Assessment
 **Pipeline Position:** Parallel background agent — fires simultaneously with Tone Analyst on RESEARCH_COMPLETE fork
 **Trigger:** Server fires `analyst_background_input` on RESEARCH_COMPLETE fork
@@ -222,7 +222,7 @@ if (!profileContent) {
   profileContent = ReadFile("candidate_profile.json/candidate_profile.json")
   if (!profileContent) {
     ERROR: "candidate_profile.json unreadable — Extractor must re-run"
-    SwitchAgent(target: "Main Orchestrator")
+    ChangeAgent(agent: "Main Orchestrator")
     END TURN
   }
 }
@@ -240,7 +240,7 @@ const status = projectMemory.metadata.status
 // Validate
 if (!enhancedJD) {
   ERROR: "enhanced_jd missing"
-  SwitchAgent(target: "Main Orchestrator")
+  ChangeAgent(agent: "Main Orchestrator")
   END TURN
 }
 
@@ -250,7 +250,7 @@ if (!enhancedJD) {
 
 if (!candidateProfile.skills && !candidateProfile.work_history) {
   ERROR: "Candidate profile too sparse"
-  SwitchAgent(target: "Main Orchestrator")
+  ChangeAgent(agent: "Main Orchestrator")
   END TURN
 }
 ```
@@ -1020,7 +1020,7 @@ After Phase 11 logging completes and `set_status("ANALYSIS_COMPLETE")` has been 
 | Change | Details |
 | --- | --- |
 | **Removed re-invocation guard from Phase 1** | Guard was incompatible with KEMU's routing model. On KEMU, SwitchAgent sets a global variable determining which agent receives the next chat message. A SwitchAgent call made during a re-invocation cannot trigger the target agent because no new message arrives to invoke it — the original message was already consumed. Attempting to route via a re-invocation guard caused the pipeline to stall permanently at the Analyst. |
-| **Restored same-turn SwitchAgent(MO) in Phase 12** | Correct KEMU pattern: Analyst displays output → calls SwitchAgent(MO) in the same turn → global var = MO → turn ends → user's next message triggers MO. |
+| **Restored same-turn ChangeAgent(MO) in Phase 12** | Correct KEMU pattern: Analyst displays output → calls ChangeAgent(MO) in the same turn → global var = MO → turn ends → user's next message triggers MO. |
 
 ## Changelog: v1.7 → v1.8
 

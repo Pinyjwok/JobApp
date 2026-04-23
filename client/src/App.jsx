@@ -8,22 +8,6 @@ import { StartModal } from './components/StartModal';
 import { useStream } from './hooks/useStream';
 import './index.css';
 
-const PIPELINE_STAGES = [
-  { id: 'setup',    label: 'Setup',    statuses: ['FILES_SAVED'] },
-  { id: 'extract',  label: 'Extract',  statuses: ['INITIALIZED'] },
-  { id: 'research', label: 'Research', statuses: ['RESEARCH_COMPLETE'] },
-  { id: 'enhance',  label: 'JD',       statuses: ['JD_ENHANCED'] },
-  { id: 'analysis', label: 'Analyse',  statuses: ['PARALLEL_ANALYSIS', 'ANALYSIS_COMPLETE', 'TONE_ANALYZED'] },
-  { id: 'review',   label: 'Review',   statuses: ['GAP_INTERVIEW', 'REVIEW_COMPLETE', 'REVIEW_FAILED'] },
-  { id: 'style',    label: 'Style',    statuses: ['STYLE_NEGOTIATING', 'SN_START'] },
-  { id: 'build',    label: 'Build',    statuses: ['ASSEMBLY_PARALLEL', 'STYLE_REVIEWING', 'INTEGRITY_CHECKING'] },
-  { id: 'done',     label: 'Done',     statuses: ['CV_TAILORED'] },
-];
-
-const STATUS_STAGE_INDEX = {};
-PIPELINE_STAGES.forEach((stage, i) => {
-  stage.statuses.forEach(s => { STATUS_STAGE_INDEX[s] = i; });
-});
 
 export default function App() {
   const [messages, setMessages] = useState([]);
@@ -44,6 +28,7 @@ export default function App() {
   const [runningAgent, setRunningAgent] = useState(null);
 
   const pendingReasoningRef = useRef('');
+  const lastActivityRef = useRef(Date.now());
 
   useEffect(() => {
     fetch('/api/history')
@@ -147,6 +132,7 @@ Setting up your analysis — this takes about a minute.`,
 
   useStream(
     useCallback((data) => {
+      lastActivityRef.current = Date.now();
       if (data.type === 'agent_message') {
         setIsWaiting(false);
         const reasoning = pendingReasoningRef.current;
@@ -208,9 +194,38 @@ Setting up your analysis — this takes about a minute.`,
         });
       } else if (data.type === 'status_changed') {
         setStatus(data.status);
+      } else if (data.type === 'stream_done') {
+        setIsWaiting(false);
+        setPipelineMode('user_turn');
       }
     }, [activeAgent])
   );
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (pipelineMode !== 'auto_running') return;
+      if (Date.now() - lastActivityRef.current <= 45_000) return;
+      fetch('/api/status')
+        .then((r) => r.json())
+        .then((d) => {
+          const interactiveStatuses = new Set([
+            'GAP_INTERVIEW', 'REVIEW_COMPLETE', 'STYLE_NEGOTIATING',
+            'CV_BUILDING', 'PARALLEL_ANALYSIS',
+          ]);
+          if (d.status && interactiveStatuses.has(d.status)) {
+            setIsWaiting(false);
+            setPipelineMode('user_turn');
+            setMessages((prev) => [...prev, {
+              role: 'agent', agent: 'System',
+              text: 'Agent may be ready — pipeline is active. Type to continue or click Abort.',
+            }]);
+          }
+          lastActivityRef.current = Date.now();
+        })
+        .catch(() => {});
+    }, 15_000);
+    return () => clearInterval(id);
+  }, [pipelineMode]);
 
   async function handleSend(text) {
     setLastUserMessage(text);
@@ -221,6 +236,7 @@ Setting up your analysis — this takes about a minute.`,
     });
     setSending(true);
     setIsWaiting(true);
+    setPipelineMode('auto_running');
     try {
       await fetch('/api/message', {
         method: 'POST',
@@ -282,7 +298,7 @@ Setting up your analysis — this takes about a minute.`,
 
   async function handleReset() {
     if (!confirm('Clear workspace and start a new session?')) return;
-    await fetch('/api/reset', { method: 'POST' }).catch(() => {});
+    await fetch('/api/reset?full=1', { method: 'POST' }).catch(() => {});
     setMessages([]);
     setStatus(null);
     setActiveAgent('Main Orchestrator');
@@ -307,7 +323,6 @@ Setting up your analysis — this takes about a minute.`,
   }
 
   const inputDisabled = pipelineMode !== 'user_turn' || sending;
-  const stageIndex = STATUS_STAGE_INDEX[status] ?? -1;
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#0a0c10] text-base">
@@ -364,33 +379,8 @@ Setting up your analysis — this takes about a minute.`,
 
       <StatusBar status={status} activeAgent={activeAgent} />
 
-      {stageIndex >= 0 && (
-        <div className="flex items-center gap-0 px-5 py-2 bg-slate-900/60 border-b border-slate-800/50 text-xs overflow-x-auto">
-          {PIPELINE_STAGES.map((stage, i) => {
-            const done   = i < stageIndex;
-            const active = i === stageIndex;
-            return (
-              <span key={stage.id} className="flex items-center shrink-0">
-                <span className={`flex items-center gap-1.5 px-1 ${done ? 'text-violet-400' : active ? 'text-white' : 'text-slate-600'}`}>
-                  {done
-                    ? <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    : active
-                      ? <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse inline-block" />
-                      : <span className="w-1.5 h-1.5 rounded-full bg-slate-700 inline-block" />
-                  }
-                  {stage.label}
-                </span>
-                {i < PIPELINE_STAGES.length - 1 && (
-                  <span className={`mx-1 ${i < stageIndex ? 'text-violet-700' : 'text-slate-700'}`}>›</span>
-                )}
-              </span>
-            );
-          })}
-        </div>
-      )}
-
       <div className="flex flex-1 overflow-hidden">
-        <ChatWindow messages={messages} isWaiting={isWaiting} onAction={handleAction} />
+        <ChatWindow messages={messages} isWaiting={isWaiting || pipelineMode === 'auto_running'} onAction={handleAction} />
         {showTimeline && <AgentTimeline turns={turns} />}
       </div>
 

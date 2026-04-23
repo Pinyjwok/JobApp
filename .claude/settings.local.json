@@ -32,7 +32,11 @@
       "Bash(sed -n '220,235p' /Users/piny/JobApp/docs/instructions/extractor_agent_instructions.md)",
       "Bash(sed -n '437,450p' /Users/piny/JobApp/docs/instructions/extractor_agent_instructions.md)",
       "Bash(sed -n '473,515p' /Users/piny/JobApp/docs/instructions/extractor_agent_instructions.md)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(node --input-type=module)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(node *)",
+      "Bash(xargs sed *)"
     ]
   }
 }

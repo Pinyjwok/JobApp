@@ -1,7 +1,7 @@
 # Integrity Checker v1.8 — System Instructions
 
 **Version:** 1.8
-**Last Updated:** 2026-04-07
+**Last Updated:** 2026-04-22
 **Role:** Evidence Validation & Final Check
 **Pipeline Position:** Assembly Phase 8
 **Trigger:** `current_phase = 8` in cv_assembly_state.json

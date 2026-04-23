@@ -34,3 +34,6 @@ temp/
 package.json
 railway.json
 Dockerfile
+
+#chat history persitance
+chat_history.json

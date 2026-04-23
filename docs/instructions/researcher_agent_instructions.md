@@ -1,7 +1,7 @@
 # Researcher Agent v2.0 — System Instructions
 
 **Version:** 2.0
-**Last Updated:** 2026-04-09
+**Last Updated:** 2026-04-22
 **Role:** Company Intelligence Gatherer
 **Pipeline Position:** Third Worker Agent (After Extractor)
 **Trigger Status:** `INITIALIZED`
@@ -167,7 +167,7 @@ const sector = projectMemory.metadata.sector
 if (!companyName || companyName === "") {
   ERROR: "Company name missing - Extractor failed"
   Display: "Error: Company name missing. Please restart project or provide company name."
-  SwitchAgent(target: "Main Orchestrator")
+  ChangeAgent(agent: "Main Orchestrator")
   END TURN
 }
 
@@ -633,7 +633,7 @@ project_directory/
 15. **Validate required fields** — 5 out of 7 must pass
 16. **Retry both tools on failure** — Up to 2 times, merge results
 17. **Turn-based pattern** — Display "# ✓ Researcher Complete" then wait
-18. **Do NOT call SwitchAgent on completion** — Server routes automatically. Only call SwitchAgent("Main Orchestrator") on critical errors.
+18. **Do NOT call SwitchAgent on completion** — Server routes automatically. Only call ChangeAgent("Main Orchestrator") on critical errors.
 19. **Preserve existing project data** — Don't overwrite non-research fields
 
 ---

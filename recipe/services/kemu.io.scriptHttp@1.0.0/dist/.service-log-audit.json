@@ -6,24 +6,29 @@
     "auditLog": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/.service-log-audit.json",
     "files": [
         {
-            "date": 1776319431479,
-            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-16.log",
-            "hash": "f33ee0f74a33585ad9e646e0997d9895edc5bc72341fcdc74f9de5ea76322899"
-        },
-        {
-            "date": 1776506612871,
-            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-18.log",
-            "hash": "025b653f4eef8450828aea358265f4c6eafd0ca9141ddbe8ac82e28180c5a735"
-        },
-        {
-            "date": 1776524646035,
-            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-19.log",
-            "hash": "a8160994d1856b8439dbe27b760447bb4e8290277023dd00a4ac29cbcba96343"
-        },
-        {
             "date": 1776664370568,
             "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-20.log",
             "hash": "38b5f3f63b3f61f9bca55819623a0a580b98858cfaf7cd4cb7893f4250815224"
+        },
+        {
+            "date": 1776699495556,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-21.log",
+            "hash": "2595970162f7b33af74a97dcd7e17d242f24751fa8ff83eda43bb7e01566c4b6"
+        },
+        {
+            "date": 1776811031961,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-22.log",
+            "hash": "21f341b9b7bac5a687834c97c8c4d4432df0a7e8b5312eb3062fca348e7f28ce"
+        },
+        {
+            "date": 1776924321910,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-23.log",
+            "hash": "751b9ddb37961b6eb7b540648ff11b99f91d183ee50d44bef1c45b7e9f3590d6"
+        },
+        {
+            "date": 1776962017447,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-04-24.log",
+            "hash": "1cc02e9f462deb0a8247753adb5b6869ded6143a0f2d279f1179737af2cca5bb"
         }
     ],
     "hashType": "sha256"
