@@ -63,8 +63,6 @@ Think of yourself as a **background process**, not a tour guide. You silently ex
 ```javascript
 ✅ CORRECT — positional params (bare filename, JSON string):
 WriteFile("project_memory.json", jsonString)
-WriteFile("agent_reasoning.json", jsonString)
-WriteFile("conversation_history.json", jsonString)
 
 ❌ WRONG — named params (creates directory instead of file):
 WriteFile({ fileName: "project_memory.json", filePath: "", contents: jsonString })
@@ -120,8 +118,6 @@ You are the **Analyst** agent. Your job is to perform a rigorous, evidence-based
 | File | Section | Action |
 | --- | --- | --- |
 | `gap_analysis.json` | root | CREATE — full gap analysis object (BUG-142: dedicated file avoids TA race) |
-| `agent_reasoning.json` | append | Log reasoning and decisions |
-| `conversation_history.json` | append | Log interaction record |
 
 **Server merges `gap_analysis.json` into `project_memory.json` at `checkJoin()` — do NOT write project_memory.json.**
 
@@ -800,93 +796,6 @@ set_status("ANALYSIS_COMPLETE")
 
 ---
 
-### Phase 11: Log to History Files
-
-**Objective:** Maintain audit trail.
-
-**⚠️ CRITICAL: Same serialization rule — always write strings.**
-
-**agent_reasoning.json:**
-```javascript
-const reasoningEntry = {
-  agent: "Analyst",
-  version: "2.0",
-  timestamp: getCurrentISOTimestamp(),
-  phase: "gap_analysis",
-  summary: `Fit score: ${overall_fit_score}/10. ${strengths.length} strengths, ${gaps.length} gaps.`,
-  decisions: [
-    `Classified ${baselineRequirements.length} baseline, ${differentiatorRequirements.length} differentiator requirements`,
-    `Generated ${recommendations.length} recommendations`
-  ],
-  confidence: strengths.length > gaps.length ? "high" : "medium"
-}
-
-// Read existing
-let existingLog
-try {
-  const content = ReadFile("agent_reasoning.json")
-  existingLog = JSON.parse(content)
-} catch (e) {
-  existingLog = { metadata: { total_entries: 0 }, reasoning_log: [] }
-}
-
-// Append
-existingLog.reasoning_log.push(reasoningEntry)
-existingLog.metadata.total_entries += 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-
-// Verify filename
-const filename = "agent_reasoning.json"
-if (filename.startsWith('/') || filename.includes('/') || filename.startsWith('workspace')) {
-  ERROR: "Filename invalid — bare filename required"
-  STOP
-}
-
-// STRINGIFY and write
-const jsonString = JSON.stringify(existingLog, null, 2)
-WriteFile("agent_reasoning.json", jsonString)  // ✅ Positional params
-```
-
-**conversation_history.json:**
-```javascript
-const historyEntry = {
-  agent: "Analyst",
-  timestamp: getCurrentISOTimestamp(),
-  action: "gap_analysis_complete",
-  message: `Gap analysis complete. Fit: ${overall_fit_score}/10.`,
-  next_agent: "Main Orchestrator"
-}
-
-// Read existing
-let existingHistory
-try {
-  const content = ReadFile("conversation_history.json")
-  existingHistory = JSON.parse(content)
-} catch (e) {
-  existingHistory = { metadata: { total_turns: 0 }, turns: [] }
-}
-
-// Append
-existingHistory.turns.push(historyEntry)
-existingHistory.metadata.total_turns += 1
-existingHistory.metadata.last_updated = getCurrentISOTimestamp()
-
-// Verify filename
-const filename = "conversation_history.json"
-if (filename.startsWith('/') || filename.includes('/') || filename.startsWith('workspace')) {
-  ERROR: "Filename invalid — bare filename required"
-  STOP
-}
-
-// STRINGIFY and write
-const jsonString = JSON.stringify(existingHistory, null, 2)
-WriteFile("conversation_history.json", jsonString)  // ✅ Positional params
-```
-
-**⚠️ REMEMBER: This phase produces ZERO chat output.**
-
----
-
 ### Phase 12: Turn End (Background Agent — Zero Output)
 
 **⚠️ BACKGROUND AGENT. Produce ZERO text output.**
@@ -943,107 +852,3 @@ After Phase 11 logging completes and `set_status("ANALYSIS_COMPLETE")` has been 
 
 ---
 
-## Changelog: v2.7 → v2.8
-
-| Change | Details |
-| --- | --- |
-| **BUG-142 — Phase 10 now writes `gap_analysis.json` instead of `project_memory.json`** | Analyst and Tone Analyst run in parallel. If both wrote to project_memory.json concurrently, the last writer overwrites the other's data. Fix: Analyst writes the gap analysis as a standalone `gap_analysis.json`. Server's `checkJoin()` reads `gap_analysis.json` and merges it into `project_memory.json` after both done flags fire — single writer, no race. |
-| **BUG-123 moved to server** | `delete projectMemory.review_audit` removed from Analyst instructions; now handled by `checkJoin()` in pipeline.js. |
-| **WRITE Access table updated** | `project_memory.json` write removed; `gap_analysis.json` write added. |
-| **analyst_version bumped to "2.8"** | In gap_analysis.metadata. |
-
-## Changelog: v2.6 → v2.7
-
-| Change | Details |
-| --- | --- |
-| **Background mode — zero text output** | Analyst runs in parallel with Tone Analyst. Phase 12 display removed entirely. All phases produce zero user-visible text. Server's `checkJoin()` broadcasts fit score to user when both `done_TA` and `done_analysis` are set. |
-| **`set_status("ANALYSIS_COMPLETE")` added (Phase 10 Step 12)** | Called after verify succeeds. Server's `onChange("pipeline_status")` at ANALYSIS_COMPLETE sets `done_analysis = 1` server-side (since Analyst produces no text output, canvas wiring can't fire the done flag). |
-| **BUG-131 — `requirement_source` validation added (Phase 10 Step 3b)** | Path validation previously only checked `evidence_source`. Fabricated `requirement_source` paths (e.g. `enhanced_jd.key_responsibilities.duties[2]`) passed through unchecked, causing REVIEW_FAILED. Now validates both fields; gaps with unresolvable `requirement_source` are removed before write. |
-| **Pipeline Position updated** | Now describes parallel background execution with TA, not sequential after JD Enhancer. |
-| **research_confirmed guard note added (Phase 1)** | Documents that server only fires Analyst after research is confirmed. No instruction-level check needed. |
-| **analyst_version bumped to "2.7"** | In gap_analysis.metadata. |
-
-## Changelog: v2.5 → v2.6
-
-| Change | Details |
-| --- | --- |
-| **Phase 10/11 — workspace prefix guard (BUG-139)** | All three WriteFile filename guards now check `filename.startsWith('workspace')` in addition to leading slash. On Analyst re-run, model was prepending "workspace" to filenames, creating directories at repo root instead of writing files. Same fix as Reviewer BUG-117. |
-| **analyst_version bumped to "2.6"** | In gap_analysis.metadata. |
-
-## Changelog: v2.4 → v2.5
-
-| Change | Details |
-| --- | --- |
-| **Phase 5 — Publications fabrication guard (BUG-120)** | Before adding a strength, checks if strength_text mentions publications/journals/peer-reviewed. If `candidateProfile.publications` is empty, the strength is demoted to a gap with confidence 1. Prevents fabricated publication claims reaching Reviewer/IC. |
-| **Phase 6 — Grants/publications evidence scan for gap severity (BUG-121)** | Before assigning High severity to a gap, scans `candidateProfile.grants`, `publications`, `awards` for partial evidence. If partial evidence exists (e.g., candidate has grants for a "grants" gap), severity is downgraded from High to Medium. |
-| **Phase 9 — `candidate_provided_evidence: []` initialized (BUG-124)** | Gap analysis object now includes empty `candidate_provided_evidence` array. Reviewer appends to this during gap interview. Previously absent, causing Reviewer to create it ad-hoc. |
-| **Phase 10 — Delete stale `review_audit` on re-run (BUG-123)** | If `projectMemory.review_audit` exists when Analyst runs, it is deleted before writing. Prevents Reviewer re-invocation guard from skipping fresh audit based on stale data from a prior run. |
-| **WriteFile — All calls switched to positional params** | `WriteFile("filename.json", jsonString)` replaces `WriteFile({ fileName: ..., filePath: ..., contents: ... })`. Named params create directories instead of files on KEMU. |
-| **analyst_version bumped to "2.5"** | In gap_analysis.metadata. |
-
----
-
-## Changelog: v2.3 → v2.4
-
-| Change | Details |
-| --- | --- |
-| **Step 9.5: Pre-write JSON validation (BUG-98 recurrence)** | `JSON.parse(jsonString)` called on the stringified output before WriteFile. If it throws, write is aborted and the existing project_memory.json is preserved intact. Previously, a stray character (e.g. `"tier":.Baseline"`) would corrupt the file before the post-write verify could catch it. |
-
-## Changelog: v2.1 → v2.2
-
-| Change | Details |
-| --- | --- |
-| **Phase 9 — analyst_version corrected to "2.1" (BUG-09)** | Was hardcoded "2.0"; updated to match current agent version. |
-| **Phase 10 — pre-write guard added (BUG-08)** | Before writing, verify `research_data` and `enhanced_jd` exist in the parsed object. Stops and alerts user if prior pipeline data is missing — prevents silent overwrite of project_memory.json with only gap_analysis at root. |
-| **Phase 10 — verify path fixed (BUG-08)** | Was `verified.status !== "ANALYSIS_COMPLETE"`; corrected to `verified.metadata.status !== "ANALYSIS_COMPLETE"`. |
-| **Phase 10 — wrong-write comment added** | Added explicit ❌ comment showing root-level overwrite as banned. |
-
-## Changelog: v2.0 → v2.1
-
-| Change | Details |
-| --- | --- |
-| **Phase 1 — canonical file read + EISDIR fallback (BUG-17)** | Analyst now always reads `candidate_profile.json` (never `candidate_profile_v1.json` or any variant passed via context). Added EISDIR fallback: tries `candidate_profile.json/candidate_profile.json` if primary read fails. |
-| **Phase 2 — ATS keywords from JD content only (BUG-13)** | Replaced hardcoded generic keyword list (leadership, data analysis, etc.) with JD-specific extraction from `enhancedJD` requirements and role overview. Only terms present in the actual JD text are included. |
-| **Phase 4 — confidence scoring added (BUG-16)** | Each matched requirement now gets a `confidence_level` (5=exact skill match, 4=strong overlap ≥3 words, 3=partial). Assigned on the `req` object alongside `evidence_source`. |
-| **Phase 5 — confidence filter + field in output (BUG-16)** | Strengths array now only includes requirements with `confidence_level >= 4`. Each strength includes `confidence_level` field. Requirements with confidence < 4 fall through to gaps. |
-
-## Changelog: v1.9 → v2.0
-
-| Change | Details |
-| --- | --- |
-| **Fix title/version mismatch** | Title header corrected from "v1.8" to "v1.9"; metadata bumped to v2.0 |
-| **Phase 12 — Fit score calculation breakdown** | Added three-line breakdown (Baseline / Differentiator / Total) directly below Overall Fit Score in the display template. Prevents model from hallucinating a score without applying the weighted formula. All variables (`baselineMet`, `baselineScore`, etc.) are already in scope from Phase 7. |
-| **Phase 11 log version** | `analyst_version` and `version` strings updated from "1.8" to "2.0" |
-
-## Changelog: v1.8 → v1.9
-
-| Change | Details |
-| --- | --- |
-| **Removed re-invocation guard from Phase 1** | Guard was incompatible with KEMU's routing model. On KEMU, SwitchAgent sets a global variable determining which agent receives the next chat message. A SwitchAgent call made during a re-invocation cannot trigger the target agent because no new message arrives to invoke it — the original message was already consumed. Attempting to route via a re-invocation guard caused the pipeline to stall permanently at the Analyst. |
-| **Restored same-turn ChangeAgent(MO) in Phase 12** | Correct KEMU pattern: Analyst displays output → calls ChangeAgent(MO) in the same turn → global var = MO → turn ends → user's next message triggers MO. |
-
-## Changelog: v1.7 → v1.8
-
-| Change | Details |
-| --- | --- |
-| **Added re-invocation guard to Phase 1** | ⚠️ REVERTED IN v1.9 — this pattern is incompatible with KEMU. |
-| **Removed SwitchAgent from Phase 12** | ⚠️ REVERTED IN v1.9. |
-
-## Changelog: v1.6 → v1.7
-
-| Change | Details |
-| --- | --- |
-| **Added "Next:" line to completion block** | Tells user that Reviewer will quality-check the gap analysis next — MO is now silent during routing |
-
-## Changelog: v1.5 → v1.6
-
-| Change | Details |
-| --- | --- |
-| Renamed profile file | user_profile.json → candidate_profile.json |
-| Updated tool name | ChangeAgent → SwitchAgent (corrected) |
-| Added Phase 12 completion display | Shows analysis summary |
-| Updated workflow pattern | Turn-based execution |
-
----
-
-*End of Analyst Agent v2.7 Instructions*

@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFileSync, writeFileSync, rmSync, readdirSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, rmSync, readdirSync, mkdirSync, cpSync, existsSync } from 'fs';
 import { extractText } from 'unpdf';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -89,7 +89,8 @@ export async function initRecipe(projectDir) {
   // Resume after server restart: if pipeline was mid-run, re-fire the handler.
   // onChange only fires on *change* — existing KEMU state is invisible on cold start.
   try {
-    const currentStatus = await recipe.globalVariables.getValue('pipeline_status');
+    const rawStatus = await recipe.globalVariables.getValue('pipeline_status');
+    const currentStatus = typeof rawStatus === 'string' ? rawStatus : rawStatus?.lastValue ?? null;
     if (currentStatus) {
       console.log(`[resume] pipeline_status already = ${currentStatus} — re-firing handler`);
       await handlePipelineStatus(currentStatus, { resume: true });
@@ -104,7 +105,7 @@ const INPUT_NODE_MAP = {
   'INITIALIZED':        'researcher_input',
   'RESEARCH_COMPLETE':  'jd_enhancer_input',
   'JD_ENHANCED':        'analyst_background_input',
-  'PARALLEL_ANALYSIS':  'tone_analyst_input',
+  'PARALLEL_ANALYSIS':  ' Message', // interview continuation — initial fire uses 'tone_analyst_input' directly
   'GAP_INTERVIEW':      'reviewer_input',
   'REVIEW_COMPLETE':    'assembly_coordinator_input',
   'CV_BUILDING':        'assembly_coordinator_input',
@@ -132,7 +133,7 @@ const EXCEPTION_STATUSES = new Set([
 
 // Auto-fire next agent with no user message. JD_ENHANCED handled separately (fork).
 const AUTO_FIRE_STATUSES = new Set([
-  'FILES_SAVED', 'INITIALIZED', 'RESEARCH_COMPLETE', 'REVIEW_COMPLETE',
+  'FILES_SAVED', 'INITIALIZED', 'REVIEW_COMPLETE',
 ]);
 
 // These agents write status to project_memory.json but never call set_status() KEMU tool.
@@ -160,9 +161,10 @@ const EXCEPTION_ACTION_BUTTONS = {
 // Server-side join gate (replaces KEMU done_* flags).
 let analystDone = false;
 let taDone = false;
+let analystOutputText = null; // cached at completion, broadcast at join time
 // TA session state — suppresses late TA broadcast after TONE_ANALYZED fires.
 let taCompleted = false;
-let taFirstTurnDone = false; // false → inject research-confirm buttons; true → inject yes/no
+let taFirstTurnDone = false;  // false → inject cover-letter buttons
 // Reviewer gap interview state — drives which buttons to inject.
 let reviewerGapState = null; // 'question' | 'continue' | 'issue' | null
 // SN session state — suppresses late SN broadcast after SN_COMPLETE fires.
@@ -207,6 +209,7 @@ async function handlePipelineStatus(status, { resume = false } = {}) {
       const styleExists = (() => { try { readFileSync(join(WORKSPACE_DIR, 'style_guide.json')); return true; } catch { return false; } })();
       analystDone = gapExists;
       taDone = styleExists;
+      analystOutputText = null; // can't recover cached text on resume — Reviewer will display gap analysis
       console.log(`[resume] ${status} — analystDone=${analystDone} taDone=${taDone}`);
       if (analystDone && taDone) {
         await checkJoin();
@@ -240,7 +243,40 @@ async function handlePipelineStatus(status, { resume = false } = {}) {
           if (!snCompleted) injectSNButtons();
         })
         .catch(err => console.error('[SN resume] error:', err));
+    } else if (status === 'RESEARCH_CONFIRM') {
+      console.log('[resume] RESEARCH_CONFIRM — re-displaying research summary');
+      await handlePipelineStatus('RESEARCH_COMPLETE');
     }
+    return;
+  }
+
+  if (status === 'RESEARCH_COMPLETE') {
+    let summary = 'Research complete. Does this look accurate?';
+    try {
+      const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
+      const r = mem.research_data || {};
+      const meta = mem.metadata || {};
+      const company = meta.company_name || 'the company';
+      const role = meta.position_title || 'the role';
+      const sector = meta.sector || 'Unknown';
+      const overview = r.company_overview?.summary || 'Not captured';
+      const priorities = (r.company_priorities || []).slice(0, 3).join(', ') || 'Not captured';
+      const culture = (r.culture_signals || []).slice(0, 2).join(', ') || 'Not captured';
+      summary = `**Research complete for ${company} — ${role}**\n\n` +
+        `**Sector:** ${sector}\n` +
+        `**Company focus:** ${overview}\n` +
+        `**Key priorities:** ${priorities}\n` +
+        `**Culture signals:** ${culture}\n\n` +
+        `Does this look accurate?`;
+    } catch {}
+    broadcast({ type: 'agent_message', agent: 'Main Orchestrator', text: summary });
+    broadcast({ type: 'action_required', context: 'research_pre_confirm', prompt: '', actions: [
+      { id: 'research_pre_confirm', label: 'Yes — continue',  variant: 'primary' },
+      { id: 'research_pre_redo',   label: 'Redo research',    variant: 'ghost'   },
+    ]});
+    await recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
+    updateProjectMemoryStatus('RESEARCH_CONFIRM');
+    broadcastMode('user_turn', 'Main Orchestrator');
     return;
   }
 
@@ -270,6 +306,7 @@ async function handlePipelineStatus(status, { resume = false } = {}) {
     taDone = false;
     taCompleted = false;
     taFirstTurnDone = false;
+    analystOutputText = null;
     broadcastMode('auto_running', 'Analysis');
     await recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
     updateProjectMemoryStatus('PARALLEL_ANALYSIS');
@@ -283,7 +320,12 @@ async function handlePipelineStatus(status, { resume = false } = {}) {
       })
       .catch(err => console.error('[TA] error:', err));
     sendToNodeAndWait('analyst_background_input', null, '__analyze__')
-      .then(r => { broadcastAgentResult(r, 'Analyst', false); analystDone = true; checkJoin(); })
+      .then(r => {
+        const text = typeof r === 'string' ? r : r != null ? JSON.stringify(r) : null;
+        analystOutputText = text; // cached — broadcast at join time after TA interview ends
+        analystDone = true;
+        checkJoin();
+      })
       .catch(err => console.error('[Analyst] error:', err));
     return;
   }
@@ -368,11 +410,11 @@ function injectTAButtons() {
     taFirstTurnDone = true;
     broadcast({
       type: 'action_required',
-      context: 'ta_research_confirm',
+      context: 'ta_cover_letter',
       prompt: '',
       actions: [
-        { id: 'ta_yes',           label: 'Yes, looks right',  variant: 'primary' },
-        { id: 'ta_redo_research', label: 'Redo research',     variant: 'ghost'   },
+        { id: 'ta_upload_cover', label: 'Yes — upload cover letter', variant: 'primary', type: 'upload' },
+        { id: 'ta_no',           label: 'No — CV only',              variant: 'ghost'   },
       ],
     });
   } else {
@@ -523,7 +565,14 @@ async function checkJoin() {
     console.error('[join] merge error:', mergeErr.message);
   }
 
-  broadcast({ type: 'agent_message', agent: 'System', text: `Gap analysis complete. Fit score: **${fitScore}/10**.` });
+  // Show Analyst gap analysis output before starting gap interview
+  if (analystOutputText) {
+    broadcast({ type: 'agent_message', agent: 'Analyst', text: analystOutputText, background: false });
+    broadcast({ type: 'stream_done' });
+    analystOutputText = null;
+    await new Promise(r => setTimeout(r, 300));
+  }
+
   reviewerGapState = 'question';
   broadcastMode('auto_running', 'Reviewer');
   await recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
@@ -751,6 +800,12 @@ router.post('/message', async (req, res) => {
       } else {
         nextAgent = 'Main Orchestrator';
       }
+    } else if ((status === 'PARALLEL_ANALYSIS' || status === 'ANALYSIS_COMPLETE') && !taCompleted) {
+      // Analyst may finish (→ ANALYSIS_COMPLETE) while TA interview is still running.
+      // Keep routing user messages to TA until taCompleted is set.
+      nextAgent = 'Tone Analyst';
+      node = ' Message';
+      console.log(`[route] ${status} (TA still active) → Tone Analyst via Message`);
     } else if (status && HAPPY_PATH[status]) {
       nextAgent = HAPPY_PATH[status];
       node = INPUT_NODE_MAP[status] ?? ' Message';
@@ -770,10 +825,9 @@ router.post('/message', async (req, res) => {
   sendToNodeAndWait(node, nextAgent, message, sessionId)
     .then(async r => {
       if (nextAgent === 'Tone Analyst') {
-        // continueFromFile first — sets taCompleted if TONE_ANALYZED written, then broadcast correctly
-        await continueFromFile(prevStatus);
-        broadcastAgentResult(r, 'Tone Analyst', !taCompleted); // background if TA session ended
-        if (!taCompleted) injectTAButtons();
+        broadcastAgentResult(r, 'Tone Analyst', true); // always foreground — completion banner must be visible
+        await continueFromFile(prevStatus); // sets taCompleted if TONE_ANALYZED written, fires checkJoin
+        if (!taCompleted) injectTAButtons(); // skip buttons when TA session is done
       } else if (nextAgent === 'Reviewer') {
         broadcastAgentResult(r, 'Reviewer', true);
         injectReviewerButtons();
@@ -851,6 +905,24 @@ router.post('/action', express.json(), async (req, res) => {
           .catch(err => console.error('[JD Enhancer redo action] error:', err));
         break;
 
+      case 'research_pre_confirm':
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed — running JD enhancement…' });
+        broadcastMode('auto_running', 'JD Enhancer');
+        updateProjectMemoryStatus('RESEARCH_COMPLETE');
+        sendToNodeAndWait('jd_enhancer_input', 'JD Enhancer')
+          .then(async r => { broadcastAgentResult(r, 'JD Enhancer', false); await continueFromFile('RESEARCH_COMPLETE'); })
+          .catch(err => console.error('[JD Enhancer pre-confirm] error:', err));
+        break;
+
+      case 'research_pre_redo':
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research…' });
+        broadcastMode('auto_running', 'Researcher');
+        updateProjectMemoryStatus('INITIALIZED');
+        sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
+          .then(async r => { broadcastAgentResult(r, 'Researcher', false); await continueFromFile('INITIALIZED'); })
+          .catch(err => console.error('[Researcher pre-redo] error:', err));
+        break;
+
       case 'research_partial_proceed':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Proceeding with partial research…' });
         updateProjectMemoryStatus('RESEARCH_COMPLETE');
@@ -919,36 +991,46 @@ router.post('/action', express.json(), async (req, res) => {
           .catch(err => console.error('[AC redo action] error:', err));
         break;
 
+      case 'ta_upload_cover':
+        // Upload handled entirely on the client — file picker opens, upload completes,
+        // then client calls handleSend('Cover letter uploaded…') which re-enters as a message.
+        res.json({ ok: true });
+        return;
+
       case 'ta_yes':
       case 'ta_no': {
+        // Guard: if TA already completed (TONE_ANALYZED written), don't re-invoke.
+        // Haiku-class models sometimes output the completion banner without actually calling WriteFile,
+        // leaving stale action buttons that would loop endlessly.
+        if (taCompleted) {
+          res.json({ ok: true });
+          // Kick checkJoin in case Reviewer hasn't fired yet
+          checkJoin().catch(err => console.error('[ta action guard] checkJoin error:', err));
+          return;
+        }
         let pStatus = null;
         try {
           const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
           pStatus = mem?.metadata?.status ?? null;
         } catch {}
+        // Also guard on file: if TONE_ANALYZED already in project_memory, set taCompleted and exit
+        if (pStatus === 'TONE_ANALYZED') {
+          taCompleted = true;
+          taDone = true;
+          res.json({ ok: true });
+          checkJoin().catch(err => console.error('[ta action guard] checkJoin error:', err));
+          return;
+        }
         broadcastMode('auto_running', 'Tone Analyst');
         sendToNodeAndWait(' Message', 'Tone Analyst', id === 'ta_yes' ? 'yes' : 'no')
           .then(async r => {
-            await continueFromFile(pStatus);
-            broadcastAgentResult(r, 'Tone Analyst', !taCompleted);
-            if (!taCompleted) injectTAButtons();
+            broadcastAgentResult(r, 'Tone Analyst', true); // always foreground — completion banner must be visible
+            await continueFromFile(pStatus); // sets taCompleted=true if TONE_ANALYZED written, fires checkJoin
+            if (!taCompleted) injectTAButtons(); // skip buttons when TA session is done
           })
           .catch(err => console.error(`[TA ${id} action] error:`, err));
         break;
       }
-
-      case 'ta_redo_research':
-        broadcastMode('auto_running', 'Tone Analyst');
-        // TA calls set_status("RESEARCH_REDO") internally — server handles researcher dispatch via onChange
-        sendToNodeAndWait(' Message', 'Tone Analyst', 'redo')
-          .then(r => {
-            if (!taCompleted) {
-              broadcastAgentResult(r, 'Tone Analyst', true);
-              injectTAButtons();
-            }
-          })
-          .catch(err => console.error('[TA redo_research action] error:', err));
-        break;
 
       case 'reviewer_skip':
         broadcastMode('auto_running', 'Reviewer');
@@ -1108,6 +1190,121 @@ router.post('/inject', express.json(), (req, res) => {
   broadcast({ type: 'agent_message', agent: 'System', text: message });
   broadcast({ type: 'stream_done' });
   res.json({ ok: true });
+});
+
+const SNAPSHOTS_DIR = join(PROJECT_DIR, 'workspace-snapshots');
+
+// GET /api/snapshots — list saved snapshots
+router.get('/snapshots', (_req, res) => {
+  try {
+    if (!existsSync(SNAPSHOTS_DIR)) return res.json([]);
+    const entries = readdirSync(SNAPSHOTS_DIR, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => {
+        let meta = {};
+        try { meta = JSON.parse(readFileSync(join(SNAPSHOTS_DIR, d.name, '_snapshot.json'), 'utf8')); } catch {}
+        return { name: d.name, ...meta };
+      })
+      .sort((a, b) => (b.savedAt ?? '').localeCompare(a.savedAt ?? ''));
+    res.json(entries);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/snapshot — save current workspace to a named snapshot
+router.post('/snapshot', express.json(), (req, res) => {
+  const { name } = req.body;
+  if (!name || typeof name !== 'string' || !/^[\w\-]+$/.test(name)) {
+    return res.status(400).json({ error: 'name required (alphanumeric/dash/underscore only)' });
+  }
+  try {
+    const dest = join(SNAPSHOTS_DIR, name);
+    mkdirSync(dest, { recursive: true });
+    // Copy all workspace files
+    const files = readdirSync(WORKSPACE_DIR);
+    for (const f of files) {
+      try { cpSync(join(WORKSPACE_DIR, f), join(dest, f)); } catch {}
+    }
+    // Save metadata
+    let status = null;
+    try {
+      const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
+      status = mem?.metadata?.status ?? null;
+    } catch {}
+    writeFileSync(join(dest, '_snapshot.json'), JSON.stringify({
+      savedAt: new Date().toISOString(),
+      status,
+      files,
+    }, null, 2));
+    console.log(`[snapshot] saved → ${name} (status: ${status}, ${files.length} files)`);
+    res.json({ ok: true, name, status, files: files.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/restore — restore a snapshot into workspace and reset pipeline to its status
+router.post('/restore', express.json(), async (req, res) => {
+  const { name } = req.body;
+  if (!name || typeof name !== 'string') return res.status(400).json({ error: 'name required' });
+  const src = join(SNAPSHOTS_DIR, name);
+  if (!existsSync(src)) return res.status(404).json({ error: `snapshot "${name}" not found` });
+  if (!recipe) return res.status(503).json({ error: 'Recipe not ready' });
+
+  try {
+    // Clear workspace
+    const existing = readdirSync(WORKSPACE_DIR);
+    for (const f of existing) {
+      try { rmSync(join(WORKSPACE_DIR, f), { force: true, recursive: true }); } catch {}
+    }
+    // Copy snapshot files (skip metadata file)
+    const files = readdirSync(src).filter(f => f !== '_snapshot.json');
+    for (const f of files) {
+      try { cpSync(join(src, f), join(WORKSPACE_DIR, f)); } catch {}
+    }
+    // Read status from restored project_memory
+    let status = null;
+    try {
+      const mem = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_memory.json'), 'utf8'));
+      status = mem?.metadata?.status ?? null;
+    } catch {}
+    // Reset server state
+    analystDone = false; taDone = false; taCompleted = false;
+    taFirstTurnDone = false;
+    analystOutputText = null; snCompleted = false; reviewerGapState = null;
+    // Sync KEMU pipeline_status
+    if (status) {
+      try { await recipe.globalVariables.setValue('pipeline_status', status); } catch {}
+    }
+    // Point AgentSelector to correct next agent
+    const nextAgent = HAPPY_PATH[status] ?? 'Main Orchestrator';
+    try { await recipe.globalVariables.setValue('AgentSelector', nextAgent); } catch {}
+    fallbackAgent = nextAgent;
+    broadcast({ type: 'agent_switch', agent: nextAgent });
+    broadcastMode('user_turn', nextAgent);
+    broadcast({ type: 'status_changed', status });
+    broadcast({ type: 'agent_message', agent: 'System', text: `Snapshot **${name}** restored. Status: \`${status}\` → next agent: **${nextAgent}**` });
+    console.log(`[restore] ${name} → workspace (status: ${status}, next: ${nextAgent})`);
+    res.json({ ok: true, name, status, nextAgent });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/snapshot/:name — delete a snapshot
+router.delete('/snapshot/:name', (req, res) => {
+  const { name } = req.params;
+  if (!/^[\w\-]+$/.test(name)) return res.status(400).json({ error: 'invalid name' });
+  const dest = join(SNAPSHOTS_DIR, name);
+  if (!existsSync(dest)) return res.status(404).json({ error: 'not found' });
+  try {
+    rmSync(dest, { recursive: true, force: true });
+    console.log(`[snapshot] deleted: ${name}`);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 const HISTORY_FILE = join(PROJECT_DIR, 'chat_history.json');

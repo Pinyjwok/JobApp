@@ -1,0 +1,121 @@
+{
+  "personal_info": {
+    "name": "Pinyjwok (Piny) Amum",
+    "alternate_name": "",
+    "contact": {
+      "email": "pjamum@gmail.com",
+      "phone": "0431-191-158",
+      "location": "Melbourne, VIC",
+      "linkedin": "linkedin.com/pinyjwok-amum",
+      "portfolio": "",
+      "github": ""
+    }
+  },
+  "professional_summary": "AI Engineer and Technical Lead with experience in multi-agent orchestration systems, full-stack development, and community leadership. Proven track right in designing state-driven engines and modular agent services. Currently pursuing a Bachelor of Science in Computer Science at Deakin University.",
+  "work_history": [
+    {
+      "employer": "Multi-Agent ATS Orchestration System",
+      "position": "AI Engineer, Technical Lead",
+      "employment_type": "Full-time",
+      "start_date": "2025-11-01T00:00:00Z",
+      "end_date": "Present",
+      "duration_years": 0.3,
+      "responsibilities": [
+        "Collaborated with Product Owner and senior engineering consultant to define requirements for a 15-phase multi-agent orchestration system",
+        "Designed and implemented a state-driven orchestration engine to coordinate 16 specialised agents",
+        "Ensured deterministic execution and eliminated race conditions in multi-step LLM workflows",
+        "Built modular agent services with JSON-based state contracts and execution guards",
+        "Optimised research pipeline performance by integrating Tavily API, reducing token usage by 60%",
+        "Implemented parallel execution across 5 agents in the assembly phase",
+        "Developed validation and quality assurance mechanisms for LLM outputs"
+      ],
+      "achievements": [
+        "Reduced token usage by 60% through retrieval-based research approach",
+        "Improved system throughput through concurrent processing and server-side aggregation"
+      ]
+    },
+    {
+      "employer": "Digimaker",
+      "position": "Coding Mentor Intern",
+      "employment_type": "Internship",
+      "start_date": "2025-07-01T00:00:00Z",
+      "end_date": "2025-12-31T00:00:00Z",
+      "duration_years": 0.4,
+      "responsibilities": [
+        "Delivered structured programming instruction across multiple Melbourne schools",
+        "Taught JavaScript, C, Java, and Python to groups of 12–20 students",
+        "Provided hands-on debugging and problem-solving support"
+      ],
+      "achievements": []
+    }
+  ],
+  "skills": {
+    "core_competencies": [
+      "System Design",
+      "Multi-Agent Orchestration",
+      "Agile/Scrum",
+      "Test-Driven Development (TDD)",
+      "Object-Oriented Programming (OOP)",
+      "Secure Coding",
+      "API Design"
+    ],
+    "technical_skills": [
+      "Python",
+      "C#",
+      "JavaScript (ES6+)",
+      "TypeScript",
+      "React",
+      ".NET 6",
+      "Node.js",
+      "Express",
+      "Git/GitHub",
+      "Postman",
+      "REST APIs",
+      "HTML5",
+      "CSS3",
+      "AWS (EC2)",
+      "CI/CD fundamentals",
+      "Supabase",
+      "PostgreSQL"
+    ],
+    "soft_skills": [
+      "Technical Leadership",
+      "Mentoring",
+      "Problem Solving",
+      "Collaboration",
+      "Stakeholder Engagement"
+    ],
+    "certifications": [],
+    "languages": [
+      "English"
+    ]
+  },
+  "education": [
+    {
+      "institution": "Deakin University",
+      "qualification": "Bachelor of Science",
+      "field_of_study": "Computer Science",
+      "completion_date": "2026-02-01T00:00:00Z",
+      "grade": ""
+    }
+  ],
+  "publications": [],
+  "grants": [],
+  "awards": [
+    {
+      "title": "Intergenerational Conversations Youth Conference Success",
+      "body": "Facilitated structured dialogue achieving 50+ attendees and 4.5/5 satisfaction rating",
+      "year": "2021"
+    }
+  ],
+  "additional_information": {
+    "memberships": [],
+    "volunteer": [
+      {
+        "organisation": "OYITI Foundation for Multicultural Youth",
+        "role": "Board Member / Co-Founder",
+        "period": "Aug 2021 – Present"
+      }
+    ]
+  }
+}

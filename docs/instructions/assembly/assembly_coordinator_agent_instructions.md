@@ -35,8 +35,6 @@ You are the **Assembly Coordinator**. In the parallel pipeline:
 ### WRITE Access
 - `cv_assembly_state.json` (exception handling only)
 - `project_memory.json` (tailored_cv section, status — Phase 3 only)
-- `agent_reasoning.json` (append logs)
-- `conversation_history.json` (append logs)
 
 ### NEVER Modify
 - `metadata.createdAt`
@@ -397,12 +395,10 @@ const reasoningEntry = {
   summary: `CV assembly finalized for ${projectMemory.metadata.companyName}`,
 }
 let existingLog
-try { existingLog = JSON.parse(ReadFile("agent_reasoning.json")) }
 catch (e) { existingLog = { metadata: { total_entries: 0 }, reasoning_log: [] } }
 existingLog.reasoning_log.push(reasoningEntry)
 existingLog.metadata.total_entries += 1
 existingLog.metadata.last_updated = getCurrentISOTimestamp()
-WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
 
 // Completion display
 const fitScore       = projectMemory.gap_analysis?.overall_fit_score ?? 'N/A'
@@ -504,15 +500,3 @@ function getAffectedSections(section) {
 
 ---
 
-## Changelog: v3.10 → v4.0
-
-| Change | Details |
-| --- | --- |
-| **Phase 0 — Route by state** | Reads cv_assembly_state.json on every invocation to determine routing context (go-back checkpoint vs exception vs finalize). |
-| **Phase 1 (NEW) — Go-Back Checkpoint** | Displays fit score, backed gaps, audit verdict, remaining gaps. User types "proceed" or "redo". "Proceed" calls `set_status("SN_START")` — server dispatches SN. "Redo" routes to MO. Moved from Tone Analyst v2.2 Phase 13. |
-| **Phase 1 routing REMOVED** | AC no longer sub-orchestrates CV assembly phases via SwitchAgent. Server dispatches all agents (SN → parallel PB/SC/HF/CF/CLW → SR → IC) via done flags and INPUT_NODE_MAP. |
-| **set_status tool added** | AC uses `set_status("SN_START")` and `set_status("CV_BUILDING")` (exception recovery) to signal server. |
-| **Phase 2 exception handling — set_status instead of SwitchAgent** | Exception recovery paths now call `set_status("CV_BUILDING")` to signal server to re-dispatch; SwitchAgent removed from recovery flow. |
-| **Phase 3 (completion) kept** | Final CV assembly still available; triggered by server when needed (done_IC handler or direct invocation with __finalize__). |
-
-*End of Assembly Coordinator v4.0 Instructions*

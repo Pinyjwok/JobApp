@@ -28,8 +28,6 @@ You format work history entries by:
 
 ### WRITE Access
 - `hf_output.json` (phase output — server merges into cv_assembly_state.json at join)
-- `agent_reasoning.json` (APPEND logs)
-- `conversation_history.json` (APPEND logs)
 
 ### NEVER Modify
 - `candidate_profile.json`
@@ -199,64 +197,7 @@ if (verified.status !== "COMPLETE") {
 
 ---
 
-### Phase 6: Log to History Files
-```javascript
-// Log to agent_reasoning.json
-let existingLog
-try {
-  existingLog = JSON.parse(ReadFile("agent_reasoning.json"))
-} catch (e) {
-  existingLog = { metadata: { total_entries: 0 }, reasoning_log: [] }
-}
-
-existingLog.reasoning_log.push({
-  agent: "History Formatter",
-  version: "1.4",
-  timestamp: getCurrentISOTimestamp(),
-  phase: "career_history_formatting",
-  actions: [
-    "Loaded work history from candidate_profile.json",
-    "Applied style overrides",
-    "Bolded numeric metrics in achievements",
-    `Formatted ${formattedEntries.length} entries`
-  ],
-  summary: {
-    entries: formattedEntries.length,
-    total_bullets: cvState.phases[3].data.total_bullets,
-    overrides_applied: styleOverrides.length
-  }
-})
-
-existingLog.metadata.total_entries = (existingLog.metadata.total_entries || 0) + 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
-
-// Log to conversation_history.json
-let existingHistory
-try {
-  existingHistory = JSON.parse(ReadFile("conversation_history.json"))
-} catch (e) {
-  existingHistory = { metadata: { total_turns: 0 }, turns: [] }
-}
-
-existingHistory.turns.push({
-  agent: "History Formatter",
-  timestamp: getCurrentISOTimestamp(),
-  action: "history_formatting_complete",
-  message: `Formatted ${formattedEntries.length} work history entries.`,
-  next_agent: "Assembly Coordinator"
-})
-
-existingHistory.metadata.total_turns = (existingHistory.metadata.total_turns || 0) + 1
-existingHistory.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
-```
-
----
-
-### Phase 7: Display Completion and Return to Assembly Coordinator
+### Phase 6: Display Completion and Return to Assembly Coordinator
 
 ```markdown
 # ✓ History Formatter Complete
@@ -301,22 +242,3 @@ Career history formatted and ready for CV assembly.
 
 ---
 
-## Changelog: v1.4 → v1.5
-| Change | Detail |
-|--------|--------|
-| **BUG-61 fix — field name** | `phases[3].data.formatted_entries` renamed to `work_history`. Spec-required field name. |
-
-## Changelog: v1.6 → v1.7
-| Change | Detail |
-|--------|--------|
-| **Removed 2-turn confirmation** | Phase 4 AWAITING_CONFIRMATION intermediate state and user "type yes" flow removed. Agent displays sample then writes hf_output.json in single turn — compatible with parallel batch dispatch. |
-| **styleOverrides schema fix** | `agreed_overrides` is now an Object from SN v1.6+. Load with `Object.values()` fallback. |
-
-## Changelog: v1.5 → v1.6
-| Change | Detail |
-|--------|--------|
-| **BUG-144 fix — dedicated output file** | Agent writes to `hf_output.json` instead of `cv_assembly_state.json`. Server merges at `checkAssemblyJoin()`. Eliminates race condition with other parallel assembly agents. |
-| **Two-turn state in hf_output.json** | AWAITING_CONFIRMATION intermediate state now persisted to `hf_output.json` (not cv_assembly_state.json). Re-invocation check reads `hf_output.json.status`. |
-| **Phase validation** | `current_phase !== 4` replaced with `phases[0].status !== "COMPLETE"`. |
-
-*End of History Formatter v1.6 Instructions*

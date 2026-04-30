@@ -233,15 +233,20 @@ All fixes from `TC06_Developer_Brief.md`. Full details in `.general/tests/TC06_D
 
 ## Model Assignment
 
-**Gemini Pro 2.5 (complex judgment / strict compliance):**
+**Gemini Pro 2.5 (user-facing conversational / strict compliance):**
 
 | Agent | Version | Reason |
 |-------|---------|--------|
-| Analyst | v2.5 | Complex evidence matching, read-modify-write on large JSON |
-| Reviewer | v2.5 | Multi-phase forensic audit, gap interview state tracking |
-| Tone Analyst | v2.2 | Schema compliance under long instruction file |
-| Assembly Coordinator | v3.10 | ZERO OUTPUT enforcement, exception routing, completion writes |
+| Reviewer | v3.2 | Gap interview is user-visible multi-turn conversation — Gemini produces clean prose, no jargon leak |
+| Tone Analyst | v3.2 | Schema compliance under long instruction file; user-facing style interview |
+| Assembly Coordinator | v4.1 | ZERO OUTPUT enforcement, exception routing, completion writes |
 | Integrity Checker | v1.8 | Strict PASSED/FAILED gate, fabrication detection |
+
+**Claude Haiku 4.5 (deep background reasoning / zero user-facing output):**
+
+| Agent | Version | Reason |
+|-------|---------|--------|
+| Analyst | v2.8 | Background agent, zero text output — Haiku reasoning quality strong, format irrelevant |
 
 **Gemini Flash 3.0 preview (deterministic / simple tasks):**
 
@@ -364,8 +369,6 @@ Main Orchestrator's `CV_BUILDING` case only triggers for genuine exception re-en
 | `cv_raw.txt` | User's uploaded CV (read-only after creation) | ProjectSetup |
 | `jd_raw.txt` | Job description (read-only after creation) | ProjectSetup |
 | `style_guide.json` | Writing style analysis | Tone Analyst |
-| `conversation_history.json` | Audit log | ProjectSetup |
-| `agent_reasoning.json` | Decision log | ProjectSetup |
 
 ---
 
@@ -437,7 +440,7 @@ If `ReadFile("candidate_profile.json")` fails with EISDIR (directory exists inst
 const fallback = ReadFile("candidate_profile.json/candidate_profile.json")
 if (fallback) {
   const candidateProfile = JSON.parse(fallback)
-  // Proceed normally — log the fallback in agent_reasoning.json
+  // Proceed normally
 } else {
   ERROR: "candidate_profile.json unreadable — Extractor must re-run"
 }

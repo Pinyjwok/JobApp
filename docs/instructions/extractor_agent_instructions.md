@@ -76,8 +76,6 @@ Your responsibility is to:
 ### UPDATE
 
 - `project_memory.json` (metadata fields only)
-- `conversation_history.json` (append)
-- `agent_reasoning.json` (append)
 
 ### NEVER MODIFY
 
@@ -149,7 +147,6 @@ Before generating ANY timestamp:
 ✅ CORRECT — two positional arguments only:
 WriteFile({ fileName: "candidate_profile.json", filePath: "", contents: content })
 WriteFile({ fileName: "project_memory.json", filePath: "", contents: content })
-WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: content })
 
 ❌ WRONG - Named parameters (creates directory BUG-06):
 WriteFile({filePath: "candidate_profile.json", fileName: "candidate_profile.json"}, content)
@@ -610,81 +607,6 @@ Your CV header shows **${candidateName}** but the publications section lists **$
 ```
 
 ---
-
-### Phase 8: Log to History Files
-
-#### 8.1 Log to agent_reasoning.json
-```javascript
-const reasoningEntry = {
-  agent: "Extractor",
-  version: "1.9",
-  timestamp: getCurrentISOTimestamp(),
-  phase: "data_extraction",
-  actions: [
-    "Parsed job description",
-    "Parsed CV",
-    "Created candidate_profile.json",
-    "Updated project_memory.json"
-  ],
-  extraction_summary: {
-    company: companyName,
-    position: positionTitle,
-    sector: sector,
-    work_history_count: workHistory.length,
-    quality: extractionQuality
-  }
-}
-
-// Read existing
-let existingLog
-try {
-  const content = ReadFile("agent_reasoning.json")
-  existingLog = JSON.parse(content)
-} catch (e) {
-  existingLog = { metadata: {...}, reasoning_log: [] }
-}
-
-// Append
-existingLog.reasoning_log.push(reasoningEntry)
-existingLog.metadata.total_entries += 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-
-// Write
-const content = JSON.stringify(existingLog, null, 2)
-WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: content })
-```
-
-#### 8.2 Log to conversation_history.json
-```javascript
-const turnEntry = {
-  agent: "Extractor",
-  timestamp: getCurrentISOTimestamp(),
-  action: "data_extraction_complete",
-  message: `Extracted data from CV and JD. Quality: ${extractionQuality}.`,
-  next_agent: "Orchestrator"
-}
-
-// Read existing
-let existingHistory
-try {
-  const content = ReadFile("conversation_history.json")
-  existingHistory = JSON.parse(content)
-} catch (e) {
-  existingHistory = { metadata: {...}, turns: [] }
-}
-
-// Append
-existingHistory.turns.push(turnEntry)
-existingHistory.metadata.total_turns += 1
-existingHistory.metadata.last_updated = getCurrentISOTimestamp()
-
-// Write
-const content = JSON.stringify(existingHistory, null, 2)
-WriteFile({ fileName: "conversation_history.json", filePath: "", contents: content })
-```
-
----
-
 ### Phase 9: Display Completion and Return to Main Orchestrator
 
 **Objective:** Show completion summary to user, then hand control back.
@@ -730,8 +652,6 @@ project_directory/
 ├─ jd_raw.txt
 ├─ project_memory.json (updated)
 ├─ candidate_profile.json (created)
-├─ agent_reasoning.json (updated)
-└─ conversation_history.json (updated)
 ```
 
 **All files at root level. No subdirectories.**
@@ -761,35 +681,3 @@ project_directory/
 
 ---
 
-## Changelog
-
-### v2.1 → v2.2
-
-| Change | Details |
-| --- | --- |
-| **Phase 7.5: fail-fast name mismatch (BUG-103/104)** | Replaced blocking multi-turn clarification question with immediate EXTRACTION_FAILED stop. Writes `failure_reason: "name_mismatch"` and `alternate_name_detected` to project_memory.json. Server routes to MO which presents resolution options. On re-invocation, reads `pending_name_resolution` written by MO and applies it (exclude or alternate_name) before writing INITIALIZED. Eliminates routing deadlock caused by asking a question that spans a server-side routing boundary. |
-| **Phase 6: pending_name_resolution cleanup** | Clears `pending_name_resolution`, `failure_reason`, `alternate_name_detected` from metadata before writing INITIALIZED — prevents stale resolution data persisting across sessions. |
-
-### v1.9 → v2.0
-
-| Change | Details |
-| --- | --- |
-| **WriteFile named-parameter prohibition (BUG-06)** | Explicitly banned `WriteFile({filePath: ..., fileName: ...})` pattern — calling with named parameters causes KEMU to create a directory instead of a file, cascading EISDIR errors to all downstream agents. Warning added to Critical Rules section. |
-| **Phase 5 WriteFile retry loop guard (BUG-08)** | Replaced single unguarded WriteFile+verify with a 3-attempt loop. On 3 failures surfaces user-facing error with 'retry'/'abort' options — eliminates runaway recovery loops. |
-
-### v1.8 → v1.9
-
-| Change | Details |
-| --- | --- |
-| **Phase 4.6 — Structured additional_information extraction** | Publications now extracted as `{ title, authors, journal, year }` objects (not plain strings). Grants now captured with `{ title, body, amount, year, role }` — role field captures CI vs AI distinction explicitly. |
-| **Phase 5 schema updated** | `additional_information` now typed: publications, grants, awards, memberships, volunteer arrays. `personal_info` adds optional `alternate_name` field. |
-| **Phase 7.5 — Name/Publication Cross-Check added** | After quality validation, compare personal_info.name surname against publication author strings. If discrepancy found, prompt user to confirm which name to use. Resolves TC02: Whitmore/Vaughn-Smith silent mismatch. |
-| **Phase 8 log version string** | Updated hardcoded `version` from "1.7" to "1.9". |
-
-### v1.7 → v1.8
-
-| Change | Details |
-| --- | --- |
-| **Added "Next:" line to completion block** | Tells user that Researcher will gather company intelligence next — MO is now silent during routing |
-
-*End of Extractor Agent v2.2 Instructions*

@@ -1,0 +1,14 @@
+{
+  "savedAt": "2026-04-30T12:38:42.843Z",
+  "status": "GAP_INTERVIEW",
+  "files": [
+    "candidate_profile.json",
+    "cover_letter_sample.txt",
+    "cv_assembly_state.json",
+    "cv_raw.txt",
+    "gap_analysis.json",
+    "jd_raw.txt",
+    "project_memory.json",
+    "style_guide.json"
+  ]
+}

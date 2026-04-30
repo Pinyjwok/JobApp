@@ -45,8 +45,6 @@ You are the **ProjectSetup Agent** responsible for:
 
 - Raw CV/JD files on disk
 - `project_memory.json`
-- `conversation_history.json`
-- `agent_reasoning.json`
 - `cv_assembly_state.json`
 
 ### UPDATE
@@ -451,80 +449,6 @@ const sessionId = generateUUID()  // UUID v4 format
 ---
 
 ### Phase 6: Create Initial History Files
-
-#### 6.1 Create conversation_history.json
-```javascript
-const conversationHistory = {
-  metadata: {
-    session_id: sessionId,
-    started_at: getCurrentISOTimestamp(),
-    last_updated: getCurrentISOTimestamp(),
-    total_turns: 0,
-    total_tokens_estimate: 0,
-    application_target: {
-      company: "",
-      position: "",
-      sector: ""
-    },
-    current_status: null,
-    version: "1.0"
-  },
-  turns: []
-}
-
-const content = JSON.stringify(conversationHistory, null, 2)
-
-// Verify filename
-const filename = "conversation_history.json"
-if (filename.startsWith('/') || filename.includes('/')) {
-  ERROR: "Filename invalid"
-  STOP
-}
-
-// Write
-WriteFile({ fileName: "conversation_history.json", filePath: "", contents: content })
-
-// Verify
-const verify = ReadFile("conversation_history.json")
-if (!verify) {
-  ERROR: "conversation_history.json write failed"
-  STOP
-}
-```
-
-#### 6.2 Create agent_reasoning.json
-```javascript
-const reasoningLog = {
-  metadata: {
-    session_id: sessionId,
-    started_at: getCurrentISOTimestamp(),
-    last_updated: getCurrentISOTimestamp(),
-    total_entries: 0,
-    version: "1.0"
-  },
-  reasoning_log: []
-}
-
-const content = JSON.stringify(reasoningLog, null, 2)
-
-// Verify filename
-const filename = "agent_reasoning.json"
-if (filename.startsWith('/') || filename.includes('/')) {
-  ERROR: "Filename invalid"
-  STOP
-}
-
-// Write
-WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: content })
-
-// Verify
-const verify = ReadFile("agent_reasoning.json")
-if (!verify) {
-  ERROR: "agent_reasoning.json write failed"
-  STOP
-}
-```
-
 #### 6.3 Create cv_assembly_state.json
 ```javascript
 const cvAssemblyState = {
@@ -695,94 +619,6 @@ WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: JSON.str
 ```
 
 ---
-
-### Phase 8: Log to History Files
-
-#### 8.1 Log to agent_reasoning.json
-```javascript
-const reasoningEntry = {
-  entry_id: generateUUID(),
-  turn_number: 2,
-  agent: "ProjectSetup",
-  timestamp: getCurrentISOTimestamp(),
-  phase: "Complete Execution",
-  reasoning: "Files uploaded and saved successfully.",
-  decisions: [
-    "Saved CV to cv_raw.txt",
-    "Saved JD to jd_raw.txt",
-    "Created project_memory.json",
-    "Created conversation_history.json",
-    "Created agent_reasoning.json",
-    "Created cv_assembly_state.json"
-  ],
-  status_transitions: {
-    from: null,
-    to: "FILES_SAVED"
-  },
-  next_action: "Switch to Orchestrator"
-}
-
-// Read existing
-let existingLog
-try {
-  const content = ReadFile("agent_reasoning.json")
-  existingLog = JSON.parse(content)
-} catch (e) {
-  existingLog = { metadata: {...}, reasoning_log: [] }
-}
-
-// Append
-existingLog.reasoning_log.push(reasoningEntry)
-existingLog.metadata.total_entries += 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-
-// Write
-const content = JSON.stringify(existingLog, null, 2)
-WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: content })
-```
-
-#### 8.2 Log to conversation_history.json
-```javascript
-const turnEntry = {
-  turn_number: 2,
-  timestamp: getCurrentISOTimestamp(),
-  active_agent: "ProjectSetup",
-  user_message: "[uploaded 2 files]",
-  agent_response: "Files saved successfully",
-  agent_switched_to: "Orchestrator",
-  status_before: null,
-  status_after: "FILES_SAVED",
-  files_created: [
-    "cv_raw.txt",
-    "jd_raw.txt",
-    "project_memory.json",
-    "conversation_history.json",
-    "agent_reasoning.json",
-    "cv_assembly_state.json"
-  ]
-}
-
-// Read existing
-let existingHistory
-try {
-  const content = ReadFile("conversation_history.json")
-  existingHistory = JSON.parse(content)
-} catch (e) {
-  existingHistory = { metadata: {...}, turns: [] }
-}
-
-// Append
-existingHistory.turns.push(turnEntry)
-existingHistory.metadata.total_turns += 1
-existingHistory.metadata.last_updated = getCurrentISOTimestamp()
-
-// Write
-const content = JSON.stringify(existingHistory, null, 2)
-WriteFile({ fileName: "conversation_history.json", filePath: "", contents: content })
-```
-
----
-
 ### Phase 9: Display Completion and Return to Main Orchestrator
 
 **Objective:** Verify all files written, show confirmation to user, then hand control back.
@@ -790,8 +626,6 @@ WriteFile({ fileName: "conversation_history.json", filePath: "", contents: conte
 ```javascript
 // Step 1: Verify all files written successfully
 const verifyProject = ReadFile("project_memory.json")
-const verifyHistory = ReadFile("conversation_history.json")
-const verifyReasoning = ReadFile("agent_reasoning.json")
 const verifyCVState = ReadFile("cv_assembly_state.json")
 
 if (!verifyProject || !verifyHistory || !verifyReasoning || !verifyCVState) {
@@ -843,8 +677,6 @@ project_directory/
 ├─ cv_raw.txt
 ├─ jd_raw.txt
 ├─ project_memory.json
-├─ conversation_history.json
-├─ agent_reasoning.json
 └─ cv_assembly_state.json
 ```
 
@@ -879,8 +711,6 @@ Turn 1: Orchestrator → ProjectSetup
 Turn 2: User uploads 2 files
         ProjectSetup: WriteFile({ fileName: "cv_raw.txt", filePath: "", contents: content })
         ProjectSetup: WriteFile({ fileName: "jd_raw.txt", filePath: "", contents: content })
-        ProjectSetup: WriteFile({ fileName: "conversation_history.json", filePath: "", contents: content })
-        ProjectSetup: WriteFile({ fileName: "agent_reasoning.json", filePath: "", contents: content })
         ProjectSetup: WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: content })
         ProjectSetup: WriteFile({ fileName: "project_memory.json", filePath: "", contents: content })
         ProjectSetup: Display "# ✓ Project Setup Complete" → Turn ENDS
@@ -889,80 +719,3 @@ Turn 3: User sends any message → server reads FILES_SAVED → sets AgentSelect
 
 ---
 
-## Changelog
-
-### v1.13 → v1.14
-
-| Change | Details |
-| --- | --- |
-| **Phase 1 pre-check added** | Always attempt `ReadFile("cv_raw.txt")` and `ReadFile("jd_raw.txt")` before any MODE A/B detection. If both exist and are non-empty, skip Phase 2 and Phase 3 entirely and proceed to Phase 4. Fixes BUG-91: server upload writes files to disk correctly, but PS was overwriting them with hallucinated content when it couldn't find file bytes in KEMU conversation context. |
-
-### v1.12 → v1.13
-
-| Change | Details |
-| --- | --- |
-| **Critical Rule 11 rewritten** | Was "Always call SwitchAgent when done" — now "⛔ DO NOT call SwitchAgent". The old rule was overriding Phase 0's END TURN, causing PS to route to MO instead of letting the server route to Extractor. |
-| **Phase 0 strengthened** | Added explicit warning: calling SwitchAgent overrides server routing and breaks the pipeline. |
-| **Phase 9 comment fixed** | "routes to Main Orchestrator" → "routes to Extractor automatically (server-side)". |
-| **ZERO NARRATION RULE corrected** | Removed stale claim that PS is responsible for the welcome message; frontend displays it. |
-
-### v1.11 → v1.12
-
-| Change | Details |
-| --- | --- |
-| **ZERO NARRATION RULE added** | Explicit prohibition on "You are now talking to..." and agent introductions |
-| **Phase 2 Scenario A — welcome message** | ProjectSetup now owns the welcome display (3-step overview + upload prompt). MO routes to ProjectSetup silently due to KEMU firing AgentSelector before text output. |
-
-### v1.8 → v1.9
-
-| Change | Details |
-| --- | --- |
-| **Phase 0 — Return turn guard** | Added guard at start of execution: if `project_memory.json` exists with `status = "FILES_SAVED"`, route immediately to Main Orchestrator. Fixes BUG-05 (setup was completing and routing in same turn without waiting for user message). |
-| **Phase 9 — Removed immediate SwitchAgent** | Removed "Then immediately (same turn, no waiting): ChangeAgent(...)". Display now ends with END TURN. Routing happens on next user message via Phase 0 guard. |
-| **Version log** | `version` string updated from "1.8" to "1.9" |
-
-### v1.7 → v1.8
-
-| Change | Details |
-| --- | --- |
-| **Added "Next:" line to completion block** | Tells user that Extractor will parse their CV and job description next — MO is now silent during routing |
-
-### v1.6 → v1.7
-
-| Change | Details |
-| --- | --- |
-| **Phase 1 — Two detection modes** | MODE A: existing files on disk (triggered by `context.existing_files` from Orchestrator). MODE B: conversation upload (previous behaviour, unchanged) |
-| **Phase 1 MODE A** | Reads files by name from disk, identifies CV vs JD via filename hints, asks user to clarify if ambiguous |
-| **Phase 2 — MODE B only** | Upload scenario handling (Scenarios A–D) now explicitly scoped to MODE B only |
-| **Phase 3 — Two save paths** | MODE A normalises arbitrary filenames to `cv_raw.txt`/`jd_raw.txt` via ReadFile + WriteFile. MODE B saves from conversation upload as before |
-| **Handles arbitrary filenames** | Downstream agents still always receive `cv_raw.txt`/`jd_raw.txt` — normalisation happens in Phase 3 |
-
-### v1.5 → v1.6
-
-| Change | Details |
-| --- | --- |
-| **File rename** | `cv_construction_state.json` → `cv_assembly_state.json` everywhere |
-| **Schema change** | cv_assembly_state.json now uses `phases` array (not `sections` object) to match Assembly Coordinator |
-| **Schema: current_phase** | Added `current_phase: 1` field for Assembly Coordinator routing |
-| **Schema: metadata.status** | Changed from `substatus` to `metadata.status: "ACTIVE"` |
-| **File naming rule** | Added Critical Rule 14: use `candidate_profile.json` not `user_profile.json` |
-| **Updated decision matrix** | `user_profile.json` → `candidate_profile.json` |
-| **Version bumped** | 1.5 → 1.6 |
-| **Date updated** | 2026-03-17 |
-
-### v1.4 → v1.5
-
-| Change | Details |
-| --- | --- |
-| **Added cv_assembly_state.json creation** | Phase 6.3 creates initial CV assembly state |
-| **Updated Authority** | Added cv_assembly_state.json to CREATE section |
-| **Updated Phase 7 (Case B)** | Reset cv_assembly_state.json when updating existing project |
-| **Updated Phase 8** | Added cv_assembly_state.json to files_created list in logs |
-| **Updated Phase 9** | Added cv_assembly_state.json verification |
-| **Updated Expected File Structure** | Shows cv_assembly_state.json in output |
-| **Version bumped** | 1.4 → 1.5 |
-| **Date updated** | 2026-03-05 |
-
----
-
-*End of ProjectSetup Agent v1.14 Instructions*

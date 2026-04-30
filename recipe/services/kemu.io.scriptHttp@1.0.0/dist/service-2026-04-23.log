@@ -1,2 +1,0 @@
-{"level":"info","message":"spawned with PID 82532","pid":82532,"service":"kemu.io.scriptHttp","timestamp":"2026-04-23T06:05:22.086Z"}
-{"level":"info","message":"Kemu Composer disconnected event:  {\n  transport: \"ipc\",\n  args: [\n    {\n      recipe: [Object ...],\n    }\n  ],\n  reply: [Function: s],\n  messageId: \"hub-1776924337-exec-kemu-compo\",\n  sourceServiceId: 0,\n  send: [Function: Ye],\n}","service":"kemu.io.scriptHttp","timestamp":"2026-04-23T07:42:16.219Z"}

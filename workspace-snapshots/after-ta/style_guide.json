@@ -1,0 +1,143 @@
+
+{
+  "tone": "Confident professional",
+  "voice": "implicit first-person",
+  "sentence_structure": "Explanatory, 20-25 words per sentence",
+  "register": "confident-professional",
+  "formatting": {
+    "bullet_style": "action verb bullets",
+    "paragraph_length": "short 2-3 sentences",
+    "date_format": "MMM YYYY – Present"
+  },
+  "examples": [
+    "Spearheaded the development of a real-time American Sign Language (ASL) translator, achieving a 95% accuracy rate.",
+    "Built a scalable and secure RESTful API for a university-wide coding competition, serving over 500 active users.",
+    "Optimised an XGBoost model by 25% through advanced hyperparameter tuning and feature engineering."
+  ],
+  "metadata": {
+    "analyzed_at": "2024-05-24T10:30:00Z",
+    "analyzer_version": "3.2",
+    "source_files": {
+      "cv": "cv_raw.txt",
+      "cover_letter": "cover_letter_sample.txt"
+    },
+    "user_seniority": {
+      "level": "Graduate",
+      "years_experience": 0.8,
+      "role_indicators": [
+        "Collaborated",
+        "Designed",
+        "implemented",
+        "Built",
+        "Optimised",
+        "Implemented",
+        "Developed",
+        "Worked",
+        "Delivered",
+        "Provided",
+        "Planned",
+        "Led"
+      ],
+      "user_confirmed": true
+    }
+  },
+  "cv_style": {
+    "word_choices": {
+      "diction_level": "Academic/Technical",
+      "jargon_usage": "High",
+      "jargon_examples": ["full-stack", "RESTful API", "XGBoost", "hyperparameter tuning", "feature engineering"],
+      "signature_verbs": ["Implemented", "Designed", "Developed", "Built", "Collaborated"]
+    },
+    "sentence_rhythm": {
+      "rhythm_style": "Explanatory",
+      "average_sentence_length": 23,
+      "clarity": "Straight to the point",
+      "examples": {
+        "short": [],
+        "long": [
+          "Spearheaded the development of a real-time American Sign Language (ASL) translator leveraging a custom-trained YOLOv8 model and custom dataset, achieving a 95% accuracy rate.",
+          "Designed and implemented a full-stack challenge submission system for a university coding competition, handling over 1000 submissions with a 99.9% uptime."
+        ]
+      }
+    },
+    "perspective": {
+      "primary_perspective": "Implicit First Person",
+      "implicit_first_person_percent": 95,
+      "first_person_percent": 0,
+      "third_person_percent": 5
+    },
+    "tone": {
+      "warmth_scale": "Professional",
+      "formality": "Semi-formal",
+      "confidence_level": "Confident"
+    },
+    "emphasis_style": {
+      "achievement_style": "Data-driven",
+      "quantification_frequency": "High",
+      "quantified_examples": [
+        "Spearheaded the development of a real-time American Sign Language (ASL) translator... achieving a 95% accuracy rate.",
+        "Built a scalable and secure RESTful API for a university-wide coding competition, serving over 500 active users.",
+        "Optimised an XGBoost model by 25% through advanced hyperparameter tuning and feature engineering."
+      ]
+    },
+    "layout_preferences": {
+      "primary_format": "Bullets",
+      "bullet_style": "Varied"
+    },
+    "issues_flagged": {
+      "outdated_styles": [],
+      "readability_issues": [],
+      "attention_items": [
+        {
+          "category": "Repetition",
+          "issue": "Word 'Implemented' used 4 times",
+          "severity": "Low",
+          "example": "Designed and implemented a full-stack challenge submission system...",
+          "recommendation": "Vary language to enhance impact. For example, 'implemented' could be replaced with 'delivered', 'deployed', 'executed', or 'built'."
+        }
+      ]
+    }
+  },
+  "cover_letter_style": {
+     "word_choices": {
+      "diction_level": "Professional Corporate",
+      "jargon_usage": "Moderate"
+    },
+    "sentence_rhythm": {
+      "rhythm_style": "Explanatory",
+      "average_sentence_length": 21
+    },
+    "perspective": {
+      "primary_perspective": "First Person",
+      "first_person_percent": 100
+    },
+    "tone": {
+      "warmth_scale": "Warm",
+      "confidence_level": "Confident"
+    },
+    "emphasis_style": {
+        "achievement_style": "Balanced",
+        "quantification_frequency": "Medium"
+    },
+    "layout_preferences": {
+        "primary_format": "Paragraphs"
+    }
+  },
+  "comparative_analysis": {
+      "consistency": {
+          "tone_alignment": "Somewhat different",
+          "diction_alignment": "Somewhat different",
+          "notes": "Tone and diction are slightly warmer and less technical in the cover letter, which is appropriate for the format. Perspective correctly shifts from implicit in CV to first-person in the cover letter. Overall, the documents are well-aligned."
+      }
+  },
+  "agreed_approaches": {
+    "issue_resolutions": [
+      {
+        "issue": "Repetition: Word 'Implemented' used 4 times",
+        "user_decision": "Apply fix",
+        "constructor_instruction": "Vary language to enhance impact. For example, 'implemented' could be replaced with 'delivered', 'deployed', 'executed', or 'built'."
+      }
+    ],
+    "style_overrides": null
+  }
+}

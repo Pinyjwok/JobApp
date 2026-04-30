@@ -1,0 +1,307 @@
+{
+  "metadata": {
+    "analyzed_at": "2026-04-23T10:05:00Z",
+    "analyst_version": "2.8",
+    "candidate_profile_source": "candidate_profile.json",
+    "enhanced_jd_source": "project_memory.json"
+  },
+  "overall_fit_score": 7.4,
+  "fit_rationale": "Strong match - meets 100% of baseline requirements with demonstrated technical foundation, advanced system design thinking, and proven AI orchestration expertise. Lacks direct 'AI fluency' framing and professional skepticism evidence; differentiator gap in interdisciplinary non-CS backgrounds. Excellent technical fit; moderate cultural fit signals.",
+  "requirements": [
+    {
+      "id": "req_1",
+      "requirement_text": "Recent or upcoming graduate (2023-2026) in CS, Data Science, Math, Engineering, or related analytical fields.",
+      "source": "enhanced_jd.requirements.required_qualifications[0]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.education[0]",
+      "confidence_level": 5
+    },
+    {
+      "id": "req_2",
+      "requirement_text": "Exceptional critical thinking and problem-solving abilities.",
+      "source": "enhanced_jd.requirements.required_qualifications[1]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[2]",
+      "confidence_level": 4
+    },
+    {
+      "id": "req_3",
+      "requirement_text": "Independent Australian work rights.",
+      "source": "enhanced_jd.requirements.required_qualifications[2]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.personal_info.location",
+      "confidence_level": 5
+    },
+    {
+      "id": "pref_1",
+      "requirement_text": "Interdisciplinary background (STEM combined with Business, Law, or Econometrics).",
+      "source": "enhanced_jd.requirements.preferred_qualifications[0]",
+      "tier": "Differentiator",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": null
+    },
+    {
+      "id": "pref_2",
+      "requirement_text": "Demonstrated 'AI fluency' and interest in AI-augmented work processes.",
+      "source": "enhanced_jd.requirements.preferred_qualifications[1]",
+      "tier": "Differentiator",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].position",
+      "confidence_level": 5
+    },
+    {
+      "id": "pref_3",
+      "requirement_text": "Strong foundation in professional skepticism or data validation.",
+      "source": "enhanced_jd.requirements.preferred_qualifications[2]",
+      "tier": "Differentiator",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": null
+    },
+    {
+      "id": "resp_1",
+      "requirement_text": "Define and solve 'messy' real-world problems before applying technical AI solutions.",
+      "source": "enhanced_jd.role_details.key_responsibilities[0]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[1]",
+      "confidence_level": 4
+    },
+    {
+      "id": "resp_2",
+      "requirement_text": "Supervise and validate AI-generated outputs, ensuring foundational audit judgment and context.",
+      "source": "enhanced_jd.role_details.key_responsibilities[1]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[6]",
+      "confidence_level": 4
+    },
+    {
+      "id": "resp_3",
+      "requirement_text": "Collaborate within rotating teams such as Cybersecurity & Privacy, Data Analytics, and Risk Assurance.",
+      "source": "enhanced_jd.role_details.key_responsibilities[2]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[0]",
+      "confidence_level": 4
+    },
+    {
+      "id": "resp_4",
+      "requirement_text": "Act as a catalyst for digital transformation across finance, technology, energy, and health sectors.",
+      "source": "enhanced_jd.role_details.key_responsibilities[3]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[1].responsibilities[0]",
+      "confidence_level": 3
+    },
+    {
+      "id": "cultural_1",
+      "requirement_text": "Fearless future mindset with a willingness to lead and innovate from day one.",
+      "source": "enhanced_jd.requirements.cultural_fit_attributes[0]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].position",
+      "confidence_level": 4
+    },
+    {
+      "id": "cultural_2",
+      "requirement_text": "Ability to challenge automated outputs with professional skepticism.",
+      "source": "enhanced_jd.requirements.cultural_fit_attributes[1]",
+      "tier": "Baseline",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": null
+    },
+    {
+      "id": "cultural_3",
+      "requirement_text": "Commitment to 'The New Equation' of building trust through transparency and ingenuity.",
+      "source": "enhanced_jd.requirements.cultural_fit_attributes[2]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.additional_information.volunteer[0]",
+      "confidence_level": 3
+    }
+  ],
+  "strengths": [
+    {
+      "id": "strength_1",
+      "strength_text": "Recent or upcoming graduate (2023-2026) in CS, Data Science, Math, Engineering, or related analytical fields.",
+      "evidence_source": "candidate_profile.education[0]",
+      "confidence_level": 5,
+      "requirement_id": "req_1",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_2",
+      "strength_text": "Exceptional critical thinking and problem-solving abilities.",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[2]",
+      "confidence_level": 4,
+      "requirement_id": "req_2",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_3",
+      "strength_text": "Independent Australian work rights.",
+      "evidence_source": "candidate_profile.personal_info.location",
+      "confidence_level": 5,
+      "requirement_id": "req_3",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_4",
+      "strength_text": "Demonstrated 'AI fluency' and interest in AI-augmented work processes.",
+      "evidence_source": "candidate_profile.work_history[0].position",
+      "confidence_level": 5,
+      "requirement_id": "pref_2",
+      "tier": "Differentiator",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_5",
+      "strength_text": "Define and solve 'messy' real-world problems before applying technical AI solutions.",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[1]",
+      "confidence_level": 4,
+      "requirement_id": "resp_1",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_6",
+      "strength_text": "Supervise and validate AI-generated outputs, ensuring foundational audit judgment and context.",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[6]",
+      "confidence_level": 4,
+      "requirement_id": "resp_2",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_7",
+      "strength_text": "Collaborate within rotating teams such as Cybersecurity & Privacy, Data Analytics, and Risk Assurance.",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[0]",
+      "confidence_level": 4,
+      "requirement_id": "resp_3",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_8",
+      "strength_text": "Fearless future mindset with a willingness to lead and innovate from day one.",
+      "evidence_source": "candidate_profile.work_history[0].position",
+      "confidence_level": 4,
+      "requirement_id": "cultural_1",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_9",
+      "strength_text": "Commitment to 'The New Equation' of building trust through transparency and ingenuity.",
+      "evidence_source": "candidate_profile.additional_information.volunteer[0]",
+      "confidence_level": 3,
+      "requirement_id": "cultural_3",
+      "tier": "Baseline",
+      "impact": "High"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap_1",
+      "gap_text": "Interdisciplinary background (STEM combined with Business, Law, or Econometrics).",
+      "requirement_source": "enhanced_jd.requirements.preferred_qualifications[0]",
+      "requirement_id": "pref_1",
+      "tier": "Differentiator",
+      "severity": "Medium",
+      "mitigation_strategy": "Highlight cross-disciplinary thinking via system orchestration, mentoring, and multi-stakeholder collaboration. Emphasize business impact of technical decisions (e.g., 60% token optimization translates to cost savings)."
+    },
+    {
+      "id": "gap_2",
+      "gap_text": "Strong foundation in professional skepticism or data validation.",
+      "requirement_source": "enhanced_jd.requirements.preferred_qualifications[2]",
+      "requirement_id": "pref_3",
+      "tier": "Differentiator",
+      "severity": "Medium",
+      "mitigation_strategy": "Reframe 'validation and quality assurance mechanisms for LLM outputs' as evidence of skepticism practice. Add cover letter narrative about problem definition before solution application."
+    },
+    {
+      "id": "gap_3",
+      "gap_text": "Ability to challenge automated outputs with professional skepticism.",
+      "requirement_source": "enhanced_jd.requirements.cultural_fit_attributes[1]",
+      "requirement_id": "cultural_2",
+      "tier": "Baseline",
+      "severity": "High",
+      "mitigation_strategy": "Critical gap for audit-focused role. Must develop narrative linking 'deterministic execution' and 'elimination of race conditions' to human judgment in validating machine outputs. Prepare interview examples of questioning algorithmic assumptions."
+    }
+  ],
+  "candidate_provided_evidence": [],
+  "ats_keywords": [
+    "AI engineer",
+    "multi-agent orchestration",
+    "system design",
+    "machine learning",
+    "python",
+    "javascript",
+    "data analytics",
+    "cloud services",
+    "api design",
+    "problem solving",
+    "real-world",
+    "validation",
+    "audit",
+    "graduate program",
+    "technical leadership"
+  ],
+  "recommendations": [
+    {
+      "priority": "High",
+      "recommendation": "Address 1 critical baseline gap: professional skepticism and challenge of automated outputs",
+      "action_items": [
+        "Develop concrete examples demonstrating how your QA/validation work has questioned or rejected machine-generated outputs",
+        "In cover letter, connect 'elimination of race conditions' narrative to audit judgment (identifying when systems are wrong)",
+        "Prepare interview story: 'Tell us about a time you validated an AI decision and found it was incorrect'"
+      ]
+    },
+    {
+      "priority": "High",
+      "recommendation": "Emphasize your 4 core baseline strengths throughout application",
+      "action_items": [
+        "Lead with AI orchestration experience—directly relevant to 'AI-augmented work' culture shift",
+        "Highlight 'messy real-world problem solving' from multi-agent system design work",
+        "Showcase 'fearless innovation' mindset via technical leadership role at 25 years old",
+        "Connect mentoring experience to 'building trust through transparency'"
+      ]
+    },
+    {
+      "priority": "High",
+      "recommendation": "Bridge differentiator gaps with available evidence",
+      "action_items": [
+        "Reframe 60% token optimization as business impact analysis (bridges Business/Econometrics interdisciplinary gap)",
+        "Highlight multi-stakeholder collaboration with 'Product Owner and senior engineering consultant' in requirements definition",
+        "Add evidence of data validation rigor from QA mechanisms implemented"
+      ]
+    },
+    {
+      "priority": "Medium",
+      "recommendation": "Optimize for ATS with 15 role-relevant keywords",
+      "action_items": [
+        "Ensure CV includes: ai engineer, multi-agent orchestration, system design, machine learning, python, javascript, data analytics, cloud services, api design, problem solving, real-world, validation, audit, graduate program, technical leadership"
+      ]
+    }
+  ],
+  "summary": {
+    "total_requirements": 13,
+    "baseline_requirements": 9,
+    "differentiator_requirements": 4,
+    "requirements_met": 11,
+    "baseline_met": 8,
+    "differentiator_met": 1,
+    "strengths_count": 9,
+    "gaps_count": 3,
+    "critical_gaps": 1
+  }
+}

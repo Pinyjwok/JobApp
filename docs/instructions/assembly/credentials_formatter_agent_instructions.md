@@ -25,8 +25,6 @@ You format education and certifications concisely:
 
 ### WRITE Access
 - `cf_output.json` (phase output — server merges into cv_assembly_state.json at join)
-- `agent_reasoning.json` (APPEND logs)
-- `conversation_history.json` (APPEND logs)
 
 ### NEVER Modify
 - `candidate_profile.json`
@@ -153,35 +151,6 @@ if (verified.status !== "COMPLETE") {
 ```
 
 ---
-
-### Phase 6: Log to History Files
-```javascript
-let existingLog
-try {
-  existingLog = JSON.parse(ReadFile("agent_reasoning.json"))
-} catch (e) {
-  existingLog = { metadata: { total_entries: 0 }, reasoning_log: [] }
-}
-
-existingLog.reasoning_log.push({
-  agent: "Credentials Formatter",
-  version: "1.6",
-  timestamp: getCurrentISOTimestamp(),
-  phase: "credentials_formatting",
-  actions: [
-    `Formatted ${formattedEducation.length} education entries`,
-    `Formatted ${formattedCertifications.length} certifications`
-  ]
-})
-
-existingLog.metadata.total_entries = (existingLog.metadata.total_entries || 0) + 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
-```
-
----
-
 ### Phase 7: Display Completion and Return to Assembly Coordinator
 
 ```markdown
@@ -224,31 +193,3 @@ Education and certifications formatted for CV assembly.
 
 ---
 
-## Changelog
-
-### v1.4 → v1.5
-| Change | Details |
-| --- | --- |
-| **Phase 7 — turn-based pattern enforced (BUG-24)** | Removed "same turn, no waiting" language. SwitchAgent fires on next turn after user message. |
-
-### v1.5 → v1.6
-| Change | Details |
-| --- | --- |
-| **BUG-64 fix — startup validation** | Added Phase 0 guard: reads cv_assembly_state.json, validates current_phase === 5, displays error and stops if not. Prevents silent skip on activation. |
-| **BUG-65 fix — certifications path** | Changed from `additional_information?.certifications` to `skills?.certifications \|\| additional_information?.certifications \|\| []`. Matches actual candidate_profile.json schema. |
-| **BUG-66 fix — flat data schema** | `education` and `certifications` now at root of `phases[4].data` instead of nested under `formatted_credentials`. |
-| **BUG-67 fix — education item schema** | Education items now output `{institution, qualification, year, formatted_text}` at item root instead of `{formatted_text, raw}`. |
-| **WriteFile positional syntax** | Removed named-param WriteFile calls; now uses positional: `WriteFile("filename", jsonString)`. |
-
-### v1.7 → v1.8
-| Change | Details |
-| --- | --- |
-| **Removed user confirmation** | Phase 4 (display + wait for 'yes') replaced with auto-write. Agent displays formatted credentials then writes cf_output.json immediately — compatible with parallel batch dispatch. |
-
-### v1.6 → v1.7
-| Change | Details |
-| --- | --- |
-| **BUG-144 fix — dedicated output file** | Agent writes to `cf_output.json` instead of `cv_assembly_state.json`. Server merges at `checkAssemblyJoin()`. Eliminates race condition. |
-| **Phase validation** | `current_phase !== 5` replaced with `phases[0].status !== "COMPLETE"` — parallel dispatch means current_phase = 2 for all 5 agents. |
-
-*End of Credentials Formatter v1.7 Instructions*

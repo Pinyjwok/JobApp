@@ -353,28 +353,3 @@ Server: when all 5 done flags set → merge into cv_assembly_state.json → disp
 
 ---
 
-## Changelog: v1.3 → v1.4
-
-| Change | Details |
-| --- | --- |
-| **Phase 5 — completed_phases hardcode fix (BUG-44)** | `cvState.metadata.completed_phases = 3` changed to `+= 1`. The hardcoded value meant every subsequent agent would see an incorrect completed count, and if an agent is re-run the count would reset rather than reflect reality. |
-| **Timestamp — MANDATORY** | Never hardcode dates. Always use `getCurrentISOTimestamp()` for any field that records a time. |
-
-## Changelog: v1.5 → v1.6
-| Change | Detail |
-|--------|--------|
-| **BUG-57 fix — tailoring_notes type** | Changed from array to joined string: `tailoringNotes.join("; ")`. Spec requires non-empty string. |
-| **Certifications path fix** | Added fallback chain: `skills?.certifications \|\| additional_information?.certifications \|\| []`. Handles both current schema (skills root) and legacy schema. |
-
-## Changelog: v1.7 → v1.8
-| Change | Detail |
-|--------|--------|
-| **Removed user confirmation** | Phase 4 (ask user / wait for 'yes') removed. Agent displays skills list as info bubble then writes sc_output.json immediately — compatible with parallel batch dispatch. |
-
-## Changelog: v1.6 → v1.7
-| Change | Detail |
-|--------|--------|
-| **BUG-144 fix — dedicated output file** | Agent writes to `sc_output.json` instead of `cv_assembly_state.json`. Server merges at `checkAssemblyJoin()`. Eliminates race condition with other parallel assembly agents. |
-| **Phase validation** | `current_phase !== 3` replaced with `phases[0].status !== "COMPLETE"` — parallel dispatch means current_phase = 2 for all 5 agents. |
-
-*End of Skills Curator v1.7 Instructions*

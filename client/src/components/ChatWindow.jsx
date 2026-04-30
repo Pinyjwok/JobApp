@@ -129,7 +129,18 @@ function AgentBubble({ msg }) {
 }
 
 // Inline action buttons — rendered when server sends action_required event
-function ActionBubble({ msg, onAction }) {
+function ActionBubble({ msg, onAction, onUpload }) {
+  const fileInputRef = useRef(null);
+  const [uploadPending, setUploadPending] = useState(null); // action id awaiting file
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file || !uploadPending) return;
+    onUpload(uploadPending, file);
+    e.target.value = '';
+    setUploadPending(null);
+  }
+
   return (
     <div className="animate-fade-in-up w-full max-w-[85%] rounded-xl bg-slate-800/50 border border-slate-700/40 px-4 py-3">
       {msg.prompt && (
@@ -143,7 +154,15 @@ function ActionBubble({ msg, onAction }) {
         {msg.actions?.map((action) => (
           <button
             key={action.id}
-            onClick={() => !msg.used && onAction(action.id)}
+            onClick={() => {
+              if (msg.used) return;
+              if (action.type === 'upload') {
+                setUploadPending(action.id);
+                fileInputRef.current?.click();
+              } else {
+                onAction(action.id);
+              }
+            }}
             disabled={msg.used}
             className={`text-sm rounded-lg px-4 py-2 transition-all font-medium disabled:opacity-40 disabled:cursor-not-allowed ${
               action.variant === 'primary'
@@ -155,6 +174,13 @@ function ActionBubble({ msg, onAction }) {
           </button>
         ))}
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.txt,.doc,.docx"
+        className="hidden"
+        onChange={handleFileChange}
+      />
       {msg.used && (
         <p className="text-xs text-slate-600 mt-2">Option selected.</p>
       )}
@@ -177,7 +203,7 @@ function ThinkingIndicator() {
   );
 }
 
-export function ChatWindow({ messages, isWaiting, onAction }) {
+export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -196,7 +222,7 @@ export function ChatWindow({ messages, isWaiting, onAction }) {
               <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
             </div>
           ) : msg.role === 'actions' ? (
-            <ActionBubble msg={msg} onAction={onAction} />
+            <ActionBubble msg={msg} onAction={onAction} onUpload={onUpload} />
           ) : (
             <AgentBubble msg={msg} />
           )}

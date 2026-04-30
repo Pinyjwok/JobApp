@@ -28,8 +28,6 @@ You are the **Profile Builder** responsible for creating two critical CV section
 
 ### WRITE Access
 - `pb_output.json` (phase output — server merges into cv_assembly_state.json at join)
-- `agent_reasoning.json` (APPEND logs)
-- `conversation_history.json` (APPEND logs)
 
 ### NEVER Modify
 - `candidate_profile.json`
@@ -272,12 +270,7 @@ if (verified.status !== "COMPLETE") {
 
 ---
 
-### Phase 5: Log & Return
-
-```javascript
-// Log to agent_reasoning.json and conversation_history.json
-// (same pattern as Style Negotiator Phase 6)
-```
+### Phase 5: Display & Return
 
 Then display and return:
 
@@ -316,27 +309,3 @@ Contact details and professional profile paragraph built.
 
 ---
 
-## Changelog
-
-### v1.5 → v1.6
-
-| Change | Details |
-| --- | --- |
-| **Phase 6 — added experience_years, profile_statement, key_themes to data (BUG-21)** | phases[1].data now includes `profile_statement` (alias for profile_paragraph.formatted_text), `experience_years` (computed from earliestStart already in scope), and `key_themes` (top 3 strength themes). These fields are used by downstream agents. |
-
-### v1.7 → v1.8
-
-| Change | Details |
-| --- | --- |
-| **Removed user confirmation** | Phase 4 (ask user) and Phase 5 (process response) removed. Agent now displays built content and writes pb_output.json in one turn — compatible with parallel batch dispatch. |
-| **styleOverrides schema fix** | `agreed_overrides` is now an Object from SN v1.6+. Load with `Object.values()` fallback to keep `.some()` checks working. |
-| **Phase numbering** | Phase 6→5 (log), Phase 7→6 (display+return). |
-
-### v1.6 → v1.7
-
-| Change | Details |
-| --- | --- |
-| **BUG-144 fix — dedicated output file** | Agent now writes to `pb_output.json` instead of `cv_assembly_state.json`. Server merges all 5 parallel assembly outputs at `checkAssemblyJoin()`. Eliminates last-writer-wins race condition. |
-| **Phase validation loosened** | `current_phase !== 2` check replaced with `phases[0].status !== "COMPLETE"` — parallel dispatch means current_phase = 2 for all 5 agents simultaneously. |
-
-*End of Profile Builder v1.7*

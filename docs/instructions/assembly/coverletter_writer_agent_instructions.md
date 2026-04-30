@@ -31,8 +31,6 @@ You are the **CoverLetter Writer** responsible for crafting a compelling, tailor
 
 ### WRITE Access
 - `clw_output.json` (phase output — server merges into cv_assembly_state.json at join)
-- `agent_reasoning.json` (APPEND logs)
-- `conversation_history.json` (APPEND logs)
 
 ### NEVER Modify
 - `candidate_profile.json`
@@ -295,57 +293,6 @@ if (verified.status !== "COMPLETE") {
 ```
 
 ---
-
-### Phase 4: Log to History Files
-```javascript
-let existingLog
-try {
-  existingLog = JSON.parse(ReadFile("agent_reasoning.json"))
-} catch (e) {
-  existingLog = { metadata: { total_entries: 0 }, reasoning_log: [] }
-}
-
-existingLog.reasoning_log.push({
-  agent: "CoverLetter Writer",
-  version: "1.3",
-  timestamp: getCurrentISOTimestamp(),
-  phase: "coverletter_writing",
-  actions: [
-    `Drafted cover letter using C.O.R.E. framework`,
-    `Used ${topStrengths.length} strengths from gap_analysis`,
-    `Word count: ${wordCount}`,
-    `Auto-written: true`
-  ]
-})
-
-existingLog.metadata.total_entries = (existingLog.metadata.total_entries || 0) + 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
-
-let existingHistory
-try {
-  existingHistory = JSON.parse(ReadFile("conversation_history.json"))
-} catch (e) {
-  existingHistory = { metadata: { total_turns: 0 }, turns: [] }
-}
-
-existingHistory.turns.push({
-  agent: "CoverLetter Writer",
-  timestamp: getCurrentISOTimestamp(),
-  action: "coverletter_complete",
-  message: `Cover letter written for ${positionTitle} at ${companyName}. ${wordCount} words.`,
-  next_agent: "Assembly Coordinator"
-})
-
-existingHistory.metadata.total_turns = (existingHistory.metadata.total_turns || 0) + 1
-existingHistory.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
-```
-
----
-
 ### Phase 5: Display Completion and Return to Assembly Coordinator
 
 ```markdown
@@ -392,51 +339,3 @@ Cover letter written and confirmed for {positionTitle} at {companyName}.
 
 ---
 
-## Changelog
-
-### v1.1 → v1.2
-
-| Change | Details |
-| --- | --- |
-| **Phase 1 — Read style_guide.json** | File was listed in READ access but never actually loaded. Now read in Phase 1. |
-| **Phase 1.5 — Register detection** | New phase classifies role as peer-collegial (academic), confident-professional (corporate), or direct-practical (operational) based on `sector` and `positionTitle` |
-| **Phase 2 — Register-aware connectionParagraph** | Replaced single corporate-deferential template with three register-specific openers. Academic opens with research alignment; operational with concrete outcome; professional with value proposition. |
-| **Phase 2 — Register-aware closingParagraph** | Removed banned `"I look forward to hearing from you."` Replaced with register-aware close: peer-collegial → "I would welcome the opportunity to discuss this further."; professional/practical → "I am available to discuss at your convenience." |
-| **Phase 2 — Banned phrases guard** | Added post-draft scan. Any sentence containing a banned phrase is removed before display. Prevents corporate-deferential language from leaking in via offerParagraph or researchParagraph construction. |
-| **Critical Rule 11** | Register-aware writing documented as a non-negotiable rule |
-| **Version log** | `version` string updated from "1.1" to "1.2" |
-
----
-
-### v1.2 → v1.3
-
-| Change | Details |
-| --- | --- |
-| **Phase 2 — Full letter structure assembly** | After body paragraphs pass banned-phrase guard, assemble into complete letter: candidate name + contact header, date, Re: line, salutation, body paragraphs, sign-off. Fixes BUG-59 (body-only letter in final CV). |
-| **Phase 2 — Banned phrases expanded** | Added "I pride myself on/in", "my passion for", "my strong passion", "I am excited to", "I am thrilled to". Guard now catches all common corporate-deferential and sycophantic phrases. Fixes BUG-60. |
-| **Phase 3 — Display fullLetter** | Display block now shows `fullLetter` (complete letter) not `finalCoverLetter` (body only). |
-| **Phase 5 — Save fullLetter + coverletter_body** | phases[5].data now stores `coverletter_text` = full letter and `coverletter_body` = body only (for Style Reviewer). |
-| **Phase 5 — Error path routing** | WriteFile verify error now routes to Assembly Coordinator (was Main Orchestrator). |
-| **Version log** | `version` string updated from "1.2" to "1.3" |
-
----
-
-### v1.3 → v1.4
-| Change | Detail |
-|--------|--------|
-| **BUG-71 fix — phases[5].data schema** | Replaced flat `coverletter_text`/`coverletter_body` strings with spec-required nested `cover_letter` object containing `header`, `date`, `re_line`, `salutation`, `opening_paragraph`, `connection_paragraph`, `closing_paragraph`, `sign_off`. Added `register_used` field. |
-
-### v1.5 → v1.6
-| Change | Detail |
-|--------|--------|
-| **Removed user confirmation** | Phase 3 (display + wait for 'yes') and Phase 4 (process response) removed. Draft displayed as info bubble, clw_output.json written immediately — compatible with parallel batch dispatch. |
-| **styleOverrides schema fix** | `agreed_overrides` is now an Object from SN v1.6+. Load with `Object.values()` fallback. |
-| **Phase renumbering** | Phase 5→3, Phase 6→4, Phase 7→5. |
-
-### v1.4 → v1.5
-| Change | Detail |
-|--------|--------|
-| **BUG-144 fix — dedicated output file** | Agent writes to `clw_output.json` instead of `cv_assembly_state.json`. Server merges at `checkAssemblyJoin()`. Eliminates race condition with other parallel assembly agents. |
-| **Phase validation** | `current_phase !== 6` replaced with `phases[0].status !== "COMPLETE"`. |
-
-*End of CoverLetter Writer v1.6 Instructions*

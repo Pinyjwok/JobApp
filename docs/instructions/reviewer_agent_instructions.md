@@ -41,8 +41,6 @@ You are the **Reviewer** agent. The Tone Analyst has finished the style intervie
 | `project_memory.json` | `gap_analysis.candidate_backed_strengths` | CREATE — EVIDENCE-backed gaps |
 | `project_memory.json` | `status` | UPDATE → `"REVIEW_COMPLETE"` or `"REVIEW_FAILED"` |
 | `project_memory.json` | `metadata.lastUpdated` | UPDATE timestamp |
-| `agent_reasoning.json` | append | Log audit decisions |
-| `conversation_history.json` | append | Log interaction record |
 
 ### NEVER Modify
 
@@ -935,57 +933,7 @@ set_status(finalVerdict === 'APPROVED' ? "REVIEW_COMPLETE" : "REVIEW_FAILED")
 
 ---
 
-### Phase 10: Log to History Files
-
-```javascript
-const reasoningEntry = {
-  agent: 'Reviewer',
-  version: '3.0',
-  timestamp: getCurrentISOTimestamp(),
-  phase: 'quality_audit',
-  summary: `Audited ${finalAudit.summary.total_items_audited} items. Verdict: ${finalVerdict}. Gap interview: ${gapAnalysis.candidate_backed_strengths?.length ?? 0} evidence-backed, ${(gapAnalysis.gaps || []).filter(g => g.evidence_type === 'INTENT').length} intent-only.`,
-  decisions: [
-    `Verified ${finalAudit.summary.approved_items} items with confidence >= 4`,
-    `Flagged ${finalAudit.issues_found.length} items with issues`,
-    `Fit score: ${auditResults?.fit_score?.accurate ? 'Accurate' : 'Recalculated'}`
-  ],
-  confidence: finalAudit.summary.approved_items > finalAudit.issues_found.length ? 'high' : 'medium'
-}
-
-let existingLog
-try {
-  existingLog = JSON.parse(ReadFile("agent_reasoning.json"))
-} catch (e) {
-  existingLog = { metadata: { total_entries: 0 }, reasoning_log: [] }
-}
-existingLog.reasoning_log.push(reasoningEntry)
-existingLog.metadata.total_entries += 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
-
-const historyEntry = {
-  agent: 'Reviewer',
-  timestamp: getCurrentISOTimestamp(),
-  action: 'quality_audit_complete',
-  message: `Verdict: ${finalVerdict}. ${finalAudit.issues_found.length} issues found.`,
-  next_agent: finalVerdict === 'APPROVED' ? 'Assembly Coordinator (server-handled)' : 'Main Orchestrator'
-}
-
-let existingHistory
-try {
-  existingHistory = JSON.parse(ReadFile("conversation_history.json"))
-} catch (e) {
-  existingHistory = { metadata: { total_turns: 0 }, turns: [] }
-}
-existingHistory.turns.push(historyEntry)
-existingHistory.metadata.total_turns += 1
-existingHistory.metadata.last_updated = getCurrentISOTimestamp()
-WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
-```
-
----
-
-### Phase 11: Display Review Summary
+### Phase 10: Display Review Summary
 
 ```javascript
 const topIssues = finalAudit.issues_found.filter(i =>
@@ -1079,29 +1027,3 @@ The server reads the `pipeline_status` KEMU variable (set by `set_status` in Pha
 
 ---
 
-## Changelog: v3.1 → v3.2
-
-| Change | Details |
-| --- | --- |
-| **Phase 1 gap question — Skip button** | "type skip" replaced by "click the Skip button (server-injected)". Turn ENDS note added. Server injects `[Skip this gap]` button via `action_required` event after each gap question turn. |
-| **Phase 1 bridge — Continue button** | "Send any message to continue" → "Continue when ready". Server injects `[Continue →]` button. |
-| **Phase 7.5 issue — Skip button** | "or **skip**" replaced by "click the Skip button (server-injected)". Server injects `[Skip — leave flagged]` button after each issue-backing turn. |
-
-## Changelog: v2.5 → v3.0
-
-| Change | Details |
-| --- | --- |
-| **Phase 0 (NEW) — Gap Interview before audit** | Gap interview moved to before the forensic audit. All High severity gaps (both Baseline AND Differentiator tiers) are asked. No cap on question count. Each response classified as EVIDENCE (resolves gap in-place) or INTENT (stays open). EVIDENCE-backed gaps moved to `candidate_backed_strengths`, linked requirement updated to "Met (Candidate Evidence)". Fit score recalculated after all gaps addressed. |
-| **Re-invocation guard rewritten (3-state)** | Three states: (1) `review_audit` exists in file → Phase 7.5 resume or Phase 9; (2) High gaps not all answered → Phase 0 gap interview; (3) all gaps answered, no audit → Phase 2 fresh audit. |
-| **Phase 7 — write audit to file immediately** | review_audit written to project_memory.json right after Phase 7 builds it (before Phase 7.5). Phase 7.5 re-invocations read `user_backed` progress from file rather than rebuilding from scratch. |
-| **Phase 7.5 — re-invocation-aware** | Issue resolution now persists `user_backed` per-item to file after each response. Re-invocation resumes from next unaddressed item by reading file state. |
-| **Old Phase 8 removed** | Gap interview was Phase 8 in v2.5 (post-audit, Baseline-only, max 3 questions). Replaced entirely by new Phase 0 (pre-audit, all tiers, no cap). |
-| **Phase 9 — calls set_status tool** | `set_status("REVIEW_COMPLETE")` or `set_status("REVIEW_FAILED")` replaces reliance on server polling project_memory.json status. Real-time signal to server. |
-| **Phase 11 display copy updated** | "Next: Tone Analyst..." → "Next: Assembly Coordinator..." (TA already ran in parallel before the Reviewer was invoked). |
-| **Trigger updated** | Was `ANALYSIS_COMPLETE`. Now `GAP_INTERVIEW` (set by server join logic after TA + Analyst both complete). |
-| **Tools: set_status added** | Reviewer now has explicit `set_status` tool entry. |
-| **reviewer_version bumped to "3.0"** | All version strings updated throughout. |
-
----
-
-*End of Reviewer Agent v3.0 Instructions*

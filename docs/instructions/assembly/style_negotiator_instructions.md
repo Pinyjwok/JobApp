@@ -26,8 +26,6 @@ You are the **Style Negotiator** responsible for discussing CV formatting prefer
 
 ### WRITE Access
 - `cv_assembly_state.json` (UPDATE style_negotiation section, UPDATE substatus)
-- `agent_reasoning.json` (APPEND logs)
-- `conversation_history.json` (APPEND logs)
 
 ### NEVER Modify
 - `style_guide.json`
@@ -103,7 +101,6 @@ Before generating ANY timestamp:
 ```javascript
 ✅ CORRECT:
 WriteFile("cv_assembly_state.json", jsonString)
-WriteFile("agent_reasoning.json", jsonString)
 
 ❌ WRONG — named params (creates directory instead of file):
 WriteFile({ fileName: "cv_assembly_state.json", filePath: "", contents: jsonString })
@@ -393,70 +390,7 @@ WriteFile("sn_output.json", JSON.stringify(snOutput, null, 2))
 
 ---
 
-### Phase 6: Log to History Files
-
-**Purpose:** Record negotiation outcome.
-```javascript
-// Log to agent_reasoning.json
-const reasoningEntry = {
-  agent: "Style Negotiator",
-  version: "1.2",
-  timestamp: getCurrentISOTimestamp(),
-  phase: "style_negotiation_complete",
-  actions: [
-    "Analyzed user's natural writing style",
-    "Proposed professional CV formatting standards",
-    "Negotiated with user",
-    "Recorded agreed overrides"
-  ],
-  negotiation_summary: {
-    overrides_count: agreedOverrides.length,
-    user_confirmed: userConfirmed,
-    outcome: agreedOverrides.length > 0 ? "OVERRIDES_APPLIED" : "NO_CHANGES"
-  }
-}
-
-let existingLog
-try {
-  const content = ReadFile("agent_reasoning.json")
-  existingLog = JSON.parse(content)
-} catch (e) {
-  existingLog = { metadata: {}, reasoning_log: [] }
-}
-
-existingLog.reasoning_log.push(reasoningEntry)
-existingLog.metadata.total_entries = (existingLog.metadata.total_entries || 0) + 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
-
-// Log to conversation_history.json
-const historyEntry = {
-  agent: "Style Negotiator",
-  timestamp: getCurrentISOTimestamp(),
-  action: "style_negotiation_complete",
-  message: `Format standards agreed. ${agreedOverrides.length} overrides to apply.`,
-  next_agent: "Assembly Coordinator"
-}
-
-let existingHistory
-try {
-  const content = ReadFile("conversation_history.json")
-  existingHistory = JSON.parse(content)
-} catch (e) {
-  existingHistory = { metadata: {}, turns: [] }
-}
-
-existingHistory.turns.push(historyEntry)
-existingHistory.metadata.total_turns = (existingHistory.metadata.total_turns || 0) + 1
-existingHistory.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
-```
-
----
-
-### Phase 7: Display Completion and Return to Assembly Coordinator
+### Phase 6: Display Completion and Return to Assembly Coordinator
 
 **Purpose:** Show completion summary, then hand control back.
 
@@ -548,8 +482,6 @@ set_status("SN_COMPLETE")
 | CV assembly state | `cv_assembly_state.json` |
 | Style guide | `style_guide.json` |
 | Candidate profile | `candidate_profile.json` |
-| Agent reasoning | `agent_reasoning.json` |
-| Conversation history | `conversation_history.json` |
 
 ---
 
@@ -561,7 +493,6 @@ set_status("SN_COMPLETE")
 2. **No leading slashes** - Never start filename with `/`
 3. **Always stringify JSON** - `WriteFile("file.json", JSON.stringify(data, null, 2))`
 4. **Verify write succeeded** - Read file back after writing
-5. **Always log** - Update history files before switching
 6. **Use actual current date** - Never hardcode timestamps
 7. **Get user confirmation** - Never apply overrides without agreement
 8. **Explain rationale** - Tell user WHY professional standards matter
@@ -593,38 +524,3 @@ Server: dispatchAssemblyParallel() → fires PB + SC + HF + CF + CLW simultaneou
 
 ---
 
-## Changelog: v1.8 → v1.9
-
-| Change | Details |
-| --- | --- |
-| **Phase 5 — write sn_output.json** | After cv_assembly_state.json write, also write `sn_output.json` with same phase data. Server reads this at join alongside pb/sc/hf/cf/clw output files. |
-
-## Changelog: v1.7 → v1.8
-
-| Change | Details |
-| --- | --- |
-| **Phase 3 — option buttons replace typed prompts** | "Type yes/apply/no pronouns only/custom/skip" text removed. Server injects 4 option buttons (Apply all / Remove pronouns only / Discuss custom / Keep current style) after SN's recommendations turn. Button values map to existing Phase 4 text handlers. |
-| **Phase 4 — ELSE fallback updated** | Re-prompt no longer lists buttons (user can't "type unclear"). Now says "click one of the option buttons" with typed fallback for keyboard users. |
-
-## Changelog: v1.2 → v1.3
-
-| Change | Details |
-| --- | --- |
-| **Completion turn break (BUG-38)** | Removed "Then immediately (same turn, no waiting)" from completion block. Agent now ends its turn after displaying "# ✓ Style Negotiator Complete / Send any message to continue." On the next user message, the phase mismatch check at the top fires (current_phase is now 2, not 1) and routes silently to Assembly Coordinator. This ensures the user sees the completion output before routing proceeds. |
-| **Timestamp — MANDATORY** | Never hardcode dates. Always use `getCurrentISOTimestamp()` for any field that records a time. |
-
-## Changelog
-
-### v1.4 → v1.5
-
-| Change | Details |
-| --- | --- |
-| **Phase 5 — negotiation_summary added to data (BUG-20)** | phases[0].data now includes `negotiation_summary: { overrides_count, outcome, user_confirmed }` alongside existing fields. Previously only present in agent_reasoning.json, not in cv_assembly_state.json. |
-
-### v1.5 → v1.6
-| Change | Detail |
-|--------|--------|
-| **BUG-51 fix — agreed_overrides type** | Changed from Array of strings to Object with snake_case keys. Downstream agents can now access specific overrides by name. Added mapping logic from override text to key. |
-| **BUG-52 fix — negotiation_summary type** | Changed from Object `{overrides_count, outcome, user_confirmed}` to formatted string. Spec requires non-empty string. |
-
-*End of Style Negotiator v1.6 Instructions*

@@ -113,8 +113,6 @@ Before generating ANY timestamp:
 ```javascript
 ✅ CORRECT:
 WriteFile("project_memory.json", content)
-WriteFile("agent_reasoning.json", content)
-WriteFile("conversation_history.json", content)
 
 ❌ WRONG - Named parameters (creates directory on KEMU):
 WriteFile({ fileName: "project_memory.json", filePath: "", contents: content })
@@ -480,79 +478,6 @@ if (!verify) {
 ```
 
 ---
-
-### Phase 7: Log to History Files
-
-#### 7.1 Log to agent_reasoning.json
-```javascript
-const reasoningEntry = {
-  agent: "Researcher",
-  version: "2.0",
-  timestamp: getCurrentISOTimestamp(),
-  phase: "company_research",
-  actions: [
-    "Called ResearchCompany tool (query pre-built by template)",
-    "Called ResearchSector tool (query pre-built by template)",
-    "Merged results — company data preferred, sector fills gaps",
-    `Data source: ${dataSource}`,
-    `Quality: ${researchQuality}`
-  ],
-  research_summary: {
-    quality: researchQuality,
-    data_source: dataSource,
-    valid_count: validCount,
-    total_with_data: totalWithData,
-    retry_count: retryCount,
-    research_data_written: researchQuality !== "RESEARCH_FAILED"
-  }
-}
-
-// Read existing
-let existingLog
-try {
-  const content = ReadFile("agent_reasoning.json")
-  existingLog = JSON.parse(content)
-} catch (e) {
-  existingLog = { metadata: { total_entries: 0, last_updated: "" }, reasoning_log: [] }
-}
-
-// Append
-existingLog.reasoning_log.push(reasoningEntry)
-existingLog.metadata.total_entries += 1
-existingLog.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("agent_reasoning.json", JSON.stringify(existingLog, null, 2))
-```
-
-#### 7.2 Log to conversation_history.json
-```javascript
-const turnEntry = {
-  agent: "Researcher",
-  timestamp: getCurrentISOTimestamp(),
-  action: "research_complete",
-  message: `Research ${researchQuality}. Fields captured: ${totalWithData}/8. Source: ${dataSource}.`,
-  next_agent: "Orchestrator"
-}
-
-// Read existing
-let existingHistory
-try {
-  const content = ReadFile("conversation_history.json")
-  existingHistory = JSON.parse(content)
-} catch (e) {
-  existingHistory = { metadata: { total_turns: 0, last_updated: "" }, turns: [] }
-}
-
-// Append
-existingHistory.turns.push(turnEntry)
-existingHistory.metadata.total_turns += 1
-existingHistory.metadata.last_updated = getCurrentISOTimestamp()
-
-WriteFile("conversation_history.json", JSON.stringify(existingHistory, null, 2))
-```
-
----
-
 ### Phase 8: Display Completion and Return to Main Orchestrator
 
 **Objective:** Show completion summary to user, then hand control back.
@@ -604,8 +529,6 @@ project_directory/
 ├─ jd_raw.txt
 ├─ project_memory.json (updated)
 ├─ candidate_profile.json
-├─ agent_reasoning.json (updated)
-└─ conversation_history.json (updated)
 ```
 
 **All files at root level. No subdirectories.**
@@ -649,65 +572,9 @@ Researcher: Validate fields → Quality = RESEARCH_COMPLETE | RESEARCH_PARTIAL |
 Researcher: If RESEARCH_FAILED → research_data = null
 Researcher: If RESEARCH_COMPLETE/PARTIAL → research_data = { fields..., data_source, sources }
 Researcher: WriteFile("project_memory.json", updatedContent)
-Researcher: WriteFile("agent_reasoning.json", updatedLog)
-Researcher: WriteFile("conversation_history.json", updatedHistory)
 Researcher: Display "# ✓ Researcher Complete" summary
 Researcher → Turn ENDS (server routes to JD Enhancer)
 ```
 
 ---
 
-## Changelog
-
-### v1.9 → v2.0
-
-| Change | Details |
-| --- | --- |
-| **Parallel Tavily calls** | Phase 2 now calls both `ResearchCompany()` and `ResearchSector()` simultaneously. ResearchSector provides industry archetype data as a fallback for employers with low/no digital footprint. |
-| **Merge strategy** | Phase 3 extracts from company results first; sector results fill any fields that fail validation. `data_source` field (`"company"` / `"sector_archetype"` / `"merged"`) written to `research_data` for Analyst provenance tracking. |
-| **RESEARCH_FAILED blanks research_data** | Phase 6 now writes `research_data: null` on RESEARCH_FAILED instead of persisting broad, low-quality, or potentially fabricated data. Downstream agents (Analyst) cannot consume stale research from a failed run. |
-| **Single-call failure resilience** | If only one of the two Tavily calls succeeds, the agent continues with available data rather than immediately failing. Both calls failing triggers retry logic. |
-| **Sources tagged by origin** | Each entry in `research_data.sources` now carries an `origin` field (`"company"` or `"sector"`) for display and auditability. |
-| **WriteFile syntax corrected** | Named parameter form (`{ fileName, filePath, contents }`) replaced with positional form throughout — named params create a directory on KEMU. |
-| **Retry updated** | Phase 5 retries both tools, not just ResearchCompany. |
-
-### v1.8 → v1.9
-
-| Change | Details |
-| --- | --- |
-| **Citations display** | Phase 8 completion now shows numbered source links (title + URL) from Tavily results. Sources saved to `research_data.sources` in project_memory.json. |
-
-### v1.7 → v1.8
-
-| Change | Details |
-| --- | --- |
-| **Field names corrected** | `culture_and_work_style` → `culture_overview`; `strategic_plan_and_growth` → `strategic_plan`; `interview_and_hiring_focus` → `interview_focus`. Fixes BUG-09. |
-
-### v1.6 → v1.7
-
-| Change | Details |
-| --- | --- |
-| **Phase 2.5 — Identify Hiring Unit** | Added regex-based extraction of School/Department/Business Unit from jd_raw.txt |
-| **Field 8 — `hiring_unit_intelligence`** | New Phase 3 extraction field: unit-specific content from Tavily results |
-
-### v1.5 → v1.6
-
-| Change | Details |
-| --- | --- |
-| **Added "Next:" line to completion block** | Tells user that JD Enhancer will analyse and enrich the job description next |
-
-### v1.4 → v1.5
-
-| Change | Details |
-| --- | --- |
-| **Turn-based completion pattern** | Phase 8 now displays "# ✓ Researcher Complete" with summary before SwitchAgent |
-
-### v1.3 → v1.4
-
-| Change | Details |
-| --- | --- |
-| **Removed user-facing completion message** | Phase 8 now silent - Orchestrator handles messaging |
-
----
-
-*End of Researcher Agent v2.0 Instructions*

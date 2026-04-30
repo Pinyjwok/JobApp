@@ -280,7 +280,7 @@ Setting up your analysis — this takes about a minute.`,
       });
       setMessages((prev) => [...prev, { role: 'user', text: `Uploaded ${name} → ${target}.txt` }]);
       setUploadedFiles((prev) => ({ ...prev, [target]: name }));
-      if (target === 'cover_letter_sample' && activeAgent === 'Tone Analyst') {
+      if (target === 'cover_letter_sample') {
         await handleSend('Cover letter uploaded — please proceed with the analysis.');
       }
     } catch (err) {
@@ -380,7 +380,19 @@ Setting up your analysis — this takes about a minute.`,
       <StatusBar status={status} activeAgent={activeAgent} />
 
       <div className="flex flex-1 overflow-hidden">
-        <ChatWindow messages={messages} isWaiting={isWaiting || pipelineMode === 'auto_running'} onAction={handleAction} />
+        <ChatWindow
+          messages={messages}
+          isWaiting={isWaiting || pipelineMode === 'auto_running'}
+          onAction={handleAction}
+          onUpload={(actionId, file) => {
+            if (actionId === 'ta_upload_cover') {
+              setMessages(prev => prev.map(m =>
+                m.role === 'actions' && !m.used ? { ...m, used: true } : m
+              ));
+              handleUpload(file.name, file, 'cover_letter_sample');
+            }
+          }}
+        />
         {showTimeline && <AgentTimeline turns={turns} />}
       </div>
 
