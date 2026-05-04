@@ -37,3 +37,5 @@ Dockerfile
 #chat history persitance
 chat_history.json
 
+#other docs
+docs/
