@@ -32,7 +32,6 @@ workspace-snapshot/
 
 #docker
 .dockerignore
-Dockerfile
 
 #chat history persitance
 chat_history.json
