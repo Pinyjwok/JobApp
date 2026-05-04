@@ -1,0 +1,71 @@
+{
+  "phase_number": 4,
+  "phase_name": "History Formatting",
+  "agent": "History Formatter",
+  "status": "COMPLETE",
+  "completed_at": "2026-05-04T00:00:00Z",
+  "data": {
+    "work_history": [
+      {
+        "employer": "AI Job Application Pipeline",
+        "position": "Lead Developer / Architect",
+        "employment_type": "Project",
+        "duration": "Feb 2026 – Present",
+        "duration_years": 0,
+        "bullets": [
+          "Collaborated with a Product Owner and senior engineering consultant to design a 15-phase multi-agent orchestration system",
+          "Architected a server-side routing engine to dispatch **16** specialised agents based on pipeline state",
+          "Engineered modular agents with defined responsibilities, JSON state contracts, and turn-based execution controls",
+          "Reduced research-phase token usage by **60%** by integrating Tavily API",
+          "Implemented a parallel assembly phase with **5** concurrent agents",
+          "Designed an evidence-based validation layer to prevent unsupported or fabricated claims",
+          "Eliminated race conditions and reduced latency from LLM-based routing",
+          "Improved system throughput and reliability via modular design and parallel execution"
+        ]
+      },
+      {
+        "employer": "Digimaker",
+        "position": "Coding Mentor Intern",
+        "employment_type": "Internship",
+        "duration": "Jul 2025 – Dec 2025",
+        "duration_years": 0.4,
+        "bullets": [
+          "Delivered structured programming instruction across multiple Melbourne schools (JavaScript, C, Java, Python)",
+          "Explained complex technical concepts to **12–20** students per session",
+          "Provided hands-on debugging and problem-solving support",
+          "Collaborated with educators and coordinators to deliver consistent learning experiences",
+          "Created a promotional video for the company website",
+          "Earned High Distinction for outstanding placement performance",
+          "Improved student comprehension and engagement across varying skill levels"
+        ]
+      },
+      {
+        "employer": "OYITI Foundation for Multicultural Youth",
+        "position": "Board Member / Co-Founder",
+        "employment_type": "Leadership",
+        "duration": "Aug 2021 – Present",
+        "duration_years": 3.7,
+        "bullets": [
+          "Planned and delivered community programs engaging **500+** youth across Victoria",
+          "Led the Intergenerational Conversations Youth Conference",
+          "Facilitated dialogue between youth and community elders on mental health",
+          "Engaged in grant writing and stakeholder engagement",
+          "Secured **$50,000** in government funding (**20%** above target)",
+          "Achieved a **4.5/5** satisfaction rating for the youth conference"
+        ]
+      }
+    ],
+    "total_entries": 3,
+    "total_bullets": 21,
+    "style_overrides_applied": [
+      "Past tense for all roles except current position",
+      "Use assertive action verbs — avoid passive voice and weak constructions",
+      "Bold numeric metrics and key results in work history bullets",
+      "Keep CV to 2 pages max — cut verbose phrasing and redundant responsibilities",
+      "Refine long bullets (over 18 words) for scan-speed readability",
+      "Impact-driven opening — lead with a specific achievement, not a generic application statement",
+      "Modern sign-off: \"Best regards\" or \"Kind regards\""
+    ],
+    "user_confirmed": true
+  }
+}

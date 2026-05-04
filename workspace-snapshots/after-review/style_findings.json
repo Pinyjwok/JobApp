@@ -1,0 +1,113 @@
+{
+  "seniority": {
+    "level": "Mid-Level",
+    "title_bucket": "Assistant Educator",
+    "years_experience": 6,
+    "evidence": "Role: Assistant Educator\nDates: Jan 20-Current"
+  },
+  "register": "direct-practical",
+  "sector": "Childcare",
+  "style_patterns": {
+    "tense": "mixed",
+    "voice": "active",
+    "bullet_format": "mixed",
+    "avg_bullet_word_count": 11,
+    "sentence_structure": "Simple sentences, mix of telegraphic bullets and full first-person sentences.",
+    "formality_level": "casual",
+    "uses_pronouns_i": true,
+    "uses_full_sentences": true,
+    "examples": [
+      "Looking after the babies in the nursery room (0-2 years).",
+      "Achievement: I got \"Employee of the Month\" in March 2023 because I did a really good Easter display on the wall.",
+      "I learned how to be really polite even when customers are grumpy in the morning."
+    ]
+  },
+  "flagged_issues": [
+    {
+      "id": "issue_001",
+      "category": "formatting",
+      "severity": "high",
+      "description": "Unprofessional email address not suitable for job applications.",
+      "original": "chlo-bear99@email.com",
+      "suggested": "chloe.s.simmons@email.com"
+    },
+    {
+      "id": "issue_002",
+      "category": "formatting",
+      "severity": "high",
+      "description": "Inclusion of a family member as a professional reference.",
+      "original": "My Mum (Sandra)\nShe can tell you how much I love kids!",
+      "suggested": "Professional references available upon request."
+    },
+    {
+      "id": "issue_003",
+      "category": "grammar",
+      "severity": "high",
+      "description": "Spelling error in the job title within the cover letter.",
+      "original": "Job Application for Early Childhood Educater",
+      "suggested": "Job Application for Early Childhood Educator"
+    },
+    {
+      "id": "issue_004",
+      "category": "grammar",
+      "severity": "medium",
+      "description": "Spelling error in a section heading.",
+      "original": "Responisbilities:",
+      "suggested": "Responsibilities:"
+    },
+    {
+      "id": "issue_005",
+      "category": "verbose",
+      "severity": "medium",
+      "description": "Overly casual and subjective language in objective statement.",
+      "original": "To find a fun and stable job in a child care center where I can use my skills to help kids learn and have the best time ever.",
+      "suggested": "To secure a part-time Assistant Educator role where I can apply my skills in child development and create a positive, engaging learning atmosphere."
+    },
+    {
+      "id": "issue_006",
+      "category": "formatting",
+      "severity": "medium",
+      "description": "Inconsistent point of view, mixing third-person bullets with first-person sentences.",
+      "original": "I learned how to be really polite even when customers are grumpy in the morning.",
+      "suggested": "Developed strong customer service skills, maintaining a polite and positive demeanor in all situations."
+    },
+    {
+      "id": "issue_007",
+      "category": "verbose",
+      "severity": "medium",
+      "description": "Informal and unprofessional phrasing for a key responsibility.",
+      "original": "Helping with nappy changes (lots of them!).",
+      "suggested": "Managed daily hygiene routines for infants, including nappy changes."
+    },
+    {
+      "id": "issue_008",
+      "category": "punctuation",
+      "severity": "low",
+      "description": "Inconsistent use of trailing periods on bullet points.",
+      "original": "Setting up the room in the morning with toys and books.",
+      "suggested": "Setting up the room in the morning with toys and books"
+    },
+    {
+      "id": "issue_009",
+      "category": "grammar",
+      "severity": "low",
+      "description": "Incorrect word usage in cover letter.",
+      "original": "When I read your add about being a \"community\"",
+      "suggested": "When I read your ad about being a \"community\""
+    },
+    {
+      "id": "issue_010",
+      "category": "verbose",
+      "severity": "low",
+      "description": "Unnecessary and unprofessional personal quote at the top of the CV.",
+      "original": "\"Giving every child a smile every single day!\"",
+      "suggested": ""
+    }
+  ],
+  "source_files": {
+    "cv": "cv_raw.txt",
+    "cover_letter": "cover_letter_sample.txt"
+  },
+  "analyzed_at": "2024-07-25T12:00:00Z",
+  "analyzer_version": "4.1"
+}

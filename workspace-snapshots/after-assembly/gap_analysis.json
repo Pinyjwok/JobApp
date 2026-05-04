@@ -1,0 +1,272 @@
+{
+  "metadata": {
+    "analyzed_at": "2026-05-04T00:00:00Z",
+    "analyst_version": "2.10",
+    "candidate_profile_source": "candidate_profile.json",
+    "enhanced_jd_source": "enhanced_jd.json"
+  },
+  "overall_fit_score": 6,
+  "fit_rationale": "Moderate match - meets 57% of baseline requirements with notable gaps",
+  "requirements": [
+    {
+      "id": "req_1",
+      "requirement_text": "Australian Citizen or Permanent Resident.",
+      "source": "enhanced_jd.requirements.required_qualifications[0]",
+      "tier": "Baseline",
+      "candidate_status": "Met (Candidate Evidence)",
+      "evidence_source": null,
+      "confidence_level": null,
+      "candidate_evidence_text": "I am a citizen"
+    },
+    {
+      "id": "req_2",
+      "requirement_text": "Completion of degree requirements between November 2024 and February 2027.",
+      "source": "enhanced_jd.requirements.required_qualifications[1]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.education[0]",
+      "confidence_level": 4
+    },
+    {
+      "id": "req_3",
+      "requirement_text": "Strong foundational knowledge in software design, development, and testing methodologies.",
+      "source": "enhanced_jd.requirements.required_qualifications[2]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.skills.core_competencies[2]",
+      "confidence_level": 5
+    },
+    {
+      "id": "pref_1",
+      "requirement_text": "Interest in Cloud technologies (Azure/AWS) and Artificial Intelligence.",
+      "source": "enhanced_jd.requirements.preferred_qualifications[0]",
+      "tier": "Differentiator",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.skills.technical_skills[12]",
+      "confidence_level": 5
+    },
+    {
+      "id": "pref_2",
+      "requirement_text": "Experience or strong interest in Application Modernization and Managed Infrastructure.",
+      "source": "enhanced_jd.requirements.preferred_qualifications[1]",
+      "tier": "Differentiator",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": null
+    },
+    {
+      "id": "pref_3",
+      "requirement_text": "Active engagement in continuous learning and professional certification pathways.",
+      "source": "enhanced_jd.requirements.preferred_qualifications[2]",
+      "tier": "Differentiator",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": null
+    },
+    {
+      "id": "resp_1",
+      "requirement_text": "Design, develop, test, and evaluate IT software components.",
+      "source": "enhanced_jd.role_details.key_responsibilities[0]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[2]",
+      "confidence_level": 4
+    },
+    {
+      "id": "resp_2",
+      "requirement_text": "Collaborate with senior leaders and cross-functional teams in a virtual-first environment.",
+      "source": "enhanced_jd.role_details.key_responsibilities[1]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[0]",
+      "confidence_level": 4
+    },
+    {
+      "id": "resp_3",
+      "requirement_text": "Participate in ongoing training and professional development to clear industry certifications (e.g., Azure Fundamentals).",
+      "source": "enhanced_jd.role_details.key_responsibilities[2]",
+      "tier": "Baseline",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": null
+    },
+    {
+      "id": "resp_4",
+      "requirement_text": "Modernize and secure complex technology estates for global enterprise clients.",
+      "source": "enhanced_jd.role_details.key_responsibilities[3]",
+      "tier": "Baseline",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": null
+    }
+  ],
+  "strengths": [
+    {
+      "id": "strength_1",
+      "strength_text": "Completion of degree requirements between November 2024 and February 2027.",
+      "evidence_source": "candidate_profile.education[0]",
+      "confidence_level": 4,
+      "requirement_id": "req_2",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_2",
+      "strength_text": "Strong foundational knowledge in software design, development, and testing methodologies.",
+      "evidence_source": "candidate_profile.skills.core_competencies[2]",
+      "confidence_level": 5,
+      "requirement_id": "req_3",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_3",
+      "strength_text": "Design, develop, test, and evaluate IT software components.",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[2]",
+      "confidence_level": 4,
+      "requirement_id": "resp_1",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_4",
+      "strength_text": "Collaborate with senior leaders and cross-functional teams in a virtual-first environment.",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[0]",
+      "confidence_level": 4,
+      "requirement_id": "resp_2",
+      "tier": "Baseline",
+      "impact": "High"
+    },
+    {
+      "id": "strength_5",
+      "strength_text": "Interest in Cloud technologies (Azure/AWS) and Artificial Intelligence.",
+      "evidence_source": "candidate_profile.skills.technical_skills[12]",
+      "confidence_level": 5,
+      "requirement_id": "pref_1",
+      "tier": "Differentiator",
+      "impact": "Medium"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap_1",
+      "gap_text": "Australian Citizen or Permanent Resident.",
+      "requirement_source": "enhanced_jd.requirements.required_qualifications[0]",
+      "requirement_id": "req_1",
+      "tier": "Baseline",
+      "severity": "High",
+      "mitigation_strategy": "Address this gap with specific examples or skill development",
+      "candidate_provided_evidence": "I am a citizen",
+      "evidence_source": "user_provided",
+      "evidence_type": "EVIDENCE"
+    },
+    {
+      "id": "gap_2",
+      "gap_text": "Participate in ongoing training and professional development to clear industry certifications (e.g., Azure Fundamentals).",
+      "requirement_source": "enhanced_jd.role_details.key_responsibilities[2]",
+      "requirement_id": "resp_3",
+      "tier": "Baseline",
+      "severity": "High",
+      "mitigation_strategy": "Address this gap with specific examples or skill development",
+      "candidate_provided_evidence": "__skipped__",
+      "evidence_source": "skipped",
+      "evidence_type": "SKIPPED"
+    },
+    {
+      "id": "gap_3",
+      "gap_text": "Modernize and secure complex technology estates for global enterprise clients.",
+      "requirement_source": "enhanced_jd.role_details.key_responsibilities[3]",
+      "requirement_id": "resp_4",
+      "tier": "Baseline",
+      "severity": "High",
+      "mitigation_strategy": "Address this gap with specific examples or skill development",
+      "candidate_provided_evidence": "__skipped__",
+      "evidence_source": "skipped",
+      "evidence_type": "SKIPPED"
+    },
+    {
+      "id": "gap_4",
+      "gap_text": "Experience or strong interest in Application Modernization and Managed Infrastructure.",
+      "requirement_source": "enhanced_jd.requirements.preferred_qualifications[1]",
+      "requirement_id": "pref_2",
+      "tier": "Differentiator",
+      "severity": "Medium",
+      "mitigation_strategy": "Consider highlighting transferable skills or partial evidence"
+    },
+    {
+      "id": "gap_5",
+      "gap_text": "Active engagement in continuous learning and professional certification pathways.",
+      "requirement_source": "enhanced_jd.requirements.preferred_qualifications[2]",
+      "requirement_id": "pref_3",
+      "tier": "Differentiator",
+      "severity": "Medium",
+      "mitigation_strategy": "Consider highlighting transferable skills or partial evidence"
+    }
+  ],
+  "candidate_provided_evidence": [],
+  "candidate_backed_strengths": [
+    {
+      "gap_id": "gap_1",
+      "gap_text": "Australian Citizen or Permanent Resident.",
+      "evidence": "I am a citizen",
+      "tier": "Baseline"
+    }
+  ],
+  "ats_keywords": [
+    "software",
+    "design",
+    "development",
+    "testing",
+    "professional",
+    "certification",
+    "develop",
+    "evaluate",
+    "components",
+    "collaborate",
+    "senior",
+    "leaders",
+    "cross-functional",
+    "teams",
+    "virtual-first"
+  ],
+  "recommendations": [
+    {
+      "priority": "High",
+      "recommendation": "Address 3 critical baseline gaps in CV and cover letter",
+      "action_items": [
+        "Develop concrete examples demonstrating: Australian Citizen or Permanent Resident....",
+        "Develop concrete examples demonstrating: Participate in ongoing training and professional development ...",
+        "Develop concrete examples demonstrating: Modernize and secure complex technology estates for global en..."
+      ]
+    },
+    {
+      "priority": "High",
+      "recommendation": "Emphasize your 3 core strengths throughout application",
+      "action_items": [
+        "Highlight: Completion of degree requirements between November 2024 and Feb...",
+        "Highlight: Strong foundational knowledge in software design, development, ...",
+        "Highlight: Design, develop, test, and evaluate IT software components...."
+      ]
+    },
+    {
+      "priority": "Medium",
+      "recommendation": "Optimize for ATS with 15 key terms",
+      "action_items": [
+        "Ensure CV includes: software, design, development, testing, professional, certification, develop, evaluate, components, collaborate"
+      ]
+    }
+  ],
+  "summary": {
+    "total_requirements": 10,
+    "baseline_requirements": 7,
+    "differentiator_requirements": 3,
+    "requirements_met": 5,
+    "baseline_met": 4,
+    "differentiator_met": 1,
+    "strengths_count": 5,
+    "gaps_count": 5,
+    "critical_gaps": 3
+  },
+  "fit_score_revised_by_reviewer": true,
+  "fit_score_revision_note": "Revised 5 → 6 after candidate evidence added for 1 gap(s)."
+}

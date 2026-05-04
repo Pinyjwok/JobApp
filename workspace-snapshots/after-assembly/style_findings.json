@@ -1,0 +1,81 @@
+{
+  "seniority": {
+    "level": "Mid-Level",
+    "title_bucket": "Board Member / Co-Founder",
+    "years_experience": 4.8,
+    "evidence": "Board Member / Co-Founder Aug 2021 – Present"
+  },
+  "register": "direct-practical",
+  "sector": "Technology",
+  "style_patterns": {
+    "tense": "mixed",
+    "voice": "active",
+    "bullet_format": "verb-led",
+    "avg_bullet_word_count": 19,
+    "sentence_structure": "Action-verb-led bullets with multi-clause detail and measurable outcomes",
+    "formality_level": "formal",
+    "uses_pronouns_i": false,
+    "uses_full_sentences": false,
+    "examples": [
+      "Delivered structured programming instruction across multiple Melbourne schools, teaching JavaScript, C, Java and Python to 12–20 students per session",
+      "Architected a server-side routing engine to dispatch 16 specialised agents based on pipeline state, eliminating race conditions and reducing latency from LLM-based routing",
+      "Planned and delivered community programs engaging 500+ youth across multiple Victorian suburbs, supporting leadership development, engagement, and wellbeing initiatives"
+    ]
+  },
+  "flagged_issues": [
+    {
+      "id": "issue_001",
+      "category": "formatting",
+      "severity": "high",
+      "description": "Header line contains non-standard separator characters that can break ATS/contact parsing.",
+      "original": "Pinyjwok Amum  0431-191-158 # pjamum@gmail.com ï linkedin.com/pinyjwok-amum",
+      "suggested": "Pinyjwok Amum | 0431-191-158 | pjamum@gmail.com | linkedin.com/pinyjwok-amum"
+    },
+    {
+      "id": "issue_002",
+      "category": "tense",
+      "severity": "medium",
+      "description": "Current role uses past tense construction; present-tense phrasing would improve consistency for ongoing responsibilities.",
+      "original": "Planned and delivered community programs engaging 500+ youth across multiple Victorian suburbs, supporting leadership development, engagement, and wellbeing initiatives",
+      "suggested": "Plan and deliver community programs engaging 500+ youth across multiple Victorian suburbs, supporting leadership development, engagement, and wellbeing initiatives"
+    },
+    {
+      "id": "issue_003",
+      "category": "tense",
+      "severity": "medium",
+      "description": "Current project entry marked Present uses past-tense opening verb.",
+      "original": "Collaborated with a Product Owner and senior engineering consultant to design a 15-phase multi-agent orchestration system for generating ATS-compliant job application materials",
+      "suggested": "Collaborate with a Product Owner and senior engineering consultant to design a 15-phase multi-agent orchestration system for generating ATS-compliant job application materials"
+    },
+    {
+      "id": "issue_004",
+      "category": "verbose",
+      "severity": "low",
+      "description": "Bullet is information-dense and can be tightened for faster recruiter scanning.",
+      "original": "Led the Intergenerational Conversations Youth Conference, facilitating structured dialogue between youth and community elders on mental health and community issues, achieving 50+ attendees and 4.5/5 satisfaction rating",
+      "suggested": "Led the Intergenerational Conversations Youth Conference, facilitating dialogue between youth and community elders on mental health and community issues; achieved 50+ attendees and a 4.5/5 satisfaction rating"
+    },
+    {
+      "id": "issue_005",
+      "category": "formatting",
+      "severity": "medium",
+      "description": "Hyphenated compound adjective contains spacing error.",
+      "original": "high- performing consultants",
+      "suggested": "high-performing consultants"
+    },
+    {
+      "id": "issue_006",
+      "category": "formatting",
+      "severity": "medium",
+      "description": "Hyphenated time expression contains spacing error.",
+      "original": "30- year history",
+      "suggested": "30-year history"
+    }
+  ],
+  "source_files": {
+    "cv": "cv_raw.txt",
+    "cover_letter": "cover_letter_sample.txt"
+  },
+  "analyzed_at": "2026-05-04T00:00:00Z",
+  "analyzer_version": "4.1"
+}

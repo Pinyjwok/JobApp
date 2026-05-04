@@ -1,0 +1,29 @@
+{
+  "phase_number": 1,
+  "phase_name": "Style Negotiation",
+  "agent": "Style Negotiator",
+  "status": "COMPLETE",
+  "completed_at": "2026-05-04T00:00:00Z",
+  "data": {
+    "agreed_overrides": {
+      "tense_consistency": "Past tense for all roles except current position",
+      "action_verb_intensity": "Use assertive action verbs — avoid passive voice and weak constructions",
+      "bold_achievements": "Bold numeric metrics and key results in work history bullets",
+      "cv_density": "Keep CV to 2 pages max — cut verbose phrasing and redundant responsibilities",
+      "improve_conciseness": "Refine long bullets (over 18 words) for scan-speed readability",
+      "cl_hook_style": "Impact-driven opening — lead with a specific achievement, not a generic application statement",
+      "cl_signoff": "Modern sign-off: \"Best regards\" or \"Kind regards\""
+    },
+    "negotiation_outcome": "OVERRIDES_APPLIED",
+    "negotiation_summary": "7 override(s) applied across 4 style dimension(s). 0 kept as-is. 0 customised. Outcome: OVERRIDES_APPLIED.",
+    "original_style": {
+      "tense": "mixed",
+      "voice": "active",
+      "bullet_format": "verb-led",
+      "uses_pronouns_i": false,
+      "uses_full_sentences": false,
+      "formality_level": "formal"
+    },
+    "user_confirmed": true
+  }
+}

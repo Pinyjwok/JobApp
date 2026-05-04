@@ -1,0 +1,139 @@
+{
+  "personal_info": {
+    "name": "Pinyjwok (Piny) Amum",
+    "contact": {
+      "email": "pjamum@gmail.com",
+      "phone": "0431-191-158",
+      "location": "Melbourne, VIC",
+      "linkedin": "linkedin.com/pinyjwok-amum",
+      "github": "",
+      "portfolio": ""
+    }
+  },
+  "professional_summary": "AI Engineer and Technical Lead with experience in multi-agent orchestration systems, state-driven engines, and full-stack development. Demonstrated leadership as a Co-Founder of a multicultural youth foundation and experience in technical mentorship. Proficient in React, Node.js, and .NET, with a focus on scalable architecture and secure coding.",
+  "work_history": [
+    {
+      "employer": "Multi-Agent ATS Orchestration System",
+      "position": "AI Engineer, Technical Lead",
+      "employment_type": "Contract/Full-time",
+      "start_date": "Nov 2025",
+      "end_date": "Present",
+      "duration_years": 0.0,
+      "responsibilities": [
+        "Collaborated with Product Owner to design 15-phase multi-agent orchestration system",
+        "Designed and implemented a state-driven orchestration engine to coordinate 16 specialised agents",
+        "Built modular agent services with JSON-based state contracts",
+        "Optimised research pipeline using Tavily API, reducing token usage by 60%",
+        "Implemented parallel execution across 5 agents",
+        "Developed QA mechanisms for pipeline output validation"
+      ],
+      "achievements": [
+        "Successfully eliminated race conditions in multi-step LLM workflows",
+        "Improved system throughput through concurrent processing"
+      ]
+    },
+    {
+      "employer": "Digimaker",
+      "position": "Coding Mentor Intern",
+      "employment_type": "Internship",
+      "start_date": "Jul 2025",
+      "end_date": "Dec 2025",
+      "duration_years": 0.4,
+      "responsibilities": [
+        "Delivered structured programming instruction in Melbourne schools",
+        "Taught JavaScript, C, Java, and Python to groups of 12-20 students",
+        "Provided hands-on debugging and technical problem-solving support"
+      ],
+      "achievements": []
+    },
+    {
+      "employer": "OYITI Foundation for Multicultural Youth",
+      "position": "Board Member / Co-Founder",
+      "employment_type": "Volunteer/Leadership",
+      "start_date": "Aug 2021",
+      "end_date": "Present",
+      "duration_years": 3.7,
+      "responsibilities": [
+        "Planned and delivered community programs for 500+ youth",
+        "Led the Intergenerational Conversations Youth Conference",
+        "Facilitated dialogue between youth and elders on mental health"
+      ],
+      "achievements": [
+        "Achieved 50+ attendees and 4.5/5 satisfaction rating for youth conference"
+      ]
+    }
+  ],
+  "skills": {
+    "core_competencies": [
+      "System Design",
+      "Agent-based Architectures",
+      "API Design",
+      "Agile/Scrum",
+      "Test-Driven Development (TDD)",
+      "Secure Coding"
+    ],
+    "technical_skills": [
+      "Python",
+      "C#",
+      "JavaScript (ES6+)",
+      "TypeScript",
+      "React",
+      ".NET 6",
+      "Node.js",
+      "Express",
+      "PostgreSQL",
+      "Supabase",
+      "AWS (EC2)",
+      "REST APIs",
+      "HTML5",
+      "CSS3",
+      "Git/GitHub",
+      "Postman"
+    ],
+    "soft_skills": [
+      "Technical Leadership",
+      "Mentorship",
+      "Problem Solving",
+      "Community Engagement",
+      "Dialogue Facilitation"
+    ],
+    "certifications": [],
+    "languages": [
+      "English"
+    ]
+  },
+  "education": [
+    {
+      "institution": "Deakin University",
+      "qualification": "Bachelor of Science",
+      "field_of_study": "Computer Science",
+      "completion_date": "Feb 2026",
+      "grade": ""
+    }
+  ],
+  "publications": [],
+  "grants": [],
+  "awards": [],
+  "additional_information": {
+    "memberships": [],
+    "volunteer": [
+      {
+        "organisation": "OYITI Foundation for Multicultural Youth",
+        "role": "Co-Founder / Board Member",
+        "period": "Aug 2021 – Present"
+      }
+    ],
+    "projects": [
+      {
+        "title": "NOCODEJAM",
+        "description": "Full-stack challenge submission and badge system using React, TypeScript, Supabase, and PostgreSQL.",
+        "period": "Jul 2025 – Oct 2025"
+      },
+      {
+        "title": "Robot Controller",
+        "description": "Full-stack robot management platform with RBAC and RESTful API using .NET 6 and React.",
+        "period": "Mar 2025 – Jun 2025"
+      }
+    ]
+  }
+}

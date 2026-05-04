@@ -1,0 +1,110 @@
+{
+  "metadata": {
+    "reviewed_at": "2026-05-04T00:00:00Z",
+    "reviewer_version": "3.0",
+    "analyst_version": "2.10",
+    "candidate_backed_gaps": 1,
+    "fit_score_revised": true
+  },
+  "overall_verdict": "APPROVED",
+  "rejection_reason": null,
+  "issues_found": [],
+  "approved_items": [
+    {
+      "category": "Strength",
+      "item_id": "strength_2",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_4",
+      "confidence_level": 4
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_4",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_5",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "pref_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "pref_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "pref_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_4",
+      "confidence_level": 5
+    }
+  ],
+  "summary": {
+    "total_items_audited": 36,
+    "total_issues": 0,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 0,
+    "low_issues": 0,
+    "approved_items": 17,
+    "unresolved_issues": 0,
+    "user_backed_items": 0
+  }
+}

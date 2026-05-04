@@ -9,8 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **CV Optimization Multi-Agent System** - A KEMU-based workflow that transforms raw CV and job description files into tailored, ATS-compliant application materials through a 15-phase pipeline.
 
 - **Platform:** KEMU (turn-based agent execution)
-- **Routing:** Status-based using `project_memory.json.status` — simple switch statement, NO global variables
-- **Routing Tool:** `ChangeAgent(agent: ...)` — SwitchAgent does not exist
+- **Routing:** Server-owned `pipelineStatus` in-memory variable — agents call `set_status()` tool; server onChange drives all transitions. `project_memory.json` eliminated.
+- **Routing Tool:** `SwitchAgent(target: ...)` — ChangeAgent does not exist (MO exception: `ChangeAgent` used in MO only)
 - **Tech Stack:** JSON state management, file-based context passing, evidence-based gap analysis
 
 ---
@@ -20,23 +20,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### ✅ All Agents Complete
 | Agent | Version | File |
 |-------|---------|------|
-| Main Orchestrator | v5.6 | `main_orchestrator_agent_instructions.md` |
-| ProjectSetup | v1.14 | `project_setup_agent_instructions.md` |
-| Extractor | v2.3 | `extractor_agent_instructions.md` |
-| Researcher | v2.0 | `researcher_agent_instructions.md` |
-| JD Enhancer | v1.5 | `jd_enhancer_instructions.md` |
-| Analyst | v2.5 | `analyst_agent_instructions.md` |
-| Reviewer | v3.2 | `reviewer_agent_instructions.md` |
-| Tone Analyst | v3.1 | `tone_analyst_agent_instructions.md` |
-| Assembly Coordinator | v4.1 | `assembly_coordinator_agent_instructions.md` |
-| Style Negotiator | v1.9 | `style_negotiator_instructions.md` |
-| Profile Builder | v1.8 | `profile_builder_instructions.md` |
-| Skills Curator | v1.8 | `skills_curator_agent_instructions.md` |
-| History Formatter | v1.7 | `history_formatter_agent_instructions.md` |
-| Credentials Formatter | v1.8 | `credentials_formatter_agent_instructions.md` |
-| CoverLetter Writer | v1.6 | `coverletter_writer_agent_instructions.md` |
-| Style Reviewer | v1.5 | `style_reviewer_agent_instructions.md` |
-| Integrity Checker | v1.8 | `integrity_checker_agent_instructions.md` |
+| Main Orchestrator | v5.7 | `main_orchestrator_agent_instructions.md` |
+| ProjectSetup | v1.17 | `project_setup_agent_instructions.md` |
+| Extractor | v2.4 | `extractor_agent_instructions.md` |
+| Researcher | v2.1 | `researcher_agent_instructions.md` |
+| JD Enhancer | v1.6 | `jd_enhancer_instructions.md` |
+| Analyst | v2.11 | `analyst_agent_instructions.md` |
+| Reviewer | v3.4 | `reviewer_agent_instructions.md` |
+| Tone Analyst | v4.1 | `tone_analyst_agent_instructions.md` |
+| Assembly Coordinator | v4.2 | `assembly_coordinator_agent_instructions.md` |
+| Style Negotiator | v2.2 | `style_negotiator_instructions.md` |
+| Profile Builder | v2.2 | `profile_builder_instructions.md` |
+| Skills Curator | v2.1 | `skills_curator_agent_instructions.md` |
+| History Formatter | v2.2 | `history_formatter_agent_instructions.md` |
+| Credentials Formatter | v2.1 | `credentials_formatter_agent_instructions.md` |
+| CoverLetter Writer | v2.0 | `coverletter_writer_agent_instructions.md` |
+| Style Reviewer | v2.1 | `style_reviewer_agent_instructions.md` |
+| Integrity Checker | v2.1 | `integrity_checker_agent_instructions.md` |
+| Document Formatter | v1.1 | `document_formatter_agent_instructions.md` |
 
 ### ✅ TC05 Fixes Applied (2026-04-03) — 14 changes
 
@@ -238,7 +239,8 @@ All fixes from `TC06_Developer_Brief.md`. Full details in `.general/tests/TC06_D
 | Agent | Version | Reason |
 |-------|---------|--------|
 | Reviewer | v3.2 | Gap interview is user-visible multi-turn conversation — Gemini produces clean prose, no jargon leak |
-| Tone Analyst | v3.2 | Schema compliance under long instruction file; user-facing style interview |
+| Tone Analyst | v4.0 | Background forensic analyzer — single turn, zero user output, writes style_findings.json |
+| Style Negotiator | v2.0 | User-facing corrections + format negotiation; reads style_findings.json, writes style_guide.json |
 | Assembly Coordinator | v4.1 | ZERO OUTPUT enforcement, exception routing, completion writes |
 | Integrity Checker | v1.8 | Strict PASSED/FAILED gate, fabrication detection |
 
@@ -253,7 +255,7 @@ All fixes from `TC06_Developer_Brief.md`. Full details in `.general/tests/TC06_D
 | Agent | Version |
 |-------|---------|
 | Main Orchestrator | v5.4 |
-| ProjectSetup | v1.14 |
+| ProjectSetup | v1.16 |
 | Extractor | v2.2 |
 | Researcher | v2.0 |
 | JD Enhancer | v1.5 |
@@ -295,21 +297,23 @@ All fixes from `TC06_Developer_Brief.md`. Full details in `.general/tests/TC06_D
 
 ```
 Express Server (server/routes/pipeline.js) — status router
-├─ Main Pipeline (server pre-routes before each message)
-│  ├─ ProjectSetup → Extractor → Researcher → JD Enhancer   [Flash 3]
-│  └─ Analyst [Pro 2.5] → Reviewer [Pro 2.5] → Tone Analyst [Pro 2.5]
+├─ Main Pipeline (event-driven, not message-driven)
+│  ├─ ProjectSetup → Extractor → Researcher → [Confirm gate] → JD Enhancer   [Flash 3]
+│  ├─ JD_ENHANCED forks: Analyst (background) [Haiku 4.5] + Tone Analyst (background) [Pro 2.5]
+│  └─ checkJoin() → Reviewer [Pro 2.5] (after both analystDone + taDone)
 │
-└─ Assembly Coordinator v3.10 [Pro 2.5] (sub-orchestrator, self-routing)
-   ├─ Style Negotiator      (Phase 1) [Flash 3]
-   ├─ Profile Builder       (Phase 2) [Flash 3]
-   ├─ Skills Curator        (Phase 3) [Flash 3]
-   ├─ History Formatter     (Phase 4) [Flash 3]
-   ├─ Credentials Formatter (Phase 5) [Flash 3]
-   ├─ CoverLetter Writer    (Phase 6) [Flash 3]
+└─ Assembly Coordinator v4.1 [Pro 2.5] (sub-orchestrator)
+   ├─ Style Negotiator      (Phase 1) [Pro 2.5] — corrections + format + writes style_guide.json
+   ├─ Profile Builder       (Phase 2) [Flash 3]  → pb_output.json
+   ├─ Skills Curator        (Phase 3) [Flash 3]  → sc_output.json  } parallel
+   ├─ History Formatter     (Phase 4) [Flash 3]  → hf_output.json  }
+   ├─ Credentials Formatter (Phase 5) [Flash 3]  → cf_output.json  }
+   ├─ CoverLetter Writer    (Phase 6) [Flash 3]  → clw_output.json }
+   ├─ checkAssemblyJoin() merges 5 files → cv_assembly_state.json
    ├─ Style Reviewer        (Phase 7) [Flash 3]
    └─ Integrity Checker     (Phase 8) [Pro 2.5]
 
-Main Orchestrator v5.5 [Flash 3] — exception handler only
+Main Orchestrator v5.6 [Flash 3] — exception handler only
   Invoked for: REVIEW_FAILED, RESEARCH_FAILED, ANALYSIS_FAILED, EXTRACTION_FAILED, CV_TAILORED
   NOT invoked for any happy-path transition
 ```
@@ -323,11 +327,12 @@ Main Orchestrator v5.5 [Flash 3] — exception handler only
 const HAPPY_PATH = {
   'FILES_SAVED':        'Extractor',
   'INITIALIZED':        'Researcher',
-  'RESEARCH_COMPLETE':  'JD Enhancer',
+  // RESEARCH_COMPLETE → NOT in HAPPY_PATH — server gates with Confirm/Redo buttons
+  // After confirm → fires JD Enhancer directly (research_pre_confirm handler)
   'RESEARCH_PARTIAL':   'Main Orchestrator',  // surfaces to user
-  'JD_ENHANCED':        'Analyst',
-  'ANALYSIS_COMPLETE':  'Reviewer',
-  'REVIEW_COMPLETE':    'Tone Analyst',
+  'JD_ENHANCED':        'Analyst',            // also fires Tone Analyst in parallel (both background)
+  'ANALYSIS_COMPLETE':  'Reviewer',           // after checkJoin (analystDone + taDone)
+  'REVIEW_COMPLETE':    'Assembly Coordinator',
   'TONE_ANALYZED':      'Assembly Coordinator',
   'CV_BUILDING':        'Assembly Coordinator',
 };
@@ -351,7 +356,7 @@ const EXCEPTION_STATUSES = new Set([
 Phase agents return directly to **Assembly Coordinator** (not Main Orchestrator). Assembly Coordinator reads `current_phase` and routes to the next phase agent, looping until all 8 phases are done.
 
 ```
-Phase Agent → ChangeAgent(agent: "Assembly Coordinator")
+Phase Agent → SwitchAgent(target: "Assembly Coordinator")
 Assembly Coordinator: reads current_phase → ChangeAgent(agent: "Next Phase Agent")
 ```
 
@@ -368,7 +373,8 @@ Main Orchestrator's `CV_BUILDING` case only triggers for genuine exception re-en
 | `cv_assembly_state.json` | Assembly phases array, current_phase, status | ProjectSetup |
 | `cv_raw.txt` | User's uploaded CV (read-only after creation) | ProjectSetup |
 | `jd_raw.txt` | Job description (read-only after creation) | ProjectSetup |
-| `style_guide.json` | Writing style analysis | Tone Analyst |
+| `style_findings.json` | Forensic style analysis (patterns + flagged issues) | Tone Analyst v4.0 |
+| `style_guide.json` | Agreed style rules after corrections sign-off | Style Negotiator v2.0 |
 
 ---
 
@@ -409,7 +415,7 @@ Send any message to continue.
 // Just write status to project_memory.json, display completion, wait.
 
 // Assembly phase agents return to Assembly Coordinator:
-ChangeAgent(agent: "Assembly Coordinator")
+SwitchAgent(target: "Assembly Coordinator")
 ```
 
 **Server-side routing flow:**
@@ -497,8 +503,8 @@ Initialized by ProjectSetup v1.6, read by Assembly Coordinator and all phase age
 ## Status Progression
 
 ```
-FILES_SAVED → INITIALIZED → RESEARCH_COMPLETE → JD_ENHANCED
-→ ANALYSIS_COMPLETE → REVIEW_COMPLETE → TONE_ANALYZED
+FILES_SAVED → INITIALIZED → RESEARCH_COMPLETE → RESEARCH_CONFIRM → JD_ENHANCED
+→ ANALYSIS_COMPLETE (join: Analyst + Tone Analyst) → REVIEW_COMPLETE
 → CV_BUILDING → CV_TAILORED
 ```
 
@@ -560,7 +566,7 @@ WriteFile("cv_assembly_state.json", JSON.stringify(cvState, null, 2))
 ---
 Send any message to continue.
 
-ChangeAgent(agent: "Assembly Coordinator")
+SwitchAgent(target: "Assembly Coordinator")
 
 ## ⚠️ Critical Rules
 1. Bare filenames, no leading slashes
@@ -616,28 +622,29 @@ const INVALIDATION = {
 
 | File | Agent | Version |
 |------|-------|---------|
-| `.general/instructions/main_orchestrator_agent_instructions.md` | Main Orchestrator | v5.5 |
-| `.general/instructions/project_setup_agent_instructions.md` | ProjectSetup | v1.14 |
-| `.general/instructions/extractor_agent_instructions.md` | Extractor | v2.2 |
-| `.general/instructions/researcher_agent_instructions.md` | Researcher | v1.9 |
-| `.general/instructions/jd_enhancer_instructions.md` | JD Enhancer | v1.5 |
-| `.general/instructions/analyst_agent_instructions.md` | Analyst | v2.3 |
-| `.general/instructions/reviewer_agent_instructions.md` | Reviewer | v2.3 |
-| `.general/instructions/tone_analyst_agent_instructions.md` | Tone Analyst | v2.1 |
+| `docs/instructions/main_orchestrator_agent_instructions.md` | Main Orchestrator | v5.6 |
+| `docs/instructions/project_setup_agent_instructions.md` | ProjectSetup | v1.16 |
+| `docs/instructions/extractor_agent_instructions.md` | Extractor | v2.3 |
+| `docs/instructions/researcher_agent_instructions.md` | Researcher | v2.0 |
+| `docs/instructions/jd_enhancer_instructions.md` | JD Enhancer | v1.5 |
+| `docs/instructions/analyst_agent_instructions.md` | Analyst | v2.8 |
+| `docs/instructions/reviewer_agent_instructions.md` | Reviewer | v3.2 |
+| `docs/instructions/tone_analyst_agent_instructions.md` | Tone Analyst | v4.0 |
 
 **Assembly Phase:**
 
 | File | Agent | Version |
 |------|-------|---------|
-| `.general/instructions/assembly/assembly_coordinator_agent_instructions.md` | Assembly Coordinator | v3.10 |
-| `.general/instructions/assembly/style_negotiator_instructions.md` | Style Negotiator | v1.6 |
-| `.general/instructions/assembly/profile_builder_instructions.md` | Profile Builder | v1.6 |
-| `.general/instructions/assembly/skills_curator_agent_instructions.md` | Skills Curator | v1.6 |
-| `.general/instructions/assembly/history_formatter_agent_instructions.md` | History Formatter | v1.5 |
-| `.general/instructions/assembly/credentials_formatter_agent_instructions.md` | Credentials Formatter | v1.6 |
-| `.general/instructions/assembly/coverletter_writer_agent_instructions.md` | CoverLetter Writer | v1.4 |
-| `.general/instructions/assembly/style_reviewer_agent_instructions.md` | Style Reviewer | v1.5 |
-| `.general/instructions/assembly/integrity_checker_agent_instructions.md` | Integrity Checker | v1.8 |
+| `docs/instructions/assembly/assembly_coordinator_agent_instructions.md` | Assembly Coordinator | v4.1 |
+| `docs/instructions/assembly/style_negotiator_instructions.md` | Style Negotiator | v2.2 |
+| `docs/instructions/assembly/profile_builder_instructions.md` | Profile Builder | v2.0 |
+| `docs/instructions/assembly/skills_curator_agent_instructions.md` | Skills Curator | v2.0 |
+| `docs/instructions/assembly/history_formatter_agent_instructions.md` | History Formatter | v2.0 |
+| `docs/instructions/assembly/credentials_formatter_agent_instructions.md` | Credentials Formatter | v2.0 |
+| `docs/instructions/assembly/coverletter_writer_agent_instructions.md` | CoverLetter Writer | v2.0 |
+| `docs/instructions/assembly/style_reviewer_agent_instructions.md` | Style Reviewer | v2.0 |
+| `docs/instructions/assembly/integrity_checker_agent_instructions.md` | Integrity Checker | v2.0 |
+| `docs/instructions/assembly/document_formatter_agent_instructions.md` | Document Formatter | v1.0 |
 
 ---
 
@@ -662,23 +669,19 @@ If the user says "continue the test run", "resume testing", or invokes `/test-ag
 5. Append findings to `.general/tc_running_log.md` using sequential bug IDs (check log for last ID used).
 6. Show a compact summary ending with the running total.
 
-### Current test run state (as of last context)
+### Current test run state (as of 2026-05-02)
 
-TC03 complete. Running log cleared. Brief at `.general/TC03_Developer_Brief.md`.
+TC08 was last active run (reached Analyst re-run). TC09 is next.
 
 | Item | Value |
 |------|-------|
-| Running log | `.general/tc_running_log.md` (cleared — ready for TC04) |
-| Last bug ID logged | BUG-80 |
-| TC03 total | 80 bugs (7 P0, 27 P1, 28 P2, 18 P3) |
-| Pipeline reached | CV_TAILORED — full end-to-end completion |
-| TC03 verdict | 4.5/10 — FAIL |
+| Last completed run | TC08 — reached Analyst re-run, aborted |
+| Last bug ID logged | BUG-126 |
+| TC08 bugs | 24 (BUG-103–126) |
 
-### Before TC04 — priority actions
+### Before TC09 — priority actions
 
-All instructions confirmed active on KEMU during TC03. BUG-03 and BUG-40 are model compliance failures — not upload gaps.
-
-1. **Model compliance mitigation** — test stop_sequence or tool-call-only mode for MO and AC to suppress routing narration (BUG-03, BUG-40)
-2. **Fix AC Phase 3 field names** — `styleReviewData.passed` → `style_compliance === "PASS"`, `integrityData.passed` → `integrity_status === "PASSED"`, `historyData.length` / `credentialsData.length` → object presence checks (BUG-81, 82, 83)
-3. **Fix MO title header** — still says "Orchestrator Agent v3.5" despite v3.6 content (BUG-84)
-4. **Instruction fixes (P0/P1)** — see TC03 Priority 2 list in TC03_Developer_Brief.md
+1. **Fix Analyst v2.5** — publications guard, grants evidence scan, `candidate_provided_evidence: []` init, delete stale `review_audit` on re-run (BUG-120/121/123/124)
+2. **Fix Reviewer v2.5** — score recalculation must sum baseline + differentiator (BUG-122)
+3. **Upload to KEMU** — all updated agent instructions
+4. **Verify OpenRouter key limit** — must be >65536 tokens (KEMU hardcodes max_tokens:65536)

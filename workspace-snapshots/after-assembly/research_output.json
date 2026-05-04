@@ -1,0 +1,51 @@
+{
+  "research_data": {
+    "mission_values": "DXC Technology operates with a 'people first' mindset, prioritizing flexibility and diversity. They emphasize delivering mission-critical IT services that 'move the world' and are committed to innovation and value. Core values include radical inclusion, with specific focus areas for Aboriginal and Torres Strait Islander people, neurodiverse individuals, and the LGBTQIA+ community through their DXC Accommodation Policy.",
+    "culture_overview": "DXC maintains a 'virtual-first' approach, allowing teams to work across multiple geographies with high flexibility. The company was recently ranked 23rd on Comparably's list of Best Global Company Culture. The environment is described as team-centered and collaborative, focusing on potential and 'mindset' (curiosity, adaptability) rather than just pedigree. Trust and mentorship are built into the onboarding process from day one.",
+    "recent_developments": [
+      "Ranked #23 for Best Global Company Culture by Comparably, ahead of major tech peers.",
+      "Introduced AMBER, a next-generation automotive software platform, at CES 2026.",
+      "Achieved productivity gains of over 90% in specific roles through the successful integration of neurodivergent talent.",
+      "Expansion of the ANZ Graduate Program with a focus on 'Early Careers' certification pathways in Cloud and AI."
+    ],
+    "key_strengths": [
+      "Leading global enterprise technology and innovation partner for public and private sectors.",
+      "Deep expertise in Managed Infrastructure Services and Application Modernization.",
+      "Award-winning corporate culture and highly rated employee engagement.",
+      "Strong commitment to cognitive diversity and workplace flexibility."
+    ],
+    "known_challenges": [
+      "Managing complex technology estates during a period of rapid AI-driven transformation.",
+      "Global hiring recalibrations and evolving IT job landscapes in 2025.",
+      "Maintaining high-security standards across a fully virtual-first workforce."
+    ],
+    "strategic_plan": "DXC's strategy centers on modernization, securing, and operating complex technology estates while harnessing AI to drive customer outcomes. The company is committed to a 'virtual first' operational model and invests heavily in internal training and certification (e.g., Azure and AWS) to ensure the workforce remains competitive during exponential technological change.",
+    "interview_focus": "Interviews for the Graduate Program likely focus on behavioral alignment with the 'people-first' culture and technical potential. Key attributes include adaptability, curiosity, and a team-first mindset. For Software Engineering streams, technical competency in design, development, and testing is assessed alongside the candidate's drive for continuous learning and professional development.",
+    "hiring_unit": "Graduate Program",
+    "hiring_unit_intelligence": "The DXC Graduate Program is a structured 12-month journey characterized by early-career mentorship via a dedicated 'people manager' and 'buddy'. The unit has a strong culture of internal recognition (Amethyst, Emerald, and Ruby Awards) and encourages rapid certification; new hires often clear primary cloud certifications (Azure Fundamentals/Administrator) within their first year. The program specifically values neurodiversity, citing it as a major driver of team productivity.",
+    "data_source": "company",
+    "sources": [
+      {
+        "title": "Joshua Green Msc - Azure Engineer at DXC Technology",
+        "url": "https://uk.linkedin.com/in/joshua-green-msc-087311140",
+        "origin": "company"
+      },
+      {
+        "title": "Innovative Hiring Practices (DXC Mentions)",
+        "url": "https://www.linkedin.com/top-content/innovation/innovation-talent-acquisition/innovative-hiring-practices/",
+        "origin": "company"
+      },
+      {
+        "title": "Abhiyu Jaiswal - DXC Internal Awards",
+        "url": "https://in.linkedin.com/in/abhiyu",
+        "origin": "company"
+      },
+      {
+        "title": "DXC Technology (NYSE: DXC) Overview",
+        "url": "https://www.dxc.com",
+        "origin": "company"
+      }
+    ]
+  },
+  "completed_at": "2025-05-14T10:15:00Z"
+}

@@ -1,0 +1,60 @@
+{
+  "groups": [
+    {
+      "id": "formatting",
+      "title": "Formatting & Bullet Style",
+      "finding": "5 punctuation/tense issue(s)",
+      "examples": [
+        "\"Pinyjwok Amum  0431-191-158 # pjamum@gmail.com ï linkedin.com/pinyjwok-amum\"",
+        "\"Planned and delivered community programs engaging 500+ youth across multiple Victorian suburbs, supporting leadership development, engagement, and wellbeing initiatives\""
+      ],
+      "recommendation": "Telegraphic bullets: action verb + object, no trailing period, no \"I\". Consistent past tense for previous roles, present for current. This maximises ATS compatibility and recruiter scan speed.",
+      "recommended_overrides": {
+        "tense_consistency": "Past tense for all roles except current position"
+      }
+    },
+    {
+      "id": "linguistic",
+      "title": "Linguistic Strength",
+      "finding": "verbose phrasing",
+      "examples": [
+        "\"Led the Intergenerational Conversations Youth Conference, facilitating structured dialogue between youth and community elders on mental health and community issues, achieving 50+ attendees and 4.5/5 satisfaction rating\""
+      ],
+      "recommendation": "High-impact action verbs (Spearheaded, Architected, Delivered) over passive constructions. Concise phrasing — remove filler words. Bold key metrics: **30% cost reduction**, **$2M pipeline**.",
+      "recommended_overrides": {
+        "action_verb_intensity": "Use assertive action verbs — avoid passive voice and weak constructions",
+        "bold_achievements": "Bold numeric metrics and key results in work history bullets"
+      }
+    },
+    {
+      "id": "structural",
+      "title": "Structural & Visual Density",
+      "finding": "avg bullet length 19 words (target: under 18); 1 verbose phrasing issue(s) flagged",
+      "examples": [
+        "\"Led the Intergenerational Conversations Youth Conference, facilitating structured dialogue between youth and community elders on mental health and community issues, achieving 50+ attendees and 4.5/5 satisfaction rating\""
+      ],
+      "recommendation": "Curated 1–2 page CV with bullets under 18 words. Cut filler: \"responsible for\", \"helped to\", \"assisted with\". Recruiters spend ~6 seconds on initial scan — density matters.",
+      "recommended_overrides": {
+        "cv_density": "Keep CV to 2 pages max — cut verbose phrasing and redundant responsibilities",
+        "improve_conciseness": "Refine long bullets (over 18 words) for scan-speed readability"
+      }
+    },
+    {
+      "id": "cover_letter",
+      "title": "Cover Letter Style",
+      "finding": "3 style issue(s) in cover letter: Header line contains non-standard separator characters that can break ATS/contact parsing.; Hyphenated compound adjective contains spacing error.; Hyphenated time expression contains spacing error.",
+      "examples": [
+        "\"Pinyjwok Amum  0431-191-158 # pjamum@gmail.com ï linkedin.com/pinyjwok-amum\"",
+        "\"high- performing consultants\""
+      ],
+      "recommendation": "Impact-driven opening: lead with a specific achievement or insight, not \"I am writing to apply…\". Modern sign-off: \"Best regards\" or \"Kind regards\" over \"Yours sincerely\".",
+      "recommended_overrides": {
+        "cl_hook_style": "Impact-driven opening — lead with a specific achievement, not a generic application statement",
+        "cl_signoff": "Modern sign-off: \"Best regards\" or \"Kind regards\""
+      }
+    }
+  ],
+  "current_idx": 0,
+  "decisions": {},
+  "pending_customise": null
+}

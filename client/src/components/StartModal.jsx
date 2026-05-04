@@ -47,6 +47,7 @@ function FileDropZone({ label, hint, file, onFile }) {
 export function StartModal({ hasHistory, onStart, onResume, uploading = false }) {
   const [cvFile, setCvFile] = useState(null);
   const [jdFile, setJdFile] = useState(null);
+  const [clFile, setClFile] = useState(null);
   const bothReady = cvFile && jdFile;
 
   return (
@@ -82,6 +83,7 @@ export function StartModal({ hasHistory, onStart, onResume, uploading = false })
             <div className="flex flex-col items-center gap-1 text-xs text-slate-400">
               {cvFile && <span>✓ {cvFile.name}</span>}
               {jdFile && <span>✓ {jdFile.name}</span>}
+              {clFile && <span>✓ {clFile.name}</span>}
             </div>
           </div>
         ) : (
@@ -107,11 +109,12 @@ export function StartModal({ hasHistory, onStart, onResume, uploading = false })
             <div className="flex flex-col gap-2.5">
               <FileDropZone label="CV / Resume" hint="PDF or TXT — drag or click" file={cvFile} onFile={setCvFile} />
               <FileDropZone label="Job Description" hint="PDF or TXT — drag or click" file={jdFile} onFile={setJdFile} />
+              <FileDropZone label="Cover Letter (optional)" hint="PDF or TXT — for style matching" file={clFile} onFile={setClFile} />
             </div>
 
             {/* Start button */}
             <button
-              onClick={() => bothReady && onStart(cvFile, jdFile)}
+              onClick={() => bothReady && onStart(cvFile, jdFile, clFile)}
               disabled={!bothReady}
               className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${
                 bothReady

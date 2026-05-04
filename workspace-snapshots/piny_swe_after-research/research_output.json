@@ -1,0 +1,52 @@
+{
+  "research_data": {
+    "mission_values": "DXC Technology is driven by a 'people first' mindset, aiming to use the power of technology to deliver mission-critical IT services that 'move the world.' They emphasize active inclusion and diversity, specifically encouraging applications from Aboriginal and Torres Strait Islander people, neurodiverse individuals, and the LGBTQIA+ community. Their core value proposition centers on delivering true innovation and value through agility and a virtual-first approach to working.",
+    "culture_overview": "The company culture is defined by 'ultimate working flexibility' through a virtual-first model, where teams are spread across diverse geographies. It is a collaborative and agile environment that prioritizes mentorship; every graduate is assigned a dedicated people manager and a 'buddy' from Day 1. The workplace fosters curiosity and an adaptable mindset, balancing high-performance expectations with strong social and cultural networking activities designed to build team cohesion in a remote-heavy landscape.",
+    "recent_developments": [
+      "Recognized as a Global Leader and Rising Star in two ISG Provider Lens™ 2025 reports.",
+      "Achieved Microsoft Gold Partner status for the 3rd consecutive year for excellence in cloud and software design.",
+      "Announced a significant partnership with Carnival Cruise Line to enhance customer experience through digital transformation.",
+      "Appointed Rob Glasgow to lead growth strategy and sales excellence across the APJ region.",
+      "Showcased 'Agentic AI' results in internal Security Operations Centers, reducing ticket triage times by 77%."
+    ],
+    "key_strengths": [
+      "Global leadership in Managed Infrastructure Services and Application Modernization.",
+      "Strong 'Customer Zero' model for validating AI and software solutions internally before client deployment.",
+      "Deep industry-specific software expertise across public and private sectors.",
+      "Robust graduate development framework with a focus on long-term career growth and technical mentorship."
+    ],
+    "known_challenges": [
+      "Operating and securing some of the world’s most complex and legacy technology estates.",
+      "Scaling AI adoption responsibly while ensuring technology enhances rather than replaces human potential.",
+      "Maintaining high levels of employee engagement and culture in a decentralized, virtual-first global structure."
+    ],
+    "strategic_plan": "DXC's 'DXCXponential' strategy focuses on helping customers operationalize AI at scale across multivendor ecosystems. The plan involves strengthening the APJ market presence, deepening Microsoft and AWS partnerships, and continuing to transition toward high-value growth businesses like industry-specific software and modernization services. They are committed to redesigning roles around human-AI collaboration, focusing on empathy and accountability at the core of their engineering output.",
+    "interview_focus": "The recruitment process for the Graduate Software Engineer role focuses heavily on eligibility (AU Citizenship/Permanent Residency) and cultural alignment. Candidates are assessed on their 'questioning mindset' and adaptability to a virtual-first environment. Technical evaluations center on the ability to design, develop, test, and evaluate software. Behavioral questions likely explore commitment to diversity, collaboration within distributed teams, and the ability to leverage feedback from mentors and senior leaders.",
+    "hiring_unit": "ANZ Graduate Program",
+    "hiring_unit_intelligence": "The 12-month program is structured to move graduates from 'Role Basics' to 'Full Contribution' within the first quarter. Data indicates a heavy focus on the first 90 days, including a formal probation review assessed against specific key responsibilities. Graduates in the Software Engineering stream are integrated into the Application Modernization or Industry-Specific Software units. The program emphasizes continuous learning, with opportunities to shadow experienced team members and take on client-facing projects early in the tenure.",
+    "data_source": "company",
+    "sources": [
+      {
+        "title": "DXC Technology | LinkedIn",
+        "url": "https://pr.linkedin.com/company/dxctechnology?trk=ppro_cprof",
+        "origin": "company"
+      },
+      {
+        "title": "Harper Miller - Software/System Engineer at DXC Technology",
+        "url": "https://www.linkedin.com/in/harper-miller-183357174",
+        "origin": "company"
+      },
+      {
+        "title": "How To Land a Grad Software Engineer Job in Australia",
+        "url": "https://tanmaymunigala.com/grad/",
+        "origin": "sector"
+      },
+      {
+        "title": "IT Graduate Salaries In Australia 2025 Guide",
+        "url": "https://careersuccessaustralia.com.au/it-graduate-salaries-in-australia/",
+        "origin": "sector"
+      }
+    ]
+  },
+  "completed_at": "2025-05-14T09:45:00Z"
+}

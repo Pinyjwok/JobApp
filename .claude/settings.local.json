@@ -36,7 +36,9 @@
       "Bash(node --input-type=module)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(node *)",
-      "Bash(xargs sed *)"
+      "Bash(xargs sed *)",
+      "Bash(xargs -I{} cp {} /tmp/ss1.png)",
+      "Bash(xargs -I{} sh -c 'cp \"$1\" \"/tmp/$\\(basename \"$1\" | tr \" \" \"_\"\\)\"' _ {})"
     ]
   }
 }

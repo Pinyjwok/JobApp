@@ -1,0 +1,79 @@
+{
+  "current_phase": 1,
+  "metadata": {
+    "started_at": null,
+    "last_updated": null,
+    "status": "ACTIVE",
+    "total_phases": 8,
+    "completed_phases": 0
+  },
+  "phases": [
+    {
+      "phase_number": 1,
+      "phase_name": "Style Negotiation",
+      "agent": "Style Negotiator",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 2,
+      "phase_name": "Profile Building",
+      "agent": "Profile Builder",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 3,
+      "phase_name": "Skills Curation",
+      "agent": "Skills Curator",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 4,
+      "phase_name": "History Formatting",
+      "agent": "History Formatter",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 5,
+      "phase_name": "Credentials Formatting",
+      "agent": "Credentials Formatter",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 6,
+      "phase_name": "Cover Letter Writing",
+      "agent": "CoverLetter Writer",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 7,
+      "phase_name": "Style Review",
+      "agent": "Style Reviewer",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 8,
+      "phase_name": "Integrity Check",
+      "agent": "Integrity Checker",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    }
+  ],
+  "user_request": null,
+  "final_cv": null,
+  "change_log": []
+}

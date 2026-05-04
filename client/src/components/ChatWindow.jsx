@@ -80,6 +80,20 @@ function AgentBubble({ msg }) {
   const borderColor = AGENT_COLORS[msg.agent] ?? 'border-l-slate-600';
   const dotColor = AGENT_DOT_COLORS[msg.agent] ?? 'bg-slate-600';
 
+  // Compact success tick for PS validation success
+  if (msg.compact && msg.text === 'SETUP_COMPLETE') {
+    return (
+      <div className={`animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 ${borderColor} bg-slate-900/50 text-xs text-slate-400 max-w-[85%]`}>
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+        <span className="font-medium text-slate-400">{msg.agent}</span>
+        <svg className="w-3 h-3 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        <span className="text-slate-500">Files validated</span>
+      </div>
+    );
+  }
+
   // Background agents get a more compact, dimmer style
   if (msg.background) {
     return (

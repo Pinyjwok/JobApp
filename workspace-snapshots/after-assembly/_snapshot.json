@@ -1,0 +1,26 @@
+{
+  "savedAt": "2026-05-04T11:33:32.204Z",
+  "status": "REVIEW_COMPLETE",
+  "files": [
+    "candidate_profile.json",
+    "cf_output.json",
+    "clw_output.json",
+    "cover_letter_sample.txt",
+    "cv_assembly_state.json",
+    "cv_raw.txt",
+    "df_output.json",
+    "enhanced_jd.json",
+    "gap_analysis.json",
+    "hf_output.json",
+    "jd_raw.txt",
+    "pb_output.json",
+    "project_meta.json",
+    "research_output.json",
+    "review_audit.json",
+    "sc_output.json",
+    "sn_output.json",
+    "sn_working.json",
+    "style_findings.json",
+    "tailored_cv.json"
+  ]
+}

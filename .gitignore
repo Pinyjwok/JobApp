@@ -26,8 +26,9 @@ personas/
 #testing screenshots
 images/
 
-#testing temp workspace
+#testing snapshot workspace
 temp/
+workspace-snapshot/
 
 #docker
 .dockerignore

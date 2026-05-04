@@ -1,0 +1,149 @@
+{
+  "personal_info": {
+    "name": "Pinyjwok Amum",
+    "alternate_name": "",
+    "contact": {
+      "email": "pjamum@gmail.com",
+      "phone": "0431-191-158",
+      "location": "Melbourne, VIC",
+      "linkedin": "linkedin.com/pinyjwok-amum",
+      "portfolio": "",
+      "github": ""
+    }
+  },
+  "professional_summary": "Computer Science student and aspiring Software Engineer with experience in teaching programming, co-founding community-focused foundations, and developing full-stack applications. Proven track record in designing modular system architectures, securing government funding, and delivering structured technical instruction. Skilled in React, Node.js, and .NET, with a strong focus on building scalable, user-centric solutions.",
+  "work_history": [
+    {
+      "employer": "AI Job Application Pipeline",
+      "position": "Lead Developer / Architect",
+      "employment_type": "Project",
+      "start_date": "Feb 2026",
+      "end_date": "Present",
+      "duration_years": 0.0,
+      "responsibilities": [
+        "Collaborated with a Product Owner and senior engineering consultant to design a 15-phase multi-agent orchestration system.",
+        "Architected a server-side routing engine to dispatch 16 specialised agents based on pipeline state.",
+        "Engineered modular agents with defined responsibilities, JSON state contracts, and turn-based execution controls.",
+        "Reduced research-phase token usage by 60% by integrating Tavily API.",
+        "Implemented a parallel assembly phase with 5 concurrent agents.",
+        "Designed an evidence-based validation layer to prevent unsupported or fabricated claims."
+      ],
+      "achievements": [
+        "Eliminated race conditions and reduced latency from LLM-based routing.",
+        "Improved system throughput and reliability via modular design and parallel execution."
+      ]
+    },
+    {
+      "employer": "Digimaker",
+      "position": "Coding Mentor Intern",
+      "employment_type": "Internship",
+      "start_date": "Jul 2025",
+      "end_date": "Dec 2025",
+      "duration_years": 0.4,
+      "responsibilities": [
+        "Delivered structured programming instruction across multiple Melbourne schools (JavaScript, C, Java, Python).",
+        "Explained complex technical concepts to students (12–20 per session).",
+        "Provided hands-on debugging and problem-solving support.",
+        "Collaborated with educators and coordinators to deliver consistent learning experiences.",
+        "Created a promotional video for the company website."
+      ],
+      "achievements": [
+        "Awarded High Distinction for outstanding placement performance.",
+        "Improved student comprehension and engagement across varying skill levels."
+      ]
+    },
+    {
+      "employer": "OYITI Foundation for Multicultural Youth",
+      "position": "Board Member / Co-Founder",
+      "employment_type": "Leadership",
+      "start_date": "Aug 2021",
+      "end_date": "Present",
+      "duration_years": 3.7,
+      "responsibilities": [
+        "Planned and delivered community programs engaging 500+ youth across Victoria.",
+        "Led the Intergenerational Conversations Youth Conference.",
+        "Facilitated dialogue between youth and community elders on mental health.",
+        "Engaged in grant writing and stakeholder engagement."
+      ],
+      "achievements": [
+        "Secured $50,000 in government funding (20% above target).",
+        "Achieved 4.5/5 satisfaction rating for youth conference."
+      ]
+    }
+  ],
+  "skills": {
+    "core_competencies": [
+      "Object-Oriented Programming",
+      "Secure Coding Principles",
+      "System Design Fundamentals",
+      "Cloud-ready Architectures",
+      "Agile/Scrum",
+      "SDLC"
+    ],
+    "technical_skills": [
+      "Python",
+      "C#",
+      "JavaScript (ES6+)",
+      "React",
+      ".NET 6",
+      "Node.js",
+      "Express",
+      "HTML5",
+      "CSS3",
+      "REST APIs",
+      "PostgreSQL",
+      "Supabase",
+      "AWS",
+      "Git/GitHub",
+      "CI/CD"
+    ],
+    "soft_skills": [
+      "Problem-solving",
+      "Communication",
+      "Teamwork",
+      "Leadership",
+      "Adaptability",
+      "Teaching/Mentoring"
+    ],
+    "certifications": [],
+    "languages": [
+      "English"
+    ]
+  },
+  "education": [
+    {
+      "institution": "Deakin University",
+      "qualification": "Bachelor of Science",
+      "field_of_study": "Computer Science",
+      "completion_date": "Feb 2026",
+      "grade": ""
+    }
+  ],
+  "publications": [],
+  "grants": [
+    {
+      "title": "Government Grant for Youth Programs",
+      "body": "Government of Victoria",
+      "amount": "$50,000",
+      "year": "2021-Present",
+      "role": "Co-Founder / Grant Writer"
+    }
+  ],
+  "awards": [
+    {
+      "title": "High Distinction for Placement Performance",
+      "body": "Digimaker / Deakin University",
+      "year": "2025"
+    }
+  ],
+  "additional_information": {
+    "memberships": [],
+    "volunteer": [
+      {
+        "organisation": "OYITI Foundation for Multicultural Youth",
+        "role": "Co-Founder / Board Member",
+        "period": "Aug 2021 – Present"
+      }
+    ]
+  }
+}

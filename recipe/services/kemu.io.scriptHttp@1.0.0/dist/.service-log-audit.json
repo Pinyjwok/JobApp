@@ -14,6 +14,21 @@
             "date": 1777560560061,
             "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-05-01.log",
             "hash": "31aa9dfd812aee26ab892cd88976776e06a7378393534a5c4d50d68407fd847d"
+        },
+        {
+            "date": 1777645369275,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-05-02.log",
+            "hash": "c250dd12c6e1a7bc1deac8219f9064ade50786d3605edfa6f307eafeddd1c072"
+        },
+        {
+            "date": 1777738390538,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-05-03.log",
+            "hash": "898f6105b792335ea302a281fa461f401b3f9522bec549a1ceb5cfcbf2914bea"
+        },
+        {
+            "date": 1777828537482,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-05-04.log",
+            "hash": "f88d06948dfcde45958ff5556abd13a451c82547ece508eaa2993a722ca33116"
         }
     ],
     "hashType": "sha256"

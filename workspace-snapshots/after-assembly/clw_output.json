@@ -1,0 +1,33 @@
+{
+  "phase_number": 6,
+  "phase_name": "Cover Letter Writing",
+  "agent": "CoverLetter Writer",
+  "status": "COMPLETE",
+  "completed_at": "2026-05-04T00:00:00Z",
+  "data": {
+    "cover_letter": {
+      "header": "Pinyjwok Amum\npjamum@gmail.com | 0431-191-158 | Melbourne, VIC | linkedin.com/pinyjwok-amum",
+      "date": "2026-05-04",
+      "re_line": "Re: Graduate Program (Software Engineering) — DXC Technology",
+      "salutation": "Dear Hiring Manager,",
+      "opening_paragraph": "Designing a 15-phase multi-agent orchestration system — complete with a server-side routing engine managing 16 specialised agents and a 60% reduction in research-phase token usage — is the kind of engineering challenge that made a career in enterprise-scale software development an obvious next step. The Graduate Program (Software Engineering) at DXC Technology is where I intend to build on that foundation.",
+      "connection_paragraph": "Designing a 15-phase multi-agent orchestration system — complete with a server-side routing engine managing 16 specialised agents and a 60% reduction in research-phase token usage — is the kind of engineering challenge that made a career in enterprise-scale software development an obvious next step. The Graduate Program (Software Engineering) at DXC Technology is where I intend to build on that foundation.",
+      "offer_paragraph": "At AI Job Application Pipeline, architecting modular agents with defined JSON state contracts and turn-based execution controls demonstrated the same discipline DXC values in its engineers: structured thinking, clean system boundaries, and a drive to eliminate failure points before they surface. Collaborating directly with a senior engineering consultant and Product Owner across a virtual-first environment mirrors the cross-functional model DXC's graduate cohort operates within. Earlier, at Digimaker, breaking down complex programming concepts for 12–20 students per session — and earning a High Distinction for placement performance — confirmed an ability to translate technical depth into clear, communicable decisions under real conditions.",
+      "research_paragraph": "DXC's expansion of its ANZ Graduate Program with targeted Cloud and AI certification pathways reflects a deliberate investment in early-career engineers who can grow into enterprise complexity, not just graduate from it. My practical AWS experience and exposure to cloud-ready architecture design position me to hit those certification milestones early and contribute meaningfully to the modernisation work DXC's clients depend on.",
+      "closing_paragraph": "A conversation about how my background aligns with the program's current intake would be the most direct next step — I'm available at short notice.",
+      "sign_off": "Kind regards,\n\nPinyjwok Amum",
+      "full_letter": "Pinyjwok Amum\npjamum@gmail.com | 0431-191-158 | Melbourne, VIC | linkedin.com/pinyjwok-amum\n\n2026-05-04\n\nRe: Graduate Program (Software Engineering) — DXC Technology\n\nDear Hiring Manager,\n\nDesigning a 15-phase multi-agent orchestration system — complete with a server-side routing engine managing 16 specialised agents and a 60% reduction in research-phase token usage — is the kind of engineering challenge that made a career in enterprise-scale software development an obvious next step. The Graduate Program (Software Engineering) at DXC Technology is where I intend to build on that foundation.\n\nAt AI Job Application Pipeline, architecting modular agents with defined JSON state contracts and turn-based execution controls demonstrated the same discipline DXC values in its engineers: structured thinking, clean system boundaries, and a drive to eliminate failure points before they surface. Collaborating directly with a senior engineering consultant and Product Owner across a virtual-first environment mirrors the cross-functional model DXC's graduate cohort operates within. Earlier, at Digimaker, breaking down complex programming concepts for 12–20 students per session — and earning a High Distinction for placement performance — confirmed an ability to translate technical depth into clear, communicable decisions under real conditions.\n\nDXC's expansion of its ANZ Graduate Program with targeted Cloud and AI certification pathways reflects a deliberate investment in early-career engineers who can grow into enterprise complexity, not just graduate from it. My practical AWS experience and exposure to cloud-ready architecture design position me to hit those certification milestones early and contribute meaningfully to the modernisation work DXC's clients depend on.\n\nA conversation about how my background aligns with the program's current intake would be the most direct next step — I'm available at short notice.\n\nKind regards,\n\nPinyjwok Amum"
+    },
+    "register_used": "confident-professional",
+    "word_count": 248,
+    "framework": "C.O.R.E.",
+    "strengths_used": [
+      "Strong foundational knowledge in software design, development, and testing methodologies.",
+      "Design, develop, test, and evaluate IT software components.",
+      "Collaborate with senior leaders and cross-functional teams in a virtual-first environment.",
+      "Interest in Cloud technologies (Azure/AWS) and Artificial Intelligence."
+    ],
+    "company_insight_used": true,
+    "user_confirmed": true
+  }
+}

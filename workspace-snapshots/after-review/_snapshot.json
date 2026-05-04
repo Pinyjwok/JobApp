@@ -1,0 +1,25 @@
+{
+  "savedAt": "2026-05-03T06:37:52.465Z",
+  "status": "CV_BUILDING",
+  "files": [
+    "candidate_profile.json",
+    "cf_output.json",
+    "clw_output.json",
+    "cover_letter_sample.txt",
+    "cv_assembly_state.json",
+    "cv_raw.txt",
+    "enhanced_jd.json",
+    "gap_analysis.json",
+    "hf_output.json",
+    "jd_raw.txt",
+    "pb_output.json",
+    "project_meta.json",
+    "research_output.json",
+    "review_audit.json",
+    "sc_output.json",
+    "sn_output.json",
+    "style_findings.json",
+    "style_guide.json",
+    "tailored_cv.json"
+  ]
+}

@@ -19,7 +19,8 @@ export default function App() {
   const [showTimeline, setShowTimeline] = useState(false);
   const [showInspector, setShowInspector] = useState(false);
   const [inspectorRefresh, setInspectorRefresh] = useState(0);
-  const [isWaiting, setIsWaiting] = useState(false);
+  const [isWaiting, _setIsWaiting] = useState(false);
+  const setIsWaiting = (v) => { isWaitingRef.current = v; _setIsWaiting(v); };
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [modalState, setModalState] = useState(null);
   const [modalUploading, setModalUploading] = useState(false);
@@ -29,6 +30,7 @@ export default function App() {
 
   const pendingReasoningRef = useRef('');
   const lastActivityRef = useRef(Date.now());
+  const isWaitingRef = useRef(false);
 
   useEffect(() => {
     fetch('/api/history')
@@ -72,7 +74,7 @@ I'll help you create tailored application materials in 3 steps:
 Setting up your analysis — this takes about a minute.`,
   };
 
-  async function handleModalStart(cvFile, jdFile) {
+  async function handleModalStart(cvFile, jdFile, clFile = null) {
     setModalUploading(true);
 
     await fetch('/api/reset', { method: 'POST' }).catch(() => {});
@@ -87,12 +89,13 @@ Setting up your analysis — this takes about a minute.`,
     };
     await uploadFile(cvFile, 'cv_raw');
     await uploadFile(jdFile, 'jd_raw');
+    if (clFile) await uploadFile(clFile, 'cover_letter_sample');
 
     setStatus(null);
     setActiveAgent('ProjectSetup');
     setTurns([{ agent: 'ProjectSetup', timestamp: Date.now(), cost: null }]);
     setLastUserMessage(null);
-    setUploadedFiles({ cv_raw: cvFile.name, jd_raw: jdFile.name });
+    setUploadedFiles({ cv_raw: cvFile.name, jd_raw: jdFile.name, ...(clFile ? { cover_letter_sample: clFile.name } : {}) });
     setPipelineMode('user_turn');
     const initial = [WELCOME_MESSAGE];
     setMessages(initial);
@@ -212,7 +215,7 @@ Setting up your analysis — this takes about a minute.`,
             'GAP_INTERVIEW', 'REVIEW_COMPLETE', 'STYLE_NEGOTIATING',
             'CV_BUILDING', 'PARALLEL_ANALYSIS',
           ]);
-          if (d.status && interactiveStatuses.has(d.status)) {
+          if (d.status && interactiveStatuses.has(d.status) && !isWaitingRef.current) {
             setIsWaiting(false);
             setPipelineMode('user_turn');
             setMessages((prev) => [...prev, {
@@ -384,12 +387,35 @@ Setting up your analysis — this takes about a minute.`,
           messages={messages}
           isWaiting={isWaiting || pipelineMode === 'auto_running'}
           onAction={handleAction}
-          onUpload={(actionId, file) => {
+          onUpload={async (actionId, file) => {
             if (actionId === 'ta_upload_cover') {
               setMessages(prev => prev.map(m =>
                 m.role === 'actions' && !m.used ? { ...m, used: true } : m
               ));
-              handleUpload(file.name, file, 'cover_letter_sample');
+              try {
+                const body = await file.arrayBuffer();
+                await fetch(`/api/upload?target=cover_letter_sample&filename=${encodeURIComponent(file.name)}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/octet-stream' },
+                  body,
+                });
+                setMessages(prev => [...prev, { role: 'user', text: `Uploaded ${file.name} → cover_letter_sample.txt` }]);
+                setUploadedFiles(prev => ({ ...prev, cover_letter_sample: file.name }));
+                await fetch('/api/action', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ id: 'ta_upload_cover' }),
+                });
+              } catch (err) {
+                setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Upload failed: ${err.message}` }]);
+              }
+            } else if (actionId === 'cv_revalidate_upload' || actionId === 'jd_revalidate_upload') {
+              setMessages(prev => prev.map(m =>
+                m.role === 'actions' && !m.used ? { ...m, used: true } : m
+              ));
+              const target = actionId === 'cv_revalidate_upload' ? 'cv_raw' : 'jd_raw';
+              await handleUpload(file.name, file, target);
+              await handleSend('Files are saved to disk as cv_raw.txt and jd_raw.txt. Please initialise the project.');
             }
           }}
         />
