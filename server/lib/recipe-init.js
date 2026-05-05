@@ -33,12 +33,14 @@ export async function initRecipe(projectDir) {
   state.recipe.globalVariables.onChange('AgentReasoning', (variable) => {
     const text = serializeVar(variable);
     if (!text) return;
+    console.log(`[reasoning:${state.fallbackAgent}] ${text}`);
     broadcast({ type: 'reasoning', text });
   });
 
   state.recipe.globalVariables.onChange('AgentDebug', (variable) => {
     const text = serializeVar(variable);
     if (!text) return;
+    console.log(`[debug:${state.fallbackAgent}]`, text);
     broadcast({ type: 'debug_token', chunk: text });
   });
 
