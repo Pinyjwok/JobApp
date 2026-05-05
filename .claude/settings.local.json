@@ -38,7 +38,12 @@
       "Bash(node *)",
       "Bash(xargs sed *)",
       "Bash(xargs -I{} cp {} /tmp/ss1.png)",
-      "Bash(xargs -I{} sh -c 'cp \"$1\" \"/tmp/$\\(basename \"$1\" | tr \" \" \"_\"\\)\"' _ {})"
+      "Bash(xargs -I{} sh -c 'cp \"$1\" \"/tmp/$\\(basename \"$1\" | tr \" \" \"_\"\\)\"' _ {})",
+      "Bash(xxd /Users/piny/JobApp/recipe/services/kemu.io.scriptHttp@1.0.0)",
+      "Bash(railway --version)",
+      "Bash(railway variables *)",
+      "Bash(railway status *)",
+      "Bash(railway service *)"
     ]
   }
 }

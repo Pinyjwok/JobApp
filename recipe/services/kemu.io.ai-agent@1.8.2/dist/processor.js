@@ -172,7 +172,7 @@ const getOpenRouterInstance = async (recipeUuid) => {
     const existingInstance = agentInstanceMap[recipeUuid];
     // Always read current secret to detect changes
     const secrets = await service.secrets.read({ names: [OPENROUTER_API_KEY_SECRET_NAME], recipeUuid });
-    const currentApiKey = secrets[OPENROUTER_API_KEY_SECRET_NAME];
+    const currentApiKey = secrets[OPENROUTER_API_KEY_SECRET_NAME] || process.env.OPENROUTER_API_KEY;
     const effectiveCurrentApiKey = currentApiKey || '';
     // If instance exists, check if API key has changed
     if (existingInstance) {
