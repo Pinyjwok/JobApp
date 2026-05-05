@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react';
 
 const FILES = [
-  'project_memory.json',
-  'gap_analysis.json',
-  'cv_assembly_state.json',
+  'project_meta.json',
   'candidate_profile.json',
-  'style_guide.json',
-  'agent_reasoning.json',
+  'research_output.json',
+  'enhanced_jd.json',
+  'gap_analysis.json',
+  'review_audit.json',
+  'tailored_cv.json',
+  'style_findings.json',
+  'cv_assembly_state.json',
+  'sn_output.json',
+  'sn_working.json',
+  'pb_output.json',
+  'sc_output.json',
+  'hf_output.json',
+  'cf_output.json',
+  'clw_output.json',
+  'df_output.json',
 ];
 const KEMU_TAB = '__kemu__';
 const SNAP_TAB = '__snapshots__';
