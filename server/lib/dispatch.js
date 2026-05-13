@@ -87,18 +87,19 @@ export async function checkJoin() {
     await new Promise(r => setTimeout(r, 300));
   }
 
-  state.reviewerGapState = 'question';
-  broadcastMode('auto_running', 'Reviewer');
   await state.recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
   state.pipelineStatus = 'GAP_INTERVIEW';
-  sendToNodeAndWait('reviewer_input', 'Reviewer', '__begin_gap_interview__')
-    .then(async r => {
-      const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-      broadcastAgentResult(cleanText, 'Reviewer', true);
-      if (status !== 'REVIEW_COMPLETE' && status !== 'REVIEW_FAILED') injectReviewerButtons();
-      if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-    })
-    .catch(err => console.error('[Reviewer] error:', err));
+
+  let highGaps = [];
+  try {
+    const gapData = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
+    highGaps = (gapData.gaps ?? []).filter(g => g.severity === 'High');
+  } catch (e) {
+    console.error('[checkJoin] failed to read high gaps for modal:', e.message);
+  }
+  console.log(`[checkJoin] broadcasting gap_interview_start with ${highGaps.length} high gaps`);
+  broadcast({ type: 'gap_interview_start', gaps: highGaps });
+  broadcastMode('action_required');
 }
 
 export async function checkResearchRedoJoin() {
@@ -160,7 +161,8 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   let ctx = '';
   try {
     const meta = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
-    ctx = ` role="${meta.position_title}" company="${meta.company_name}"`;
+    const today = new Date().toISOString().substring(0, 10);
+    ctx = ` role="${meta.position_title}" company="${meta.company_name}" today="${today}"`;
   } catch {}
 
   broadcastMode('auto_running', phase.agent);
@@ -239,7 +241,24 @@ export async function mergePhaseOutput(phaseNumber) {
     console.log(`[assembly] merged phase ${phaseNumber} (${phase.agent}) → cv_assembly_state.json`);
   } catch (e) {
     console.error(`[assembly] merge phase ${phaseNumber} failed:`, e.message);
+    return;
   }
+
+  // Stale output detection — warn if output file was written more than 5 minutes ago
+  try {
+    const outputData = JSON.parse(readFileSync(join(WORKSPACE_DIR, phase.outputFile), 'utf8'));
+    if (outputData.completed_at) {
+      const outputAge = Date.now() - new Date(outputData.completed_at).getTime();
+      if (outputAge > 300_000) {
+        console.warn(`[assembly] phase ${phaseNumber} output stale (${Math.round(outputAge / 1000)}s old)`);
+        broadcast({
+          type: 'agent_message', agent: 'System',
+          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output appears stale — completed_at is ${outputData.completed_at}. ` +
+                `The agent may not have run this turn. Check if ${phase.outputFile} was freshly written.`,
+        });
+      }
+    }
+  } catch {}
 }
 
 export async function reShowSectionReview(phaseNumber) {
@@ -284,12 +303,27 @@ async function _handleGate(phaseNumber) {
         }
       }
 
+      // Build action buttons based on which phase failed and what kinds of issues exist
+      const gateActions = [];
+      if (phaseNumber === 8) {
+        // IC failure — check if there are DATES_UNVERIFIED items that can be auto-corrected
+        try {
+          const cvStateForGate = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'));
+          const dateClaims = (cvStateForGate.phases[7]?.data?.unsupported_claims_detail || [])
+            .filter(c => c.evidence_status === 'DATES_UNVERIFIED');
+          if (dateClaims.length > 0) {
+            gateActions.push({ id: 'ic_fix_corrections', label: `Apply date corrections (${dateClaims.length})`, variant: 'primary' });
+          }
+        } catch {}
+      }
+      gateActions.push({ id: 'gate_continue', label: 'Continue anyway', variant: 'ghost' });
+
       broadcast({
         type: 'action_required',
         context: 'gate_failed',
         agent: phase.agent,
         prompt,
-        actions: [{ id: 'gate_continue', label: 'Continue anyway', variant: 'ghost' }],
+        actions: gateActions,
       });
       broadcastMode('action_required');
     }

@@ -28,10 +28,6 @@ export function injectReviewerButtons() {
           { id: 'reviewer_skip', label: 'Skip — leave flagged', variant: 'ghost' },
         ]});
       }
-    } else if (state.reviewerGapState === 'question') {
-      broadcast({ type: 'action_required', context: 'reviewer_gap', prompt: '', actions: [
-        { id: 'reviewer_skip', label: 'Skip this gap', variant: 'ghost' },
-      ]});
     }
   } catch { /* workspace files may not exist */ }
 }

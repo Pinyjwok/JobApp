@@ -5,6 +5,7 @@ import { StatusBar } from './components/StatusBar';
 import { AgentTimeline } from './components/AgentTimeline';
 import { WorkspaceInspector } from './components/WorkspaceInspector';
 import { StartModal } from './components/StartModal';
+import { GapInterviewModal } from './components/GapInterviewModal';
 import { useStream } from './hooks/useStream';
 import './index.css';
 
@@ -27,6 +28,8 @@ export default function App() {
   const [historyForModal, setHistoryForModal] = useState([]);
   const [pipelineMode, setPipelineMode] = useState('user_turn');
   const [runningAgent, setRunningAgent] = useState(null);
+  const [gapQuestions, setGapQuestions] = useState([]);
+  const [showGapModal, setShowGapModal] = useState(false);
 
   const pendingReasoningRef = useRef('');
   const lastActivityRef = useRef(Date.now());
@@ -133,6 +136,19 @@ Setting up your analysis — this takes about a minute.`,
     }
   }
 
+  async function handleGapSubmit(answers) {
+    setShowGapModal(false);
+    try {
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'gap_answers_submit', answers }),
+      });
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Gap submit failed: ${err.message}` }]);
+    }
+  }
+
   useStream(
     useCallback((data) => {
       lastActivityRef.current = Date.now();
@@ -195,6 +211,9 @@ Setting up your analysis — this takes about a minute.`,
           if (last?.agent === data.agent && Date.now() - last.timestamp < 2000) return prev;
           return [...prev, { agent: data.agent, timestamp: Date.now(), cost: null }];
         });
+      } else if (data.type === 'gap_interview_start') {
+        setGapQuestions(data.gaps ?? []);
+        setShowGapModal(true);
       } else if (data.type === 'status_changed') {
         setStatus(data.status);
       } else if (data.type === 'stream_done') {
@@ -212,7 +231,7 @@ Setting up your analysis — this takes about a minute.`,
         .then((r) => r.json())
         .then((d) => {
           const interactiveStatuses = new Set([
-            'GAP_INTERVIEW', 'REVIEW_COMPLETE', 'STYLE_NEGOTIATING',
+            'REVIEW_COMPLETE', 'STYLE_NEGOTIATING',
             'CV_BUILDING', 'PARALLEL_ANALYSIS',
           ]);
           if (d.status && interactiveStatuses.has(d.status) && !isWaitingRef.current) {
@@ -336,6 +355,9 @@ Setting up your analysis — this takes about a minute.`,
           onResume={handleModalResume}
           uploading={modalUploading}
         />
+      )}
+      {showGapModal && (
+        <GapInterviewModal gaps={gapQuestions} onSubmit={handleGapSubmit} />
       )}
 
       {/* Header */}

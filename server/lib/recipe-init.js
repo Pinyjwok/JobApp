@@ -30,12 +30,36 @@ export async function initRecipe(projectDir) {
     console.warn('Could not reset AgentSelector:', err.message);
   }
 
-  state.recipe.globalVariables.onChange('AgentReasoning', (variable) => {
-    const text = serializeVar(variable);
-    if (!text) return;
-    console.log(`[reasoning:${state.fallbackAgent}] ${text}`);
-    broadcast({ type: 'reasoning', text });
-  });
+  // Per-agent reasoning vars — agent identity comes from the var name, not AgentSelector
+  const REASONING_VARS = {
+    'agentReasoning.mo_reasoning':        'Main Orchestrator',
+    'agentReasoning.ps_reasoning':        'ProjectSetup',
+    'agentReasoning.extractor_reasoning': 'Extractor',
+    'agentReasoning.researcher_reasoning':'Researcher',
+    'agentReasoning.jde_reasoning':       'JD Enhancer',
+    'agentReasoning.analyst_reasoning':   'Analyst',
+    'agentReasoning.reviewer_reasoning':  'Reviewer',
+    'agentReasoning.ta_reasoning':        'Tone Analyst',
+    'agentReasoning.ac_reasoning':        'Assembly Coordinator',
+    'agentReasoning.sn_reasoning':        'Style Negotiator',
+    'agentReasoning.pb_reasoning':        'Profile Builder',
+    'agentReasoning.sc_reasoning':        'Skills Curator',
+    'agentReasoning.hf_reasoning':        'History Formatter',
+    'agentReasoning.cf_reasoning':        'Credentials Formatter',
+    'agentReasoning.clw_reasoning':       'Cover Letter Writer',
+    'agentReasoning.sr_reasoning':        'Style Reviewer',
+    'agentReasoning.ic_reasoning':        'Integrity Checker',
+    'agentReasoning.df_reasoning':        'Document Formatter',
+  };
+
+  for (const [varName, agentName] of Object.entries(REASONING_VARS)) {
+    state.recipe.globalVariables.onChange(varName, (variable) => {
+      const text = serializeVar(variable);
+      if (!text) return;
+      console.log(`[reasoning:${agentName}] ${text}`);
+      broadcast({ type: 'reasoning', agent: agentName, text });
+    });
+  }
 
   state.recipe.globalVariables.onChange('AgentDebug', (variable) => {
     const text = serializeVar(variable);

@@ -1,10 +1,12 @@
 import express from 'express';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { injectReviewerButtons } from '../lib/button-injection.js';
-import { ASSEMBLY_PHASES } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, sendToSN } from '../lib/dispatch.js';
+import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, sendToSN } from '../lib/dispatch.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
 const router = express.Router();
@@ -288,13 +290,84 @@ router.post('/', async (req, res) => {
         await dispatchAssemblyPhase(state.currentAssemblyPhase + 1);
         break;
 
+      case 'ic_fix_corrections': {
+        // Auto-correct DATES_UNVERIFIED items by re-running History Formatter with corrections
+        let dateClaims = [];
+        try {
+          const cvState = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'));
+          dateClaims = (cvState.phases[7]?.data?.unsupported_claims_detail || [])
+            .filter(c => c.evidence_status === 'DATES_UNVERIFIED');
+        } catch (e) {
+          console.error('[ic_fix_corrections] failed to read IC output:', e.message);
+        }
+
+        if (dateClaims.length === 0) {
+          // Nothing to correct — fall through to gate_continue
+          state.pipelineStatus = 'CV_BUILDING';
+          try { await state.recipe.globalVariables.setValue('pipeline_status', 'CV_BUILDING'); } catch {}
+          broadcast({ type: 'status_changed', status: 'CV_BUILDING' });
+          await dispatchAssemblyPhase(state.currentAssemblyPhase + 1);
+          break;
+        }
+
+        // Build correction message for History Formatter
+        const corrections = dateClaims.map(c => `• ${c.claim} → ${c.remediation || 'verify dates'}`).join('\n');
+        const reviseMsg = `__revise__: Correct date errors identified by Integrity Checker:\n${corrections}`;
+
+        // Re-dispatch History Formatter (phase 4) with correction
+        broadcastMode('auto_running', 'History Formatter');
+        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running History Formatter to correct ${dateClaims.length} date issue(s)…` });
+        const hfResult = await sendToNodeAndWait(' Message', 'History Formatter', reviseMsg);
+        const { cleanText: hfText } = parseAndStripStatus(typeof hfResult === 'string' ? hfResult : JSON.stringify(hfResult ?? ''));
+        broadcastAgentResult(hfText, 'History Formatter', true);
+        await new Promise(r => setTimeout(r, 1000));
+        await mergePhaseOutput(4);
+
+        // Re-run Integrity Checker (phase 8)
+        state.currentAssemblyPhase = 8;
+        await dispatchAssemblyPhase(8);
+        break;
+      }
+
       case 'assembly_restart':
         state.awaitingRevision = null;
         state.snState = null;
         await dispatchAssemblyPhase(2); // restart content phases; SN already complete
         break;
 
+      case 'gap_answers_submit': {
+        const rawAnswers = req.body.answers ?? {};
+        let gapData;
+        try {
+          gapData = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
+        } catch (e) {
+          return res.status(500).json({ error: 'gap_analysis.json not readable' });
+        }
+        const highGaps = (gapData.gaps ?? []).filter(g => g.severity === 'High');
+        const gapAnswers = highGaps.map(g => ({
+          gap_id: g.id,
+          gap_text: g.gap_text,
+          tier: g.tier,
+          user_answer: rawAnswers[g.id] || null,
+          skipped: !rawAnswers[g.id],
+        }));
+        const trigger = JSON.stringify({ gap_answers: gapAnswers });
+        broadcastMode('auto_running', 'Reviewer');
+        await state.recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
+        state.pipelineStatus = 'GAP_INTERVIEW';
+        sendToNodeAndWait('reviewer_input', 'Reviewer', trigger)
+          .then(async r => {
+            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+            broadcastAgentResult(cleanText, 'Reviewer', true);
+            if (status !== 'REVIEW_COMPLETE' && status !== 'REVIEW_FAILED') injectReviewerButtons();
+            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
+          })
+          .catch(err => console.error('[Reviewer gap_answers_submit] error:', err));
+        break;
+      }
+
       case 'reviewer_skip':
+        // Phase 7.5 issue resolution skip — "Skip — leave flagged"
         broadcastMode('auto_running', 'Reviewer');
         sendToNodeAndWait('reviewer_input', 'Reviewer', 'skip')
           .then(async r => {
