@@ -477,17 +477,13 @@ var client = __webpack_require__(576);
 var external_EmotionReact_ = __webpack_require__(644);
 // EXTERNAL MODULE: external "EmotionCache"
 var external_EmotionCache_ = __webpack_require__(917);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/lib/cache.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/lib/cache.js
 const create=(e,t,r)=>{const a=`${e}-${t.split(".").map((e=>e.split("").map((e=>{const t=parseInt(e);return isNaN(t)?e:String.fromCharCode(t+97)})).join(""))).join("").toLocaleString()}`;return external_EmotionCache_({key:a,container:r})};/* harmony default export */ const cache = (create);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/lib/globalContext.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/lib/globalContext.js
 let context;const setContext=t=>{context=t},getContext=()=>{if(!context)throw new Error("Context not set");return context};
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/lib/InstanceContext.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/lib/InstanceContext.js
 const InstanceContext_WidgetInstanceContext=(0,external_React_.createContext)({useOnBroadcastEvent:()=>{},useOnParentEvent:()=>{},useOnSetOutputsEvent:()=>{},setWidgetDimensions:()=>{},getWidgetDimensions:()=>({width:0,height:0}),getWidgetProps:()=>({})});const WidgetInstanceContextProvider=InstanceContext_WidgetInstanceContext.Provider;/* harmony default export */ const InstanceContext = (WidgetInstanceContextProvider);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/WidgetWrapper.js
-const KemuService=e=>{const{repaintPorts:t,onDestroy:n,globalContext:r,getParentContext:a}=e,[s,o]=(0,external_React_.useState)(null),[c,i]=(0,external_React_.useState)({disabled:!1,serviceOnline:!0}),l=(0,external_React_.useRef)(null),d=(0,external_React_.useRef)(null),u=(0,external_React_.useRef)(null),m=(0,external_React_.useCallback)((e=>{l.current=e}),[]),v=(0,external_React_.useCallback)((e=>{d.current=e}),[]),p=(0,external_React_.useCallback)((e=>{u.current=e}),[]);(0,external_React_.useEffect)((()=>(e.container&&o((t=>t||cache(e.serviceName,e.serviceVersion,e.container))),()=>{n&&n()})),[e.container]),(0,external_React_.useEffect)((()=>{const e=a();e.handleSetOutputsEvent=async e=>{u.current&&await u.current(e)},e.handleBroadcastEvent=async e=>{if(d.current)return d.current(e)},e.handleParentEvent=async e=>!!l.current&&(await l.current(e),!0),e.handleRender=e=>{i((t=>({...t,...e})))}}),[]);const f=(0,external_React_.useMemo)((()=>({setOutputs:r.setOutputs,callProcessorHandler:r.callProcessorHandler,repaintPorts:t,defineDynamicPorts:r.defineDynamicPorts,utils:r.utils,widgetId:r.widgetId,recipeId:r.recipeId,manifest:r.manifest,disabled:c.disabled,variantId:r.variantId,serviceOnline:c.serviceOnline})),[r,t,c.disabled,c.serviceOnline]),h=(0,external_React_.useMemo)((()=>({useOnParentEvent:m,useOnBroadcastEvent:v,useOnSetOutputsEvent:p,setWidgetDimensions:r.setWidgetDimensions,getWidgetDimensions:r.getWidgetDimensions,getWidgetProps:()=>f})),[m,v,p,f]);if((0,external_React_.useEffect)((()=>{s&&(console.log("Cache updated, repainting ports"),t&&t())}),[s]),!s||!e.container)return null;const g=e.children;return (0,jsx_runtime.jsx)(InstanceContext,{value:h,children:(0,jsx_runtime.jsx)(external_EmotionReact_.CacheProvider,{value:s,children:(0,jsx_runtime.jsx)(g,{...f})})})};const createWidgetUI=(e,t,n)=>({mountComponent:(r,a)=>{const s=(0,client/* createRoot */.H)(r);if(!a.globalContext)throw new Error("`globalContext` not provided");setContext(a.globalContext);const o={};s.render((0,jsx_runtime.jsx)(KemuService,{...a,serviceName:t.replace(/\./g,"-").replace(/[0-9]/g,"").toLowerCase(),serviceVersion:n,container:r,getParentContext:()=>o,children:e}));const c={render:e=>{o.handleRender&&o.handleRender(e)},destroy:()=>{s.unmount()},handleParentEvent:async e=>{let t=!1;o.handleParentEvent&&(t=await o.handleParentEvent(e)),!1===t&&(c.handleParentEvent=null)},handleBroadcastEvent:async e=>{o.handleBroadcastEvent&&await o.handleBroadcastEvent(e)},handleSetOutputsEvent:async e=>{o.handleSetOutputsEvent&&await o.handleSetOutputsEvent(e)}};return c}});
-;// ./src/manifest.json
-const manifest_namespaceObject = /*#__PURE__*/JSON.parse('{"UU":"test.kemu.io.file-system","rE":"1.4.0"}');
-;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/formatMuiErrorMessage/formatMuiErrorMessage.js
+;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/formatMuiErrorMessage/formatMuiErrorMessage.js
 /**
  * WARNING: Don't import this directly. It's imported by the code generated by
  * `@mui/interal-babel-plugin-minify-errors`. Make sure to always use string literals in `Error`
@@ -503,9 +499,9 @@ function formatMuiErrorMessage(code, ...args) {
   args.forEach(arg => url.searchParams.append('args[]', arg));
   return `Minified MUI error #${code}; visit ${url} for the full message.`;
 }
-// EXTERNAL MODULE: ./node_modules/.pnpm/react-is@19.0.0/node_modules/react-is/cjs/react-is.production.js
-var react_is_production = __webpack_require__(491);
-;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/deepmerge/deepmerge.js
+// EXTERNAL MODULE: ./node_modules/.pnpm/react-is@19.2.0/node_modules/react-is/cjs/react-is.production.js
+var react_is_production = __webpack_require__(909);
+;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/deepmerge/deepmerge.js
 
 
 
@@ -570,12 +566,12 @@ function deepmerge_deepmerge(target, source, options = {
   }
   return output;
 }
-;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/clamp/clamp.js
+;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/clamp/clamp.js
 function clamp(val, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER) {
   return Math.max(min, Math.min(val, max));
 }
 /* harmony default export */ const clamp_clamp = (clamp);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/colorManipulator/colorManipulator.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/colorManipulator/colorManipulator.js
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -907,13 +903,13 @@ function blend(background, overlay, opacity, gamma = 1.0) {
     values: rgb
   });
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/common.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/common.js
 const common = {
   black: '#000',
   white: '#fff'
 };
 /* harmony default export */ const colors_common = (common);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/grey.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/grey.js
 const grey = {
   50: '#fafafa',
   100: '#f5f5f5',
@@ -931,7 +927,7 @@ const grey = {
   A700: '#616161'
 };
 /* harmony default export */ const colors_grey = (grey);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/purple.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/purple.js
 const purple = {
   50: '#f3e5f5',
   100: '#e1bee7',
@@ -949,7 +945,7 @@ const purple = {
   A700: '#aa00ff'
 };
 /* harmony default export */ const colors_purple = (purple);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/red.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/red.js
 const red = {
   50: '#ffebee',
   100: '#ffcdd2',
@@ -967,7 +963,7 @@ const red = {
   A700: '#d50000'
 };
 /* harmony default export */ const colors_red = (red);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/orange.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/orange.js
 const orange = {
   50: '#fff3e0',
   100: '#ffe0b2',
@@ -985,7 +981,7 @@ const orange = {
   A700: '#ff6d00'
 };
 /* harmony default export */ const colors_orange = (orange);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/blue.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/blue.js
 const blue = {
   50: '#e3f2fd',
   100: '#bbdefb',
@@ -1003,7 +999,7 @@ const blue = {
   A700: '#2962ff'
 };
 /* harmony default export */ const colors_blue = (blue);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/lightBlue.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/lightBlue.js
 const lightBlue = {
   50: '#e1f5fe',
   100: '#b3e5fc',
@@ -1021,7 +1017,7 @@ const lightBlue = {
   A700: '#0091ea'
 };
 /* harmony default export */ const colors_lightBlue = (lightBlue);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/green.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/green.js
 const green = {
   50: '#e8f5e9',
   100: '#c8e6c9',
@@ -1039,7 +1035,7 @@ const green = {
   A700: '#00c853'
 };
 /* harmony default export */ const colors_green = (green);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createPalette.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createPalette.js
 
 
 
@@ -1134,6 +1130,19 @@ function addLightOrDark(intent, direction, shade, tonalOffset) {
     }
   }
 }
+function mixLightOrDark(colorSpace, intent, direction, shade, tonalOffset) {
+  const tonalOffsetLight = tonalOffset.light || tonalOffset;
+  const tonalOffsetDark = tonalOffset.dark || tonalOffset * 1.5;
+  if (!intent[direction]) {
+    if (intent.hasOwnProperty(shade)) {
+      intent[direction] = intent[shade];
+    } else if (direction === 'light') {
+      intent.light = `color-mix(in ${colorSpace}, ${intent.main}, #fff ${(tonalOffsetLight * 100).toFixed(0)}%)`;
+    } else if (direction === 'dark') {
+      intent.dark = `color-mix(in ${colorSpace}, ${intent.main}, #000 ${(tonalOffsetDark * 100).toFixed(0)}%)`;
+    }
+  }
+}
 function getDefaultPrimary(mode = 'light') {
   if (mode === 'dark') {
     return {
@@ -1219,11 +1228,17 @@ function getDefaultWarning(mode = 'light') {
     dark: colors_orange[900]
   };
 }
+
+// Use the same name as the experimental CSS `contrast-color` function.
+function contrastColor(background) {
+  return `oklch(from ${background} var(--__l) 0 h / var(--__a))`;
+}
 function createPalette(palette) {
   const {
     mode = 'light',
     contrastThreshold = 3,
     tonalOffset = 0.2,
+    colorSpace,
     ...other
   } = palette;
   const primary = palette.primary || getDefaultPrimary(mode);
@@ -1237,6 +1252,9 @@ function createPalette(palette) {
   // Bootstrap: https://github.com/twbs/bootstrap/blob/1d6e3710dd447de1a200f29e8fa521f8a0908f70/scss/_functions.scss#L59
   // and material-components-web https://github.com/material-components/material-components-web/blob/ac46b8863c4dab9fc22c4c662dc6bd1b65dd652f/packages/mdc-theme/_functions.scss#L54
   function getContrastText(background) {
+    if (colorSpace) {
+      return contrastColor(background);
+    }
     const contrastText = getContrastRatio(background, dark.text.primary) >= contrastThreshold ? dark.text.primary : light.text.primary;
     if (false) {}
     return contrastText;
@@ -1260,8 +1278,13 @@ function createPalette(palette) {
     if (typeof color.main !== 'string') {
       throw new Error( false ? 0 : formatMuiErrorMessage(12, name ? ` (${name})` : '', JSON.stringify(color.main)));
     }
-    addLightOrDark(color, 'light', lightShade, tonalOffset);
-    addLightOrDark(color, 'dark', darkShade, tonalOffset);
+    if (colorSpace) {
+      mixLightOrDark(colorSpace, color, 'light', lightShade, tonalOffset);
+      mixLightOrDark(colorSpace, color, 'dark', darkShade, tonalOffset);
+    } else {
+      addLightOrDark(color, 'light', lightShade, tonalOffset);
+      addLightOrDark(color, 'dark', darkShade, tonalOffset);
+    }
     if (!color.contrastText) {
       color.contrastText = getContrastText(color.main);
     }
@@ -1333,7 +1356,7 @@ function createPalette(palette) {
   }, other);
   return paletteOutput;
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/createGetCssVar.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/createGetCssVar.js
 /**
  * The benefit of this function is to help developers get CSS var from theme without specifying the whole variable
  * and they does not need to remember the prefix (defined once).
@@ -1356,13 +1379,13 @@ function createGetCssVar(prefix = '') {
   };
   return getCssVar;
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssContainerQueries/cssContainerQueries.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssContainerQueries/cssContainerQueries.js
 
 /**
  * For using in `sx` prop to sort the breakpoint from low to high.
  * Note: this function does not work and will not support multiple units.
  *       e.g. input: { '@container (min-width:300px)': '1rem', '@container (min-width:40rem)': '2rem' }
- *            output: { '@container (min-width:40rem)': '2rem', '@container (min-width:300px)': '1rem' } // since 40 < 300 eventhough 40rem > 300px
+ *            output: { '@container (min-width:40rem)': '2rem', '@container (min-width:300px)': '1rem' } // since 40 < 300 even though 40rem > 300px
  */
 function sortContainerQueries(theme, css) {
   if (!theme.containerQueries) {
@@ -1424,7 +1447,7 @@ function cssContainerQueries(themeInput) {
     containerQueries
   };
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/breakpoints/breakpoints.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/breakpoints/breakpoints.js
 
 
 
@@ -1589,7 +1612,7 @@ function resolveBreakpointValues({
   }, {});
 }
 /* harmony default export */ const breakpoints_breakpoints = ((/* unused pure expression or super */ null && (breakpoints)));
-;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/capitalize/capitalize.js
+;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/capitalize/capitalize.js
 
 // It should to be noted that this function isn't equivalent to `text-transform: capitalize`.
 //
@@ -1601,7 +1624,7 @@ function capitalize_capitalize(string) {
   }
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/style/style.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/style/style.js
 
 
 
@@ -1675,7 +1698,7 @@ function style(options) {
   return fn;
 }
 /* harmony default export */ const style_style = (style);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/merge/merge.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/merge/merge.js
 
 function merge_merge(acc, item) {
   if (!item) {
@@ -1686,7 +1709,7 @@ function merge_merge(acc, item) {
   });
 }
 /* harmony default export */ const esm_merge_merge = (merge_merge);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/memoize/memoize.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/memoize/memoize.js
 function memoize(fn) {
   const cache = {};
   return arg => {
@@ -1696,7 +1719,7 @@ function memoize(fn) {
     return cache[arg];
   };
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/spacing/spacing.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/spacing/spacing.js
 
 
 
@@ -1750,6 +1773,12 @@ function createUnaryUnit(theme, themeKey, defaultValue, propName) {
       }
       if (false) {}
       if (typeof themeSpacing === 'string') {
+        if (themeSpacing.startsWith('var(') && val === 0) {
+          return 0;
+        }
+        if (themeSpacing.startsWith('var(') && val === 1) {
+          return themeSpacing;
+        }
         return `calc(${val} * ${themeSpacing})`;
       }
       return themeSpacing * val;
@@ -1768,6 +1797,9 @@ function createUnaryUnit(theme, themeKey, defaultValue, propName) {
       }
       if (typeof transformed === 'number') {
         return -transformed;
+      }
+      if (typeof transformed === 'string' && transformed.startsWith('var(')) {
+        return `calc(-1 * ${transformed})`;
       }
       return `-${transformed}`;
     };
@@ -1824,7 +1856,7 @@ function spacing(props) {
 spacing.propTypes =  false ? 0 : {};
 spacing.filterProps = spacingKeys;
 /* harmony default export */ const spacing_spacing = ((/* unused pure expression or super */ null && (spacing)));
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createTheme/createSpacing.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createTheme/createSpacing.js
 
 
 // The different signatures imply different meaning for their arguments that can't be expressed structurally.
@@ -1852,7 +1884,7 @@ transform = createUnarySpacing({
   spacing.mui = true;
   return spacing;
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/prepareTypographyVars.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/prepareTypographyVars.js
 function prepareTypographyVars(typography) {
   const vars = {};
   const entries = Object.entries(typography);
@@ -1864,7 +1896,7 @@ function prepareTypographyVars(typography) {
   });
   return vars;
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/cssVarsParser.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/cssVarsParser.js
 /**
  * This function create an object from keys, value and then assign to target
  *
@@ -1994,14 +2026,15 @@ function cssVarsParser(theme, options) {
     varsWithDefaults
   };
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/prepareCssVars.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/prepareCssVars.js
 
 
 function prepareCssVars(theme, parserConfig = {}) {
   const {
     getSelector = defaultGetSelector,
     disableCssColorScheme,
-    colorSchemeSelector: selector
+    colorSchemeSelector: selector,
+    enableContrastVars
   } = parserConfig;
   // @ts-ignore - ignore components do not exist
   const {
@@ -2139,6 +2172,16 @@ function prepareCssVars(theme, parserConfig = {}) {
         ...finalCss
       }), finalCss);
     });
+    if (enableContrastVars) {
+      stylesheets.push({
+        ':root': {
+          // use double underscore to indicate that these are private variables
+          '--__l-threshold': '0.7',
+          '--__l': 'clamp(0, (l / var(--__l-threshold) - 1) * -infinity, 1)',
+          '--__a': 'clamp(0.87, (l / var(--__l-threshold) - 1) * -infinity, 1)' // 0.87 is the default alpha value for black text.
+        }
+      });
+    }
     return stylesheets;
   };
   return {
@@ -2148,7 +2191,7 @@ function prepareCssVars(theme, parserConfig = {}) {
   };
 }
 /* harmony default export */ const cssVars_prepareCssVars = (prepareCssVars);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/getColorSchemeSelector.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/getColorSchemeSelector.js
 /* eslint-disable import/prefer-default-export */
 function createGetColorSchemeSelector(selector) {
   return function getColorSchemeSelector(colorScheme) {
@@ -2171,7 +2214,7 @@ function createGetColorSchemeSelector(selector) {
     return '&';
   };
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/compose/compose.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/compose/compose.js
 
 function compose(...styles) {
   const handlers = styles.reduce((acc, style) => {
@@ -2196,7 +2239,7 @@ function compose(...styles) {
   return fn;
 }
 /* harmony default export */ const compose_compose = (compose);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/borders/borders.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/borders/borders.js
 
 
 
@@ -2244,7 +2287,7 @@ borderRadius.propTypes =  false ? 0 : {};
 borderRadius.filterProps = ['borderRadius'];
 const borders = compose_compose(border, borderTop, borderRight, borderBottom, borderLeft, borderColor, borderTopColor, borderRightColor, borderBottomColor, borderLeftColor, borderRadius, outline, outlineColor);
 /* harmony default export */ const borders_borders = ((/* unused pure expression or super */ null && (borders)));
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssGrid/cssGrid.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssGrid/cssGrid.js
 
 
 
@@ -2324,7 +2367,7 @@ const gridArea = style_style({
 });
 const grid = compose_compose(gap, columnGap, rowGap, gridColumn, gridRow, gridAutoFlow, gridAutoColumns, gridAutoRows, gridTemplateColumns, gridTemplateRows, gridTemplateAreas, gridArea);
 /* harmony default export */ const cssGrid = ((/* unused pure expression or super */ null && (grid)));
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/palette/palette.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/palette/palette.js
 
 
 function paletteTransform(value, userValue) {
@@ -2351,7 +2394,7 @@ const backgroundColor = style_style({
 });
 const palette = compose_compose(color, bgcolor, backgroundColor);
 /* harmony default export */ const palette_palette = ((/* unused pure expression or super */ null && (palette)));
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/sizing/sizing.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/sizing/sizing.js
 
 
 
@@ -2416,7 +2459,7 @@ const boxSizing = style_style({
 });
 const sizing = compose_compose(width, maxWidth, minWidth, height, maxHeight, minHeight, boxSizing);
 /* harmony default export */ const sizing_sizing = ((/* unused pure expression or super */ null && (sizing)));
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/styleFunctionSx/defaultSxConfig.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/styleFunctionSx/defaultSxConfig.js
 
 
 
@@ -2711,7 +2754,7 @@ const defaultSxConfig = {
   }
 };
 /* harmony default export */ const styleFunctionSx_defaultSxConfig = (defaultSxConfig);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/styleFunctionSx/styleFunctionSx.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/styleFunctionSx/styleFunctionSx.js
 
 
 
@@ -2778,7 +2821,8 @@ function unstable_createStyleFunctionSx() {
   function styleFunctionSx(props) {
     const {
       sx,
-      theme = {}
+      theme = {},
+      nested
     } = props || {};
     if (!sx) {
       return null; // Emotion & styled-components will neglect null
@@ -2819,7 +2863,8 @@ function unstable_createStyleFunctionSx() {
               if (objectsHaveSameKeys(breakpointsValues, value)) {
                 css[styleKey] = styleFunctionSx({
                   sx: value,
-                  theme
+                  theme,
+                  nested: true
                 });
               } else {
                 css = esm_merge_merge(css, breakpointsValues);
@@ -2830,6 +2875,11 @@ function unstable_createStyleFunctionSx() {
           }
         }
       });
+      if (!nested && theme.modularCssLayers) {
+        return {
+          '@layer sx': sortContainerQueries(theme, removeUnusedBreakpoints(breakpointsKeys, css))
+        };
+      }
       return sortContainerQueries(theme, removeUnusedBreakpoints(breakpointsKeys, css));
     }
     return Array.isArray(sx) ? sx.map(traverse) : traverse(sx);
@@ -2839,7 +2889,7 @@ function unstable_createStyleFunctionSx() {
 const styleFunctionSx = unstable_createStyleFunctionSx();
 styleFunctionSx.filterProps = ['sx'];
 /* harmony default export */ const styleFunctionSx_styleFunctionSx = (styleFunctionSx);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createBreakpoints/createBreakpoints.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createBreakpoints/createBreakpoints.js
 // Sorted ASC by size. That's important.
 // It can't be configured as it's used statically for propTypes.
 const breakpointKeys = (/* unused pure expression or super */ null && (['xs', 'sm', 'md', 'lg', 'xl']));
@@ -2921,12 +2971,12 @@ function createBreakpoints(breakpoints) {
     ...other
   };
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createTheme/shape.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createTheme/shape.js
 const shape = {
   borderRadius: 4
 };
 /* harmony default export */ const createTheme_shape = (shape);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createTheme/applyStyles.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createTheme/applyStyles.js
 /**
  * A universal utility to style components with multiple color modes. Always use it from the theme object.
  * It works with:
@@ -3014,7 +3064,7 @@ function applyStyles(key, styles) {
   }
   return {};
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createTheme/createTheme.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createTheme/createTheme.js
 
 
 
@@ -3064,7 +3114,7 @@ function createTheme(options = {}, ...args) {
   return muiTheme;
 }
 /* harmony default export */ const createTheme_createTheme = (createTheme);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createMixins.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createMixins.js
 function createMixins(breakpoints, mixins) {
   return {
     toolbar: {
@@ -3081,7 +3131,7 @@ function createMixins(breakpoints, mixins) {
     ...mixins
   };
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createTypography.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createTypography.js
 
 function round(value) {
   return Math.round(value * 1e5) / 1e5;
@@ -3167,7 +3217,7 @@ function createTypography(palette, typography) {
     clone: false // No need to clone deep
   });
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/shadows.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/shadows.js
 const shadowKeyUmbraOpacity = 0.2;
 const shadowKeyPenumbraOpacity = 0.14;
 const shadowAmbientShadowOpacity = 0.12;
@@ -3178,7 +3228,7 @@ function createShadow(...px) {
 // Values from https://github.com/material-components/material-components-web/blob/be8747f94574669cb5e7add1a7c54fa41a89cec7/packages/mdc-elevation/_variables.scss
 const shadows = ['none', createShadow(0, 2, 1, -1, 0, 1, 1, 0, 0, 1, 3, 0), createShadow(0, 3, 1, -2, 0, 2, 2, 0, 0, 1, 5, 0), createShadow(0, 3, 3, -2, 0, 3, 4, 0, 0, 1, 8, 0), createShadow(0, 2, 4, -1, 0, 4, 5, 0, 0, 1, 10, 0), createShadow(0, 3, 5, -1, 0, 5, 8, 0, 0, 1, 14, 0), createShadow(0, 3, 5, -1, 0, 6, 10, 0, 0, 1, 18, 0), createShadow(0, 4, 5, -2, 0, 7, 10, 1, 0, 2, 16, 1), createShadow(0, 5, 5, -3, 0, 8, 10, 1, 0, 3, 14, 2), createShadow(0, 5, 6, -3, 0, 9, 12, 1, 0, 3, 16, 2), createShadow(0, 6, 6, -3, 0, 10, 14, 1, 0, 4, 18, 3), createShadow(0, 6, 7, -4, 0, 11, 15, 1, 0, 4, 20, 3), createShadow(0, 7, 8, -4, 0, 12, 17, 2, 0, 5, 22, 4), createShadow(0, 7, 8, -4, 0, 13, 19, 2, 0, 5, 24, 4), createShadow(0, 7, 9, -4, 0, 14, 21, 2, 0, 5, 26, 4), createShadow(0, 8, 9, -5, 0, 15, 22, 2, 0, 6, 28, 5), createShadow(0, 8, 10, -5, 0, 16, 24, 2, 0, 6, 30, 5), createShadow(0, 8, 11, -5, 0, 17, 26, 2, 0, 6, 32, 5), createShadow(0, 9, 11, -5, 0, 18, 28, 2, 0, 7, 34, 6), createShadow(0, 9, 12, -6, 0, 19, 29, 2, 0, 7, 36, 6), createShadow(0, 10, 13, -6, 0, 20, 31, 3, 0, 8, 38, 7), createShadow(0, 10, 13, -6, 0, 21, 33, 3, 0, 8, 40, 7), createShadow(0, 10, 14, -6, 0, 22, 35, 3, 0, 8, 42, 7), createShadow(0, 11, 14, -7, 0, 23, 36, 3, 0, 9, 44, 8), createShadow(0, 11, 15, -7, 0, 24, 38, 3, 0, 9, 46, 8)];
 /* harmony default export */ const styles_shadows = (shadows);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createTransitions.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createTransitions.js
 // Follow https://material.google.com/motion/duration-easing.html#duration-easing-natural-easing-curves
 // to learn the context in which each easing should be used.
 const easing = {
@@ -3247,7 +3297,7 @@ function createTransitions(inputTransitions) {
     duration: mergedDuration
   };
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/zIndex.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/zIndex.js
 // We need to centralize the zIndex definitions as they work
 // like global values in the browser.
 const zIndex = {
@@ -3261,7 +3311,7 @@ const zIndex = {
   tooltip: 1500
 };
 /* harmony default export */ const styles_zIndex = (zIndex);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/stringifyTheme.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/stringifyTheme.js
 /* eslint-disable import/prefer-default-export */
 
 function isSerializable(val) {
@@ -3316,7 +3366,7 @@ theme.transitions = createTransitions(theme.transitions || {});
 
 export default theme;`;
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createThemeNoVars.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createThemeNoVars.js
 
 
 
@@ -3329,6 +3379,59 @@ export default theme;`;
 
 
 
+
+function coefficientToPercentage(coefficient) {
+  if (typeof coefficient === 'number') {
+    return `${(coefficient * 100).toFixed(0)}%`;
+  }
+  return `calc((${coefficient}) * 100%)`;
+}
+
+// This can be removed when moved to `color-mix()` entirely.
+const parseAddition = str => {
+  if (!Number.isNaN(+str)) {
+    return +str;
+  }
+  const numbers = str.match(/\d*\.?\d+/g);
+  if (!numbers) {
+    return 0;
+  }
+  let sum = 0;
+  for (let i = 0; i < numbers.length; i += 1) {
+    sum += +numbers[i];
+  }
+  return sum;
+};
+function attachColorManipulators(theme) {
+  Object.assign(theme, {
+    alpha(color, coefficient) {
+      const obj = this || theme;
+      if (obj.colorSpace) {
+        return `oklch(from ${color} l c h / ${typeof coefficient === 'string' ? `calc(${coefficient})` : coefficient})`;
+      }
+      if (obj.vars) {
+        // To preserve the behavior of the CSS theme variables
+        // In the future, this could be replaced by `color-mix` (when https://caniuse.com/?search=color-mix reaches 95%).
+        return `rgba(${color.replace(/var\(--([^,\s)]+)(?:,[^)]+)?\)+/g, 'var(--$1Channel)')} / ${typeof coefficient === 'string' ? `calc(${coefficient})` : coefficient})`;
+      }
+      return alpha(color, parseAddition(coefficient));
+    },
+    lighten(color, coefficient) {
+      const obj = this || theme;
+      if (obj.colorSpace) {
+        return `color-mix(in ${obj.colorSpace}, ${color}, #fff ${coefficientToPercentage(coefficient)})`;
+      }
+      return lighten(color, coefficient);
+    },
+    darken(color, coefficient) {
+      const obj = this || theme;
+      if (obj.colorSpace) {
+        return `color-mix(in ${obj.colorSpace}, ${color}, #000 ${coefficientToPercentage(coefficient)})`;
+      }
+      return darken(color, coefficient);
+    }
+  });
+}
 function createThemeNoVars(options = {}, ...args) {
   const {
     breakpoints: breakpointsInput,
@@ -3338,12 +3441,19 @@ function createThemeNoVars(options = {}, ...args) {
     transitions: transitionsInput = {},
     typography: typographyInput = {},
     shape: shapeInput,
+    colorSpace,
     ...other
   } = options;
-  if (options.vars) {
+  if (options.vars &&
+  // The error should throw only for the root theme creation because user is not allowed to use a custom node `vars`.
+  // `generateThemeVars` is the closest identifier for checking that the `options` is a result of `createTheme` with CSS variables so that user can create new theme for nested ThemeProvider.
+  options.generateThemeVars === undefined) {
     throw new Error( false ? 0 : formatMuiErrorMessage(20));
   }
-  const palette = createPalette(paletteInput);
+  const palette = createPalette({
+    ...paletteInput,
+    colorSpace
+  });
   const systemTheme = createTheme_createTheme(options);
   let muiTheme = deepmerge_deepmerge(systemTheme, {
     mixins: createMixins(systemTheme.breakpoints, mixinsInput),
@@ -3371,15 +3481,11 @@ function createThemeNoVars(options = {}, ...args) {
   };
   muiTheme.toRuntimeSource = stringifyTheme; // for Pigment CSS integration
 
+  attachColorManipulators(muiTheme);
   return muiTheme;
 }
-let warnedOnce = false;
-function createMuiTheme(...args) {
-  if (false) {}
-  return createThemeNoVars(...args);
-}
 /* harmony default export */ const styles_createThemeNoVars = (createThemeNoVars);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/getOverlayAlpha.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/getOverlayAlpha.js
 // Inspired by https://github.com/material-components/material-components-ios/blob/bca36107405594d5b7b16265a5b0ed698f85a5ee/components/Elevation/src/UIColor%2BMaterialElevation.m#L61
 function getOverlayAlpha(elevation) {
   let alphaValue;
@@ -3390,7 +3496,7 @@ function getOverlayAlpha(elevation) {
   }
   return Math.round(alphaValue * 10) / 1000;
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createColorScheme.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createColorScheme.js
 
 
 const defaultDarkOverlays = [...Array(25)].map((_, index) => {
@@ -3419,9 +3525,14 @@ function createColorScheme(options) {
     // need to cast to avoid module augmentation test
     opacity,
     overlays,
-    ...rest
+    colorSpace,
+    ...other
   } = options;
-  const palette = createPalette(paletteInput);
+  // need to cast because `colorSpace` is considered internal at the moment.
+  const palette = createPalette({
+    ...paletteInput,
+    colorSpace
+  });
   return {
     palette,
     opacity: {
@@ -3429,22 +3540,22 @@ function createColorScheme(options) {
       ...opacity
     },
     overlays: overlays || getOverlays(palette.mode),
-    ...rest
+    ...other
   };
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/shouldSkipGeneratingVar.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/shouldSkipGeneratingVar.js
 function shouldSkipGeneratingVar_shouldSkipGeneratingVar(keys) {
-  return !!keys[0].match(/(cssVarPrefix|colorSchemeSelector|rootSelector|typography|mixins|breakpoints|direction|transitions)/) || !!keys[0].match(/sxConfig$/) ||
+  return !!keys[0].match(/(cssVarPrefix|colorSchemeSelector|modularCssLayers|rootSelector|typography|mixins|breakpoints|direction|transitions)/) || !!keys[0].match(/sxConfig$/) ||
   // ends with sxConfig
   keys[0] === 'palette' && !!keys[1]?.match(/(mode|contrastThreshold|tonalOffset)/);
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/excludeVariablesFromRoot.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/excludeVariablesFromRoot.js
 /**
  * @internal These variables should not appear in the :root stylesheet when the `defaultColorScheme="dark"`
  */
 const excludeVariablesFromRoot = cssVarPrefix => [...[...Array(25)].map((_, index) => `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}overlays-${index}`), `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}palette-AppBar-darkBg`, `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}palette-AppBar-darkColor`];
 /* harmony default export */ const styles_excludeVariablesFromRoot = (excludeVariablesFromRoot);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createGetSelector.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createGetSelector.js
 
 /* harmony default export */ const createGetSelector = (theme => (colorScheme, css) => {
   const root = theme.rootSelector || ':root';
@@ -3505,7 +3616,8 @@ const excludeVariablesFromRoot = cssVarPrefix => [...[...Array(25)].map((_, inde
   }
   return root;
 });
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createThemeWithVars.js
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createThemeWithVars.js
+
 
 
 
@@ -3561,7 +3673,7 @@ const silent = fn => {
   return undefined;
 };
 const createThemeWithVars_createGetCssVar = (cssVarPrefix = 'mui') => createGetCssVar(cssVarPrefix);
-function attachColorScheme(colorSchemes, scheme, restTheme, colorScheme) {
+function attachColorScheme(colorSpace, colorSchemes, scheme, restTheme, colorScheme) {
   if (!scheme) {
     return undefined;
   }
@@ -3573,7 +3685,8 @@ function attachColorScheme(colorSchemes, scheme, restTheme, colorScheme) {
       palette: {
         mode,
         ...scheme?.palette
-      }
+      },
+      colorSpace
     });
     return undefined;
   }
@@ -3585,7 +3698,8 @@ function attachColorScheme(colorSchemes, scheme, restTheme, colorScheme) {
     palette: {
       mode,
       ...scheme?.palette
-    }
+    },
+    colorSpace
   });
   colorSchemes[colorScheme] = {
     ...scheme,
@@ -3615,6 +3729,7 @@ function createThemeWithVars(options = {}, ...args) {
     defaultColorScheme: defaultColorSchemeInput,
     disableCssColorScheme = false,
     cssVarPrefix = 'mui',
+    nativeColor = false,
     shouldSkipGeneratingVar = shouldSkipGeneratingVar_shouldSkipGeneratingVar,
     colorSchemeSelector: selector = colorSchemesInput.light && colorSchemesInput.dark ? 'media' : undefined,
     rootSelector = ':root',
@@ -3642,13 +3757,19 @@ function createThemeWithVars(options = {}, ...args) {
     throw new Error( false ? 0 : formatMuiErrorMessage(21, defaultColorScheme));
   }
 
+  // The reason to use `oklch` is that it is the most perceptually uniform color space and widely supported.
+  let colorSpace;
+  if (nativeColor) {
+    colorSpace = 'oklch';
+  }
+
   // Create the palette for the default color scheme, either `light`, `dark`, or custom color scheme.
-  const muiTheme = attachColorScheme(colorSchemes, defaultScheme, input, defaultColorScheme);
+  const muiTheme = attachColorScheme(colorSpace, colorSchemes, defaultScheme, input, defaultColorScheme);
   if (builtInLight && !colorSchemes.light) {
-    attachColorScheme(colorSchemes, builtInLight, undefined, 'light');
+    attachColorScheme(colorSpace, colorSchemes, builtInLight, undefined, 'light');
   }
   if (builtInDark && !colorSchemes.dark) {
-    attachColorScheme(colorSchemes, builtInDark, undefined, 'dark');
+    attachColorScheme(colorSpace, colorSchemes, builtInDark, undefined, 'dark');
   }
   let theme = {
     defaultColorScheme,
@@ -3682,14 +3803,30 @@ function createThemeWithVars(options = {}, ...args) {
       setColor(palette.common, 'background', '#000');
       setColor(palette.common, 'onBackground', '#fff');
     }
+    function colorMix(method, color, coefficient) {
+      if (colorSpace) {
+        let mixer;
+        if (method === private_safeAlpha) {
+          mixer = `transparent ${((1 - coefficient) * 100).toFixed(0)}%`;
+        }
+        if (method === private_safeDarken) {
+          mixer = `#000 ${(coefficient * 100).toFixed(0)}%`;
+        }
+        if (method === private_safeLighten) {
+          mixer = `#fff ${(coefficient * 100).toFixed(0)}%`;
+        }
+        return `color-mix(in ${colorSpace}, ${color}, ${mixer})`;
+      }
+      return method(color, coefficient);
+    }
 
     // assign component variables
     assignNode(palette, ['Alert', 'AppBar', 'Avatar', 'Button', 'Chip', 'FilledInput', 'LinearProgress', 'Skeleton', 'Slider', 'SnackbarContent', 'SpeedDialAction', 'StepConnector', 'StepContent', 'Switch', 'TableCell', 'Tooltip']);
     if (palette.mode === 'light') {
-      setColor(palette.Alert, 'errorColor', private_safeDarken(palette.error.light, 0.6));
-      setColor(palette.Alert, 'infoColor', private_safeDarken(palette.info.light, 0.6));
-      setColor(palette.Alert, 'successColor', private_safeDarken(palette.success.light, 0.6));
-      setColor(palette.Alert, 'warningColor', private_safeDarken(palette.warning.light, 0.6));
+      setColor(palette.Alert, 'errorColor', colorMix(private_safeDarken, palette.error.light, 0.6));
+      setColor(palette.Alert, 'infoColor', colorMix(private_safeDarken, palette.info.light, 0.6));
+      setColor(palette.Alert, 'successColor', colorMix(private_safeDarken, palette.success.light, 0.6));
+      setColor(palette.Alert, 'warningColor', colorMix(private_safeDarken, palette.warning.light, 0.6));
       setColor(palette.Alert, 'errorFilledBg', setCssVarColor('palette-error-main'));
       setColor(palette.Alert, 'infoFilledBg', setCssVarColor('palette-info-main'));
       setColor(palette.Alert, 'successFilledBg', setCssVarColor('palette-success-main'));
@@ -3698,10 +3835,10 @@ function createThemeWithVars(options = {}, ...args) {
       setColor(palette.Alert, 'infoFilledColor', silent(() => palette.getContrastText(palette.info.main)));
       setColor(palette.Alert, 'successFilledColor', silent(() => palette.getContrastText(palette.success.main)));
       setColor(palette.Alert, 'warningFilledColor', silent(() => palette.getContrastText(palette.warning.main)));
-      setColor(palette.Alert, 'errorStandardBg', private_safeLighten(palette.error.light, 0.9));
-      setColor(palette.Alert, 'infoStandardBg', private_safeLighten(palette.info.light, 0.9));
-      setColor(palette.Alert, 'successStandardBg', private_safeLighten(palette.success.light, 0.9));
-      setColor(palette.Alert, 'warningStandardBg', private_safeLighten(palette.warning.light, 0.9));
+      setColor(palette.Alert, 'errorStandardBg', colorMix(private_safeLighten, palette.error.light, 0.9));
+      setColor(palette.Alert, 'infoStandardBg', colorMix(private_safeLighten, palette.info.light, 0.9));
+      setColor(palette.Alert, 'successStandardBg', colorMix(private_safeLighten, palette.success.light, 0.9));
+      setColor(palette.Alert, 'warningStandardBg', colorMix(private_safeLighten, palette.warning.light, 0.9));
       setColor(palette.Alert, 'errorIconColor', setCssVarColor('palette-error-main'));
       setColor(palette.Alert, 'infoIconColor', setCssVarColor('palette-info-main'));
       setColor(palette.Alert, 'successIconColor', setCssVarColor('palette-success-main'));
@@ -3716,41 +3853,42 @@ function createThemeWithVars(options = {}, ...args) {
       setColor(palette.FilledInput, 'bg', 'rgba(0, 0, 0, 0.06)');
       setColor(palette.FilledInput, 'hoverBg', 'rgba(0, 0, 0, 0.09)');
       setColor(palette.FilledInput, 'disabledBg', 'rgba(0, 0, 0, 0.12)');
-      setColor(palette.LinearProgress, 'primaryBg', private_safeLighten(palette.primary.main, 0.62));
-      setColor(palette.LinearProgress, 'secondaryBg', private_safeLighten(palette.secondary.main, 0.62));
-      setColor(palette.LinearProgress, 'errorBg', private_safeLighten(palette.error.main, 0.62));
-      setColor(palette.LinearProgress, 'infoBg', private_safeLighten(palette.info.main, 0.62));
-      setColor(palette.LinearProgress, 'successBg', private_safeLighten(palette.success.main, 0.62));
-      setColor(palette.LinearProgress, 'warningBg', private_safeLighten(palette.warning.main, 0.62));
-      setColor(palette.Skeleton, 'bg', `rgba(${setCssVarColor('palette-text-primaryChannel')} / 0.11)`);
-      setColor(palette.Slider, 'primaryTrack', private_safeLighten(palette.primary.main, 0.62));
-      setColor(palette.Slider, 'secondaryTrack', private_safeLighten(palette.secondary.main, 0.62));
-      setColor(palette.Slider, 'errorTrack', private_safeLighten(palette.error.main, 0.62));
-      setColor(palette.Slider, 'infoTrack', private_safeLighten(palette.info.main, 0.62));
-      setColor(palette.Slider, 'successTrack', private_safeLighten(palette.success.main, 0.62));
-      setColor(palette.Slider, 'warningTrack', private_safeLighten(palette.warning.main, 0.62));
-      const snackbarContentBackground = private_safeEmphasize(palette.background.default, 0.8);
+      setColor(palette.LinearProgress, 'primaryBg', colorMix(private_safeLighten, palette.primary.main, 0.62));
+      setColor(palette.LinearProgress, 'secondaryBg', colorMix(private_safeLighten, palette.secondary.main, 0.62));
+      setColor(palette.LinearProgress, 'errorBg', colorMix(private_safeLighten, palette.error.main, 0.62));
+      setColor(palette.LinearProgress, 'infoBg', colorMix(private_safeLighten, palette.info.main, 0.62));
+      setColor(palette.LinearProgress, 'successBg', colorMix(private_safeLighten, palette.success.main, 0.62));
+      setColor(palette.LinearProgress, 'warningBg', colorMix(private_safeLighten, palette.warning.main, 0.62));
+      setColor(palette.Skeleton, 'bg', colorSpace ? colorMix(private_safeAlpha, palette.text.primary, 0.11) : `rgba(${setCssVarColor('palette-text-primaryChannel')} / 0.11)`);
+      setColor(palette.Slider, 'primaryTrack', colorMix(private_safeLighten, palette.primary.main, 0.62));
+      setColor(palette.Slider, 'secondaryTrack', colorMix(private_safeLighten, palette.secondary.main, 0.62));
+      setColor(palette.Slider, 'errorTrack', colorMix(private_safeLighten, palette.error.main, 0.62));
+      setColor(palette.Slider, 'infoTrack', colorMix(private_safeLighten, palette.info.main, 0.62));
+      setColor(palette.Slider, 'successTrack', colorMix(private_safeLighten, palette.success.main, 0.62));
+      setColor(palette.Slider, 'warningTrack', colorMix(private_safeLighten, palette.warning.main, 0.62));
+      const snackbarContentBackground = colorSpace ? colorMix(private_safeDarken, palette.background.default, 0.6825) // use `0.6825` instead of `0.8` to match the contrast ratio of JS implementation
+      : private_safeEmphasize(palette.background.default, 0.8);
       setColor(palette.SnackbarContent, 'bg', snackbarContentBackground);
-      setColor(palette.SnackbarContent, 'color', silent(() => palette.getContrastText(snackbarContentBackground)));
+      setColor(palette.SnackbarContent, 'color', silent(() => colorSpace ? dark.text.primary : palette.getContrastText(snackbarContentBackground)));
       setColor(palette.SpeedDialAction, 'fabHoverBg', private_safeEmphasize(palette.background.paper, 0.15));
       setColor(palette.StepConnector, 'border', setCssVarColor('palette-grey-400'));
       setColor(palette.StepContent, 'border', setCssVarColor('palette-grey-400'));
       setColor(palette.Switch, 'defaultColor', setCssVarColor('palette-common-white'));
       setColor(palette.Switch, 'defaultDisabledColor', setCssVarColor('palette-grey-100'));
-      setColor(palette.Switch, 'primaryDisabledColor', private_safeLighten(palette.primary.main, 0.62));
-      setColor(palette.Switch, 'secondaryDisabledColor', private_safeLighten(palette.secondary.main, 0.62));
-      setColor(palette.Switch, 'errorDisabledColor', private_safeLighten(palette.error.main, 0.62));
-      setColor(palette.Switch, 'infoDisabledColor', private_safeLighten(palette.info.main, 0.62));
-      setColor(palette.Switch, 'successDisabledColor', private_safeLighten(palette.success.main, 0.62));
-      setColor(palette.Switch, 'warningDisabledColor', private_safeLighten(palette.warning.main, 0.62));
-      setColor(palette.TableCell, 'border', private_safeLighten(private_safeAlpha(palette.divider, 1), 0.88));
-      setColor(palette.Tooltip, 'bg', private_safeAlpha(palette.grey[700], 0.92));
+      setColor(palette.Switch, 'primaryDisabledColor', colorMix(private_safeLighten, palette.primary.main, 0.62));
+      setColor(palette.Switch, 'secondaryDisabledColor', colorMix(private_safeLighten, palette.secondary.main, 0.62));
+      setColor(palette.Switch, 'errorDisabledColor', colorMix(private_safeLighten, palette.error.main, 0.62));
+      setColor(palette.Switch, 'infoDisabledColor', colorMix(private_safeLighten, palette.info.main, 0.62));
+      setColor(palette.Switch, 'successDisabledColor', colorMix(private_safeLighten, palette.success.main, 0.62));
+      setColor(palette.Switch, 'warningDisabledColor', colorMix(private_safeLighten, palette.warning.main, 0.62));
+      setColor(palette.TableCell, 'border', colorMix(private_safeLighten, colorMix(private_safeAlpha, palette.divider, 1), 0.88));
+      setColor(palette.Tooltip, 'bg', colorMix(private_safeAlpha, palette.grey[700], 0.92));
     }
     if (palette.mode === 'dark') {
-      setColor(palette.Alert, 'errorColor', private_safeLighten(palette.error.light, 0.6));
-      setColor(palette.Alert, 'infoColor', private_safeLighten(palette.info.light, 0.6));
-      setColor(palette.Alert, 'successColor', private_safeLighten(palette.success.light, 0.6));
-      setColor(palette.Alert, 'warningColor', private_safeLighten(palette.warning.light, 0.6));
+      setColor(palette.Alert, 'errorColor', colorMix(private_safeLighten, palette.error.light, 0.6));
+      setColor(palette.Alert, 'infoColor', colorMix(private_safeLighten, palette.info.light, 0.6));
+      setColor(palette.Alert, 'successColor', colorMix(private_safeLighten, palette.success.light, 0.6));
+      setColor(palette.Alert, 'warningColor', colorMix(private_safeLighten, palette.warning.light, 0.6));
       setColor(palette.Alert, 'errorFilledBg', setCssVarColor('palette-error-dark'));
       setColor(palette.Alert, 'infoFilledBg', setCssVarColor('palette-info-dark'));
       setColor(palette.Alert, 'successFilledBg', setCssVarColor('palette-success-dark'));
@@ -3759,10 +3897,10 @@ function createThemeWithVars(options = {}, ...args) {
       setColor(palette.Alert, 'infoFilledColor', silent(() => palette.getContrastText(palette.info.dark)));
       setColor(palette.Alert, 'successFilledColor', silent(() => palette.getContrastText(palette.success.dark)));
       setColor(palette.Alert, 'warningFilledColor', silent(() => palette.getContrastText(palette.warning.dark)));
-      setColor(palette.Alert, 'errorStandardBg', private_safeDarken(palette.error.light, 0.9));
-      setColor(palette.Alert, 'infoStandardBg', private_safeDarken(palette.info.light, 0.9));
-      setColor(palette.Alert, 'successStandardBg', private_safeDarken(palette.success.light, 0.9));
-      setColor(palette.Alert, 'warningStandardBg', private_safeDarken(palette.warning.light, 0.9));
+      setColor(palette.Alert, 'errorStandardBg', colorMix(private_safeDarken, palette.error.light, 0.9));
+      setColor(palette.Alert, 'infoStandardBg', colorMix(private_safeDarken, palette.info.light, 0.9));
+      setColor(palette.Alert, 'successStandardBg', colorMix(private_safeDarken, palette.success.light, 0.9));
+      setColor(palette.Alert, 'warningStandardBg', colorMix(private_safeDarken, palette.warning.light, 0.9));
       setColor(palette.Alert, 'errorIconColor', setCssVarColor('palette-error-main'));
       setColor(palette.Alert, 'infoIconColor', setCssVarColor('palette-info-main'));
       setColor(palette.Alert, 'successIconColor', setCssVarColor('palette-success-main'));
@@ -3779,35 +3917,36 @@ function createThemeWithVars(options = {}, ...args) {
       setColor(palette.FilledInput, 'bg', 'rgba(255, 255, 255, 0.09)');
       setColor(palette.FilledInput, 'hoverBg', 'rgba(255, 255, 255, 0.13)');
       setColor(palette.FilledInput, 'disabledBg', 'rgba(255, 255, 255, 0.12)');
-      setColor(palette.LinearProgress, 'primaryBg', private_safeDarken(palette.primary.main, 0.5));
-      setColor(palette.LinearProgress, 'secondaryBg', private_safeDarken(palette.secondary.main, 0.5));
-      setColor(palette.LinearProgress, 'errorBg', private_safeDarken(palette.error.main, 0.5));
-      setColor(palette.LinearProgress, 'infoBg', private_safeDarken(palette.info.main, 0.5));
-      setColor(palette.LinearProgress, 'successBg', private_safeDarken(palette.success.main, 0.5));
-      setColor(palette.LinearProgress, 'warningBg', private_safeDarken(palette.warning.main, 0.5));
-      setColor(palette.Skeleton, 'bg', `rgba(${setCssVarColor('palette-text-primaryChannel')} / 0.13)`);
-      setColor(palette.Slider, 'primaryTrack', private_safeDarken(palette.primary.main, 0.5));
-      setColor(palette.Slider, 'secondaryTrack', private_safeDarken(palette.secondary.main, 0.5));
-      setColor(palette.Slider, 'errorTrack', private_safeDarken(palette.error.main, 0.5));
-      setColor(palette.Slider, 'infoTrack', private_safeDarken(palette.info.main, 0.5));
-      setColor(palette.Slider, 'successTrack', private_safeDarken(palette.success.main, 0.5));
-      setColor(palette.Slider, 'warningTrack', private_safeDarken(palette.warning.main, 0.5));
-      const snackbarContentBackground = private_safeEmphasize(palette.background.default, 0.98);
+      setColor(palette.LinearProgress, 'primaryBg', colorMix(private_safeDarken, palette.primary.main, 0.5));
+      setColor(palette.LinearProgress, 'secondaryBg', colorMix(private_safeDarken, palette.secondary.main, 0.5));
+      setColor(palette.LinearProgress, 'errorBg', colorMix(private_safeDarken, palette.error.main, 0.5));
+      setColor(palette.LinearProgress, 'infoBg', colorMix(private_safeDarken, palette.info.main, 0.5));
+      setColor(palette.LinearProgress, 'successBg', colorMix(private_safeDarken, palette.success.main, 0.5));
+      setColor(palette.LinearProgress, 'warningBg', colorMix(private_safeDarken, palette.warning.main, 0.5));
+      setColor(palette.Skeleton, 'bg', colorSpace ? colorMix(private_safeAlpha, palette.text.primary, 0.13) : `rgba(${setCssVarColor('palette-text-primaryChannel')} / 0.13)`);
+      setColor(palette.Slider, 'primaryTrack', colorMix(private_safeDarken, palette.primary.main, 0.5));
+      setColor(palette.Slider, 'secondaryTrack', colorMix(private_safeDarken, palette.secondary.main, 0.5));
+      setColor(palette.Slider, 'errorTrack', colorMix(private_safeDarken, palette.error.main, 0.5));
+      setColor(palette.Slider, 'infoTrack', colorMix(private_safeDarken, palette.info.main, 0.5));
+      setColor(palette.Slider, 'successTrack', colorMix(private_safeDarken, palette.success.main, 0.5));
+      setColor(palette.Slider, 'warningTrack', colorMix(private_safeDarken, palette.warning.main, 0.5));
+      const snackbarContentBackground = colorSpace ? colorMix(private_safeLighten, palette.background.default, 0.985) // use `0.985` instead of `0.98` to match the contrast ratio of JS implementation
+      : private_safeEmphasize(palette.background.default, 0.98);
       setColor(palette.SnackbarContent, 'bg', snackbarContentBackground);
-      setColor(palette.SnackbarContent, 'color', silent(() => palette.getContrastText(snackbarContentBackground)));
+      setColor(palette.SnackbarContent, 'color', silent(() => colorSpace ? light.text.primary : palette.getContrastText(snackbarContentBackground)));
       setColor(palette.SpeedDialAction, 'fabHoverBg', private_safeEmphasize(palette.background.paper, 0.15));
       setColor(palette.StepConnector, 'border', setCssVarColor('palette-grey-600'));
       setColor(palette.StepContent, 'border', setCssVarColor('palette-grey-600'));
       setColor(palette.Switch, 'defaultColor', setCssVarColor('palette-grey-300'));
       setColor(palette.Switch, 'defaultDisabledColor', setCssVarColor('palette-grey-600'));
-      setColor(palette.Switch, 'primaryDisabledColor', private_safeDarken(palette.primary.main, 0.55));
-      setColor(palette.Switch, 'secondaryDisabledColor', private_safeDarken(palette.secondary.main, 0.55));
-      setColor(palette.Switch, 'errorDisabledColor', private_safeDarken(palette.error.main, 0.55));
-      setColor(palette.Switch, 'infoDisabledColor', private_safeDarken(palette.info.main, 0.55));
-      setColor(palette.Switch, 'successDisabledColor', private_safeDarken(palette.success.main, 0.55));
-      setColor(palette.Switch, 'warningDisabledColor', private_safeDarken(palette.warning.main, 0.55));
-      setColor(palette.TableCell, 'border', private_safeDarken(private_safeAlpha(palette.divider, 1), 0.68));
-      setColor(palette.Tooltip, 'bg', private_safeAlpha(palette.grey[700], 0.92));
+      setColor(palette.Switch, 'primaryDisabledColor', colorMix(private_safeDarken, palette.primary.main, 0.55));
+      setColor(palette.Switch, 'secondaryDisabledColor', colorMix(private_safeDarken, palette.secondary.main, 0.55));
+      setColor(palette.Switch, 'errorDisabledColor', colorMix(private_safeDarken, palette.error.main, 0.55));
+      setColor(palette.Switch, 'infoDisabledColor', colorMix(private_safeDarken, palette.info.main, 0.55));
+      setColor(palette.Switch, 'successDisabledColor', colorMix(private_safeDarken, palette.success.main, 0.55));
+      setColor(palette.Switch, 'warningDisabledColor', colorMix(private_safeDarken, palette.warning.main, 0.55));
+      setColor(palette.TableCell, 'border', colorMix(private_safeDarken, colorMix(private_safeAlpha, palette.divider, 1), 0.68));
+      setColor(palette.Tooltip, 'bg', colorMix(private_safeAlpha, palette.grey[700], 0.92));
     }
 
     // MUI X - DataGrid needs this token.
@@ -3859,7 +3998,8 @@ function createThemeWithVars(options = {}, ...args) {
     prefix: cssVarPrefix,
     disableCssColorScheme,
     shouldSkipGeneratingVar,
-    getSelector: createGetSelector(theme)
+    getSelector: createGetSelector(theme),
+    enableContrastVars: nativeColor
   };
   const {
     vars,
@@ -3892,8 +4032,7 @@ function createThemeWithVars(options = {}, ...args) {
 
   return theme;
 }
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createTheme.js
-
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createTheme.js
 
 
 
@@ -3929,7 +4068,7 @@ function styles_createTheme_createTheme(options = {},
       light: true
     } : undefined,
     defaultColorScheme: initialDefaultColorScheme = palette?.mode,
-    ...rest
+    ...other
   } = options;
   const defaultColorSchemeInput = initialDefaultColorScheme || 'light';
   const defaultScheme = initialColorSchemes?.[defaultColorSchemeInput];
@@ -3986,20 +4125,20 @@ function styles_createTheme_createTheme(options = {},
     colorSchemesInput.light = true;
   }
   return createThemeWithVars({
-    ...rest,
+    ...other,
     colorSchemes: colorSchemesInput,
     defaultColorScheme: defaultColorSchemeInput,
     ...(typeof cssVariables !== 'boolean' && cssVariables)
   }, ...args);
 }
-;// ./node_modules/.pnpm/@mui+private-theming@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/useTheme/ThemeContext.js
+;// ./node_modules/.pnpm/@mui+private-theming@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/esm/useTheme/ThemeContext.js
 'use client';
 
 
 const ThemeContext = /*#__PURE__*/external_React_.createContext(null);
 if (false) {}
 /* harmony default export */ const useTheme_ThemeContext = (ThemeContext);
-;// ./node_modules/.pnpm/@mui+private-theming@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/useTheme/useTheme.js
+;// ./node_modules/.pnpm/@mui+private-theming@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/esm/useTheme/useTheme.js
 
 
 function useTheme() {
@@ -4007,10 +4146,10 @@ function useTheme() {
   if (false) {}
   return theme;
 }
-;// ./node_modules/.pnpm/@mui+private-theming@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/ThemeProvider/nested.js
+;// ./node_modules/.pnpm/@mui+private-theming@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/esm/ThemeProvider/nested.js
 const hasSymbol = typeof Symbol === 'function' && Symbol.for;
 /* harmony default export */ const nested = (hasSymbol ? Symbol.for('mui.nested') : '__THEME_NESTED__');
-;// ./node_modules/.pnpm/@mui+private-theming@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/ThemeProvider/ThemeProvider.js
+;// ./node_modules/.pnpm/@mui+private-theming@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/esm/ThemeProvider/ThemeProvider.js
 
 
 
@@ -4061,7 +4200,7 @@ function ThemeProvider(props) {
  false ? 0 : void 0;
 if (false) {}
 /* harmony default export */ const ThemeProvider_ThemeProvider = (ThemeProvider);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/useThemeWithoutDefault/useThemeWithoutDefault.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/useThemeWithoutDefault/useThemeWithoutDefault.js
 'use client';
 
 
@@ -4074,7 +4213,7 @@ function useThemeWithoutDefault_useTheme(defaultTheme = null) {
   return !contextTheme || isObjectEmpty(contextTheme) ? defaultTheme : contextTheme;
 }
 /* harmony default export */ const useThemeWithoutDefault = (useThemeWithoutDefault_useTheme);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/RtlProvider/index.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/RtlProvider/index.js
 'use client';
 
 
@@ -4092,18 +4231,25 @@ function RtlProvider({
 }
  false ? 0 : void 0;
 const useRtl = () => {
-  const value = external_React_.useContext(RtlContext);
+  const value = React.useContext(RtlContext);
   return value ?? false;
 };
 /* harmony default export */ const esm_RtlProvider = (RtlProvider);
-;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/resolveProps/resolveProps.js
+;// ./node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs
+function r(e){var t,f,n="";if("string"==typeof e||"number"==typeof e)n+=e;else if("object"==typeof e)if(Array.isArray(e)){var o=e.length;for(t=0;t<o;t++)e[t]&&(f=r(e[t]))&&(n&&(n+=" "),n+=f)}else for(f in e)e[f]&&(n&&(n+=" "),n+=f);return n}function clsx(){for(var e,t,f=0,n="",o=arguments.length;f<o;f++)(e=arguments[f])&&(t=r(e))&&(n&&(n+=" "),n+=t);return n}/* harmony default export */ const dist_clsx = (clsx);
+;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/resolveProps/resolveProps.js
+
+
 /**
  * Add keys, values of `defaultProps` that does not exist in `props`
  * @param defaultProps
  * @param props
+ * @param mergeClassNameAndStyle If `true`, merges `className` and `style` props instead of overriding them.
+ *   When `false` (default), props override defaultProps. When `true`, `className` values are concatenated
+ *   and `style` objects are merged with props taking precedence.
  * @returns resolved props
  */
-function resolveProps(defaultProps, props) {
+function resolveProps(defaultProps, props, mergeClassNameAndStyle = false) {
   const output = {
     ...props
   };
@@ -4129,10 +4275,17 @@ function resolveProps(defaultProps, props) {
           for (const slotKey in defaultSlotProps) {
             if (Object.prototype.hasOwnProperty.call(defaultSlotProps, slotKey)) {
               const slotPropName = slotKey;
-              output[propName][slotPropName] = resolveProps(defaultSlotProps[slotPropName], slotProps[slotPropName]);
+              output[propName][slotPropName] = resolveProps(defaultSlotProps[slotPropName], slotProps[slotPropName], mergeClassNameAndStyle);
             }
           }
         }
+      } else if (propName === 'className' && mergeClassNameAndStyle && props.className) {
+        output.className = dist_clsx(defaultProps?.className, props?.className);
+      } else if (propName === 'style' && mergeClassNameAndStyle && props.style) {
+        output.style = {
+          ...defaultProps?.style,
+          ...props?.style
+        };
       } else if (output[propName] === undefined) {
         output[propName] = defaultProps[propName];
       }
@@ -4140,7 +4293,7 @@ function resolveProps(defaultProps, props) {
   }
   return output;
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/DefaultPropsProvider/DefaultPropsProvider.js
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/DefaultPropsProvider/DefaultPropsProvider.js
 'use client';
 
 
@@ -4170,11 +4323,11 @@ function getThemeProps(params) {
   const config = theme.components[name];
   if (config.defaultProps) {
     // compatible with v5 signature
-    return resolveProps(config.defaultProps, props);
+    return resolveProps(config.defaultProps, props, theme.components.mergeClassNameAndStyle);
   }
   if (!config.styleOverrides && !config.variants) {
     // v6 signature, no property 'defaultProps'
-    return resolveProps(config, props);
+    return resolveProps(config, props, theme.components.mergeClassNameAndStyle);
   }
   return props;
 }
@@ -4192,123 +4345,7 @@ function useDefaultProps({
   });
 }
 /* harmony default export */ const DefaultPropsProvider_DefaultPropsProvider = (DefaultPropsProvider);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/ThemeProvider/ThemeProvider.js
-'use client';
-
-
-
-
-
-
-
-
-
-
-const EMPTY_THEME = {};
-function useThemeScoping(themeId, upperTheme, localTheme, isPrivate = false) {
-  return external_React_.useMemo(() => {
-    const resolvedTheme = themeId ? upperTheme[themeId] || upperTheme : upperTheme;
-    if (typeof localTheme === 'function') {
-      const mergedTheme = localTheme(resolvedTheme);
-      const result = themeId ? {
-        ...upperTheme,
-        [themeId]: mergedTheme
-      } : mergedTheme;
-      // must return a function for the private theme to NOT merge with the upper theme.
-      // see the test case "use provided theme from a callback" in ThemeProvider.test.js
-      if (isPrivate) {
-        return () => result;
-      }
-      return result;
-    }
-    return themeId ? {
-      ...upperTheme,
-      [themeId]: localTheme
-    } : {
-      ...upperTheme,
-      ...localTheme
-    };
-  }, [themeId, upperTheme, localTheme, isPrivate]);
-}
-
-/**
- * This component makes the `theme` available down the React tree.
- * It should preferably be used at **the root of your component tree**.
- *
- * <ThemeProvider theme={theme}> // existing use case
- * <ThemeProvider theme={{ id: theme }}> // theme scoping
- */
-function ThemeProvider_ThemeProvider_ThemeProvider(props) {
-  const {
-    children,
-    theme: localTheme,
-    themeId
-  } = props;
-  const upperTheme = useThemeWithoutDefault(EMPTY_THEME);
-  const upperPrivateTheme = useTheme() || EMPTY_THEME;
-  if (false) {}
-  const engineTheme = useThemeScoping(themeId, upperTheme, localTheme);
-  const privateTheme = useThemeScoping(themeId, upperPrivateTheme, localTheme, true);
-  const rtlValue = (themeId ? engineTheme[themeId] : engineTheme).direction === 'rtl';
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(ThemeProvider_ThemeProvider, {
-    theme: privateTheme,
-    children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_EmotionReact_.ThemeContext.Provider, {
-      value: engineTheme,
-      children: /*#__PURE__*/(0,jsx_runtime.jsx)(esm_RtlProvider, {
-        value: rtlValue,
-        children: /*#__PURE__*/(0,jsx_runtime.jsx)(DefaultPropsProvider_DefaultPropsProvider, {
-          value: themeId ? engineTheme[themeId].components : engineTheme.components,
-          children: children
-        })
-      })
-    })
-  });
-}
- false ? 0 : void 0;
-if (false) {}
-/* harmony default export */ const esm_ThemeProvider_ThemeProvider = (ThemeProvider_ThemeProvider_ThemeProvider);
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/identifier.js
-/* harmony default export */ const identifier = ('$$material');
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/ThemeProviderNoVars.js
-'use client';
-
-
-
-
-
-function ThemeProviderNoVars({
-  theme: themeInput,
-  ...props
-}) {
-  const scopedTheme = identifier in themeInput ? themeInput[identifier] : undefined;
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(esm_ThemeProvider_ThemeProvider, {
-    ...props,
-    themeId: scopedTheme ? identifier : undefined,
-    theme: scopedTheme || themeInput
-  });
-}
-;// ./node_modules/.pnpm/@mui+styled-engine@6.4.0_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+s_x7v5n4lf3nu5lz7wyzk6kbd3tu/node_modules/@mui/styled-engine/GlobalStyles/GlobalStyles.js
-'use client';
-
-
-
-
-
-function isEmpty(obj) {
-  return obj === undefined || obj === null || Object.keys(obj).length === 0;
-}
-function GlobalStyles_GlobalStyles(props) {
-  const {
-    styles,
-    defaultTheme = {}
-  } = props;
-  const globalStyles = typeof styles === 'function' ? themeInput => styles(isEmpty(themeInput) ? defaultTheme : themeInput) : styles;
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(external_EmotionReact_.Global, {
-    styles: globalStyles
-  });
-}
- false ? 0 : void 0;
-;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/useEnhancedEffect/useEnhancedEffect.js
+;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/useEnhancedEffect/useEnhancedEffect.js
 'use client';
 
 
@@ -4322,725 +4359,51 @@ function GlobalStyles_GlobalStyles(props) {
  */
 const useEnhancedEffect = typeof window !== 'undefined' ? external_React_.useLayoutEffect : external_React_.useEffect;
 /* harmony default export */ const useEnhancedEffect_useEnhancedEffect = (useEnhancedEffect);
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/InitColorSchemeScript/InitColorSchemeScript.js
-/**
- * Split this component for RSC import
- */
-
-
-const DEFAULT_MODE_STORAGE_KEY = 'mode';
-const DEFAULT_COLOR_SCHEME_STORAGE_KEY = 'color-scheme';
-const DEFAULT_ATTRIBUTE = 'data-color-scheme';
-function InitColorSchemeScript(options) {
-  const {
-    defaultMode = 'system',
-    defaultLightColorScheme = 'light',
-    defaultDarkColorScheme = 'dark',
-    modeStorageKey = DEFAULT_MODE_STORAGE_KEY,
-    colorSchemeStorageKey = DEFAULT_COLOR_SCHEME_STORAGE_KEY,
-    attribute: initialAttribute = DEFAULT_ATTRIBUTE,
-    colorSchemeNode = 'document.documentElement',
-    nonce
-  } = options || {};
-  let setter = '';
-  let attribute = initialAttribute;
-  if (initialAttribute === 'class') {
-    attribute = '.%s';
-  }
-  if (initialAttribute === 'data') {
-    attribute = '[data-%s]';
-  }
-  if (attribute.startsWith('.')) {
-    const selector = attribute.substring(1);
-    setter += `${colorSchemeNode}.classList.remove('${selector}'.replace('%s', light), '${selector}'.replace('%s', dark));
-      ${colorSchemeNode}.classList.add('${selector}'.replace('%s', colorScheme));`;
-  }
-  const matches = attribute.match(/\[([^\]]+)\]/); // case [data-color-scheme=%s] or [data-color-scheme]
-  if (matches) {
-    const [attr, value] = matches[1].split('=');
-    if (!value) {
-      setter += `${colorSchemeNode}.removeAttribute('${attr}'.replace('%s', light));
-      ${colorSchemeNode}.removeAttribute('${attr}'.replace('%s', dark));`;
-    }
-    setter += `
-      ${colorSchemeNode}.setAttribute('${attr}'.replace('%s', colorScheme), ${value ? `${value}.replace('%s', colorScheme)` : '""'});`;
-  } else {
-    setter += `${colorSchemeNode}.setAttribute('${attribute}', colorScheme);`;
-  }
-  return /*#__PURE__*/(0,jsx_runtime.jsx)("script", {
-    suppressHydrationWarning: true,
-    nonce: typeof window === 'undefined' ? nonce : ''
-    // eslint-disable-next-line react/no-danger
-    ,
-    dangerouslySetInnerHTML: {
-      __html: `(function() {
-try {
-  let colorScheme = '';
-  const mode = localStorage.getItem('${modeStorageKey}') || '${defaultMode}';
-  const dark = localStorage.getItem('${colorSchemeStorageKey}-dark') || '${defaultDarkColorScheme}';
-  const light = localStorage.getItem('${colorSchemeStorageKey}-light') || '${defaultLightColorScheme}';
-  if (mode === 'system') {
-    // handle system mode
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    if (mql.matches) {
-      colorScheme = dark
-    } else {
-      colorScheme = light
-    }
-  }
-  if (mode === 'light') {
-    colorScheme = light;
-  }
-  if (mode === 'dark') {
-    colorScheme = dark;
-  }
-  if (colorScheme) {
-    ${setter}
-  }
-} catch(e){}})();`
-    }
-  }, "mui-color-scheme-init");
-}
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/useCurrentColorScheme.js
+;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/useId/useId.js
 'use client';
 
 
+let globalId = 0;
 
-function getSystemMode(mode) {
-  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && mode === 'system') {
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    if (mql.matches) {
-      return 'dark';
-    }
-    return 'light';
-  }
-  return undefined;
-}
-function processState(state, callback) {
-  if (state.mode === 'light' || state.mode === 'system' && state.systemMode === 'light') {
-    return callback('light');
-  }
-  if (state.mode === 'dark' || state.mode === 'system' && state.systemMode === 'dark') {
-    return callback('dark');
-  }
-  return undefined;
-}
-function getColorScheme(state) {
-  return processState(state, mode => {
-    if (mode === 'light') {
-      return state.lightColorScheme;
-    }
-    if (mode === 'dark') {
-      return state.darkColorScheme;
-    }
-    return undefined;
-  });
-}
-function initializeValue(key, defaultValue) {
-  if (typeof window === 'undefined') {
-    return undefined;
-  }
-  let value;
-  try {
-    value = localStorage.getItem(key) || undefined;
-    if (!value) {
-      // the first time that user enters the site.
-      localStorage.setItem(key, defaultValue);
-    }
-  } catch {
-    // Unsupported
-  }
-  return value || defaultValue;
-}
-function useCurrentColorScheme(options) {
-  const {
-    defaultMode = 'light',
-    defaultLightColorScheme,
-    defaultDarkColorScheme,
-    supportedColorSchemes = [],
-    modeStorageKey = DEFAULT_MODE_STORAGE_KEY,
-    colorSchemeStorageKey = DEFAULT_COLOR_SCHEME_STORAGE_KEY,
-    storageWindow = typeof window === 'undefined' ? undefined : window,
-    noSsr = false
-  } = options;
-  const joinedColorSchemes = supportedColorSchemes.join(',');
-  const isMultiSchemes = supportedColorSchemes.length > 1;
-  const [state, setState] = external_React_.useState(() => {
-    const initialMode = initializeValue(modeStorageKey, defaultMode);
-    const lightColorScheme = initializeValue(`${colorSchemeStorageKey}-light`, defaultLightColorScheme);
-    const darkColorScheme = initializeValue(`${colorSchemeStorageKey}-dark`, defaultDarkColorScheme);
-    return {
-      mode: initialMode,
-      systemMode: getSystemMode(initialMode),
-      lightColorScheme,
-      darkColorScheme
-    };
-  });
-  const [isClient, setIsClient] = external_React_.useState(noSsr || !isMultiSchemes);
+// TODO React 17: Remove `useGlobalId` once React 17 support is removed
+function useGlobalId(idOverride) {
+  const [defaultId, setDefaultId] = external_React_.useState(idOverride);
+  const id = idOverride || defaultId;
   external_React_.useEffect(() => {
-    setIsClient(true); // to rerender the component after hydration
-  }, []);
-  const colorScheme = getColorScheme(state);
-  const setMode = external_React_.useCallback(mode => {
-    setState(currentState => {
-      if (mode === currentState.mode) {
-        // do nothing if mode does not change
-        return currentState;
-      }
-      const newMode = mode ?? defaultMode;
-      try {
-        localStorage.setItem(modeStorageKey, newMode);
-      } catch {
-        // Unsupported
-      }
-      return {
-        ...currentState,
-        mode: newMode,
-        systemMode: getSystemMode(newMode)
-      };
-    });
-  }, [modeStorageKey, defaultMode]);
-  const setColorScheme = external_React_.useCallback(value => {
-    if (!value) {
-      setState(currentState => {
-        try {
-          localStorage.setItem(`${colorSchemeStorageKey}-light`, defaultLightColorScheme);
-          localStorage.setItem(`${colorSchemeStorageKey}-dark`, defaultDarkColorScheme);
-        } catch {
-          // Unsupported
-        }
-        return {
-          ...currentState,
-          lightColorScheme: defaultLightColorScheme,
-          darkColorScheme: defaultDarkColorScheme
-        };
-      });
-    } else if (typeof value === 'string') {
-      if (value && !joinedColorSchemes.includes(value)) {
-        console.error(`\`${value}\` does not exist in \`theme.colorSchemes\`.`);
-      } else {
-        setState(currentState => {
-          const newState = {
-            ...currentState
-          };
-          processState(currentState, mode => {
-            try {
-              localStorage.setItem(`${colorSchemeStorageKey}-${mode}`, value);
-            } catch {
-              // Unsupported
-            }
-            if (mode === 'light') {
-              newState.lightColorScheme = value;
-            }
-            if (mode === 'dark') {
-              newState.darkColorScheme = value;
-            }
-          });
-          return newState;
-        });
-      }
-    } else {
-      setState(currentState => {
-        const newState = {
-          ...currentState
-        };
-        const newLightColorScheme = value.light === null ? defaultLightColorScheme : value.light;
-        const newDarkColorScheme = value.dark === null ? defaultDarkColorScheme : value.dark;
-        if (newLightColorScheme) {
-          if (!joinedColorSchemes.includes(newLightColorScheme)) {
-            console.error(`\`${newLightColorScheme}\` does not exist in \`theme.colorSchemes\`.`);
-          } else {
-            newState.lightColorScheme = newLightColorScheme;
-            try {
-              localStorage.setItem(`${colorSchemeStorageKey}-light`, newLightColorScheme);
-            } catch (error) {
-              // Unsupported
-            }
-          }
-        }
-        if (newDarkColorScheme) {
-          if (!joinedColorSchemes.includes(newDarkColorScheme)) {
-            console.error(`\`${newDarkColorScheme}\` does not exist in \`theme.colorSchemes\`.`);
-          } else {
-            newState.darkColorScheme = newDarkColorScheme;
-            try {
-              localStorage.setItem(`${colorSchemeStorageKey}-dark`, newDarkColorScheme);
-            } catch (error) {
-              // Unsupported
-            }
-          }
-        }
-        return newState;
-      });
+    if (defaultId == null) {
+      // Fallback to this default id when possible.
+      // Use the incrementing value for client-side rendering only.
+      // We can't use it server-side.
+      // If you want to use random values please consider the Birthday Problem: https://en.wikipedia.org/wiki/Birthday_problem
+      globalId += 1;
+      setDefaultId(`mui-${globalId}`);
     }
-  }, [joinedColorSchemes, colorSchemeStorageKey, defaultLightColorScheme, defaultDarkColorScheme]);
-  const handleMediaQuery = external_React_.useCallback(event => {
-    if (state.mode === 'system') {
-      setState(currentState => {
-        const systemMode = event?.matches ? 'dark' : 'light';
-
-        // Early exit, nothing changed.
-        if (currentState.systemMode === systemMode) {
-          return currentState;
-        }
-        return {
-          ...currentState,
-          systemMode
-        };
-      });
-    }
-  }, [state.mode]);
-
-  // Ref hack to avoid adding handleMediaQuery as a dep
-  const mediaListener = external_React_.useRef(handleMediaQuery);
-  mediaListener.current = handleMediaQuery;
-  external_React_.useEffect(() => {
-    if (typeof window.matchMedia !== 'function' || !isMultiSchemes) {
-      return undefined;
-    }
-    const handler = (...args) => mediaListener.current(...args);
-
-    // Always listen to System preference
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-
-    // Intentionally use deprecated listener methods to support iOS & old browsers
-    media.addListener(handler);
-    handler(media);
-    return () => {
-      media.removeListener(handler);
-    };
-  }, [isMultiSchemes]);
-
-  // Handle when localStorage has changed
-  external_React_.useEffect(() => {
-    if (storageWindow && isMultiSchemes) {
-      const handleStorage = event => {
-        const value = event.newValue;
-        if (typeof event.key === 'string' && event.key.startsWith(colorSchemeStorageKey) && (!value || joinedColorSchemes.match(value))) {
-          // If the key is deleted, value will be null then reset color scheme to the default one.
-          if (event.key.endsWith('light')) {
-            setColorScheme({
-              light: value
-            });
-          }
-          if (event.key.endsWith('dark')) {
-            setColorScheme({
-              dark: value
-            });
-          }
-        }
-        if (event.key === modeStorageKey && (!value || ['light', 'dark', 'system'].includes(value))) {
-          setMode(value || defaultMode);
-        }
-      };
-      // For syncing color-scheme changes between iframes
-      storageWindow.addEventListener('storage', handleStorage);
-      return () => {
-        storageWindow.removeEventListener('storage', handleStorage);
-      };
-    }
-    return undefined;
-  }, [setColorScheme, setMode, modeStorageKey, colorSchemeStorageKey, joinedColorSchemes, defaultMode, storageWindow, isMultiSchemes]);
-  return {
-    ...state,
-    mode: isClient ? state.mode : undefined,
-    systemMode: isClient ? state.systemMode : undefined,
-    colorScheme: isClient ? colorScheme : undefined,
-    setMode,
-    setColorScheme
-  };
+  }, [defaultId]);
+  return id;
 }
-;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/createCssVarsProvider.js
-'use client';
 
-
-
-
-
-
-
-
-
-
-const DISABLE_CSS_TRANSITION = '*{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}';
-function createCssVarsProvider(options) {
-  const {
-    themeId,
-    /**
-     * This `theme` object needs to follow a certain structure to
-     * be used correctly by the finel `CssVarsProvider`. It should have a
-     * `colorSchemes` key with the light and dark (and any other) palette.
-     * It should also ideally have a vars object created using `prepareCssVars`.
-     */
-    theme: defaultTheme = {},
-    modeStorageKey: defaultModeStorageKey = DEFAULT_MODE_STORAGE_KEY,
-    colorSchemeStorageKey: defaultColorSchemeStorageKey = DEFAULT_COLOR_SCHEME_STORAGE_KEY,
-    disableTransitionOnChange: designSystemTransitionOnChange = false,
-    defaultColorScheme,
-    resolveTheme
-  } = options;
-  const defaultContext = {
-    allColorSchemes: [],
-    colorScheme: undefined,
-    darkColorScheme: undefined,
-    lightColorScheme: undefined,
-    mode: undefined,
-    setColorScheme: () => {},
-    setMode: () => {},
-    systemMode: undefined
-  };
-  const ColorSchemeContext = /*#__PURE__*/external_React_.createContext(undefined);
-  if (false) {}
-  const useColorScheme = () => external_React_.useContext(ColorSchemeContext) || defaultContext;
-  const defaultColorSchemes = {};
-  const defaultComponents = {};
-  function CssVarsProvider(props) {
-    const {
-      children,
-      theme: themeProp,
-      modeStorageKey = defaultModeStorageKey,
-      colorSchemeStorageKey = defaultColorSchemeStorageKey,
-      disableTransitionOnChange = designSystemTransitionOnChange,
-      storageWindow = typeof window === 'undefined' ? undefined : window,
-      documentNode = typeof document === 'undefined' ? undefined : document,
-      colorSchemeNode = typeof document === 'undefined' ? undefined : document.documentElement,
-      disableNestedContext = false,
-      disableStyleSheetGeneration = false,
-      defaultMode: initialMode = 'system',
-      noSsr
-    } = props;
-    const hasMounted = external_React_.useRef(false);
-    const upperTheme = useTheme();
-    const ctx = external_React_.useContext(ColorSchemeContext);
-    const nested = !!ctx && !disableNestedContext;
-    const initialTheme = external_React_.useMemo(() => {
-      if (themeProp) {
-        return themeProp;
-      }
-      return typeof defaultTheme === 'function' ? defaultTheme() : defaultTheme;
-    }, [themeProp]);
-    const scopedTheme = initialTheme[themeId];
-    const restThemeProp = scopedTheme || initialTheme;
-    const {
-      colorSchemes = defaultColorSchemes,
-      components = defaultComponents,
-      cssVarPrefix
-    } = restThemeProp;
-    const joinedColorSchemes = Object.keys(colorSchemes).filter(k => !!colorSchemes[k]).join(',');
-    const allColorSchemes = external_React_.useMemo(() => joinedColorSchemes.split(','), [joinedColorSchemes]);
-    const defaultLightColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.light;
-    const defaultDarkColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.dark;
-    const defaultMode = colorSchemes[defaultLightColorScheme] && colorSchemes[defaultDarkColorScheme] ? initialMode : colorSchemes[restThemeProp.defaultColorScheme]?.palette?.mode || restThemeProp.palette?.mode;
-
-    // 1. Get the data about the `mode`, `colorScheme`, and setter functions.
-    const {
-      mode: stateMode,
-      setMode,
-      systemMode,
-      lightColorScheme,
-      darkColorScheme,
-      colorScheme: stateColorScheme,
-      setColorScheme
-    } = useCurrentColorScheme({
-      supportedColorSchemes: allColorSchemes,
-      defaultLightColorScheme,
-      defaultDarkColorScheme,
-      modeStorageKey,
-      colorSchemeStorageKey,
-      defaultMode,
-      storageWindow,
-      noSsr
-    });
-    let mode = stateMode;
-    let colorScheme = stateColorScheme;
-    if (nested) {
-      mode = ctx.mode;
-      colorScheme = ctx.colorScheme;
-    }
-    const memoTheme = external_React_.useMemo(() => {
-      // `colorScheme` is undefined on the server and hydration phase
-      const calculatedColorScheme = colorScheme || restThemeProp.defaultColorScheme;
-
-      // 2. get the `vars` object that refers to the CSS custom properties
-      const themeVars = restThemeProp.generateThemeVars?.() || restThemeProp.vars;
-
-      // 3. Start composing the theme object
-      const theme = {
-        ...restThemeProp,
-        components,
-        colorSchemes,
-        cssVarPrefix,
-        vars: themeVars
-      };
-      if (typeof theme.generateSpacing === 'function') {
-        theme.spacing = theme.generateSpacing();
-      }
-
-      // 4. Resolve the color scheme and merge it to the theme
-      if (calculatedColorScheme) {
-        const scheme = colorSchemes[calculatedColorScheme];
-        if (scheme && typeof scheme === 'object') {
-          // 4.1 Merge the selected color scheme to the theme
-          Object.keys(scheme).forEach(schemeKey => {
-            if (scheme[schemeKey] && typeof scheme[schemeKey] === 'object') {
-              // shallow merge the 1st level structure of the theme.
-              theme[schemeKey] = {
-                ...theme[schemeKey],
-                ...scheme[schemeKey]
-              };
-            } else {
-              theme[schemeKey] = scheme[schemeKey];
-            }
-          });
-        }
-      }
-      return resolveTheme ? resolveTheme(theme) : theme;
-    }, [restThemeProp, colorScheme, components, colorSchemes, cssVarPrefix]);
-
-    // 5. Declaring effects
-    // 5.1 Updates the selector value to use the current color scheme which tells CSS to use the proper stylesheet.
-    const colorSchemeSelector = restThemeProp.colorSchemeSelector;
-    useEnhancedEffect_useEnhancedEffect(() => {
-      if (colorScheme && colorSchemeNode && colorSchemeSelector && colorSchemeSelector !== 'media') {
-        const selector = colorSchemeSelector;
-        let rule = colorSchemeSelector;
-        if (selector === 'class') {
-          rule = `.%s`;
-        }
-        if (selector === 'data') {
-          rule = `[data-%s]`;
-        }
-        if (selector?.startsWith('data-') && !selector.includes('%s')) {
-          // 'data-mui-color-scheme' -> '[data-mui-color-scheme="%s"]'
-          rule = `[${selector}="%s"]`;
-        }
-        if (rule.startsWith('.')) {
-          colorSchemeNode.classList.remove(...allColorSchemes.map(scheme => rule.substring(1).replace('%s', scheme)));
-          colorSchemeNode.classList.add(rule.substring(1).replace('%s', colorScheme));
-        } else {
-          const matches = rule.replace('%s', colorScheme).match(/\[([^\]]+)\]/);
-          if (matches) {
-            const [attr, value] = matches[1].split('=');
-            if (!value) {
-              // for attributes like `data-theme-dark`, `data-theme-light`
-              // remove all the existing data attributes before setting the new one
-              allColorSchemes.forEach(scheme => {
-                colorSchemeNode.removeAttribute(attr.replace(colorScheme, scheme));
-              });
-            }
-            colorSchemeNode.setAttribute(attr, value ? value.replace(/"|'/g, '') : '');
-          } else {
-            colorSchemeNode.setAttribute(rule, colorScheme);
-          }
-        }
-      }
-    }, [colorScheme, colorSchemeSelector, colorSchemeNode, allColorSchemes]);
-
-    // 5.2 Remove the CSS transition when color scheme changes to create instant experience.
-    // credit: https://github.com/pacocoursey/next-themes/blob/b5c2bad50de2d61ad7b52a9c5cdc801a78507d7a/index.tsx#L313
-    external_React_.useEffect(() => {
-      let timer;
-      if (disableTransitionOnChange && hasMounted.current && documentNode) {
-        const css = documentNode.createElement('style');
-        css.appendChild(documentNode.createTextNode(DISABLE_CSS_TRANSITION));
-        documentNode.head.appendChild(css);
-
-        // Force browser repaint
-        (() => window.getComputedStyle(documentNode.body))();
-        timer = setTimeout(() => {
-          documentNode.head.removeChild(css);
-        }, 1);
-      }
-      return () => {
-        clearTimeout(timer);
-      };
-    }, [colorScheme, disableTransitionOnChange, documentNode]);
-    external_React_.useEffect(() => {
-      hasMounted.current = true;
-      return () => {
-        hasMounted.current = false;
-      };
-    }, []);
-    const contextValue = external_React_.useMemo(() => ({
-      allColorSchemes,
-      colorScheme,
-      darkColorScheme,
-      lightColorScheme,
-      mode,
-      setColorScheme,
-      setMode:  true ? setMode : 0,
-      systemMode
-    }), [allColorSchemes, colorScheme, darkColorScheme, lightColorScheme, mode, setColorScheme, setMode, systemMode, memoTheme.colorSchemeSelector]);
-    let shouldGenerateStyleSheet = true;
-    if (disableStyleSheetGeneration || restThemeProp.cssVariables === false || nested && upperTheme?.cssVarPrefix === cssVarPrefix) {
-      shouldGenerateStyleSheet = false;
-    }
-    const element = /*#__PURE__*/(0,jsx_runtime.jsxs)(external_React_.Fragment, {
-      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(esm_ThemeProvider_ThemeProvider, {
-        themeId: scopedTheme ? themeId : undefined,
-        theme: memoTheme,
-        children: children
-      }), shouldGenerateStyleSheet && /*#__PURE__*/(0,jsx_runtime.jsx)(GlobalStyles_GlobalStyles, {
-        styles: memoTheme.generateStyleSheets?.() || []
-      })]
-    });
-    if (nested) {
-      return element;
-    }
-    return /*#__PURE__*/(0,jsx_runtime.jsx)(ColorSchemeContext.Provider, {
-      value: contextValue,
-      children: element
-    });
-  }
-   false ? 0 : void 0;
-  const defaultLightColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.light;
-  const defaultDarkColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.dark;
-  const getInitColorSchemeScript = params => InitColorSchemeScript({
-    colorSchemeStorageKey: defaultColorSchemeStorageKey,
-    defaultLightColorScheme,
-    defaultDarkColorScheme,
-    modeStorageKey: defaultModeStorageKey,
-    ...params
-  });
-  return {
-    CssVarsProvider,
-    useColorScheme,
-    getInitColorSchemeScript
-  };
-}
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/InitColorSchemeScript/InitColorSchemeScript.js
-
-
-
-const defaultConfig = {
-  attribute: 'data-mui-color-scheme',
-  colorSchemeStorageKey: 'mui-color-scheme',
-  defaultLightColorScheme: 'light',
-  defaultDarkColorScheme: 'dark',
-  modeStorageKey: 'mui-mode'
+// See https://github.com/mui/material-ui/issues/41190#issuecomment-2040873379 for why
+const safeReact = {
+  ...external_React_namespaceObject
 };
-/* harmony default export */ const InitColorSchemeScript_InitColorSchemeScript = (function InitColorSchemeScript(props) {
-  return /*#__PURE__*/_jsx(SystemInitColorSchemeScript, {
-    ...defaultConfig,
-    ...props
-  });
-});
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/ThemeProviderWithVars.js
-'use client';
-
-
-
-
-
-
-
-
-
-const {
-  CssVarsProvider: InternalCssVarsProvider,
-  useColorScheme,
-  getInitColorSchemeScript: deprecatedGetInitColorSchemeScript
-} = createCssVarsProvider({
-  themeId: identifier,
-  // @ts-ignore ignore module augmentation tests
-  theme: () => styles_createTheme_createTheme({
-    cssVariables: true
-  }),
-  colorSchemeStorageKey: defaultConfig.colorSchemeStorageKey,
-  modeStorageKey: defaultConfig.modeStorageKey,
-  defaultColorScheme: {
-    light: defaultConfig.defaultLightColorScheme,
-    dark: defaultConfig.defaultDarkColorScheme
-  },
-  resolveTheme: theme => {
-    const newTheme = {
-      ...theme,
-      typography: createTypography(theme.palette, theme.typography)
-    };
-    newTheme.unstable_sx = function sx(props) {
-      return styleFunctionSx_styleFunctionSx({
-        sx: props,
-        theme: this
-      });
-    };
-    return newTheme;
-  }
-});
-let ThemeProviderWithVars_warnedOnce = false;
-
-// TODO: remove in v7
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function Experimental_CssVarsProvider(props) {
-  if (false) {}
-  return /*#__PURE__*/_jsx(InternalCssVarsProvider, {
-    ...props
-  });
-}
-let warnedInitScriptOnce = false;
-
-// TODO: remove in v7
-const getInitColorSchemeScript = params => {
-  if (!warnedInitScriptOnce) {
-    console.warn(['MUI: The getInitColorSchemeScript function has been deprecated.', '', "You should use `import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'`", 'and replace the function call with `<InitColorSchemeScript />` instead.'].join('\n'));
-    warnedInitScriptOnce = true;
-  }
-  return deprecatedGetInitColorSchemeScript(params);
-};
+const maybeReactUseId = safeReact.useId;
 
 /**
- * TODO: remove this export in v7
- * @deprecated
- * The `CssVarsProvider` component has been deprecated and ported into `ThemeProvider`.
  *
- * You should use `ThemeProvider` and `createTheme()` instead:
- *
- * ```diff
- * - import { CssVarsProvider, extendTheme } from '@mui/material/styles';
- * + import { ThemeProvider, createTheme } from '@mui/material/styles';
- *
- * - const theme = extendTheme();
- * + const theme = createTheme({
- * +   cssVariables: true,
- * +   colorSchemes: { light: true, dark: true },
- * + });
- *
- * - <CssVarsProvider theme={theme}>
- * + <ThemeProvider theme={theme}>
- * ```
- *
- * To see the full documentation, check out https://mui.com/material-ui/customization/css-theme-variables/usage/.
+ * @example <div id={useId()} />
+ * @param idOverride
+ * @returns {string}
  */
-const CssVarsProvider = InternalCssVarsProvider;
-
-;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/ThemeProvider.js
-'use client';
-
-
-
-
-
-
-function styles_ThemeProvider_ThemeProvider({
-  theme,
-  ...props
-}) {
-  if (typeof theme === 'function') {
-    return /*#__PURE__*/(0,jsx_runtime.jsx)(ThemeProviderNoVars, {
-      theme: theme,
-      ...props
-    });
+function useId(idOverride) {
+  // React.useId() is only available from React 17.0.0.
+  if (maybeReactUseId !== undefined) {
+    const reactId = maybeReactUseId();
+    return idOverride ?? reactId;
   }
-  const muiTheme = identifier in theme ? theme[identifier] : theme;
-  if (!('colorSchemes' in muiTheme)) {
-    return /*#__PURE__*/(0,jsx_runtime.jsx)(ThemeProviderNoVars, {
-      theme: theme,
-      ...props
-    });
-  }
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(CssVarsProvider, {
-    theme: theme,
-    ...props
-  });
+
+  // TODO: uncomment once we enable eslint-plugin-react-compiler // eslint-disable-next-line react-compiler/react-compiler
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- `React.useId` is invariant at runtime.
+  return useGlobalId(idOverride);
 }
 ;// ./node_modules/.pnpm/@babel+runtime@7.26.7/node_modules/@babel/runtime/helpers/esm/extends.js
 function _extends() {
@@ -5685,9 +5048,1078 @@ tags.forEach(function (tagName) {
 
 
 
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/constants.js
+;// ./node_modules/.pnpm/@mui+styled-engine@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+s_26ij7y7oollnf3ukf76rheahxm/node_modules/@mui/styled-engine/esm/index.js
+/**
+ * @mui/styled-engine v7.3.3
+ *
+ * @license MIT
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+'use client';
+
+/* eslint-disable no-underscore-dangle */
+
+
+function esm_styled(tag, options) {
+  const stylesFactory = newStyled(tag, options);
+  if (false) {}
+  return stylesFactory;
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function internal_mutateStyles(tag, processor) {
+  // Emotion attaches all the styles as `__emotion_styles`.
+  // Ref: https://github.com/emotion-js/emotion/blob/16d971d0da229596d6bcc39d282ba9753c9ee7cf/packages/styled/src/base.js#L186
+  if (Array.isArray(tag.__emotion_styles)) {
+    tag.__emotion_styles = processor(tag.__emotion_styles);
+  }
+}
+
+// Emotion only accepts an array, but we want to avoid allocations
+const wrapper = [];
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function internal_serializeStyles(styles) {
+  wrapper[0] = styles;
+  return serializeStyles(wrapper);
+}
+
+
+
+;// ./node_modules/.pnpm/@mui+styled-engine@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+s_26ij7y7oollnf3ukf76rheahxm/node_modules/@mui/styled-engine/esm/GlobalStyles/GlobalStyles.js
+'use client';
+
+
+
+
+
+function isEmpty(obj) {
+  return obj === undefined || obj === null || Object.keys(obj).length === 0;
+}
+function GlobalStyles_GlobalStyles(props) {
+  const {
+    styles,
+    defaultTheme = {}
+  } = props;
+  const globalStyles = typeof styles === 'function' ? themeInput => styles(isEmpty(themeInput) ? defaultTheme : themeInput) : styles;
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(external_EmotionReact_.Global, {
+    styles: globalStyles
+  });
+}
+ false ? 0 : void 0;
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/useTheme/useTheme.js
+'use client';
+
+
+
+const systemDefaultTheme = createTheme_createTheme();
+function useTheme_useTheme(defaultTheme = systemDefaultTheme) {
+  return useThemeWithoutDefault(defaultTheme);
+}
+/* harmony default export */ const esm_useTheme_useTheme = (useTheme_useTheme);
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/GlobalStyles/GlobalStyles.js
+'use client';
+
+
+
+
+
+
+function wrapGlobalLayer(styles) {
+  const serialized = internal_serializeStyles(styles);
+  if (styles !== serialized && serialized.styles) {
+    if (!serialized.styles.match(/^@layer\s+[^{]*$/)) {
+      // If the styles are not already wrapped in a layer, wrap them in a global layer.
+      serialized.styles = `@layer global{${serialized.styles}}`;
+    }
+    return serialized;
+  }
+  return styles;
+}
+function GlobalStyles_GlobalStyles_GlobalStyles({
+  styles,
+  themeId,
+  defaultTheme = {}
+}) {
+  const upperTheme = esm_useTheme_useTheme(defaultTheme);
+  const resolvedTheme = themeId ? upperTheme[themeId] || upperTheme : upperTheme;
+  let globalStyles = typeof styles === 'function' ? styles(resolvedTheme) : styles;
+  if (resolvedTheme.modularCssLayers) {
+    if (Array.isArray(globalStyles)) {
+      globalStyles = globalStyles.map(styleArg => {
+        if (typeof styleArg === 'function') {
+          return wrapGlobalLayer(styleArg(resolvedTheme));
+        }
+        return wrapGlobalLayer(styleArg);
+      });
+    } else {
+      globalStyles = wrapGlobalLayer(globalStyles);
+    }
+  }
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(GlobalStyles_GlobalStyles, {
+    styles: globalStyles
+  });
+}
+ false ? 0 : void 0;
+/* harmony default export */ const esm_GlobalStyles_GlobalStyles = (GlobalStyles_GlobalStyles_GlobalStyles);
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/ThemeProvider/useLayerOrder.js
+
+
+
+
+
+
+/**
+ * This hook returns a `GlobalStyles` component that sets the CSS layer order (for server-side rendering).
+ * Then on client-side, it injects the CSS layer order into the document head to ensure that the layer order is always present first before other Emotion styles.
+ */
+
+function useLayerOrder(theme) {
+  const upperTheme = useThemeWithoutDefault();
+  const id = useId() || '';
+  const {
+    modularCssLayers
+  } = theme;
+  let layerOrder = 'mui.global, mui.components, mui.theme, mui.custom, mui.sx';
+  if (!modularCssLayers || upperTheme !== null) {
+    // skip this hook if upper theme exists.
+    layerOrder = '';
+  } else if (typeof modularCssLayers === 'string') {
+    layerOrder = modularCssLayers.replace(/mui(?!\.)/g, layerOrder);
+  } else {
+    layerOrder = `@layer ${layerOrder};`;
+  }
+  useEnhancedEffect_useEnhancedEffect(() => {
+    const head = document.querySelector('head');
+    if (!head) {
+      return;
+    }
+    const firstChild = head.firstChild;
+    if (layerOrder) {
+      // Only insert if first child doesn't have data-mui-layer-order attribute
+      if (firstChild && firstChild.hasAttribute?.('data-mui-layer-order') && firstChild.getAttribute('data-mui-layer-order') === id) {
+        return;
+      }
+      const styleElement = document.createElement('style');
+      styleElement.setAttribute('data-mui-layer-order', id);
+      styleElement.textContent = layerOrder;
+      head.prepend(styleElement);
+    } else {
+      head.querySelector(`style[data-mui-layer-order="${id}"]`)?.remove();
+    }
+  }, [layerOrder, id]);
+  if (!layerOrder) {
+    return null;
+  }
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(esm_GlobalStyles_GlobalStyles, {
+    styles: layerOrder
+  });
+}
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/ThemeProvider/ThemeProvider.js
+'use client';
+
+
+
+
+
+
+
+
+
+
+
+const EMPTY_THEME = {};
+function useThemeScoping(themeId, upperTheme, localTheme, isPrivate = false) {
+  return external_React_.useMemo(() => {
+    const resolvedTheme = themeId ? upperTheme[themeId] || upperTheme : upperTheme;
+    if (typeof localTheme === 'function') {
+      const mergedTheme = localTheme(resolvedTheme);
+      const result = themeId ? {
+        ...upperTheme,
+        [themeId]: mergedTheme
+      } : mergedTheme;
+      // must return a function for the private theme to NOT merge with the upper theme.
+      // see the test case "use provided theme from a callback" in ThemeProvider.test.js
+      if (isPrivate) {
+        return () => result;
+      }
+      return result;
+    }
+    return themeId ? {
+      ...upperTheme,
+      [themeId]: localTheme
+    } : {
+      ...upperTheme,
+      ...localTheme
+    };
+  }, [themeId, upperTheme, localTheme, isPrivate]);
+}
+
+/**
+ * This component makes the `theme` available down the React tree.
+ * It should preferably be used at **the root of your component tree**.
+ *
+ * <ThemeProvider theme={theme}> // existing use case
+ * <ThemeProvider theme={{ id: theme }}> // theme scoping
+ */
+function ThemeProvider_ThemeProvider_ThemeProvider(props) {
+  const {
+    children,
+    theme: localTheme,
+    themeId
+  } = props;
+  const upperTheme = useThemeWithoutDefault(EMPTY_THEME);
+  const upperPrivateTheme = useTheme() || EMPTY_THEME;
+  if (false) {}
+  const engineTheme = useThemeScoping(themeId, upperTheme, localTheme);
+  const privateTheme = useThemeScoping(themeId, upperPrivateTheme, localTheme, true);
+  const rtlValue = (themeId ? engineTheme[themeId] : engineTheme).direction === 'rtl';
+  const layerOrder = useLayerOrder(engineTheme);
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(ThemeProvider_ThemeProvider, {
+    theme: privateTheme,
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_EmotionReact_.ThemeContext.Provider, {
+      value: engineTheme,
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)(esm_RtlProvider, {
+        value: rtlValue,
+        children: /*#__PURE__*/(0,jsx_runtime.jsxs)(DefaultPropsProvider_DefaultPropsProvider, {
+          value: themeId ? engineTheme[themeId].components : engineTheme.components,
+          children: [layerOrder, children]
+        })
+      })
+    })
+  });
+}
+ false ? 0 : void 0;
+if (false) {}
+/* harmony default export */ const esm_ThemeProvider_ThemeProvider = (ThemeProvider_ThemeProvider_ThemeProvider);
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/identifier.js
+/* harmony default export */ const identifier = ('$$material');
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/ThemeProviderNoVars.js
+'use client';
+
+
+
+
+
+function ThemeProviderNoVars({
+  theme: themeInput,
+  ...props
+}) {
+  const scopedTheme = identifier in themeInput ? themeInput[identifier] : undefined;
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(esm_ThemeProvider_ThemeProvider, {
+    ...props,
+    themeId: scopedTheme ? identifier : undefined,
+    theme: scopedTheme || themeInput
+  });
+}
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/InitColorSchemeScript/InitColorSchemeScript.js
+/**
+ * Split this component for RSC import
+ */
+
+
+const DEFAULT_MODE_STORAGE_KEY = 'mode';
+const DEFAULT_COLOR_SCHEME_STORAGE_KEY = 'color-scheme';
+const DEFAULT_ATTRIBUTE = 'data-color-scheme';
+function InitColorSchemeScript(options) {
+  const {
+    defaultMode = 'system',
+    defaultLightColorScheme = 'light',
+    defaultDarkColorScheme = 'dark',
+    modeStorageKey = DEFAULT_MODE_STORAGE_KEY,
+    colorSchemeStorageKey = DEFAULT_COLOR_SCHEME_STORAGE_KEY,
+    attribute: initialAttribute = DEFAULT_ATTRIBUTE,
+    colorSchemeNode = 'document.documentElement',
+    nonce
+  } = options || {};
+  let setter = '';
+  let attribute = initialAttribute;
+  if (initialAttribute === 'class') {
+    attribute = '.%s';
+  }
+  if (initialAttribute === 'data') {
+    attribute = '[data-%s]';
+  }
+  if (attribute.startsWith('.')) {
+    const selector = attribute.substring(1);
+    setter += `${colorSchemeNode}.classList.remove('${selector}'.replace('%s', light), '${selector}'.replace('%s', dark));
+      ${colorSchemeNode}.classList.add('${selector}'.replace('%s', colorScheme));`;
+  }
+  const matches = attribute.match(/\[([^[\]]+)\]/); // case [data-color-scheme='%s'] or [data-color-scheme]
+  if (matches) {
+    const [attr, value] = matches[1].split('=');
+    if (!value) {
+      setter += `${colorSchemeNode}.removeAttribute('${attr}'.replace('%s', light));
+      ${colorSchemeNode}.removeAttribute('${attr}'.replace('%s', dark));`;
+    }
+    setter += `
+      ${colorSchemeNode}.setAttribute('${attr}'.replace('%s', colorScheme), ${value ? `${value}.replace('%s', colorScheme)` : '""'});`;
+  } else {
+    setter += `${colorSchemeNode}.setAttribute('${attribute}', colorScheme);`;
+  }
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("script", {
+    suppressHydrationWarning: true,
+    nonce: typeof window === 'undefined' ? nonce : ''
+    // eslint-disable-next-line react/no-danger
+    ,
+    dangerouslySetInnerHTML: {
+      __html: `(function() {
+try {
+  let colorScheme = '';
+  const mode = localStorage.getItem('${modeStorageKey}') || '${defaultMode}';
+  const dark = localStorage.getItem('${colorSchemeStorageKey}-dark') || '${defaultDarkColorScheme}';
+  const light = localStorage.getItem('${colorSchemeStorageKey}-light') || '${defaultLightColorScheme}';
+  if (mode === 'system') {
+    // handle system mode
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mql.matches) {
+      colorScheme = dark
+    } else {
+      colorScheme = light
+    }
+  }
+  if (mode === 'light') {
+    colorScheme = light;
+  }
+  if (mode === 'dark') {
+    colorScheme = dark;
+  }
+  if (colorScheme) {
+    ${setter}
+  }
+} catch(e){}})();`
+    }
+  }, "mui-color-scheme-init");
+}
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/localStorageManager.js
+function noop() {}
+const localStorageManager = ({
+  key,
+  storageWindow
+}) => {
+  if (!storageWindow && typeof window !== 'undefined') {
+    storageWindow = window;
+  }
+  return {
+    get(defaultValue) {
+      if (typeof window === 'undefined') {
+        return undefined;
+      }
+      if (!storageWindow) {
+        return defaultValue;
+      }
+      let value;
+      try {
+        value = storageWindow.localStorage.getItem(key);
+      } catch {
+        // Unsupported
+      }
+      return value || defaultValue;
+    },
+    set: value => {
+      if (storageWindow) {
+        try {
+          storageWindow.localStorage.setItem(key, value);
+        } catch {
+          // Unsupported
+        }
+      }
+    },
+    subscribe: handler => {
+      if (!storageWindow) {
+        return noop;
+      }
+      const listener = event => {
+        const value = event.newValue;
+        if (event.key === key) {
+          handler(value);
+        }
+      };
+      storageWindow.addEventListener('storage', listener);
+      return () => {
+        storageWindow.removeEventListener('storage', listener);
+      };
+    }
+  };
+};
+/* harmony default export */ const cssVars_localStorageManager = (localStorageManager);
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/useCurrentColorScheme.js
+'use client';
+
+
+
+
+function useCurrentColorScheme_noop() {}
+function getSystemMode(mode) {
+  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && mode === 'system') {
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mql.matches) {
+      return 'dark';
+    }
+    return 'light';
+  }
+  return undefined;
+}
+function processState(state, callback) {
+  if (state.mode === 'light' || state.mode === 'system' && state.systemMode === 'light') {
+    return callback('light');
+  }
+  if (state.mode === 'dark' || state.mode === 'system' && state.systemMode === 'dark') {
+    return callback('dark');
+  }
+  return undefined;
+}
+function getColorScheme(state) {
+  return processState(state, mode => {
+    if (mode === 'light') {
+      return state.lightColorScheme;
+    }
+    if (mode === 'dark') {
+      return state.darkColorScheme;
+    }
+    return undefined;
+  });
+}
+function useCurrentColorScheme(options) {
+  const {
+    defaultMode = 'light',
+    defaultLightColorScheme,
+    defaultDarkColorScheme,
+    supportedColorSchemes = [],
+    modeStorageKey = DEFAULT_MODE_STORAGE_KEY,
+    colorSchemeStorageKey = DEFAULT_COLOR_SCHEME_STORAGE_KEY,
+    storageWindow = typeof window === 'undefined' ? undefined : window,
+    storageManager = cssVars_localStorageManager,
+    noSsr = false
+  } = options;
+  const joinedColorSchemes = supportedColorSchemes.join(',');
+  const isMultiSchemes = supportedColorSchemes.length > 1;
+  const modeStorage = external_React_.useMemo(() => storageManager?.({
+    key: modeStorageKey,
+    storageWindow
+  }), [storageManager, modeStorageKey, storageWindow]);
+  const lightStorage = external_React_.useMemo(() => storageManager?.({
+    key: `${colorSchemeStorageKey}-light`,
+    storageWindow
+  }), [storageManager, colorSchemeStorageKey, storageWindow]);
+  const darkStorage = external_React_.useMemo(() => storageManager?.({
+    key: `${colorSchemeStorageKey}-dark`,
+    storageWindow
+  }), [storageManager, colorSchemeStorageKey, storageWindow]);
+  const [state, setState] = external_React_.useState(() => {
+    const initialMode = modeStorage?.get(defaultMode) || defaultMode;
+    const lightColorScheme = lightStorage?.get(defaultLightColorScheme) || defaultLightColorScheme;
+    const darkColorScheme = darkStorage?.get(defaultDarkColorScheme) || defaultDarkColorScheme;
+    return {
+      mode: initialMode,
+      systemMode: getSystemMode(initialMode),
+      lightColorScheme,
+      darkColorScheme
+    };
+  });
+  const [isClient, setIsClient] = external_React_.useState(noSsr || !isMultiSchemes);
+  external_React_.useEffect(() => {
+    setIsClient(true); // to rerender the component after hydration
+  }, []);
+  const colorScheme = getColorScheme(state);
+  const setMode = external_React_.useCallback(mode => {
+    setState(currentState => {
+      if (mode === currentState.mode) {
+        // do nothing if mode does not change
+        return currentState;
+      }
+      const newMode = mode ?? defaultMode;
+      modeStorage?.set(newMode);
+      return {
+        ...currentState,
+        mode: newMode,
+        systemMode: getSystemMode(newMode)
+      };
+    });
+  }, [modeStorage, defaultMode]);
+  const setColorScheme = external_React_.useCallback(value => {
+    if (!value) {
+      setState(currentState => {
+        lightStorage?.set(defaultLightColorScheme);
+        darkStorage?.set(defaultDarkColorScheme);
+        return {
+          ...currentState,
+          lightColorScheme: defaultLightColorScheme,
+          darkColorScheme: defaultDarkColorScheme
+        };
+      });
+    } else if (typeof value === 'string') {
+      if (value && !joinedColorSchemes.includes(value)) {
+        console.error(`\`${value}\` does not exist in \`theme.colorSchemes\`.`);
+      } else {
+        setState(currentState => {
+          const newState = {
+            ...currentState
+          };
+          processState(currentState, mode => {
+            if (mode === 'light') {
+              lightStorage?.set(value);
+              newState.lightColorScheme = value;
+            }
+            if (mode === 'dark') {
+              darkStorage?.set(value);
+              newState.darkColorScheme = value;
+            }
+          });
+          return newState;
+        });
+      }
+    } else {
+      setState(currentState => {
+        const newState = {
+          ...currentState
+        };
+        const newLightColorScheme = value.light === null ? defaultLightColorScheme : value.light;
+        const newDarkColorScheme = value.dark === null ? defaultDarkColorScheme : value.dark;
+        if (newLightColorScheme) {
+          if (!joinedColorSchemes.includes(newLightColorScheme)) {
+            console.error(`\`${newLightColorScheme}\` does not exist in \`theme.colorSchemes\`.`);
+          } else {
+            newState.lightColorScheme = newLightColorScheme;
+            lightStorage?.set(newLightColorScheme);
+          }
+        }
+        if (newDarkColorScheme) {
+          if (!joinedColorSchemes.includes(newDarkColorScheme)) {
+            console.error(`\`${newDarkColorScheme}\` does not exist in \`theme.colorSchemes\`.`);
+          } else {
+            newState.darkColorScheme = newDarkColorScheme;
+            darkStorage?.set(newDarkColorScheme);
+          }
+        }
+        return newState;
+      });
+    }
+  }, [joinedColorSchemes, lightStorage, darkStorage, defaultLightColorScheme, defaultDarkColorScheme]);
+  const handleMediaQuery = external_React_.useCallback(event => {
+    if (state.mode === 'system') {
+      setState(currentState => {
+        const systemMode = event?.matches ? 'dark' : 'light';
+
+        // Early exit, nothing changed.
+        if (currentState.systemMode === systemMode) {
+          return currentState;
+        }
+        return {
+          ...currentState,
+          systemMode
+        };
+      });
+    }
+  }, [state.mode]);
+
+  // Ref hack to avoid adding handleMediaQuery as a dep
+  const mediaListener = external_React_.useRef(handleMediaQuery);
+  mediaListener.current = handleMediaQuery;
+  external_React_.useEffect(() => {
+    if (typeof window.matchMedia !== 'function' || !isMultiSchemes) {
+      return undefined;
+    }
+    const handler = (...args) => mediaListener.current(...args);
+
+    // Always listen to System preference
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+    // Intentionally use deprecated listener methods to support iOS & old browsers
+    media.addListener(handler);
+    handler(media);
+    return () => {
+      media.removeListener(handler);
+    };
+  }, [isMultiSchemes]);
+
+  // Handle when localStorage has changed
+  external_React_.useEffect(() => {
+    if (isMultiSchemes) {
+      const unsubscribeMode = modeStorage?.subscribe(value => {
+        if (!value || ['light', 'dark', 'system'].includes(value)) {
+          setMode(value || defaultMode);
+        }
+      }) || useCurrentColorScheme_noop;
+      const unsubscribeLight = lightStorage?.subscribe(value => {
+        if (!value || joinedColorSchemes.match(value)) {
+          setColorScheme({
+            light: value
+          });
+        }
+      }) || useCurrentColorScheme_noop;
+      const unsubscribeDark = darkStorage?.subscribe(value => {
+        if (!value || joinedColorSchemes.match(value)) {
+          setColorScheme({
+            dark: value
+          });
+        }
+      }) || useCurrentColorScheme_noop;
+      return () => {
+        unsubscribeMode();
+        unsubscribeLight();
+        unsubscribeDark();
+      };
+    }
+    return undefined;
+  }, [setColorScheme, setMode, joinedColorSchemes, defaultMode, storageWindow, isMultiSchemes, modeStorage, lightStorage, darkStorage]);
+  return {
+    ...state,
+    mode: isClient ? state.mode : undefined,
+    systemMode: isClient ? state.systemMode : undefined,
+    colorScheme: isClient ? colorScheme : undefined,
+    setMode,
+    setColorScheme
+  };
+}
+;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/createCssVarsProvider.js
+'use client';
+
+
+
+
+
+
+
+
+
+
+const DISABLE_CSS_TRANSITION = '*{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}';
+function createCssVarsProvider(options) {
+  const {
+    themeId,
+    /**
+     * This `theme` object needs to follow a certain structure to
+     * be used correctly by the finel `CssVarsProvider`. It should have a
+     * `colorSchemes` key with the light and dark (and any other) palette.
+     * It should also ideally have a vars object created using `prepareCssVars`.
+     */
+    theme: defaultTheme = {},
+    modeStorageKey: defaultModeStorageKey = DEFAULT_MODE_STORAGE_KEY,
+    colorSchemeStorageKey: defaultColorSchemeStorageKey = DEFAULT_COLOR_SCHEME_STORAGE_KEY,
+    disableTransitionOnChange: designSystemTransitionOnChange = false,
+    defaultColorScheme,
+    resolveTheme
+  } = options;
+  const defaultContext = {
+    allColorSchemes: [],
+    colorScheme: undefined,
+    darkColorScheme: undefined,
+    lightColorScheme: undefined,
+    mode: undefined,
+    setColorScheme: () => {},
+    setMode: () => {},
+    systemMode: undefined
+  };
+  const ColorSchemeContext = /*#__PURE__*/external_React_.createContext(undefined);
+  if (false) {}
+  const useColorScheme = () => external_React_.useContext(ColorSchemeContext) || defaultContext;
+  const defaultColorSchemes = {};
+  const defaultComponents = {};
+  function CssVarsProvider(props) {
+    const {
+      children,
+      theme: themeProp,
+      modeStorageKey = defaultModeStorageKey,
+      colorSchemeStorageKey = defaultColorSchemeStorageKey,
+      disableTransitionOnChange = designSystemTransitionOnChange,
+      storageManager,
+      storageWindow = typeof window === 'undefined' ? undefined : window,
+      documentNode = typeof document === 'undefined' ? undefined : document,
+      colorSchemeNode = typeof document === 'undefined' ? undefined : document.documentElement,
+      disableNestedContext = false,
+      disableStyleSheetGeneration = false,
+      defaultMode: initialMode = 'system',
+      forceThemeRerender = false,
+      noSsr
+    } = props;
+    const hasMounted = external_React_.useRef(false);
+    const upperTheme = useTheme();
+    const ctx = external_React_.useContext(ColorSchemeContext);
+    const nested = !!ctx && !disableNestedContext;
+    const initialTheme = external_React_.useMemo(() => {
+      if (themeProp) {
+        return themeProp;
+      }
+      return typeof defaultTheme === 'function' ? defaultTheme() : defaultTheme;
+    }, [themeProp]);
+    const scopedTheme = initialTheme[themeId];
+    const restThemeProp = scopedTheme || initialTheme;
+    const {
+      colorSchemes = defaultColorSchemes,
+      components = defaultComponents,
+      cssVarPrefix
+    } = restThemeProp;
+    const joinedColorSchemes = Object.keys(colorSchemes).filter(k => !!colorSchemes[k]).join(',');
+    const allColorSchemes = external_React_.useMemo(() => joinedColorSchemes.split(','), [joinedColorSchemes]);
+    const defaultLightColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.light;
+    const defaultDarkColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.dark;
+    const defaultMode = colorSchemes[defaultLightColorScheme] && colorSchemes[defaultDarkColorScheme] ? initialMode : colorSchemes[restThemeProp.defaultColorScheme]?.palette?.mode || restThemeProp.palette?.mode;
+
+    // 1. Get the data about the `mode`, `colorScheme`, and setter functions.
+    const {
+      mode: stateMode,
+      setMode,
+      systemMode,
+      lightColorScheme,
+      darkColorScheme,
+      colorScheme: stateColorScheme,
+      setColorScheme
+    } = useCurrentColorScheme({
+      supportedColorSchemes: allColorSchemes,
+      defaultLightColorScheme,
+      defaultDarkColorScheme,
+      modeStorageKey,
+      colorSchemeStorageKey,
+      defaultMode,
+      storageManager,
+      storageWindow,
+      noSsr
+    });
+    let mode = stateMode;
+    let colorScheme = stateColorScheme;
+    if (nested) {
+      mode = ctx.mode;
+      colorScheme = ctx.colorScheme;
+    }
+    if (false) {}
+
+    // `colorScheme` is undefined on the server and hydration phase
+    let calculatedColorScheme = colorScheme || restThemeProp.defaultColorScheme;
+    if (restThemeProp.vars && !forceThemeRerender) {
+      calculatedColorScheme = restThemeProp.defaultColorScheme;
+    }
+    const memoTheme = external_React_.useMemo(() => {
+      // 2. get the `vars` object that refers to the CSS custom properties
+      const themeVars = restThemeProp.generateThemeVars?.() || restThemeProp.vars;
+
+      // 3. Start composing the theme object
+      const theme = {
+        ...restThemeProp,
+        components,
+        colorSchemes,
+        cssVarPrefix,
+        vars: themeVars
+      };
+      if (typeof theme.generateSpacing === 'function') {
+        theme.spacing = theme.generateSpacing();
+      }
+
+      // 4. Resolve the color scheme and merge it to the theme
+      if (calculatedColorScheme) {
+        const scheme = colorSchemes[calculatedColorScheme];
+        if (scheme && typeof scheme === 'object') {
+          // 4.1 Merge the selected color scheme to the theme
+          Object.keys(scheme).forEach(schemeKey => {
+            if (scheme[schemeKey] && typeof scheme[schemeKey] === 'object') {
+              // shallow merge the 1st level structure of the theme.
+              theme[schemeKey] = {
+                ...theme[schemeKey],
+                ...scheme[schemeKey]
+              };
+            } else {
+              theme[schemeKey] = scheme[schemeKey];
+            }
+          });
+        }
+      }
+      return resolveTheme ? resolveTheme(theme) : theme;
+    }, [restThemeProp, calculatedColorScheme, components, colorSchemes, cssVarPrefix]);
+
+    // 5. Declaring effects
+    // 5.1 Updates the selector value to use the current color scheme which tells CSS to use the proper stylesheet.
+    const colorSchemeSelector = restThemeProp.colorSchemeSelector;
+    useEnhancedEffect_useEnhancedEffect(() => {
+      if (colorScheme && colorSchemeNode && colorSchemeSelector && colorSchemeSelector !== 'media') {
+        const selector = colorSchemeSelector;
+        let rule = colorSchemeSelector;
+        if (selector === 'class') {
+          rule = `.%s`;
+        }
+        if (selector === 'data') {
+          rule = `[data-%s]`;
+        }
+        if (selector?.startsWith('data-') && !selector.includes('%s')) {
+          // 'data-mui-color-scheme' -> '[data-mui-color-scheme="%s"]'
+          rule = `[${selector}="%s"]`;
+        }
+        if (rule.startsWith('.')) {
+          colorSchemeNode.classList.remove(...allColorSchemes.map(scheme => rule.substring(1).replace('%s', scheme)));
+          colorSchemeNode.classList.add(rule.substring(1).replace('%s', colorScheme));
+        } else {
+          const matches = rule.replace('%s', colorScheme).match(/\[([^\]]+)\]/);
+          if (matches) {
+            const [attr, value] = matches[1].split('=');
+            if (!value) {
+              // for attributes like `data-theme-dark`, `data-theme-light`
+              // remove all the existing data attributes before setting the new one
+              allColorSchemes.forEach(scheme => {
+                colorSchemeNode.removeAttribute(attr.replace(colorScheme, scheme));
+              });
+            }
+            colorSchemeNode.setAttribute(attr, value ? value.replace(/"|'/g, '') : '');
+          } else {
+            colorSchemeNode.setAttribute(rule, colorScheme);
+          }
+        }
+      }
+    }, [colorScheme, colorSchemeSelector, colorSchemeNode, allColorSchemes]);
+
+    // 5.2 Remove the CSS transition when color scheme changes to create instant experience.
+    // credit: https://github.com/pacocoursey/next-themes/blob/b5c2bad50de2d61ad7b52a9c5cdc801a78507d7a/index.tsx#L313
+    external_React_.useEffect(() => {
+      let timer;
+      if (disableTransitionOnChange && hasMounted.current && documentNode) {
+        const css = documentNode.createElement('style');
+        css.appendChild(documentNode.createTextNode(DISABLE_CSS_TRANSITION));
+        documentNode.head.appendChild(css);
+
+        // Force browser repaint
+        (() => window.getComputedStyle(documentNode.body))();
+        timer = setTimeout(() => {
+          documentNode.head.removeChild(css);
+        }, 1);
+      }
+      return () => {
+        clearTimeout(timer);
+      };
+    }, [colorScheme, disableTransitionOnChange, documentNode]);
+    external_React_.useEffect(() => {
+      hasMounted.current = true;
+      return () => {
+        hasMounted.current = false;
+      };
+    }, []);
+    const contextValue = external_React_.useMemo(() => ({
+      allColorSchemes,
+      colorScheme,
+      darkColorScheme,
+      lightColorScheme,
+      mode,
+      setColorScheme,
+      setMode:  true ? setMode : 0,
+      systemMode
+    }), [allColorSchemes, colorScheme, darkColorScheme, lightColorScheme, mode, setColorScheme, setMode, systemMode, memoTheme.colorSchemeSelector]);
+    let shouldGenerateStyleSheet = true;
+    if (disableStyleSheetGeneration || restThemeProp.cssVariables === false || nested && upperTheme?.cssVarPrefix === cssVarPrefix) {
+      shouldGenerateStyleSheet = false;
+    }
+    const element = /*#__PURE__*/(0,jsx_runtime.jsxs)(external_React_.Fragment, {
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(esm_ThemeProvider_ThemeProvider, {
+        themeId: scopedTheme ? themeId : undefined,
+        theme: memoTheme,
+        children: children
+      }), shouldGenerateStyleSheet && /*#__PURE__*/(0,jsx_runtime.jsx)(GlobalStyles_GlobalStyles, {
+        styles: memoTheme.generateStyleSheets?.() || []
+      })]
+    });
+    if (nested) {
+      return element;
+    }
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(ColorSchemeContext.Provider, {
+      value: contextValue,
+      children: element
+    });
+  }
+   false ? 0 : void 0;
+  const defaultLightColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.light;
+  const defaultDarkColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.dark;
+  const getInitColorSchemeScript = params => InitColorSchemeScript({
+    colorSchemeStorageKey: defaultColorSchemeStorageKey,
+    defaultLightColorScheme,
+    defaultDarkColorScheme,
+    modeStorageKey: defaultModeStorageKey,
+    ...params
+  });
+  return {
+    CssVarsProvider,
+    useColorScheme,
+    getInitColorSchemeScript
+  };
+}
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/InitColorSchemeScript/InitColorSchemeScript.js
+
+
+
+
+const defaultConfig = {
+  attribute: 'data-mui-color-scheme',
+  colorSchemeStorageKey: 'mui-color-scheme',
+  defaultLightColorScheme: 'light',
+  defaultDarkColorScheme: 'dark',
+  modeStorageKey: 'mui-mode'
+};
+/**
+ *
+ * Demos:
+ *
+ * - [InitColorSchemeScript](https://mui.com/material-ui/react-init-color-scheme-script/)
+ *
+ * API:
+ *
+ * - [InitColorSchemeScript API](https://mui.com/material-ui/api/init-color-scheme-script/)
+ */
+function InitColorSchemeScript_InitColorSchemeScript(props) {
+  const {
+    defaultMode = 'system',
+    defaultLightColorScheme = defaultConfig.defaultLightColorScheme,
+    defaultDarkColorScheme = defaultConfig.defaultDarkColorScheme,
+    modeStorageKey = defaultConfig.modeStorageKey,
+    colorSchemeStorageKey = defaultConfig.colorSchemeStorageKey,
+    attribute: initialAttribute = defaultConfig.attribute,
+    colorSchemeNode = 'document.documentElement',
+    nonce
+  } = props;
+  return /*#__PURE__*/_jsx(SystemInitColorSchemeScript, {
+    defaultMode: defaultMode,
+    defaultLightColorScheme: defaultLightColorScheme,
+    defaultDarkColorScheme: defaultDarkColorScheme,
+    modeStorageKey: modeStorageKey,
+    colorSchemeStorageKey: colorSchemeStorageKey,
+    attribute: initialAttribute,
+    colorSchemeNode: colorSchemeNode,
+    nonce: nonce
+  });
+}
+ false ? 0 : void 0;
+/* harmony default export */ const esm_InitColorSchemeScript_InitColorSchemeScript = ((/* unused pure expression or super */ null && (InitColorSchemeScript_InitColorSchemeScript)));
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/ThemeProviderWithVars.js
+'use client';
+
+
+
+
+
+
+
+
+
+const {
+  CssVarsProvider: InternalCssVarsProvider,
+  useColorScheme,
+  getInitColorSchemeScript: deprecatedGetInitColorSchemeScript
+} = createCssVarsProvider({
+  themeId: identifier,
+  // @ts-ignore ignore module augmentation tests
+  theme: () => styles_createTheme_createTheme({
+    cssVariables: true
+  }),
+  colorSchemeStorageKey: defaultConfig.colorSchemeStorageKey,
+  modeStorageKey: defaultConfig.modeStorageKey,
+  defaultColorScheme: {
+    light: defaultConfig.defaultLightColorScheme,
+    dark: defaultConfig.defaultDarkColorScheme
+  },
+  resolveTheme: theme => {
+    const newTheme = {
+      ...theme,
+      typography: createTypography(theme.palette, theme.typography)
+    };
+    newTheme.unstable_sx = function sx(props) {
+      return styleFunctionSx_styleFunctionSx({
+        sx: props,
+        theme: this
+      });
+    };
+    return newTheme;
+  }
+});
+let warnedOnce = false;
+
+// TODO: remove in v7
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function Experimental_CssVarsProvider(props) {
+  if (false) {}
+  return /*#__PURE__*/_jsx(InternalCssVarsProvider, {
+    ...props
+  });
+}
+let warnedInitScriptOnce = false;
+
+// TODO: remove in v7
+const getInitColorSchemeScript = params => {
+  if (!warnedInitScriptOnce) {
+    console.warn(['MUI: The getInitColorSchemeScript function has been deprecated.', '', "You should use `import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'`", 'and replace the function call with `<InitColorSchemeScript />` instead.'].join('\n'));
+    warnedInitScriptOnce = true;
+  }
+  return deprecatedGetInitColorSchemeScript(params);
+};
+
+/**
+ * TODO: remove this export in v7
+ * @deprecated
+ * The `CssVarsProvider` component has been deprecated and ported into `ThemeProvider`.
+ *
+ * You should use `ThemeProvider` and `createTheme()` instead:
+ *
+ * ```diff
+ * - import { CssVarsProvider, extendTheme } from '@mui/material/styles';
+ * + import { ThemeProvider, createTheme } from '@mui/material/styles';
+ *
+ * - const theme = extendTheme();
+ * + const theme = createTheme({
+ * +   cssVariables: true,
+ * +   colorSchemes: { light: true, dark: true },
+ * + });
+ *
+ * - <CssVarsProvider theme={theme}>
+ * + <ThemeProvider theme={theme}>
+ * ```
+ *
+ * To see the full documentation, check out https://mui.com/material-ui/customization/css-theme-variables/usage/.
+ */
+const CssVarsProvider = InternalCssVarsProvider;
+
+;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/ThemeProvider.js
+'use client';
+
+
+
+
+
+
+function styles_ThemeProvider_ThemeProvider({
+  theme,
+  ...props
+}) {
+  const noVarsTheme = external_React_.useMemo(() => {
+    if (typeof theme === 'function') {
+      return theme;
+    }
+    const muiTheme = identifier in theme ? theme[identifier] : theme;
+    if (!('colorSchemes' in muiTheme)) {
+      if (!('vars' in muiTheme)) {
+        // For non-CSS variables themes, set `vars` to null to prevent theme inheritance from the upper theme.
+        // The example use case is the docs demo that uses ThemeProvider to customize the theme while the upper theme is using CSS variables.
+        return {
+          ...theme,
+          vars: null
+        };
+      }
+      return theme;
+    }
+    return null;
+  }, [theme]);
+  if (noVarsTheme) {
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(ThemeProviderNoVars, {
+      theme: noVarsTheme,
+      ...props
+    });
+  }
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(CssVarsProvider, {
+    theme: theme,
+    ...props
+  });
+}
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/KemuThemeWrapper.js
+const createKemuTheme=e=>{const r=e?.colorScheme??"light",t="dark"===r,o=e?.colors;return styles_createTheme_createTheme({palette:{mode:r,primary:{main:o?.primary??"#4e3eff"},background:{default:o?.appBackground??(t?"#12161d":"#f6f6f6"),paper:o?.surface??(t?"#1b2230":"#ffffff")},text:{primary:o?.textPrimary??(t?"#e6edf7":"#18212d"),secondary:o?.textSecondary??(t?"#a5b1bb":"#6c757d")},divider:o?.border??(t?"#3a455a":"#d9d9d9")},typography:{fontFamily:'Nunito, "Segoe UI", arial'},components:{MuiButton:{styleOverrides:{root:{textTransform:"none"}}},MuiTab:{styleOverrides:{root:{textTransform:"none"}}},MuiChip:{styleOverrides:{root:{textTransform:"none"}}},MuiPaper:{styleOverrides:{root:{backgroundImage:"none"}}}}})};const defaultKemuTheme=createKemuTheme();const KemuThemeWrapper=({children:e,theme:r,hostTheme:t})=>{const o=(0,external_React_.useContext)(InstanceContext_WidgetInstanceContext),m=o.getWidgetProps()?.hostTheme,a=(0,external_React_.useMemo)((()=>createKemuTheme(t??m)),[t,m]),n=(0,external_React_.useMemo)((()=>r?styles_createTheme_createTheme(a,r):a),[a,r]);return (0,jsx_runtime.jsx)(styles_ThemeProvider_ThemeProvider,{theme:n,children:e})};/* harmony default export */ const components_KemuThemeWrapper = (KemuThemeWrapper);
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/WidgetWrapper.js
+const KemuService=e=>{const{repaintPorts:t,onDestroy:n,globalContext:r,getParentContext:s}=e,[a,o]=(0,external_React_.useState)(null),[c,i]=(0,external_React_.useState)({disabled:!1,serviceOnline:!0,hostTheme:r.hostTheme}),l=(0,external_React_.useRef)(null),d=(0,external_React_.useRef)(null),u=(0,external_React_.useRef)(null),m=(0,external_React_.useCallback)((e=>{l.current=e}),[]),h=(0,external_React_.useCallback)((e=>{d.current=e}),[]),p=(0,external_React_.useCallback)((e=>{u.current=e}),[]);(0,external_React_.useEffect)((()=>(e.container&&o((t=>t||cache(e.serviceName,e.serviceVersion,e.container))),()=>{n&&n()})),[e.container]),(0,external_React_.useEffect)((()=>{const e=s();e.handleSetOutputsEvent=async e=>{u.current&&await u.current(e)},e.handleBroadcastEvent=async e=>{if(d.current)return d.current(e)},e.handleParentEvent=async e=>!!l.current&&(await l.current(e),!0),e.handleRender=e=>{i((t=>({...t,...e})))}}),[]);const v=(0,external_React_.useMemo)((()=>({setOutputs:r.setOutputs,callProcessorHandler:r.callProcessorHandler,repaintPorts:t,defineDynamicPorts:r.defineDynamicPorts,utils:r.utils,widgetId:r.widgetId,recipeId:r.recipeId,manifest:r.manifest,hostTheme:c.hostTheme||r.hostTheme,disabled:c.disabled,variantId:r.variantId,serviceOnline:c.serviceOnline})),[r,t,c.disabled,c.hostTheme,c.serviceOnline]),f=(0,external_React_.useMemo)((()=>({useOnParentEvent:m,useOnBroadcastEvent:h,useOnSetOutputsEvent:p,setWidgetDimensions:r.setWidgetDimensions,getWidgetDimensions:r.getWidgetDimensions,getWidgetProps:()=>v})),[m,h,p,v]);if((0,external_React_.useEffect)((()=>{a&&(console.log("Cache updated, repainting ports"),t&&t())}),[a]),!a||!e.container)return null;const g=e.children;return (0,jsx_runtime.jsx)(InstanceContext,{value:f,children:(0,jsx_runtime.jsx)(external_EmotionReact_.CacheProvider,{value:a,children:(0,jsx_runtime.jsx)(components_KemuThemeWrapper,{hostTheme:v.hostTheme,children:(0,jsx_runtime.jsx)(g,{...v})})})})};const createWidgetUI=(e,t,n)=>({mountComponent:(r,s)=>{const a=(0,client/* createRoot */.H)(r);if(!s.globalContext)throw new Error("`globalContext` not provided");setContext(s.globalContext);const o={};a.render((0,jsx_runtime.jsx)(KemuService,{...s,serviceName:t.replace(/\./g,"-").replace(/[0-9]/g,"").toLowerCase(),serviceVersion:n,container:r,getParentContext:()=>o,children:e}));const c={render:e=>{o.handleRender&&o.handleRender(e)},destroy:()=>{a.unmount()},handleParentEvent:async e=>{let t=!1;o.handleParentEvent&&(t=await o.handleParentEvent(e)),!1===t&&(c.handleParentEvent=null)},handleBroadcastEvent:async e=>{o.handleBroadcastEvent&&await o.handleBroadcastEvent(e)},handleSetOutputsEvent:async e=>{o.handleSetOutputsEvent&&await o.handleSetOutputsEvent(e)}};return c}});
+;// ./src/manifest.json
+const manifest_namespaceObject = /*#__PURE__*/JSON.parse('{"UU":"test.kemu.io.file-system","rE":"1.4.1"}');
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/constants.js
 const constants_PREVENT_DRAGGING_CLS="no-dragging";const ABORT_CHILD_DRAGGING_CLS="no-child-drag";const WIDGET_SELECTED_CLS="widget-selected";
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/WidgetContainer.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/WidgetContainer.js
 const WidgetContainer_WidgetContainer=newStyled.div`
   width: ${({cWidth:e})=>"number"==typeof e?`${e}px`:e||"64px"};
   height: ${({cHeight:e})=>"number"==typeof e?`${e}px`:e||"64px"};
@@ -5701,8 +6133,6 @@ const WidgetContainer_WidgetContainer=newStyled.div`
       ${({manifest:e,disabled:t,serviceOnline:o,overrideColor:r})=>t||!o?"#bbb":r||e.color};
   }
 `,Wrap=e=>{const t=(0,external_React_.useContext)(InstanceContext_WidgetInstanceContext).getWidgetProps(),{className:o,width:r,height:i,...n}=e,d=t.variantId?t.manifest.variants?.find((e=>e.id===t.variantId)):null,s=d?d.color||t.manifest.color:void 0;return (0,jsx_runtime.jsx)(WidgetContainer_WidgetContainer,{cWidth:r,cHeight:i,...n,...t,className:`k-hs-wrap ${o||""}`,overrideColor:e.overrideColor||s,children:e.children})};/* harmony default export */ const components_WidgetContainer = (Wrap);
-;// ./node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs
-function r(e){var t,f,n="";if("string"==typeof e||"number"==typeof e)n+=e;else if("object"==typeof e)if(Array.isArray(e)){var o=e.length;for(t=0;t<o;t++)e[t]&&(f=r(e[t]))&&(n&&(n+=" "),n+=f)}else for(f in e)e[f]&&(n&&(n+=" "),n+=f);return n}function clsx(){for(var e,t,f=0,n="",o=arguments.length;f<o;f++)(e=arguments[f])&&(t=r(e))&&(n&&(n+=" "),n+=t);return n}/* harmony default export */ const dist_clsx = (clsx);
 ;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/composeClasses/composeClasses.js
 /* eslint no-restricted-syntax: 0, prefer-template: 0, guard-for-in: 0
    ---
@@ -5757,1583 +6187,11 @@ function composeClasses(slots, getUtilityClass, classes = undefined) {
   }
   return output;
 }
-;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/useId/useId.js
-'use client';
-
-
-let globalId = 0;
-
-// TODO React 17: Remove `useGlobalId` once React 17 support is removed
-function useGlobalId(idOverride) {
-  const [defaultId, setDefaultId] = external_React_.useState(idOverride);
-  const id = idOverride || defaultId;
-  external_React_.useEffect(() => {
-    if (defaultId == null) {
-      // Fallback to this default id when possible.
-      // Use the incrementing value for client-side rendering only.
-      // We can't use it server-side.
-      // If you want to use random values please consider the Birthday Problem: https://en.wikipedia.org/wiki/Birthday_problem
-      globalId += 1;
-      setDefaultId(`mui-${globalId}`);
-    }
-  }, [defaultId]);
-  return id;
-}
-
-// See https://github.com/mui/material-ui/issues/41190#issuecomment-2040873379 for why
-const safeReact = {
-  ...external_React_namespaceObject
-};
-const maybeReactUseId = safeReact.useId;
-
-/**
- *
- * @example <div id={useId()} />
- * @param idOverride
- * @returns {string}
- */
-function useId(idOverride) {
-  // React.useId() is only available from React 17.0.0.
-  if (maybeReactUseId !== undefined) {
-    const reactId = maybeReactUseId();
-    return idOverride ?? reactId;
-  }
-
-  // TODO: uncomment once we enable eslint-plugin-react-compiler // eslint-disable-next-line react-compiler/react-compiler
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- `React.useId` is invariant at runtime.
-  return useGlobalId(idOverride);
-}
 ;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/utils/useId.js
 'use client';
 
 
 /* harmony default export */ const utils_useId = (useId);
-;// ./node_modules/.pnpm/@mui+styled-engine@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+s_26ij7y7oollnf3ukf76rheahxm/node_modules/@mui/styled-engine/esm/index.js
-/**
- * @mui/styled-engine v7.3.3
- *
- * @license MIT
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-'use client';
-
-/* eslint-disable no-underscore-dangle */
-
-
-function esm_styled(tag, options) {
-  const stylesFactory = newStyled(tag, options);
-  if (false) {}
-  return stylesFactory;
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function internal_mutateStyles(tag, processor) {
-  // Emotion attaches all the styles as `__emotion_styles`.
-  // Ref: https://github.com/emotion-js/emotion/blob/16d971d0da229596d6bcc39d282ba9753c9ee7cf/packages/styled/src/base.js#L186
-  if (Array.isArray(tag.__emotion_styles)) {
-    tag.__emotion_styles = processor(tag.__emotion_styles);
-  }
-}
-
-// Emotion only accepts an array, but we want to avoid allocations
-const wrapper = [];
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function internal_serializeStyles(styles) {
-  wrapper[0] = styles;
-  return serializeStyles(wrapper);
-}
-
-
-
-// EXTERNAL MODULE: ./node_modules/.pnpm/react-is@19.2.0/node_modules/react-is/cjs/react-is.production.js
-var cjs_react_is_production = __webpack_require__(909);
-;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/deepmerge/deepmerge.js
-
-
-
-// https://github.com/sindresorhus/is-plain-obj/blob/main/index.js
-function deepmerge_isPlainObject(item) {
-  if (typeof item !== 'object' || item === null) {
-    return false;
-  }
-  const prototype = Object.getPrototypeOf(item);
-  return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in item) && !(Symbol.iterator in item);
-}
-function deepmerge_deepClone(source) {
-  if (/*#__PURE__*/external_React_.isValidElement(source) || (0,cjs_react_is_production/* isValidElementType */.Hy)(source) || !deepmerge_isPlainObject(source)) {
-    return source;
-  }
-  const output = {};
-  Object.keys(source).forEach(key => {
-    output[key] = deepmerge_deepClone(source[key]);
-  });
-  return output;
-}
-
-/**
- * Merge objects deeply.
- * It will shallow copy React elements.
- *
- * If `options.clone` is set to `false` the source object will be merged directly into the target object.
- *
- * @example
- * ```ts
- * deepmerge({ a: { b: 1 }, d: 2 }, { a: { c: 2 }, d: 4 });
- * // => { a: { b: 1, c: 2 }, d: 4 }
- * ````
- *
- * @param target The target object.
- * @param source The source object.
- * @param options The merge options.
- * @param options.clone Set to `false` to merge the source object directly into the target object.
- * @returns The merged object.
- */
-function deepmerge_deepmerge_deepmerge(target, source, options = {
-  clone: true
-}) {
-  const output = options.clone ? {
-    ...target
-  } : target;
-  if (deepmerge_isPlainObject(target) && deepmerge_isPlainObject(source)) {
-    Object.keys(source).forEach(key => {
-      if (/*#__PURE__*/external_React_.isValidElement(source[key]) || (0,cjs_react_is_production/* isValidElementType */.Hy)(source[key])) {
-        output[key] = source[key];
-      } else if (deepmerge_isPlainObject(source[key]) &&
-      // Avoid prototype pollution
-      Object.prototype.hasOwnProperty.call(target, key) && deepmerge_isPlainObject(target[key])) {
-        // Since `output` is a clone of `target` and we have narrowed `target` in this block we can cast to the same type.
-        output[key] = deepmerge_deepmerge_deepmerge(target[key], source[key], options);
-      } else if (options.clone) {
-        output[key] = deepmerge_isPlainObject(source[key]) ? deepmerge_deepClone(source[key]) : source[key];
-      } else {
-        output[key] = source[key];
-      }
-    });
-  }
-  return output;
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createBreakpoints/createBreakpoints.js
-// Sorted ASC by size. That's important.
-// It can't be configured as it's used statically for propTypes.
-const createBreakpoints_breakpointKeys = (/* unused pure expression or super */ null && (['xs', 'sm', 'md', 'lg', 'xl']));
-const createBreakpoints_sortBreakpointsValues = values => {
-  const breakpointsAsArray = Object.keys(values).map(key => ({
-    key,
-    val: values[key]
-  })) || [];
-  // Sort in ascending order
-  breakpointsAsArray.sort((breakpoint1, breakpoint2) => breakpoint1.val - breakpoint2.val);
-  return breakpointsAsArray.reduce((acc, obj) => {
-    return {
-      ...acc,
-      [obj.key]: obj.val
-    };
-  }, {});
-};
-
-// Keep in mind that @media is inclusive by the CSS specification.
-function createBreakpoints_createBreakpoints(breakpoints) {
-  const {
-    // The breakpoint **start** at this value.
-    // For instance with the first breakpoint xs: [xs, sm).
-    values = {
-      xs: 0,
-      // phone
-      sm: 600,
-      // tablet
-      md: 900,
-      // small laptop
-      lg: 1200,
-      // desktop
-      xl: 1536 // large screen
-    },
-    unit = 'px',
-    step = 5,
-    ...other
-  } = breakpoints;
-  const sortedValues = createBreakpoints_sortBreakpointsValues(values);
-  const keys = Object.keys(sortedValues);
-  function up(key) {
-    const value = typeof values[key] === 'number' ? values[key] : key;
-    return `@media (min-width:${value}${unit})`;
-  }
-  function down(key) {
-    const value = typeof values[key] === 'number' ? values[key] : key;
-    return `@media (max-width:${value - step / 100}${unit})`;
-  }
-  function between(start, end) {
-    const endIndex = keys.indexOf(end);
-    return `@media (min-width:${typeof values[start] === 'number' ? values[start] : start}${unit}) and ` + `(max-width:${(endIndex !== -1 && typeof values[keys[endIndex]] === 'number' ? values[keys[endIndex]] : end) - step / 100}${unit})`;
-  }
-  function only(key) {
-    if (keys.indexOf(key) + 1 < keys.length) {
-      return between(key, keys[keys.indexOf(key) + 1]);
-    }
-    return up(key);
-  }
-  function not(key) {
-    // handle first and last key separately, for better readability
-    const keyIndex = keys.indexOf(key);
-    if (keyIndex === 0) {
-      return up(keys[1]);
-    }
-    if (keyIndex === keys.length - 1) {
-      return down(keys[keyIndex]);
-    }
-    return between(key, keys[keys.indexOf(key) + 1]).replace('@media', '@media not all and');
-  }
-  return {
-    keys,
-    values: sortedValues,
-    up,
-    down,
-    between,
-    only,
-    not,
-    unit,
-    ...other
-  };
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssContainerQueries/cssContainerQueries.js
-
-/**
- * For using in `sx` prop to sort the breakpoint from low to high.
- * Note: this function does not work and will not support multiple units.
- *       e.g. input: { '@container (min-width:300px)': '1rem', '@container (min-width:40rem)': '2rem' }
- *            output: { '@container (min-width:40rem)': '2rem', '@container (min-width:300px)': '1rem' } // since 40 < 300 even though 40rem > 300px
- */
-function cssContainerQueries_sortContainerQueries(theme, css) {
-  if (!theme.containerQueries) {
-    return css;
-  }
-  const sorted = Object.keys(css).filter(key => key.startsWith('@container')).sort((a, b) => {
-    const regex = /min-width:\s*([0-9.]+)/;
-    return +(a.match(regex)?.[1] || 0) - +(b.match(regex)?.[1] || 0);
-  });
-  if (!sorted.length) {
-    return css;
-  }
-  return sorted.reduce((acc, key) => {
-    const value = css[key];
-    delete acc[key];
-    acc[key] = value;
-    return acc;
-  }, {
-    ...css
-  });
-}
-function cssContainerQueries_isCqShorthand(breakpointKeys, value) {
-  return value === '@' || value.startsWith('@') && (breakpointKeys.some(key => value.startsWith(`@${key}`)) || !!value.match(/^@\d/));
-}
-function cssContainerQueries_getContainerQuery(theme, shorthand) {
-  const matches = shorthand.match(/^@([^/]+)?\/?(.+)?$/);
-  if (!matches) {
-    if (false) {}
-    return null;
-  }
-  const [, containerQuery, containerName] = matches;
-  const value = Number.isNaN(+containerQuery) ? containerQuery || 0 : +containerQuery;
-  return theme.containerQueries(containerName).up(value);
-}
-function cssContainerQueries_cssContainerQueries(themeInput) {
-  const toContainerQuery = (mediaQuery, name) => mediaQuery.replace('@media', name ? `@container ${name}` : '@container');
-  function attachCq(node, name) {
-    node.up = (...args) => toContainerQuery(themeInput.breakpoints.up(...args), name);
-    node.down = (...args) => toContainerQuery(themeInput.breakpoints.down(...args), name);
-    node.between = (...args) => toContainerQuery(themeInput.breakpoints.between(...args), name);
-    node.only = (...args) => toContainerQuery(themeInput.breakpoints.only(...args), name);
-    node.not = (...args) => {
-      const result = toContainerQuery(themeInput.breakpoints.not(...args), name);
-      if (result.includes('not all and')) {
-        // `@container` does not work with `not all and`, so need to invert the logic
-        return result.replace('not all and ', '').replace('min-width:', 'width<').replace('max-width:', 'width>').replace('and', 'or');
-      }
-      return result;
-    };
-  }
-  const node = {};
-  const containerQueries = name => {
-    attachCq(node, name);
-    return node;
-  };
-  attachCq(containerQueries);
-  return {
-    ...themeInput,
-    containerQueries
-  };
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createTheme/shape.js
-const shape_shape = {
-  borderRadius: 4
-};
-/* harmony default export */ const esm_createTheme_shape = (shape_shape);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/breakpoints/breakpoints.js
-
-
-
-
-
-// The breakpoint **start** at this value.
-// For instance with the first breakpoint xs: [xs, sm[.
-const breakpoints_values = {
-  xs: 0,
-  // phone
-  sm: 600,
-  // tablet
-  md: 900,
-  // small laptop
-  lg: 1200,
-  // desktop
-  xl: 1536 // large screen
-};
-const breakpoints_defaultBreakpoints = {
-  // Sorted ASC by size. That's important.
-  // It can't be configured as it's used statically for propTypes.
-  keys: ['xs', 'sm', 'md', 'lg', 'xl'],
-  up: key => `@media (min-width:${breakpoints_values[key]}px)`
-};
-const breakpoints_defaultContainerQueries = {
-  containerQueries: containerName => ({
-    up: key => {
-      let result = typeof key === 'number' ? key : breakpoints_values[key] || key;
-      if (typeof result === 'number') {
-        result = `${result}px`;
-      }
-      return containerName ? `@container ${containerName} (min-width:${result})` : `@container (min-width:${result})`;
-    }
-  })
-};
-function breakpoints_handleBreakpoints(props, propValue, styleFromPropValue) {
-  const theme = props.theme || {};
-  if (Array.isArray(propValue)) {
-    const themeBreakpoints = theme.breakpoints || breakpoints_defaultBreakpoints;
-    return propValue.reduce((acc, item, index) => {
-      acc[themeBreakpoints.up(themeBreakpoints.keys[index])] = styleFromPropValue(propValue[index]);
-      return acc;
-    }, {});
-  }
-  if (typeof propValue === 'object') {
-    const themeBreakpoints = theme.breakpoints || breakpoints_defaultBreakpoints;
-    return Object.keys(propValue).reduce((acc, breakpoint) => {
-      if (cssContainerQueries_isCqShorthand(themeBreakpoints.keys, breakpoint)) {
-        const containerKey = cssContainerQueries_getContainerQuery(theme.containerQueries ? theme : breakpoints_defaultContainerQueries, breakpoint);
-        if (containerKey) {
-          acc[containerKey] = styleFromPropValue(propValue[breakpoint], breakpoint);
-        }
-      }
-      // key is breakpoint
-      else if (Object.keys(themeBreakpoints.values || breakpoints_values).includes(breakpoint)) {
-        const mediaKey = themeBreakpoints.up(breakpoint);
-        acc[mediaKey] = styleFromPropValue(propValue[breakpoint], breakpoint);
-      } else {
-        const cssKey = breakpoint;
-        acc[cssKey] = propValue[cssKey];
-      }
-      return acc;
-    }, {});
-  }
-  const output = styleFromPropValue(propValue);
-  return output;
-}
-function breakpoints_breakpoints_breakpoints(styleFunction) {
-  // false positive
-  // eslint-disable-next-line react/function-component-definition
-  const newStyleFunction = props => {
-    const theme = props.theme || {};
-    const base = styleFunction(props);
-    const themeBreakpoints = theme.breakpoints || breakpoints_defaultBreakpoints;
-    const extended = themeBreakpoints.keys.reduce((acc, key) => {
-      if (props[key]) {
-        acc = acc || {};
-        acc[themeBreakpoints.up(key)] = styleFunction({
-          theme,
-          ...props[key]
-        });
-      }
-      return acc;
-    }, null);
-    return merge(base, extended);
-  };
-  newStyleFunction.propTypes =  false ? 0 : {};
-  newStyleFunction.filterProps = ['xs', 'sm', 'md', 'lg', 'xl', ...styleFunction.filterProps];
-  return newStyleFunction;
-}
-function breakpoints_createEmptyBreakpointObject(breakpointsInput = {}) {
-  const breakpointsInOrder = breakpointsInput.keys?.reduce((acc, key) => {
-    const breakpointStyleKey = breakpointsInput.up(key);
-    acc[breakpointStyleKey] = {};
-    return acc;
-  }, {});
-  return breakpointsInOrder || {};
-}
-function breakpoints_removeUnusedBreakpoints(breakpointKeys, style) {
-  return breakpointKeys.reduce((acc, key) => {
-    const breakpointOutput = acc[key];
-    const isBreakpointUnused = !breakpointOutput || Object.keys(breakpointOutput).length === 0;
-    if (isBreakpointUnused) {
-      delete acc[key];
-    }
-    return acc;
-  }, style);
-}
-function breakpoints_mergeBreakpointsInOrder(breakpointsInput, ...styles) {
-  const emptyBreakpoints = breakpoints_createEmptyBreakpointObject(breakpointsInput);
-  const mergedOutput = [emptyBreakpoints, ...styles].reduce((prev, next) => deepmerge(prev, next), {});
-  return breakpoints_removeUnusedBreakpoints(Object.keys(emptyBreakpoints), mergedOutput);
-}
-
-// compute base for responsive values; e.g.,
-// [1,2,3] => {xs: true, sm: true, md: true}
-// {xs: 1, sm: 2, md: 3} => {xs: true, sm: true, md: true}
-function breakpoints_computeBreakpointsBase(breakpointValues, themeBreakpoints) {
-  // fixed value
-  if (typeof breakpointValues !== 'object') {
-    return {};
-  }
-  const base = {};
-  const breakpointsKeys = Object.keys(themeBreakpoints);
-  if (Array.isArray(breakpointValues)) {
-    breakpointsKeys.forEach((breakpoint, i) => {
-      if (i < breakpointValues.length) {
-        base[breakpoint] = true;
-      }
-    });
-  } else {
-    breakpointsKeys.forEach(breakpoint => {
-      if (breakpointValues[breakpoint] != null) {
-        base[breakpoint] = true;
-      }
-    });
-  }
-  return base;
-}
-function breakpoints_resolveBreakpointValues({
-  values: breakpointValues,
-  breakpoints: themeBreakpoints,
-  base: customBase
-}) {
-  const base = customBase || breakpoints_computeBreakpointsBase(breakpointValues, themeBreakpoints);
-  const keys = Object.keys(base);
-  if (keys.length === 0) {
-    return breakpointValues;
-  }
-  let previous;
-  return keys.reduce((acc, breakpoint, i) => {
-    if (Array.isArray(breakpointValues)) {
-      acc[breakpoint] = breakpointValues[i] != null ? breakpointValues[i] : breakpointValues[previous];
-      previous = i;
-    } else if (typeof breakpointValues === 'object') {
-      acc[breakpoint] = breakpointValues[breakpoint] != null ? breakpointValues[breakpoint] : breakpointValues[previous];
-      previous = breakpoint;
-    } else {
-      acc[breakpoint] = breakpointValues;
-    }
-    return acc;
-  }, {});
-}
-/* harmony default export */ const esm_breakpoints_breakpoints = ((/* unused pure expression or super */ null && (breakpoints_breakpoints_breakpoints)));
-;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/formatMuiErrorMessage/formatMuiErrorMessage.js
-/**
- * WARNING: Don't import this directly. It's imported by the code generated by
- * `@mui/interal-babel-plugin-minify-errors`. Make sure to always use string literals in `Error`
- * constructors to ensure the plugin works as expected. Supported patterns include:
- *   throw new Error('My message');
- *   throw new Error(`My message: ${foo}`);
- *   throw new Error(`My message: ${foo}` + 'another string');
- *   ...
- * @param {number} code
- */
-function formatMuiErrorMessage_formatMuiErrorMessage(code, ...args) {
-  const url = new URL(`https://mui.com/production-error/?code=${code}`);
-  args.forEach(arg => url.searchParams.append('args[]', arg));
-  return `Minified MUI error #${code}; visit ${url} for the full message.`;
-}
-;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/capitalize/capitalize.js
-
-// It should to be noted that this function isn't equivalent to `text-transform: capitalize`.
-//
-// A strict capitalization should uppercase the first letter of each word in the sentence.
-// We only handle the first word.
-function capitalize_capitalize_capitalize(string) {
-  if (typeof string !== 'string') {
-    throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(7));
-  }
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/style/style.js
-
-
-
-function style_getPath(obj, path, checkVars = true) {
-  if (!path || typeof path !== 'string') {
-    return null;
-  }
-
-  // Check if CSS variables are used
-  if (obj && obj.vars && checkVars) {
-    const val = `vars.${path}`.split('.').reduce((acc, item) => acc && acc[item] ? acc[item] : null, obj);
-    if (val != null) {
-      return val;
-    }
-  }
-  return path.split('.').reduce((acc, item) => {
-    if (acc && acc[item] != null) {
-      return acc[item];
-    }
-    return null;
-  }, obj);
-}
-function style_getStyleValue(themeMapping, transform, propValueFinal, userValue = propValueFinal) {
-  let value;
-  if (typeof themeMapping === 'function') {
-    value = themeMapping(propValueFinal);
-  } else if (Array.isArray(themeMapping)) {
-    value = themeMapping[propValueFinal] || userValue;
-  } else {
-    value = style_getPath(themeMapping, propValueFinal) || userValue;
-  }
-  if (transform) {
-    value = transform(value, userValue, themeMapping);
-  }
-  return value;
-}
-function style_style_style(options) {
-  const {
-    prop,
-    cssProperty = options.prop,
-    themeKey,
-    transform
-  } = options;
-
-  // false positive
-  // eslint-disable-next-line react/function-component-definition
-  const fn = props => {
-    if (props[prop] == null) {
-      return null;
-    }
-    const propValue = props[prop];
-    const theme = props.theme;
-    const themeMapping = style_getPath(theme, themeKey) || {};
-    const styleFromPropValue = propValueFinal => {
-      let value = style_getStyleValue(themeMapping, transform, propValueFinal);
-      if (propValueFinal === value && typeof propValueFinal === 'string') {
-        // Haven't found value
-        value = style_getStyleValue(themeMapping, transform, `${prop}${propValueFinal === 'default' ? '' : capitalize_capitalize_capitalize(propValueFinal)}`, propValueFinal);
-      }
-      if (cssProperty === false) {
-        return value;
-      }
-      return {
-        [cssProperty]: value
-      };
-    };
-    return breakpoints_handleBreakpoints(props, propValue, styleFromPropValue);
-  };
-  fn.propTypes =  false ? 0 : {};
-  fn.filterProps = [prop];
-  return fn;
-}
-/* harmony default export */ const esm_style_style = (style_style_style);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/merge/merge.js
-
-function merge_merge_merge(acc, item) {
-  if (!item) {
-    return acc;
-  }
-  return deepmerge_deepmerge_deepmerge(acc, item, {
-    clone: false // No need to clone deep, it's way faster.
-  });
-}
-/* harmony default export */ const system_esm_merge_merge = (merge_merge_merge);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/memoize/memoize.js
-function memoize_memoize(fn) {
-  const cache = {};
-  return arg => {
-    if (cache[arg] === undefined) {
-      cache[arg] = fn(arg);
-    }
-    return cache[arg];
-  };
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/spacing/spacing.js
-
-
-
-
-
-const spacing_properties = {
-  m: 'margin',
-  p: 'padding'
-};
-const spacing_directions = {
-  t: 'Top',
-  r: 'Right',
-  b: 'Bottom',
-  l: 'Left',
-  x: ['Left', 'Right'],
-  y: ['Top', 'Bottom']
-};
-const spacing_aliases = {
-  marginX: 'mx',
-  marginY: 'my',
-  paddingX: 'px',
-  paddingY: 'py'
-};
-
-// memoize() impact:
-// From 300,000 ops/sec
-// To 350,000 ops/sec
-const spacing_getCssProperties = memoize_memoize(prop => {
-  // It's not a shorthand notation.
-  if (prop.length > 2) {
-    if (spacing_aliases[prop]) {
-      prop = spacing_aliases[prop];
-    } else {
-      return [prop];
-    }
-  }
-  const [a, b] = prop.split('');
-  const property = spacing_properties[a];
-  const direction = spacing_directions[b] || '';
-  return Array.isArray(direction) ? direction.map(dir => property + dir) : [property + direction];
-});
-const spacing_marginKeys = ['m', 'mt', 'mr', 'mb', 'ml', 'mx', 'my', 'margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'marginX', 'marginY', 'marginInline', 'marginInlineStart', 'marginInlineEnd', 'marginBlock', 'marginBlockStart', 'marginBlockEnd'];
-const spacing_paddingKeys = ['p', 'pt', 'pr', 'pb', 'pl', 'px', 'py', 'padding', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'paddingX', 'paddingY', 'paddingInline', 'paddingInlineStart', 'paddingInlineEnd', 'paddingBlock', 'paddingBlockStart', 'paddingBlockEnd'];
-const spacing_spacingKeys = [...spacing_marginKeys, ...spacing_paddingKeys];
-function spacing_createUnaryUnit(theme, themeKey, defaultValue, propName) {
-  const themeSpacing = style_getPath(theme, themeKey, true) ?? defaultValue;
-  if (typeof themeSpacing === 'number' || typeof themeSpacing === 'string') {
-    return val => {
-      if (typeof val === 'string') {
-        return val;
-      }
-      if (false) {}
-      if (typeof themeSpacing === 'string') {
-        if (themeSpacing.startsWith('var(') && val === 0) {
-          return 0;
-        }
-        if (themeSpacing.startsWith('var(') && val === 1) {
-          return themeSpacing;
-        }
-        return `calc(${val} * ${themeSpacing})`;
-      }
-      return themeSpacing * val;
-    };
-  }
-  if (Array.isArray(themeSpacing)) {
-    return val => {
-      if (typeof val === 'string') {
-        return val;
-      }
-      const abs = Math.abs(val);
-      if (false) {}
-      const transformed = themeSpacing[abs];
-      if (val >= 0) {
-        return transformed;
-      }
-      if (typeof transformed === 'number') {
-        return -transformed;
-      }
-      if (typeof transformed === 'string' && transformed.startsWith('var(')) {
-        return `calc(-1 * ${transformed})`;
-      }
-      return `-${transformed}`;
-    };
-  }
-  if (typeof themeSpacing === 'function') {
-    return themeSpacing;
-  }
-  if (false) {}
-  return () => undefined;
-}
-function spacing_createUnarySpacing(theme) {
-  return spacing_createUnaryUnit(theme, 'spacing', 8, 'spacing');
-}
-function spacing_getValue(transformer, propValue) {
-  if (typeof propValue === 'string' || propValue == null) {
-    return propValue;
-  }
-  return transformer(propValue);
-}
-function spacing_getStyleFromPropValue(cssProperties, transformer) {
-  return propValue => cssProperties.reduce((acc, cssProperty) => {
-    acc[cssProperty] = spacing_getValue(transformer, propValue);
-    return acc;
-  }, {});
-}
-function spacing_resolveCssProperty(props, keys, prop, transformer) {
-  // Using a hash computation over an array iteration could be faster, but with only 28 items,
-  // it's doesn't worth the bundle size.
-  if (!keys.includes(prop)) {
-    return null;
-  }
-  const cssProperties = spacing_getCssProperties(prop);
-  const styleFromPropValue = spacing_getStyleFromPropValue(cssProperties, transformer);
-  const propValue = props[prop];
-  return breakpoints_handleBreakpoints(props, propValue, styleFromPropValue);
-}
-function spacing_spacing_style(props, keys) {
-  const transformer = spacing_createUnarySpacing(props.theme);
-  return Object.keys(props).map(prop => spacing_resolveCssProperty(props, keys, prop, transformer)).reduce(system_esm_merge_merge, {});
-}
-function spacing_margin(props) {
-  return spacing_spacing_style(props, spacing_marginKeys);
-}
-spacing_margin.propTypes =  false ? 0 : {};
-spacing_margin.filterProps = spacing_marginKeys;
-function spacing_padding(props) {
-  return spacing_spacing_style(props, spacing_paddingKeys);
-}
-spacing_padding.propTypes =  false ? 0 : {};
-spacing_padding.filterProps = spacing_paddingKeys;
-function spacing_spacing_spacing(props) {
-  return spacing_spacing_style(props, spacing_spacingKeys);
-}
-spacing_spacing_spacing.propTypes =  false ? 0 : {};
-spacing_spacing_spacing.filterProps = spacing_spacingKeys;
-/* harmony default export */ const esm_spacing_spacing = ((/* unused pure expression or super */ null && (spacing_spacing_spacing)));
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createTheme/createSpacing.js
-
-
-// The different signatures imply different meaning for their arguments that can't be expressed structurally.
-// We express the difference with variable names.
-
-function createSpacing_createSpacing(spacingInput = 8,
-// Material Design layouts are visually balanced. Most measurements align to an 8dp grid, which aligns both spacing and the overall layout.
-// Smaller components, such as icons, can align to a 4dp grid.
-// https://m2.material.io/design/layout/understanding-layout.html
-transform = spacing_createUnarySpacing({
-  spacing: spacingInput
-})) {
-  // Already transformed.
-  if (spacingInput.mui) {
-    return spacingInput;
-  }
-  const spacing = (...argsInput) => {
-    if (false) {}
-    const args = argsInput.length === 0 ? [1] : argsInput;
-    return args.map(argument => {
-      const output = transform(argument);
-      return typeof output === 'number' ? `${output}px` : output;
-    }).join(' ');
-  };
-  spacing.mui = true;
-  return spacing;
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/compose/compose.js
-
-function compose_compose_compose(...styles) {
-  const handlers = styles.reduce((acc, style) => {
-    style.filterProps.forEach(prop => {
-      acc[prop] = style;
-    });
-    return acc;
-  }, {});
-
-  // false positive
-  // eslint-disable-next-line react/function-component-definition
-  const fn = props => {
-    return Object.keys(props).reduce((acc, prop) => {
-      if (handlers[prop]) {
-        return system_esm_merge_merge(acc, handlers[prop](props));
-      }
-      return acc;
-    }, {});
-  };
-  fn.propTypes =  false ? 0 : {};
-  fn.filterProps = styles.reduce((acc, style) => acc.concat(style.filterProps), []);
-  return fn;
-}
-/* harmony default export */ const esm_compose_compose = (compose_compose_compose);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/borders/borders.js
-
-
-
-
-
-function borders_borderTransform(value) {
-  if (typeof value !== 'number') {
-    return value;
-  }
-  return `${value}px solid`;
-}
-function borders_createBorderStyle(prop, transform) {
-  return esm_style_style({
-    prop,
-    themeKey: 'borders',
-    transform
-  });
-}
-const borders_border = borders_createBorderStyle('border', borders_borderTransform);
-const borders_borderTop = borders_createBorderStyle('borderTop', borders_borderTransform);
-const borders_borderRight = borders_createBorderStyle('borderRight', borders_borderTransform);
-const borders_borderBottom = borders_createBorderStyle('borderBottom', borders_borderTransform);
-const borders_borderLeft = borders_createBorderStyle('borderLeft', borders_borderTransform);
-const borders_borderColor = borders_createBorderStyle('borderColor');
-const borders_borderTopColor = borders_createBorderStyle('borderTopColor');
-const borders_borderRightColor = borders_createBorderStyle('borderRightColor');
-const borders_borderBottomColor = borders_createBorderStyle('borderBottomColor');
-const borders_borderLeftColor = borders_createBorderStyle('borderLeftColor');
-const borders_outline = borders_createBorderStyle('outline', borders_borderTransform);
-const borders_outlineColor = borders_createBorderStyle('outlineColor');
-
-// false positive
-// eslint-disable-next-line react/function-component-definition
-const borders_borderRadius = props => {
-  if (props.borderRadius !== undefined && props.borderRadius !== null) {
-    const transformer = spacing_createUnaryUnit(props.theme, 'shape.borderRadius', 4, 'borderRadius');
-    const styleFromPropValue = propValue => ({
-      borderRadius: spacing_getValue(transformer, propValue)
-    });
-    return breakpoints_handleBreakpoints(props, props.borderRadius, styleFromPropValue);
-  }
-  return null;
-};
-borders_borderRadius.propTypes =  false ? 0 : {};
-borders_borderRadius.filterProps = ['borderRadius'];
-const borders_borders_borders = esm_compose_compose(borders_border, borders_borderTop, borders_borderRight, borders_borderBottom, borders_borderLeft, borders_borderColor, borders_borderTopColor, borders_borderRightColor, borders_borderBottomColor, borders_borderLeftColor, borders_borderRadius, borders_outline, borders_outlineColor);
-/* harmony default export */ const esm_borders_borders = ((/* unused pure expression or super */ null && (borders_borders_borders)));
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssGrid/cssGrid.js
-
-
-
-
-
-
-// false positive
-// eslint-disable-next-line react/function-component-definition
-const cssGrid_gap = props => {
-  if (props.gap !== undefined && props.gap !== null) {
-    const transformer = spacing_createUnaryUnit(props.theme, 'spacing', 8, 'gap');
-    const styleFromPropValue = propValue => ({
-      gap: spacing_getValue(transformer, propValue)
-    });
-    return breakpoints_handleBreakpoints(props, props.gap, styleFromPropValue);
-  }
-  return null;
-};
-cssGrid_gap.propTypes =  false ? 0 : {};
-cssGrid_gap.filterProps = ['gap'];
-
-// false positive
-// eslint-disable-next-line react/function-component-definition
-const cssGrid_columnGap = props => {
-  if (props.columnGap !== undefined && props.columnGap !== null) {
-    const transformer = spacing_createUnaryUnit(props.theme, 'spacing', 8, 'columnGap');
-    const styleFromPropValue = propValue => ({
-      columnGap: spacing_getValue(transformer, propValue)
-    });
-    return breakpoints_handleBreakpoints(props, props.columnGap, styleFromPropValue);
-  }
-  return null;
-};
-cssGrid_columnGap.propTypes =  false ? 0 : {};
-cssGrid_columnGap.filterProps = ['columnGap'];
-
-// false positive
-// eslint-disable-next-line react/function-component-definition
-const cssGrid_rowGap = props => {
-  if (props.rowGap !== undefined && props.rowGap !== null) {
-    const transformer = spacing_createUnaryUnit(props.theme, 'spacing', 8, 'rowGap');
-    const styleFromPropValue = propValue => ({
-      rowGap: spacing_getValue(transformer, propValue)
-    });
-    return breakpoints_handleBreakpoints(props, props.rowGap, styleFromPropValue);
-  }
-  return null;
-};
-cssGrid_rowGap.propTypes =  false ? 0 : {};
-cssGrid_rowGap.filterProps = ['rowGap'];
-const cssGrid_gridColumn = esm_style_style({
-  prop: 'gridColumn'
-});
-const cssGrid_gridRow = esm_style_style({
-  prop: 'gridRow'
-});
-const cssGrid_gridAutoFlow = esm_style_style({
-  prop: 'gridAutoFlow'
-});
-const cssGrid_gridAutoColumns = esm_style_style({
-  prop: 'gridAutoColumns'
-});
-const cssGrid_gridAutoRows = esm_style_style({
-  prop: 'gridAutoRows'
-});
-const cssGrid_gridTemplateColumns = esm_style_style({
-  prop: 'gridTemplateColumns'
-});
-const cssGrid_gridTemplateRows = esm_style_style({
-  prop: 'gridTemplateRows'
-});
-const cssGrid_gridTemplateAreas = esm_style_style({
-  prop: 'gridTemplateAreas'
-});
-const cssGrid_gridArea = esm_style_style({
-  prop: 'gridArea'
-});
-const cssGrid_grid = esm_compose_compose(cssGrid_gap, cssGrid_columnGap, cssGrid_rowGap, cssGrid_gridColumn, cssGrid_gridRow, cssGrid_gridAutoFlow, cssGrid_gridAutoColumns, cssGrid_gridAutoRows, cssGrid_gridTemplateColumns, cssGrid_gridTemplateRows, cssGrid_gridTemplateAreas, cssGrid_gridArea);
-/* harmony default export */ const cssGrid_cssGrid = ((/* unused pure expression or super */ null && (cssGrid_grid)));
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/palette/palette.js
-
-
-function palette_paletteTransform(value, userValue) {
-  if (userValue === 'grey') {
-    return userValue;
-  }
-  return value;
-}
-const palette_color = esm_style_style({
-  prop: 'color',
-  themeKey: 'palette',
-  transform: palette_paletteTransform
-});
-const palette_bgcolor = esm_style_style({
-  prop: 'bgcolor',
-  cssProperty: 'backgroundColor',
-  themeKey: 'palette',
-  transform: palette_paletteTransform
-});
-const palette_backgroundColor = esm_style_style({
-  prop: 'backgroundColor',
-  themeKey: 'palette',
-  transform: palette_paletteTransform
-});
-const palette_palette_palette = esm_compose_compose(palette_color, palette_bgcolor, palette_backgroundColor);
-/* harmony default export */ const esm_palette_palette = ((/* unused pure expression or super */ null && (palette_palette_palette)));
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/sizing/sizing.js
-
-
-
-function sizing_sizingTransform(value) {
-  return value <= 1 && value !== 0 ? `${value * 100}%` : value;
-}
-const sizing_width = esm_style_style({
-  prop: 'width',
-  transform: sizing_sizingTransform
-});
-const sizing_maxWidth = props => {
-  if (props.maxWidth !== undefined && props.maxWidth !== null) {
-    const styleFromPropValue = propValue => {
-      const breakpoint = props.theme?.breakpoints?.values?.[propValue] || breakpoints_values[propValue];
-      if (!breakpoint) {
-        return {
-          maxWidth: sizing_sizingTransform(propValue)
-        };
-      }
-      if (props.theme?.breakpoints?.unit !== 'px') {
-        return {
-          maxWidth: `${breakpoint}${props.theme.breakpoints.unit}`
-        };
-      }
-      return {
-        maxWidth: breakpoint
-      };
-    };
-    return breakpoints_handleBreakpoints(props, props.maxWidth, styleFromPropValue);
-  }
-  return null;
-};
-sizing_maxWidth.filterProps = ['maxWidth'];
-const sizing_minWidth = esm_style_style({
-  prop: 'minWidth',
-  transform: sizing_sizingTransform
-});
-const sizing_height = esm_style_style({
-  prop: 'height',
-  transform: sizing_sizingTransform
-});
-const sizing_maxHeight = esm_style_style({
-  prop: 'maxHeight',
-  transform: sizing_sizingTransform
-});
-const sizing_minHeight = esm_style_style({
-  prop: 'minHeight',
-  transform: sizing_sizingTransform
-});
-const sizing_sizeWidth = esm_style_style({
-  prop: 'size',
-  cssProperty: 'width',
-  transform: sizing_sizingTransform
-});
-const sizing_sizeHeight = esm_style_style({
-  prop: 'size',
-  cssProperty: 'height',
-  transform: sizing_sizingTransform
-});
-const sizing_boxSizing = esm_style_style({
-  prop: 'boxSizing'
-});
-const sizing_sizing_sizing = esm_compose_compose(sizing_width, sizing_maxWidth, sizing_minWidth, sizing_height, sizing_maxHeight, sizing_minHeight, sizing_boxSizing);
-/* harmony default export */ const esm_sizing_sizing = ((/* unused pure expression or super */ null && (sizing_sizing_sizing)));
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/styleFunctionSx/defaultSxConfig.js
-
-
-
-
-
-const defaultSxConfig_defaultSxConfig = {
-  // borders
-  border: {
-    themeKey: 'borders',
-    transform: borders_borderTransform
-  },
-  borderTop: {
-    themeKey: 'borders',
-    transform: borders_borderTransform
-  },
-  borderRight: {
-    themeKey: 'borders',
-    transform: borders_borderTransform
-  },
-  borderBottom: {
-    themeKey: 'borders',
-    transform: borders_borderTransform
-  },
-  borderLeft: {
-    themeKey: 'borders',
-    transform: borders_borderTransform
-  },
-  borderColor: {
-    themeKey: 'palette'
-  },
-  borderTopColor: {
-    themeKey: 'palette'
-  },
-  borderRightColor: {
-    themeKey: 'palette'
-  },
-  borderBottomColor: {
-    themeKey: 'palette'
-  },
-  borderLeftColor: {
-    themeKey: 'palette'
-  },
-  outline: {
-    themeKey: 'borders',
-    transform: borders_borderTransform
-  },
-  outlineColor: {
-    themeKey: 'palette'
-  },
-  borderRadius: {
-    themeKey: 'shape.borderRadius',
-    style: borders_borderRadius
-  },
-  // palette
-  color: {
-    themeKey: 'palette',
-    transform: palette_paletteTransform
-  },
-  bgcolor: {
-    themeKey: 'palette',
-    cssProperty: 'backgroundColor',
-    transform: palette_paletteTransform
-  },
-  backgroundColor: {
-    themeKey: 'palette',
-    transform: palette_paletteTransform
-  },
-  // spacing
-  p: {
-    style: spacing_padding
-  },
-  pt: {
-    style: spacing_padding
-  },
-  pr: {
-    style: spacing_padding
-  },
-  pb: {
-    style: spacing_padding
-  },
-  pl: {
-    style: spacing_padding
-  },
-  px: {
-    style: spacing_padding
-  },
-  py: {
-    style: spacing_padding
-  },
-  padding: {
-    style: spacing_padding
-  },
-  paddingTop: {
-    style: spacing_padding
-  },
-  paddingRight: {
-    style: spacing_padding
-  },
-  paddingBottom: {
-    style: spacing_padding
-  },
-  paddingLeft: {
-    style: spacing_padding
-  },
-  paddingX: {
-    style: spacing_padding
-  },
-  paddingY: {
-    style: spacing_padding
-  },
-  paddingInline: {
-    style: spacing_padding
-  },
-  paddingInlineStart: {
-    style: spacing_padding
-  },
-  paddingInlineEnd: {
-    style: spacing_padding
-  },
-  paddingBlock: {
-    style: spacing_padding
-  },
-  paddingBlockStart: {
-    style: spacing_padding
-  },
-  paddingBlockEnd: {
-    style: spacing_padding
-  },
-  m: {
-    style: spacing_margin
-  },
-  mt: {
-    style: spacing_margin
-  },
-  mr: {
-    style: spacing_margin
-  },
-  mb: {
-    style: spacing_margin
-  },
-  ml: {
-    style: spacing_margin
-  },
-  mx: {
-    style: spacing_margin
-  },
-  my: {
-    style: spacing_margin
-  },
-  margin: {
-    style: spacing_margin
-  },
-  marginTop: {
-    style: spacing_margin
-  },
-  marginRight: {
-    style: spacing_margin
-  },
-  marginBottom: {
-    style: spacing_margin
-  },
-  marginLeft: {
-    style: spacing_margin
-  },
-  marginX: {
-    style: spacing_margin
-  },
-  marginY: {
-    style: spacing_margin
-  },
-  marginInline: {
-    style: spacing_margin
-  },
-  marginInlineStart: {
-    style: spacing_margin
-  },
-  marginInlineEnd: {
-    style: spacing_margin
-  },
-  marginBlock: {
-    style: spacing_margin
-  },
-  marginBlockStart: {
-    style: spacing_margin
-  },
-  marginBlockEnd: {
-    style: spacing_margin
-  },
-  // display
-  displayPrint: {
-    cssProperty: false,
-    transform: value => ({
-      '@media print': {
-        display: value
-      }
-    })
-  },
-  display: {},
-  overflow: {},
-  textOverflow: {},
-  visibility: {},
-  whiteSpace: {},
-  // flexbox
-  flexBasis: {},
-  flexDirection: {},
-  flexWrap: {},
-  justifyContent: {},
-  alignItems: {},
-  alignContent: {},
-  order: {},
-  flex: {},
-  flexGrow: {},
-  flexShrink: {},
-  alignSelf: {},
-  justifyItems: {},
-  justifySelf: {},
-  // grid
-  gap: {
-    style: cssGrid_gap
-  },
-  rowGap: {
-    style: cssGrid_rowGap
-  },
-  columnGap: {
-    style: cssGrid_columnGap
-  },
-  gridColumn: {},
-  gridRow: {},
-  gridAutoFlow: {},
-  gridAutoColumns: {},
-  gridAutoRows: {},
-  gridTemplateColumns: {},
-  gridTemplateRows: {},
-  gridTemplateAreas: {},
-  gridArea: {},
-  // positions
-  position: {},
-  zIndex: {
-    themeKey: 'zIndex'
-  },
-  top: {},
-  right: {},
-  bottom: {},
-  left: {},
-  // shadows
-  boxShadow: {
-    themeKey: 'shadows'
-  },
-  // sizing
-  width: {
-    transform: sizing_sizingTransform
-  },
-  maxWidth: {
-    style: sizing_maxWidth
-  },
-  minWidth: {
-    transform: sizing_sizingTransform
-  },
-  height: {
-    transform: sizing_sizingTransform
-  },
-  maxHeight: {
-    transform: sizing_sizingTransform
-  },
-  minHeight: {
-    transform: sizing_sizingTransform
-  },
-  boxSizing: {},
-  // typography
-  font: {
-    themeKey: 'font'
-  },
-  fontFamily: {
-    themeKey: 'typography'
-  },
-  fontSize: {
-    themeKey: 'typography'
-  },
-  fontStyle: {
-    themeKey: 'typography'
-  },
-  fontWeight: {
-    themeKey: 'typography'
-  },
-  letterSpacing: {},
-  textTransform: {},
-  lineHeight: {},
-  textAlign: {},
-  typography: {
-    cssProperty: false,
-    themeKey: 'typography'
-  }
-};
-/* harmony default export */ const esm_styleFunctionSx_defaultSxConfig = (defaultSxConfig_defaultSxConfig);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/styleFunctionSx/styleFunctionSx.js
-
-
-
-
-
-
-function styleFunctionSx_objectsHaveSameKeys(...objects) {
-  const allKeys = objects.reduce((keys, object) => keys.concat(Object.keys(object)), []);
-  const union = new Set(allKeys);
-  return objects.every(object => union.size === Object.keys(object).length);
-}
-function styleFunctionSx_callIfFn(maybeFn, arg) {
-  return typeof maybeFn === 'function' ? maybeFn(arg) : maybeFn;
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function styleFunctionSx_unstable_createStyleFunctionSx() {
-  function getThemeValue(prop, val, theme, config) {
-    const props = {
-      [prop]: val,
-      theme
-    };
-    const options = config[prop];
-    if (!options) {
-      return {
-        [prop]: val
-      };
-    }
-    const {
-      cssProperty = prop,
-      themeKey,
-      transform,
-      style
-    } = options;
-    if (val == null) {
-      return null;
-    }
-
-    // TODO v6: remove, see https://github.com/mui/material-ui/pull/38123
-    if (themeKey === 'typography' && val === 'inherit') {
-      return {
-        [prop]: val
-      };
-    }
-    const themeMapping = style_getPath(theme, themeKey) || {};
-    if (style) {
-      return style(props);
-    }
-    const styleFromPropValue = propValueFinal => {
-      let value = style_getStyleValue(themeMapping, transform, propValueFinal);
-      if (propValueFinal === value && typeof propValueFinal === 'string') {
-        // Haven't found value
-        value = style_getStyleValue(themeMapping, transform, `${prop}${propValueFinal === 'default' ? '' : capitalize_capitalize_capitalize(propValueFinal)}`, propValueFinal);
-      }
-      if (cssProperty === false) {
-        return value;
-      }
-      return {
-        [cssProperty]: value
-      };
-    };
-    return breakpoints_handleBreakpoints(props, val, styleFromPropValue);
-  }
-  function styleFunctionSx(props) {
-    const {
-      sx,
-      theme = {},
-      nested
-    } = props || {};
-    if (!sx) {
-      return null; // Emotion & styled-components will neglect null
-    }
-    const config = theme.unstable_sxConfig ?? esm_styleFunctionSx_defaultSxConfig;
-
-    /*
-     * Receive `sxInput` as object or callback
-     * and then recursively check keys & values to create media query object styles.
-     * (the result will be used in `styled`)
-     */
-    function traverse(sxInput) {
-      let sxObject = sxInput;
-      if (typeof sxInput === 'function') {
-        sxObject = sxInput(theme);
-      } else if (typeof sxInput !== 'object') {
-        // value
-        return sxInput;
-      }
-      if (!sxObject) {
-        return null;
-      }
-      const emptyBreakpoints = breakpoints_createEmptyBreakpointObject(theme.breakpoints);
-      const breakpointsKeys = Object.keys(emptyBreakpoints);
-      let css = emptyBreakpoints;
-      Object.keys(sxObject).forEach(styleKey => {
-        const value = styleFunctionSx_callIfFn(sxObject[styleKey], theme);
-        if (value !== null && value !== undefined) {
-          if (typeof value === 'object') {
-            if (config[styleKey]) {
-              css = system_esm_merge_merge(css, getThemeValue(styleKey, value, theme, config));
-            } else {
-              const breakpointsValues = breakpoints_handleBreakpoints({
-                theme
-              }, value, x => ({
-                [styleKey]: x
-              }));
-              if (styleFunctionSx_objectsHaveSameKeys(breakpointsValues, value)) {
-                css[styleKey] = styleFunctionSx({
-                  sx: value,
-                  theme,
-                  nested: true
-                });
-              } else {
-                css = system_esm_merge_merge(css, breakpointsValues);
-              }
-            }
-          } else {
-            css = system_esm_merge_merge(css, getThemeValue(styleKey, value, theme, config));
-          }
-        }
-      });
-      if (!nested && theme.modularCssLayers) {
-        return {
-          '@layer sx': cssContainerQueries_sortContainerQueries(theme, breakpoints_removeUnusedBreakpoints(breakpointsKeys, css))
-        };
-      }
-      return cssContainerQueries_sortContainerQueries(theme, breakpoints_removeUnusedBreakpoints(breakpointsKeys, css));
-    }
-    return Array.isArray(sx) ? sx.map(traverse) : traverse(sx);
-  }
-  return styleFunctionSx;
-}
-const styleFunctionSx_styleFunctionSx_styleFunctionSx = styleFunctionSx_unstable_createStyleFunctionSx();
-styleFunctionSx_styleFunctionSx_styleFunctionSx.filterProps = ['sx'];
-/* harmony default export */ const esm_styleFunctionSx_styleFunctionSx = (styleFunctionSx_styleFunctionSx_styleFunctionSx);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createTheme/applyStyles.js
-/**
- * A universal utility to style components with multiple color modes. Always use it from the theme object.
- * It works with:
- *  - [Basic theme](https://mui.com/material-ui/customization/dark-mode/)
- *  - [CSS theme variables](https://mui.com/material-ui/customization/css-theme-variables/overview/)
- *  - Zero-runtime engine
- *
- * Tips: Use an array over object spread and place `theme.applyStyles()` last.
- *
- * With the styled function:
- * ✅ [{ background: '#e5e5e5' }, theme.applyStyles('dark', { background: '#1c1c1c' })]
- * 🚫 { background: '#e5e5e5', ...theme.applyStyles('dark', { background: '#1c1c1c' })}
- *
- * With the sx prop:
- * ✅ [{ background: '#e5e5e5' }, theme => theme.applyStyles('dark', { background: '#1c1c1c' })]
- * 🚫 { background: '#e5e5e5', ...theme => theme.applyStyles('dark', { background: '#1c1c1c' })}
- *
- * @example
- * 1. using with `styled`:
- * ```jsx
- *   const Component = styled('div')(({ theme }) => [
- *     { background: '#e5e5e5' },
- *     theme.applyStyles('dark', {
- *       background: '#1c1c1c',
- *       color: '#fff',
- *     }),
- *   ]);
- * ```
- *
- * @example
- * 2. using with `sx` prop:
- * ```jsx
- *   <Box sx={[
- *     { background: '#e5e5e5' },
- *     theme => theme.applyStyles('dark', {
- *        background: '#1c1c1c',
- *        color: '#fff',
- *      }),
- *     ]}
- *   />
- * ```
- *
- * @example
- * 3. theming a component:
- * ```jsx
- *   extendTheme({
- *     components: {
- *       MuiButton: {
- *         styleOverrides: {
- *           root: ({ theme }) => [
- *             { background: '#e5e5e5' },
- *             theme.applyStyles('dark', {
- *               background: '#1c1c1c',
- *               color: '#fff',
- *             }),
- *           ],
- *         },
- *       }
- *     }
- *   })
- *```
- */
-function applyStyles_applyStyles(key, styles) {
-  // @ts-expect-error this is 'any' type
-  const theme = this;
-  if (theme.vars) {
-    if (!theme.colorSchemes?.[key] || typeof theme.getColorSchemeSelector !== 'function') {
-      return {};
-    }
-    // If CssVarsProvider is used as a provider, returns '*:where({selector}) &'
-    let selector = theme.getColorSchemeSelector(key);
-    if (selector === '&') {
-      return styles;
-    }
-    if (selector.includes('data-') || selector.includes('.')) {
-      // '*' is required as a workaround for Emotion issue (https://github.com/emotion-js/emotion/issues/2836)
-      selector = `*:where(${selector.replace(/\s*&$/, '')}) &`;
-    }
-    return {
-      [selector]: styles
-    };
-  }
-  if (theme.palette.mode === key) {
-    return styles;
-  }
-  return {};
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/createTheme/createTheme.js
-
-
-
-
-
-
-
-
-function createTheme_createTheme_createTheme(options = {}, ...args) {
-  const {
-    breakpoints: breakpointsInput = {},
-    palette: paletteInput = {},
-    spacing: spacingInput,
-    shape: shapeInput = {},
-    ...other
-  } = options;
-  const breakpoints = createBreakpoints_createBreakpoints(breakpointsInput);
-  const spacing = createSpacing_createSpacing(spacingInput);
-  let muiTheme = deepmerge_deepmerge_deepmerge({
-    breakpoints,
-    direction: 'ltr',
-    components: {},
-    // Inject component definitions.
-    palette: {
-      mode: 'light',
-      ...paletteInput
-    },
-    spacing,
-    shape: {
-      ...esm_createTheme_shape,
-      ...shapeInput
-    }
-  }, other);
-  muiTheme = cssContainerQueries_cssContainerQueries(muiTheme);
-  muiTheme.applyStyles = applyStyles_applyStyles;
-  muiTheme = args.reduce((acc, argument) => deepmerge_deepmerge_deepmerge(acc, argument), muiTheme);
-  muiTheme.unstable_sxConfig = {
-    ...esm_styleFunctionSx_defaultSxConfig,
-    ...other?.unstable_sxConfig
-  };
-  muiTheme.unstable_sx = function sx(props) {
-    return esm_styleFunctionSx_styleFunctionSx({
-      sx: props,
-      theme: this
-    });
-  };
-  return muiTheme;
-}
-/* harmony default export */ const esm_createTheme_createTheme = (createTheme_createTheme_createTheme);
 ;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/preprocessStyles.js
 
 function preprocessStyles(input) {
@@ -7373,7 +6231,7 @@ function preprocessStyles(input) {
 /* eslint-disable no-labels */
 /* eslint-disable no-lone-blocks */
 
-const systemDefaultTheme = esm_createTheme_createTheme();
+const createStyled_systemDefaultTheme = createTheme_createTheme();
 
 // Update /system/styled/#api in case if this changes
 function shouldForwardProp(prop) {
@@ -7464,7 +6322,7 @@ function processStyleVariants(props, variants, results = [], layerName = undefin
 function createStyled_createStyled(input = {}) {
   const {
     themeId,
-    defaultTheme = systemDefaultTheme,
+    defaultTheme = createStyled_systemDefaultTheme,
     rootShouldForwardProp = shouldForwardProp,
     slotShouldForwardProp = shouldForwardProp
   } = input;
@@ -7474,7 +6332,7 @@ function createStyled_createStyled(input = {}) {
   const styled = (tag, inputOptions = {}) => {
     // If `tag` is already a styled component, filter out the `sx` style function
     // to prevent unnecessary styles generated by the composite components.
-    internal_mutateStyles(tag, styles => styles.filter(style => style !== esm_styleFunctionSx_styleFunctionSx));
+    internal_mutateStyles(tag, styles => styles.filter(style => style !== styleFunctionSx_styleFunctionSx));
     const {
       name: componentName,
       slot: componentSlot,
@@ -7525,7 +6383,7 @@ function createStyled_createStyled(input = {}) {
           return processStyle(props, style, props.theme.modularCssLayers ? layerName : undefined);
         };
       }
-      if (deepmerge_isPlainObject(style)) {
+      if (isPlainObject(style)) {
         const serialized = preprocessStyles(style);
         return function styleObjectProcessor(props) {
           if (!serialized.variants) {
@@ -7572,7 +6430,7 @@ function createStyled_createStyled(input = {}) {
         });
       }
       if (!skipSx) {
-        expressionsTail.push(esm_styleFunctionSx_styleFunctionSx);
+        expressionsTail.push(styleFunctionSx_styleFunctionSx);
       }
 
       // This function can be called as a tagged template, so the first argument would contain
@@ -7642,2174 +6500,12 @@ function lowercaseFirstLetter(string) {
   }
   return string.charAt(0).toLowerCase() + string.slice(1);
 }
-;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/clamp/clamp.js
-function clamp_clamp_clamp(val, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER) {
-  return Math.max(min, Math.min(val, max));
-}
-/* harmony default export */ const esm_clamp_clamp = (clamp_clamp_clamp);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/colorManipulator/colorManipulator.js
-
-/* eslint-disable @typescript-eslint/naming-convention */
-
-
-/**
- * Returns a number whose value is limited to the given range.
- * @param {number} value The value to be clamped
- * @param {number} min The lower boundary of the output range
- * @param {number} max The upper boundary of the output range
- * @returns {number} A number in the range [min, max]
- */
-function colorManipulator_clampWrapper(value, min = 0, max = 1) {
-  if (false) {}
-  return esm_clamp_clamp(value, min, max);
-}
-
-/**
- * Converts a color from CSS hex format to CSS rgb format.
- * @param {string} color - Hex color, i.e. #nnn or #nnnnnn
- * @returns {string} A CSS rgb color string
- */
-function colorManipulator_hexToRgb(color) {
-  color = color.slice(1);
-  const re = new RegExp(`.{1,${color.length >= 6 ? 2 : 1}}`, 'g');
-  let colors = color.match(re);
-  if (colors && colors[0].length === 1) {
-    colors = colors.map(n => n + n);
-  }
-  if (false) {}
-  return colors ? `rgb${colors.length === 4 ? 'a' : ''}(${colors.map((n, index) => {
-    return index < 3 ? parseInt(n, 16) : Math.round(parseInt(n, 16) / 255 * 1000) / 1000;
-  }).join(', ')})` : '';
-}
-function colorManipulator_intToHex(int) {
-  const hex = int.toString(16);
-  return hex.length === 1 ? `0${hex}` : hex;
-}
-
-/**
- * Returns an object with the type and values of a color.
- *
- * Note: Does not support rgb % values.
- * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
- * @returns {object} - A MUI color object: {type: string, values: number[]}
- */
-function colorManipulator_decomposeColor(color) {
-  // Idempotent
-  if (color.type) {
-    return color;
-  }
-  if (color.charAt(0) === '#') {
-    return colorManipulator_decomposeColor(colorManipulator_hexToRgb(color));
-  }
-  const marker = color.indexOf('(');
-  const type = color.substring(0, marker);
-  if (!['rgb', 'rgba', 'hsl', 'hsla', 'color'].includes(type)) {
-    throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(9, color));
-  }
-  let values = color.substring(marker + 1, color.length - 1);
-  let colorSpace;
-  if (type === 'color') {
-    values = values.split(' ');
-    colorSpace = values.shift();
-    if (values.length === 4 && values[3].charAt(0) === '/') {
-      values[3] = values[3].slice(1);
-    }
-    if (!['srgb', 'display-p3', 'a98-rgb', 'prophoto-rgb', 'rec-2020'].includes(colorSpace)) {
-      throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(10, colorSpace));
-    }
-  } else {
-    values = values.split(',');
-  }
-  values = values.map(value => parseFloat(value));
-  return {
-    type,
-    values,
-    colorSpace
-  };
-}
-
-/**
- * Returns a channel created from the input color.
- *
- * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
- * @returns {string} - The channel for the color, that can be used in rgba or hsla colors
- */
-const colorManipulator_colorChannel = color => {
-  const decomposedColor = colorManipulator_decomposeColor(color);
-  return decomposedColor.values.slice(0, 3).map((val, idx) => decomposedColor.type.includes('hsl') && idx !== 0 ? `${val}%` : val).join(' ');
-};
-const colorManipulator_private_safeColorChannel = (color, warning) => {
-  try {
-    return colorManipulator_colorChannel(color);
-  } catch (error) {
-    if (warning && "production" !== 'production') {}
-    return color;
-  }
-};
-
-/**
- * Converts a color object with type and values to a string.
- * @param {object} color - Decomposed color
- * @param {string} color.type - One of: 'rgb', 'rgba', 'hsl', 'hsla', 'color'
- * @param {array} color.values - [n,n,n] or [n,n,n,n]
- * @returns {string} A CSS color string
- */
-function colorManipulator_recomposeColor(color) {
-  const {
-    type,
-    colorSpace
-  } = color;
-  let {
-    values
-  } = color;
-  if (type.includes('rgb')) {
-    // Only convert the first 3 values to int (i.e. not alpha)
-    values = values.map((n, i) => i < 3 ? parseInt(n, 10) : n);
-  } else if (type.includes('hsl')) {
-    values[1] = `${values[1]}%`;
-    values[2] = `${values[2]}%`;
-  }
-  if (type.includes('color')) {
-    values = `${colorSpace} ${values.join(' ')}`;
-  } else {
-    values = `${values.join(', ')}`;
-  }
-  return `${type}(${values})`;
-}
-
-/**
- * Converts a color from CSS rgb format to CSS hex format.
- * @param {string} color - RGB color, i.e. rgb(n, n, n)
- * @returns {string} A CSS rgb color string, i.e. #nnnnnn
- */
-function colorManipulator_rgbToHex(color) {
-  // Idempotent
-  if (color.startsWith('#')) {
-    return color;
-  }
-  const {
-    values
-  } = colorManipulator_decomposeColor(color);
-  return `#${values.map((n, i) => colorManipulator_intToHex(i === 3 ? Math.round(255 * n) : n)).join('')}`;
-}
-
-/**
- * Converts a color from hsl format to rgb format.
- * @param {string} color - HSL color values
- * @returns {string} rgb color values
- */
-function colorManipulator_hslToRgb(color) {
-  color = colorManipulator_decomposeColor(color);
-  const {
-    values
-  } = color;
-  const h = values[0];
-  const s = values[1] / 100;
-  const l = values[2] / 100;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n, k = (n + h / 30) % 12) => l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-  let type = 'rgb';
-  const rgb = [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
-  if (color.type === 'hsla') {
-    type += 'a';
-    rgb.push(values[3]);
-  }
-  return colorManipulator_recomposeColor({
-    type,
-    values: rgb
-  });
-}
-/**
- * The relative brightness of any point in a color space,
- * normalized to 0 for darkest black and 1 for lightest white.
- *
- * Formula: https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
- * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
- * @returns {number} The relative brightness of the color in the range 0 - 1
- */
-function colorManipulator_getLuminance(color) {
-  color = colorManipulator_decomposeColor(color);
-  let rgb = color.type === 'hsl' || color.type === 'hsla' ? colorManipulator_decomposeColor(colorManipulator_hslToRgb(color)).values : color.values;
-  rgb = rgb.map(val => {
-    if (color.type !== 'color') {
-      val /= 255; // normalized
-    }
-    return val <= 0.03928 ? val / 12.92 : ((val + 0.055) / 1.055) ** 2.4;
-  });
-
-  // Truncate at 3 digits
-  return Number((0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]).toFixed(3));
-}
-
-/**
- * Calculates the contrast ratio between two colors.
- *
- * Formula: https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
- * @param {string} foreground - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla()
- * @param {string} background - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla()
- * @returns {number} A contrast ratio value in the range 0 - 21.
- */
-function colorManipulator_getContrastRatio(foreground, background) {
-  const lumA = colorManipulator_getLuminance(foreground);
-  const lumB = colorManipulator_getLuminance(background);
-  return (Math.max(lumA, lumB) + 0.05) / (Math.min(lumA, lumB) + 0.05);
-}
-
-/**
- * Sets the absolute transparency of a color.
- * Any existing alpha values are overwritten.
- * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
- * @param {number} value - value to set the alpha channel to in the range 0 - 1
- * @returns {string} A CSS color string. Hex input values are returned as rgb
- */
-function colorManipulator_alpha(color, value) {
-  color = colorManipulator_decomposeColor(color);
-  value = colorManipulator_clampWrapper(value);
-  if (color.type === 'rgb' || color.type === 'hsl') {
-    color.type += 'a';
-  }
-  if (color.type === 'color') {
-    color.values[3] = `/${value}`;
-  } else {
-    color.values[3] = value;
-  }
-  return colorManipulator_recomposeColor(color);
-}
-function colorManipulator_private_safeAlpha(color, value, warning) {
-  try {
-    return colorManipulator_alpha(color, value);
-  } catch (error) {
-    if (warning && "production" !== 'production') {}
-    return color;
-  }
-}
-
-/**
- * Darkens a color.
- * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
- * @param {number} coefficient - multiplier in the range 0 - 1
- * @returns {string} A CSS color string. Hex input values are returned as rgb
- */
-function colorManipulator_darken(color, coefficient) {
-  color = colorManipulator_decomposeColor(color);
-  coefficient = colorManipulator_clampWrapper(coefficient);
-  if (color.type.includes('hsl')) {
-    color.values[2] *= 1 - coefficient;
-  } else if (color.type.includes('rgb') || color.type.includes('color')) {
-    for (let i = 0; i < 3; i += 1) {
-      color.values[i] *= 1 - coefficient;
-    }
-  }
-  return colorManipulator_recomposeColor(color);
-}
-function colorManipulator_private_safeDarken(color, coefficient, warning) {
-  try {
-    return colorManipulator_darken(color, coefficient);
-  } catch (error) {
-    if (warning && "production" !== 'production') {}
-    return color;
-  }
-}
-
-/**
- * Lightens a color.
- * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
- * @param {number} coefficient - multiplier in the range 0 - 1
- * @returns {string} A CSS color string. Hex input values are returned as rgb
- */
-function colorManipulator_lighten(color, coefficient) {
-  color = colorManipulator_decomposeColor(color);
-  coefficient = colorManipulator_clampWrapper(coefficient);
-  if (color.type.includes('hsl')) {
-    color.values[2] += (100 - color.values[2]) * coefficient;
-  } else if (color.type.includes('rgb')) {
-    for (let i = 0; i < 3; i += 1) {
-      color.values[i] += (255 - color.values[i]) * coefficient;
-    }
-  } else if (color.type.includes('color')) {
-    for (let i = 0; i < 3; i += 1) {
-      color.values[i] += (1 - color.values[i]) * coefficient;
-    }
-  }
-  return colorManipulator_recomposeColor(color);
-}
-function colorManipulator_private_safeLighten(color, coefficient, warning) {
-  try {
-    return colorManipulator_lighten(color, coefficient);
-  } catch (error) {
-    if (warning && "production" !== 'production') {}
-    return color;
-  }
-}
-
-/**
- * Darken or lighten a color, depending on its luminance.
- * Light colors are darkened, dark colors are lightened.
- * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
- * @param {number} coefficient=0.15 - multiplier in the range 0 - 1
- * @returns {string} A CSS color string. Hex input values are returned as rgb
- */
-function colorManipulator_emphasize(color, coefficient = 0.15) {
-  return colorManipulator_getLuminance(color) > 0.5 ? colorManipulator_darken(color, coefficient) : colorManipulator_lighten(color, coefficient);
-}
-function colorManipulator_private_safeEmphasize(color, coefficient, warning) {
-  try {
-    return colorManipulator_emphasize(color, coefficient);
-  } catch (error) {
-    if (warning && "production" !== 'production') {}
-    return color;
-  }
-}
-
-/**
- * Blend a transparent overlay color with a background color, resulting in a single
- * RGB color.
- * @param {string} background - CSS color
- * @param {string} overlay - CSS color
- * @param {number} opacity - Opacity multiplier in the range 0 - 1
- * @param {number} [gamma=1.0] - Gamma correction factor. For gamma-correct blending, 2.2 is usual.
- */
-function colorManipulator_blend(background, overlay, opacity, gamma = 1.0) {
-  const blendChannel = (b, o) => Math.round((b ** (1 / gamma) * (1 - opacity) + o ** (1 / gamma) * opacity) ** gamma);
-  const backgroundColor = colorManipulator_decomposeColor(background);
-  const overlayColor = colorManipulator_decomposeColor(overlay);
-  const rgb = [blendChannel(backgroundColor.values[0], overlayColor.values[0]), blendChannel(backgroundColor.values[1], overlayColor.values[1]), blendChannel(backgroundColor.values[2], overlayColor.values[2])];
-  return colorManipulator_recomposeColor({
-    type: 'rgb',
-    values: rgb
-  });
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/common.js
-const common_common = {
-  black: '#000',
-  white: '#fff'
-};
-/* harmony default export */ const esm_colors_common = (common_common);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/grey.js
-const grey_grey = {
-  50: '#fafafa',
-  100: '#f5f5f5',
-  200: '#eeeeee',
-  300: '#e0e0e0',
-  400: '#bdbdbd',
-  500: '#9e9e9e',
-  600: '#757575',
-  700: '#616161',
-  800: '#424242',
-  900: '#212121',
-  A100: '#f5f5f5',
-  A200: '#eeeeee',
-  A400: '#bdbdbd',
-  A700: '#616161'
-};
-/* harmony default export */ const esm_colors_grey = (grey_grey);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/purple.js
-const purple_purple = {
-  50: '#f3e5f5',
-  100: '#e1bee7',
-  200: '#ce93d8',
-  300: '#ba68c8',
-  400: '#ab47bc',
-  500: '#9c27b0',
-  600: '#8e24aa',
-  700: '#7b1fa2',
-  800: '#6a1b9a',
-  900: '#4a148c',
-  A100: '#ea80fc',
-  A200: '#e040fb',
-  A400: '#d500f9',
-  A700: '#aa00ff'
-};
-/* harmony default export */ const esm_colors_purple = (purple_purple);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/red.js
-const red_red = {
-  50: '#ffebee',
-  100: '#ffcdd2',
-  200: '#ef9a9a',
-  300: '#e57373',
-  400: '#ef5350',
-  500: '#f44336',
-  600: '#e53935',
-  700: '#d32f2f',
-  800: '#c62828',
-  900: '#b71c1c',
-  A100: '#ff8a80',
-  A200: '#ff5252',
-  A400: '#ff1744',
-  A700: '#d50000'
-};
-/* harmony default export */ const esm_colors_red = (red_red);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/orange.js
-const orange_orange = {
-  50: '#fff3e0',
-  100: '#ffe0b2',
-  200: '#ffcc80',
-  300: '#ffb74d',
-  400: '#ffa726',
-  500: '#ff9800',
-  600: '#fb8c00',
-  700: '#f57c00',
-  800: '#ef6c00',
-  900: '#e65100',
-  A100: '#ffd180',
-  A200: '#ffab40',
-  A400: '#ff9100',
-  A700: '#ff6d00'
-};
-/* harmony default export */ const esm_colors_orange = (orange_orange);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/blue.js
-const blue_blue = {
-  50: '#e3f2fd',
-  100: '#bbdefb',
-  200: '#90caf9',
-  300: '#64b5f6',
-  400: '#42a5f5',
-  500: '#2196f3',
-  600: '#1e88e5',
-  700: '#1976d2',
-  800: '#1565c0',
-  900: '#0d47a1',
-  A100: '#82b1ff',
-  A200: '#448aff',
-  A400: '#2979ff',
-  A700: '#2962ff'
-};
-/* harmony default export */ const esm_colors_blue = (blue_blue);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/lightBlue.js
-const lightBlue_lightBlue = {
-  50: '#e1f5fe',
-  100: '#b3e5fc',
-  200: '#81d4fa',
-  300: '#4fc3f7',
-  400: '#29b6f6',
-  500: '#03a9f4',
-  600: '#039be5',
-  700: '#0288d1',
-  800: '#0277bd',
-  900: '#01579b',
-  A100: '#80d8ff',
-  A200: '#40c4ff',
-  A400: '#00b0ff',
-  A700: '#0091ea'
-};
-/* harmony default export */ const esm_colors_lightBlue = (lightBlue_lightBlue);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/colors/green.js
-const green_green = {
-  50: '#e8f5e9',
-  100: '#c8e6c9',
-  200: '#a5d6a7',
-  300: '#81c784',
-  400: '#66bb6a',
-  500: '#4caf50',
-  600: '#43a047',
-  700: '#388e3c',
-  800: '#2e7d32',
-  900: '#1b5e20',
-  A100: '#b9f6ca',
-  A200: '#69f0ae',
-  A400: '#00e676',
-  A700: '#00c853'
-};
-/* harmony default export */ const esm_colors_green = (green_green);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createPalette.js
-
-
-
-
-
-
-
-
-
-
-
-function createPalette_getLight() {
-  return {
-    // The colors used to style the text.
-    text: {
-      // The most important text.
-      primary: 'rgba(0, 0, 0, 0.87)',
-      // Secondary text.
-      secondary: 'rgba(0, 0, 0, 0.6)',
-      // Disabled text have even lower visual prominence.
-      disabled: 'rgba(0, 0, 0, 0.38)'
-    },
-    // The color used to divide different elements.
-    divider: 'rgba(0, 0, 0, 0.12)',
-    // The background colors used to style the surfaces.
-    // Consistency between these values is important.
-    background: {
-      paper: esm_colors_common.white,
-      default: esm_colors_common.white
-    },
-    // The colors used to style the action elements.
-    action: {
-      // The color of an active action like an icon button.
-      active: 'rgba(0, 0, 0, 0.54)',
-      // The color of an hovered action.
-      hover: 'rgba(0, 0, 0, 0.04)',
-      hoverOpacity: 0.04,
-      // The color of a selected action.
-      selected: 'rgba(0, 0, 0, 0.08)',
-      selectedOpacity: 0.08,
-      // The color of a disabled action.
-      disabled: 'rgba(0, 0, 0, 0.26)',
-      // The background color of a disabled action.
-      disabledBackground: 'rgba(0, 0, 0, 0.12)',
-      disabledOpacity: 0.38,
-      focus: 'rgba(0, 0, 0, 0.12)',
-      focusOpacity: 0.12,
-      activatedOpacity: 0.12
-    }
-  };
-}
-const createPalette_light = createPalette_getLight();
-function createPalette_getDark() {
-  return {
-    text: {
-      primary: esm_colors_common.white,
-      secondary: 'rgba(255, 255, 255, 0.7)',
-      disabled: 'rgba(255, 255, 255, 0.5)',
-      icon: 'rgba(255, 255, 255, 0.5)'
-    },
-    divider: 'rgba(255, 255, 255, 0.12)',
-    background: {
-      paper: '#121212',
-      default: '#121212'
-    },
-    action: {
-      active: esm_colors_common.white,
-      hover: 'rgba(255, 255, 255, 0.08)',
-      hoverOpacity: 0.08,
-      selected: 'rgba(255, 255, 255, 0.16)',
-      selectedOpacity: 0.16,
-      disabled: 'rgba(255, 255, 255, 0.3)',
-      disabledBackground: 'rgba(255, 255, 255, 0.12)',
-      disabledOpacity: 0.38,
-      focus: 'rgba(255, 255, 255, 0.12)',
-      focusOpacity: 0.12,
-      activatedOpacity: 0.24
-    }
-  };
-}
-const createPalette_dark = createPalette_getDark();
-function createPalette_addLightOrDark(intent, direction, shade, tonalOffset) {
-  const tonalOffsetLight = tonalOffset.light || tonalOffset;
-  const tonalOffsetDark = tonalOffset.dark || tonalOffset * 1.5;
-  if (!intent[direction]) {
-    if (intent.hasOwnProperty(shade)) {
-      intent[direction] = intent[shade];
-    } else if (direction === 'light') {
-      intent.light = colorManipulator_lighten(intent.main, tonalOffsetLight);
-    } else if (direction === 'dark') {
-      intent.dark = colorManipulator_darken(intent.main, tonalOffsetDark);
-    }
-  }
-}
-function mixLightOrDark(colorSpace, intent, direction, shade, tonalOffset) {
-  const tonalOffsetLight = tonalOffset.light || tonalOffset;
-  const tonalOffsetDark = tonalOffset.dark || tonalOffset * 1.5;
-  if (!intent[direction]) {
-    if (intent.hasOwnProperty(shade)) {
-      intent[direction] = intent[shade];
-    } else if (direction === 'light') {
-      intent.light = `color-mix(in ${colorSpace}, ${intent.main}, #fff ${(tonalOffsetLight * 100).toFixed(0)}%)`;
-    } else if (direction === 'dark') {
-      intent.dark = `color-mix(in ${colorSpace}, ${intent.main}, #000 ${(tonalOffsetDark * 100).toFixed(0)}%)`;
-    }
-  }
-}
-function createPalette_getDefaultPrimary(mode = 'light') {
-  if (mode === 'dark') {
-    return {
-      main: esm_colors_blue[200],
-      light: esm_colors_blue[50],
-      dark: esm_colors_blue[400]
-    };
-  }
-  return {
-    main: esm_colors_blue[700],
-    light: esm_colors_blue[400],
-    dark: esm_colors_blue[800]
-  };
-}
-function createPalette_getDefaultSecondary(mode = 'light') {
-  if (mode === 'dark') {
-    return {
-      main: esm_colors_purple[200],
-      light: esm_colors_purple[50],
-      dark: esm_colors_purple[400]
-    };
-  }
-  return {
-    main: esm_colors_purple[500],
-    light: esm_colors_purple[300],
-    dark: esm_colors_purple[700]
-  };
-}
-function createPalette_getDefaultError(mode = 'light') {
-  if (mode === 'dark') {
-    return {
-      main: esm_colors_red[500],
-      light: esm_colors_red[300],
-      dark: esm_colors_red[700]
-    };
-  }
-  return {
-    main: esm_colors_red[700],
-    light: esm_colors_red[400],
-    dark: esm_colors_red[800]
-  };
-}
-function createPalette_getDefaultInfo(mode = 'light') {
-  if (mode === 'dark') {
-    return {
-      main: esm_colors_lightBlue[400],
-      light: esm_colors_lightBlue[300],
-      dark: esm_colors_lightBlue[700]
-    };
-  }
-  return {
-    main: esm_colors_lightBlue[700],
-    light: esm_colors_lightBlue[500],
-    dark: esm_colors_lightBlue[900]
-  };
-}
-function createPalette_getDefaultSuccess(mode = 'light') {
-  if (mode === 'dark') {
-    return {
-      main: esm_colors_green[400],
-      light: esm_colors_green[300],
-      dark: esm_colors_green[700]
-    };
-  }
-  return {
-    main: esm_colors_green[800],
-    light: esm_colors_green[500],
-    dark: esm_colors_green[900]
-  };
-}
-function createPalette_getDefaultWarning(mode = 'light') {
-  if (mode === 'dark') {
-    return {
-      main: esm_colors_orange[400],
-      light: esm_colors_orange[300],
-      dark: esm_colors_orange[700]
-    };
-  }
-  return {
-    main: '#ed6c02',
-    // closest to orange[800] that pass 3:1.
-    light: esm_colors_orange[500],
-    dark: esm_colors_orange[900]
-  };
-}
-
-// Use the same name as the experimental CSS `contrast-color` function.
-function contrastColor(background) {
-  return `oklch(from ${background} var(--__l) 0 h / var(--__a))`;
-}
-function createPalette_createPalette(palette) {
-  const {
-    mode = 'light',
-    contrastThreshold = 3,
-    tonalOffset = 0.2,
-    colorSpace,
-    ...other
-  } = palette;
-  const primary = palette.primary || createPalette_getDefaultPrimary(mode);
-  const secondary = palette.secondary || createPalette_getDefaultSecondary(mode);
-  const error = palette.error || createPalette_getDefaultError(mode);
-  const info = palette.info || createPalette_getDefaultInfo(mode);
-  const success = palette.success || createPalette_getDefaultSuccess(mode);
-  const warning = palette.warning || createPalette_getDefaultWarning(mode);
-
-  // Use the same logic as
-  // Bootstrap: https://github.com/twbs/bootstrap/blob/1d6e3710dd447de1a200f29e8fa521f8a0908f70/scss/_functions.scss#L59
-  // and material-components-web https://github.com/material-components/material-components-web/blob/ac46b8863c4dab9fc22c4c662dc6bd1b65dd652f/packages/mdc-theme/_functions.scss#L54
-  function getContrastText(background) {
-    if (colorSpace) {
-      return contrastColor(background);
-    }
-    const contrastText = colorManipulator_getContrastRatio(background, createPalette_dark.text.primary) >= contrastThreshold ? createPalette_dark.text.primary : createPalette_light.text.primary;
-    if (false) {}
-    return contrastText;
-  }
-  const augmentColor = ({
-    color,
-    name,
-    mainShade = 500,
-    lightShade = 300,
-    darkShade = 700
-  }) => {
-    color = {
-      ...color
-    };
-    if (!color.main && color[mainShade]) {
-      color.main = color[mainShade];
-    }
-    if (!color.hasOwnProperty('main')) {
-      throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(11, name ? ` (${name})` : '', mainShade));
-    }
-    if (typeof color.main !== 'string') {
-      throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(12, name ? ` (${name})` : '', JSON.stringify(color.main)));
-    }
-    if (colorSpace) {
-      mixLightOrDark(colorSpace, color, 'light', lightShade, tonalOffset);
-      mixLightOrDark(colorSpace, color, 'dark', darkShade, tonalOffset);
-    } else {
-      createPalette_addLightOrDark(color, 'light', lightShade, tonalOffset);
-      createPalette_addLightOrDark(color, 'dark', darkShade, tonalOffset);
-    }
-    if (!color.contrastText) {
-      color.contrastText = getContrastText(color.main);
-    }
-    return color;
-  };
-  let modeHydrated;
-  if (mode === 'light') {
-    modeHydrated = createPalette_getLight();
-  } else if (mode === 'dark') {
-    modeHydrated = createPalette_getDark();
-  }
-  if (false) {}
-  const paletteOutput = deepmerge_deepmerge_deepmerge({
-    // A collection of common colors.
-    common: {
-      ...esm_colors_common
-    },
-    // prevent mutable object.
-    // The palette mode, can be light or dark.
-    mode,
-    // The colors used to represent primary interface elements for a user.
-    primary: augmentColor({
-      color: primary,
-      name: 'primary'
-    }),
-    // The colors used to represent secondary interface elements for a user.
-    secondary: augmentColor({
-      color: secondary,
-      name: 'secondary',
-      mainShade: 'A400',
-      lightShade: 'A200',
-      darkShade: 'A700'
-    }),
-    // The colors used to represent interface elements that the user should be made aware of.
-    error: augmentColor({
-      color: error,
-      name: 'error'
-    }),
-    // The colors used to represent potentially dangerous actions or important messages.
-    warning: augmentColor({
-      color: warning,
-      name: 'warning'
-    }),
-    // The colors used to present information to the user that is neutral and not necessarily important.
-    info: augmentColor({
-      color: info,
-      name: 'info'
-    }),
-    // The colors used to indicate the successful completion of an action that user triggered.
-    success: augmentColor({
-      color: success,
-      name: 'success'
-    }),
-    // The grey colors.
-    grey: esm_colors_grey,
-    // Used by `getContrastText()` to maximize the contrast between
-    // the background and the text.
-    contrastThreshold,
-    // Takes a background color and returns the text color that maximizes the contrast.
-    getContrastText,
-    // Generate a rich color object.
-    augmentColor,
-    // Used by the functions below to shift a color's luminance by approximately
-    // two indexes within its tonal palette.
-    // E.g., shift from Red 500 to Red 300 or Red 700.
-    tonalOffset,
-    // The light and dark mode object.
-    ...modeHydrated
-  }, other);
-  return paletteOutput;
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/createGetCssVar.js
-/**
- * The benefit of this function is to help developers get CSS var from theme without specifying the whole variable
- * and they does not need to remember the prefix (defined once).
- */
-function createGetCssVar_createGetCssVar(prefix = '') {
-  function appendVar(...vars) {
-    if (!vars.length) {
-      return '';
-    }
-    const value = vars[0];
-    if (typeof value === 'string' && !value.match(/(#|\(|\)|(-?(\d*\.)?\d+)(px|em|%|ex|ch|rem|vw|vh|vmin|vmax|cm|mm|in|pt|pc))|^(-?(\d*\.)?\d+)$|(\d+ \d+ \d+)/)) {
-      return `, var(--${prefix ? `${prefix}-` : ''}${value}${appendVar(...vars.slice(1))})`;
-    }
-    return `, ${value}`;
-  }
-
-  // AdditionalVars makes `getCssVar` less strict, so it can be use like this `getCssVar('non-mui-variable')` without type error.
-  const getCssVar = (field, ...fallbacks) => {
-    return `var(--${prefix ? `${prefix}-` : ''}${field}${appendVar(...fallbacks)})`;
-  };
-  return getCssVar;
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/prepareTypographyVars.js
-function prepareTypographyVars_prepareTypographyVars(typography) {
-  const vars = {};
-  const entries = Object.entries(typography);
-  entries.forEach(entry => {
-    const [key, value] = entry;
-    if (typeof value === 'object') {
-      vars[key] = `${value.fontStyle ? `${value.fontStyle} ` : ''}${value.fontVariant ? `${value.fontVariant} ` : ''}${value.fontWeight ? `${value.fontWeight} ` : ''}${value.fontStretch ? `${value.fontStretch} ` : ''}${value.fontSize || ''}${value.lineHeight ? `/${value.lineHeight} ` : ''}${value.fontFamily || ''}`;
-    }
-  });
-  return vars;
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/cssVarsParser.js
-/**
- * This function create an object from keys, value and then assign to target
- *
- * @param {Object} obj : the target object to be assigned
- * @param {string[]} keys
- * @param {string | number} value
- *
- * @example
- * const source = {}
- * assignNestedKeys(source, ['palette', 'primary'], 'var(--palette-primary)')
- * console.log(source) // { palette: { primary: 'var(--palette-primary)' } }
- *
- * @example
- * const source = { palette: { primary: 'var(--palette-primary)' } }
- * assignNestedKeys(source, ['palette', 'secondary'], 'var(--palette-secondary)')
- * console.log(source) // { palette: { primary: 'var(--palette-primary)', secondary: 'var(--palette-secondary)' } }
- */
-const cssVarsParser_assignNestedKeys = (obj, keys, value, arrayKeys = []) => {
-  let temp = obj;
-  keys.forEach((k, index) => {
-    if (index === keys.length - 1) {
-      if (Array.isArray(temp)) {
-        temp[Number(k)] = value;
-      } else if (temp && typeof temp === 'object') {
-        temp[k] = value;
-      }
-    } else if (temp && typeof temp === 'object') {
-      if (!temp[k]) {
-        temp[k] = arrayKeys.includes(k) ? [] : {};
-      }
-      temp = temp[k];
-    }
-  });
-};
-
-/**
- *
- * @param {Object} obj : source object
- * @param {Function} callback : a function that will be called when
- *                   - the deepest key in source object is reached
- *                   - the value of the deepest key is NOT `undefined` | `null`
- *
- * @example
- * walkObjectDeep({ palette: { primary: { main: '#000000' } } }, console.log)
- * // ['palette', 'primary', 'main'] '#000000'
- */
-const cssVarsParser_walkObjectDeep = (obj, callback, shouldSkipPaths) => {
-  function recurse(object, parentKeys = [], arrayKeys = []) {
-    Object.entries(object).forEach(([key, value]) => {
-      if (!shouldSkipPaths || shouldSkipPaths && !shouldSkipPaths([...parentKeys, key])) {
-        if (value !== undefined && value !== null) {
-          if (typeof value === 'object' && Object.keys(value).length > 0) {
-            recurse(value, [...parentKeys, key], Array.isArray(value) ? [...arrayKeys, key] : arrayKeys);
-          } else {
-            callback([...parentKeys, key], value, arrayKeys);
-          }
-        }
-      }
-    });
-  }
-  recurse(obj);
-};
-const cssVarsParser_getCssValue = (keys, value) => {
-  if (typeof value === 'number') {
-    if (['lineHeight', 'fontWeight', 'opacity', 'zIndex'].some(prop => keys.includes(prop))) {
-      // CSS property that are unitless
-      return value;
-    }
-    const lastKey = keys[keys.length - 1];
-    if (lastKey.toLowerCase().includes('opacity')) {
-      // opacity values are unitless
-      return value;
-    }
-    return `${value}px`;
-  }
-  return value;
-};
-
-/**
- * a function that parse theme and return { css, vars }
- *
- * @param {Object} theme
- * @param {{
- *  prefix?: string,
- *  shouldSkipGeneratingVar?: (objectPathKeys: Array<string>, value: string | number) => boolean
- * }} options.
- *  `prefix`: The prefix of the generated CSS variables. This function does not change the value.
- *
- * @returns {{ css: Object, vars: Object }} `css` is the stylesheet, `vars` is an object to get css variable (same structure as theme).
- *
- * @example
- * const { css, vars } = parser({
- *   fontSize: 12,
- *   lineHeight: 1.2,
- *   palette: { primary: { 500: 'var(--color)' } }
- * }, { prefix: 'foo' })
- *
- * console.log(css) // { '--foo-fontSize': '12px', '--foo-lineHeight': 1.2, '--foo-palette-primary-500': 'var(--color)' }
- * console.log(vars) // { fontSize: 'var(--foo-fontSize)', lineHeight: 'var(--foo-lineHeight)', palette: { primary: { 500: 'var(--foo-palette-primary-500)' } } }
- */
-function cssVarsParser_cssVarsParser(theme, options) {
-  const {
-    prefix,
-    shouldSkipGeneratingVar
-  } = options || {};
-  const css = {};
-  const vars = {};
-  const varsWithDefaults = {};
-  cssVarsParser_walkObjectDeep(theme, (keys, value, arrayKeys) => {
-    if (typeof value === 'string' || typeof value === 'number') {
-      if (!shouldSkipGeneratingVar || !shouldSkipGeneratingVar(keys, value)) {
-        // only create css & var if `shouldSkipGeneratingVar` return false
-        const cssVar = `--${prefix ? `${prefix}-` : ''}${keys.join('-')}`;
-        const resolvedValue = cssVarsParser_getCssValue(keys, value);
-        Object.assign(css, {
-          [cssVar]: resolvedValue
-        });
-        cssVarsParser_assignNestedKeys(vars, keys, `var(${cssVar})`, arrayKeys);
-        cssVarsParser_assignNestedKeys(varsWithDefaults, keys, `var(${cssVar}, ${resolvedValue})`, arrayKeys);
-      }
-    }
-  }, keys => keys[0] === 'vars' // skip 'vars/*' paths
-  );
-  return {
-    css,
-    vars,
-    varsWithDefaults
-  };
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/prepareCssVars.js
-
-
-function prepareCssVars_prepareCssVars(theme, parserConfig = {}) {
-  const {
-    getSelector = defaultGetSelector,
-    disableCssColorScheme,
-    colorSchemeSelector: selector,
-    enableContrastVars
-  } = parserConfig;
-  // @ts-ignore - ignore components do not exist
-  const {
-    colorSchemes = {},
-    components,
-    defaultColorScheme = 'light',
-    ...otherTheme
-  } = theme;
-  const {
-    vars: rootVars,
-    css: rootCss,
-    varsWithDefaults: rootVarsWithDefaults
-  } = cssVarsParser_cssVarsParser(otherTheme, parserConfig);
-  let themeVars = rootVarsWithDefaults;
-  const colorSchemesMap = {};
-  const {
-    [defaultColorScheme]: defaultScheme,
-    ...otherColorSchemes
-  } = colorSchemes;
-  Object.entries(otherColorSchemes || {}).forEach(([key, scheme]) => {
-    const {
-      vars,
-      css,
-      varsWithDefaults
-    } = cssVarsParser_cssVarsParser(scheme, parserConfig);
-    themeVars = deepmerge_deepmerge_deepmerge(themeVars, varsWithDefaults);
-    colorSchemesMap[key] = {
-      css,
-      vars
-    };
-  });
-  if (defaultScheme) {
-    // default color scheme vars should be merged last to set as default
-    const {
-      css,
-      vars,
-      varsWithDefaults
-    } = cssVarsParser_cssVarsParser(defaultScheme, parserConfig);
-    themeVars = deepmerge_deepmerge_deepmerge(themeVars, varsWithDefaults);
-    colorSchemesMap[defaultColorScheme] = {
-      css,
-      vars
-    };
-  }
-  function defaultGetSelector(colorScheme, cssObject) {
-    let rule = selector;
-    if (selector === 'class') {
-      rule = '.%s';
-    }
-    if (selector === 'data') {
-      rule = '[data-%s]';
-    }
-    if (selector?.startsWith('data-') && !selector.includes('%s')) {
-      // 'data-joy-color-scheme' -> '[data-joy-color-scheme="%s"]'
-      rule = `[${selector}="%s"]`;
-    }
-    if (colorScheme) {
-      if (rule === 'media') {
-        if (theme.defaultColorScheme === colorScheme) {
-          return ':root';
-        }
-        const mode = colorSchemes[colorScheme]?.palette?.mode || colorScheme;
-        return {
-          [`@media (prefers-color-scheme: ${mode})`]: {
-            ':root': cssObject
-          }
-        };
-      }
-      if (rule) {
-        if (theme.defaultColorScheme === colorScheme) {
-          return `:root, ${rule.replace('%s', String(colorScheme))}`;
-        }
-        return rule.replace('%s', String(colorScheme));
-      }
-    }
-    return ':root';
-  }
-  const generateThemeVars = () => {
-    let vars = {
-      ...rootVars
-    };
-    Object.entries(colorSchemesMap).forEach(([, {
-      vars: schemeVars
-    }]) => {
-      vars = deepmerge_deepmerge_deepmerge(vars, schemeVars);
-    });
-    return vars;
-  };
-  const generateStyleSheets = () => {
-    const stylesheets = [];
-    const colorScheme = theme.defaultColorScheme || 'light';
-    function insertStyleSheet(key, css) {
-      if (Object.keys(css).length) {
-        stylesheets.push(typeof key === 'string' ? {
-          [key]: {
-            ...css
-          }
-        } : key);
-      }
-    }
-    insertStyleSheet(getSelector(undefined, {
-      ...rootCss
-    }), rootCss);
-    const {
-      [colorScheme]: defaultSchemeVal,
-      ...other
-    } = colorSchemesMap;
-    if (defaultSchemeVal) {
-      // default color scheme has to come before other color schemes
-      const {
-        css
-      } = defaultSchemeVal;
-      const cssColorSheme = colorSchemes[colorScheme]?.palette?.mode;
-      const finalCss = !disableCssColorScheme && cssColorSheme ? {
-        colorScheme: cssColorSheme,
-        ...css
-      } : {
-        ...css
-      };
-      insertStyleSheet(getSelector(colorScheme, {
-        ...finalCss
-      }), finalCss);
-    }
-    Object.entries(other).forEach(([key, {
-      css
-    }]) => {
-      const cssColorSheme = colorSchemes[key]?.palette?.mode;
-      const finalCss = !disableCssColorScheme && cssColorSheme ? {
-        colorScheme: cssColorSheme,
-        ...css
-      } : {
-        ...css
-      };
-      insertStyleSheet(getSelector(key, {
-        ...finalCss
-      }), finalCss);
-    });
-    if (enableContrastVars) {
-      stylesheets.push({
-        ':root': {
-          // use double underscore to indicate that these are private variables
-          '--__l-threshold': '0.7',
-          '--__l': 'clamp(0, (l / var(--__l-threshold) - 1) * -infinity, 1)',
-          '--__a': 'clamp(0.87, (l / var(--__l-threshold) - 1) * -infinity, 1)' // 0.87 is the default alpha value for black text.
-        }
-      });
-    }
-    return stylesheets;
-  };
-  return {
-    vars: themeVars,
-    generateThemeVars,
-    generateStyleSheets
-  };
-}
-/* harmony default export */ const esm_cssVars_prepareCssVars = (prepareCssVars_prepareCssVars);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/getColorSchemeSelector.js
-/* eslint-disable import/prefer-default-export */
-function getColorSchemeSelector_createGetColorSchemeSelector(selector) {
-  return function getColorSchemeSelector(colorScheme) {
-    if (selector === 'media') {
-      if (false) {}
-      return `@media (prefers-color-scheme: ${colorScheme})`;
-    }
-    if (selector) {
-      if (selector.startsWith('data-') && !selector.includes('%s')) {
-        return `[${selector}="${colorScheme}"] &`;
-      }
-      if (selector === 'class') {
-        return `.${colorScheme} &`;
-      }
-      if (selector === 'data') {
-        return `[data-${colorScheme}] &`;
-      }
-      return `${selector.replace('%s', colorScheme)} &`;
-    }
-    return '&';
-  };
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createMixins.js
-function createMixins_createMixins(breakpoints, mixins) {
-  return {
-    toolbar: {
-      minHeight: 56,
-      [breakpoints.up('xs')]: {
-        '@media (orientation: landscape)': {
-          minHeight: 48
-        }
-      },
-      [breakpoints.up('sm')]: {
-        minHeight: 64
-      }
-    },
-    ...mixins
-  };
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createTypography.js
-
-function createTypography_round(value) {
-  return Math.round(value * 1e5) / 1e5;
-}
-const createTypography_caseAllCaps = {
-  textTransform: 'uppercase'
-};
-const createTypography_defaultFontFamily = '"Roboto", "Helvetica", "Arial", sans-serif';
-
-/**
- * @see @link{https://m2.material.io/design/typography/the-type-system.html}
- * @see @link{https://m2.material.io/design/typography/understanding-typography.html}
- */
-function createTypography_createTypography(palette, typography) {
-  const {
-    fontFamily = createTypography_defaultFontFamily,
-    // The default font size of the Material Specification.
-    fontSize = 14,
-    // px
-    fontWeightLight = 300,
-    fontWeightRegular = 400,
-    fontWeightMedium = 500,
-    fontWeightBold = 700,
-    // Tell MUI what's the font-size on the html element.
-    // 16px is the default font-size used by browsers.
-    htmlFontSize = 16,
-    // Apply the CSS properties to all the variants.
-    allVariants,
-    pxToRem: pxToRem2,
-    ...other
-  } = typeof typography === 'function' ? typography(palette) : typography;
-  if (false) {}
-  const coef = fontSize / 14;
-  const pxToRem = pxToRem2 || (size => `${size / htmlFontSize * coef}rem`);
-  const buildVariant = (fontWeight, size, lineHeight, letterSpacing, casing) => ({
-    fontFamily,
-    fontWeight,
-    fontSize: pxToRem(size),
-    // Unitless following https://meyerweb.com/eric/thoughts/2006/02/08/unitless-line-heights/
-    lineHeight,
-    // The letter spacing was designed for the Roboto font-family. Using the same letter-spacing
-    // across font-families can cause issues with the kerning.
-    ...(fontFamily === createTypography_defaultFontFamily ? {
-      letterSpacing: `${createTypography_round(letterSpacing / size)}em`
-    } : {}),
-    ...casing,
-    ...allVariants
-  });
-  const variants = {
-    h1: buildVariant(fontWeightLight, 96, 1.167, -1.5),
-    h2: buildVariant(fontWeightLight, 60, 1.2, -0.5),
-    h3: buildVariant(fontWeightRegular, 48, 1.167, 0),
-    h4: buildVariant(fontWeightRegular, 34, 1.235, 0.25),
-    h5: buildVariant(fontWeightRegular, 24, 1.334, 0),
-    h6: buildVariant(fontWeightMedium, 20, 1.6, 0.15),
-    subtitle1: buildVariant(fontWeightRegular, 16, 1.75, 0.15),
-    subtitle2: buildVariant(fontWeightMedium, 14, 1.57, 0.1),
-    body1: buildVariant(fontWeightRegular, 16, 1.5, 0.15),
-    body2: buildVariant(fontWeightRegular, 14, 1.43, 0.15),
-    button: buildVariant(fontWeightMedium, 14, 1.75, 0.4, createTypography_caseAllCaps),
-    caption: buildVariant(fontWeightRegular, 12, 1.66, 0.4),
-    overline: buildVariant(fontWeightRegular, 12, 2.66, 1, createTypography_caseAllCaps),
-    // TODO v6: Remove handling of 'inherit' variant from the theme as it is already handled in Material UI's Typography component. Also, remember to remove the associated types.
-    inherit: {
-      fontFamily: 'inherit',
-      fontWeight: 'inherit',
-      fontSize: 'inherit',
-      lineHeight: 'inherit',
-      letterSpacing: 'inherit'
-    }
-  };
-  return deepmerge_deepmerge_deepmerge({
-    htmlFontSize,
-    pxToRem,
-    fontFamily,
-    fontSize,
-    fontWeightLight,
-    fontWeightRegular,
-    fontWeightMedium,
-    fontWeightBold,
-    ...variants
-  }, other, {
-    clone: false // No need to clone deep
-  });
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/shadows.js
-const shadows_shadowKeyUmbraOpacity = 0.2;
-const shadows_shadowKeyPenumbraOpacity = 0.14;
-const shadows_shadowAmbientShadowOpacity = 0.12;
-function shadows_createShadow(...px) {
-  return [`${px[0]}px ${px[1]}px ${px[2]}px ${px[3]}px rgba(0,0,0,${shadows_shadowKeyUmbraOpacity})`, `${px[4]}px ${px[5]}px ${px[6]}px ${px[7]}px rgba(0,0,0,${shadows_shadowKeyPenumbraOpacity})`, `${px[8]}px ${px[9]}px ${px[10]}px ${px[11]}px rgba(0,0,0,${shadows_shadowAmbientShadowOpacity})`].join(',');
-}
-
-// Values from https://github.com/material-components/material-components-web/blob/be8747f94574669cb5e7add1a7c54fa41a89cec7/packages/mdc-elevation/_variables.scss
-const shadows_shadows = ['none', shadows_createShadow(0, 2, 1, -1, 0, 1, 1, 0, 0, 1, 3, 0), shadows_createShadow(0, 3, 1, -2, 0, 2, 2, 0, 0, 1, 5, 0), shadows_createShadow(0, 3, 3, -2, 0, 3, 4, 0, 0, 1, 8, 0), shadows_createShadow(0, 2, 4, -1, 0, 4, 5, 0, 0, 1, 10, 0), shadows_createShadow(0, 3, 5, -1, 0, 5, 8, 0, 0, 1, 14, 0), shadows_createShadow(0, 3, 5, -1, 0, 6, 10, 0, 0, 1, 18, 0), shadows_createShadow(0, 4, 5, -2, 0, 7, 10, 1, 0, 2, 16, 1), shadows_createShadow(0, 5, 5, -3, 0, 8, 10, 1, 0, 3, 14, 2), shadows_createShadow(0, 5, 6, -3, 0, 9, 12, 1, 0, 3, 16, 2), shadows_createShadow(0, 6, 6, -3, 0, 10, 14, 1, 0, 4, 18, 3), shadows_createShadow(0, 6, 7, -4, 0, 11, 15, 1, 0, 4, 20, 3), shadows_createShadow(0, 7, 8, -4, 0, 12, 17, 2, 0, 5, 22, 4), shadows_createShadow(0, 7, 8, -4, 0, 13, 19, 2, 0, 5, 24, 4), shadows_createShadow(0, 7, 9, -4, 0, 14, 21, 2, 0, 5, 26, 4), shadows_createShadow(0, 8, 9, -5, 0, 15, 22, 2, 0, 6, 28, 5), shadows_createShadow(0, 8, 10, -5, 0, 16, 24, 2, 0, 6, 30, 5), shadows_createShadow(0, 8, 11, -5, 0, 17, 26, 2, 0, 6, 32, 5), shadows_createShadow(0, 9, 11, -5, 0, 18, 28, 2, 0, 7, 34, 6), shadows_createShadow(0, 9, 12, -6, 0, 19, 29, 2, 0, 7, 36, 6), shadows_createShadow(0, 10, 13, -6, 0, 20, 31, 3, 0, 8, 38, 7), shadows_createShadow(0, 10, 13, -6, 0, 21, 33, 3, 0, 8, 40, 7), shadows_createShadow(0, 10, 14, -6, 0, 22, 35, 3, 0, 8, 42, 7), shadows_createShadow(0, 11, 14, -7, 0, 23, 36, 3, 0, 9, 44, 8), shadows_createShadow(0, 11, 15, -7, 0, 24, 38, 3, 0, 9, 46, 8)];
-/* harmony default export */ const esm_styles_shadows = (shadows_shadows);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createTransitions.js
-// Follow https://material.google.com/motion/duration-easing.html#duration-easing-natural-easing-curves
-// to learn the context in which each easing should be used.
-const createTransitions_easing = {
-  // This is the most common easing curve.
-  easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
-  // Objects enter the screen at full velocity from off-screen and
-  // slowly decelerate to a resting point.
-  easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
-  // Objects leave the screen at full velocity. They do not decelerate when off-screen.
-  easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
-  // The sharp curve is used by objects that may return to the screen at any time.
-  sharp: 'cubic-bezier(0.4, 0, 0.6, 1)'
-};
-
-// Follow https://m2.material.io/guidelines/motion/duration-easing.html#duration-easing-common-durations
-// to learn when use what timing
-const createTransitions_duration = {
-  shortest: 150,
-  shorter: 200,
-  short: 250,
-  // most basic recommended timing
-  standard: 300,
-  // this is to be used in complex animations
-  complex: 375,
-  // recommended when something is entering screen
-  enteringScreen: 225,
-  // recommended when something is leaving screen
-  leavingScreen: 195
-};
-function createTransitions_formatMs(milliseconds) {
-  return `${Math.round(milliseconds)}ms`;
-}
-function createTransitions_getAutoHeightDuration(height) {
-  if (!height) {
-    return 0;
-  }
-  const constant = height / 36;
-
-  // https://www.desmos.com/calculator/vbrp3ggqet
-  return Math.min(Math.round((4 + 15 * constant ** 0.25 + constant / 5) * 10), 3000);
-}
-function createTransitions_createTransitions(inputTransitions) {
-  const mergedEasing = {
-    ...createTransitions_easing,
-    ...inputTransitions.easing
-  };
-  const mergedDuration = {
-    ...createTransitions_duration,
-    ...inputTransitions.duration
-  };
-  const create = (props = ['all'], options = {}) => {
-    const {
-      duration: durationOption = mergedDuration.standard,
-      easing: easingOption = mergedEasing.easeInOut,
-      delay = 0,
-      ...other
-    } = options;
-    if (false) {}
-    return (Array.isArray(props) ? props : [props]).map(animatedProp => `${animatedProp} ${typeof durationOption === 'string' ? durationOption : createTransitions_formatMs(durationOption)} ${easingOption} ${typeof delay === 'string' ? delay : createTransitions_formatMs(delay)}`).join(',');
-  };
-  return {
-    getAutoHeightDuration: createTransitions_getAutoHeightDuration,
-    create,
-    ...inputTransitions,
-    easing: mergedEasing,
-    duration: mergedDuration
-  };
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/zIndex.js
-// We need to centralize the zIndex definitions as they work
-// like global values in the browser.
-const zIndex_zIndex = {
-  mobileStepper: 1000,
-  fab: 1050,
-  speedDial: 1050,
-  appBar: 1100,
-  drawer: 1200,
-  modal: 1300,
-  snackbar: 1400,
-  tooltip: 1500
-};
-/* harmony default export */ const esm_styles_zIndex = (zIndex_zIndex);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/stringifyTheme.js
-/* eslint-disable import/prefer-default-export */
-
-function stringifyTheme_isSerializable(val) {
-  return deepmerge_isPlainObject(val) || typeof val === 'undefined' || typeof val === 'string' || typeof val === 'boolean' || typeof val === 'number' || Array.isArray(val);
-}
-
-/**
- * `baseTheme` usually comes from `createTheme()` or `extendTheme()`.
- *
- * This function is intended to be used with zero-runtime CSS-in-JS like Pigment CSS
- * For example, in a Next.js project:
- *
- * ```js
- * // next.config.js
- * const { extendTheme } = require('@mui/material/styles');
- *
- * const theme = extendTheme();
- * // `.toRuntimeSource` is Pigment CSS specific to create a theme that is available at runtime.
- * theme.toRuntimeSource = stringifyTheme;
- *
- * module.exports = withPigment({
- *  theme,
- * });
- * ```
- */
-function stringifyTheme_stringifyTheme(baseTheme = {}) {
-  const serializableTheme = {
-    ...baseTheme
-  };
-  function serializeTheme(object) {
-    const array = Object.entries(object);
-    // eslint-disable-next-line no-plusplus
-    for (let index = 0; index < array.length; index++) {
-      const [key, value] = array[index];
-      if (!stringifyTheme_isSerializable(value) || key.startsWith('unstable_')) {
-        delete object[key];
-      } else if (deepmerge_isPlainObject(value)) {
-        object[key] = {
-          ...value
-        };
-        serializeTheme(object[key]);
-      }
-    }
-  }
-  serializeTheme(serializableTheme);
-  return `import { unstable_createBreakpoints as createBreakpoints, createTransitions } from '@mui/material/styles';
-
-const theme = ${JSON.stringify(serializableTheme, null, 2)};
-
-theme.breakpoints = createBreakpoints(theme.breakpoints || {});
-theme.transitions = createTransitions(theme.transitions || {});
-
-export default theme;`;
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createThemeNoVars.js
-
-
-
-
-
-
-
-
-
-
-
-
-
-function coefficientToPercentage(coefficient) {
-  if (typeof coefficient === 'number') {
-    return `${(coefficient * 100).toFixed(0)}%`;
-  }
-  return `calc((${coefficient}) * 100%)`;
-}
-
-// This can be removed when moved to `color-mix()` entirely.
-const parseAddition = str => {
-  if (!Number.isNaN(+str)) {
-    return +str;
-  }
-  const numbers = str.match(/\d*\.?\d+/g);
-  if (!numbers) {
-    return 0;
-  }
-  let sum = 0;
-  for (let i = 0; i < numbers.length; i += 1) {
-    sum += +numbers[i];
-  }
-  return sum;
-};
-function attachColorManipulators(theme) {
-  Object.assign(theme, {
-    alpha(color, coefficient) {
-      const obj = this || theme;
-      if (obj.colorSpace) {
-        return `oklch(from ${color} l c h / ${typeof coefficient === 'string' ? `calc(${coefficient})` : coefficient})`;
-      }
-      if (obj.vars) {
-        // To preserve the behavior of the CSS theme variables
-        // In the future, this could be replaced by `color-mix` (when https://caniuse.com/?search=color-mix reaches 95%).
-        return `rgba(${color.replace(/var\(--([^,\s)]+)(?:,[^)]+)?\)+/g, 'var(--$1Channel)')} / ${typeof coefficient === 'string' ? `calc(${coefficient})` : coefficient})`;
-      }
-      return colorManipulator_alpha(color, parseAddition(coefficient));
-    },
-    lighten(color, coefficient) {
-      const obj = this || theme;
-      if (obj.colorSpace) {
-        return `color-mix(in ${obj.colorSpace}, ${color}, #fff ${coefficientToPercentage(coefficient)})`;
-      }
-      return colorManipulator_lighten(color, coefficient);
-    },
-    darken(color, coefficient) {
-      const obj = this || theme;
-      if (obj.colorSpace) {
-        return `color-mix(in ${obj.colorSpace}, ${color}, #000 ${coefficientToPercentage(coefficient)})`;
-      }
-      return colorManipulator_darken(color, coefficient);
-    }
-  });
-}
-function createThemeNoVars_createThemeNoVars(options = {}, ...args) {
-  const {
-    breakpoints: breakpointsInput,
-    mixins: mixinsInput = {},
-    spacing: spacingInput,
-    palette: paletteInput = {},
-    transitions: transitionsInput = {},
-    typography: typographyInput = {},
-    shape: shapeInput,
-    colorSpace,
-    ...other
-  } = options;
-  if (options.vars &&
-  // The error should throw only for the root theme creation because user is not allowed to use a custom node `vars`.
-  // `generateThemeVars` is the closest identifier for checking that the `options` is a result of `createTheme` with CSS variables so that user can create new theme for nested ThemeProvider.
-  options.generateThemeVars === undefined) {
-    throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(20));
-  }
-  const palette = createPalette_createPalette({
-    ...paletteInput,
-    colorSpace
-  });
-  const systemTheme = esm_createTheme_createTheme(options);
-  let muiTheme = deepmerge_deepmerge_deepmerge(systemTheme, {
-    mixins: createMixins_createMixins(systemTheme.breakpoints, mixinsInput),
-    palette,
-    // Don't use [...shadows] until you've verified its transpiled code is not invoking the iterator protocol.
-    shadows: esm_styles_shadows.slice(),
-    typography: createTypography_createTypography(palette, typographyInput),
-    transitions: createTransitions_createTransitions(transitionsInput),
-    zIndex: {
-      ...esm_styles_zIndex
-    }
-  });
-  muiTheme = deepmerge_deepmerge_deepmerge(muiTheme, other);
-  muiTheme = args.reduce((acc, argument) => deepmerge_deepmerge_deepmerge(acc, argument), muiTheme);
-  if (false) {}
-  muiTheme.unstable_sxConfig = {
-    ...esm_styleFunctionSx_defaultSxConfig,
-    ...other?.unstable_sxConfig
-  };
-  muiTheme.unstable_sx = function sx(props) {
-    return esm_styleFunctionSx_styleFunctionSx({
-      sx: props,
-      theme: this
-    });
-  };
-  muiTheme.toRuntimeSource = stringifyTheme_stringifyTheme; // for Pigment CSS integration
-
-  attachColorManipulators(muiTheme);
-  return muiTheme;
-}
-/* harmony default export */ const esm_styles_createThemeNoVars = (createThemeNoVars_createThemeNoVars);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/getOverlayAlpha.js
-// Inspired by https://github.com/material-components/material-components-ios/blob/bca36107405594d5b7b16265a5b0ed698f85a5ee/components/Elevation/src/UIColor%2BMaterialElevation.m#L61
-function getOverlayAlpha_getOverlayAlpha(elevation) {
-  let alphaValue;
-  if (elevation < 1) {
-    alphaValue = 5.11916 * elevation ** 2;
-  } else {
-    alphaValue = 4.5 * Math.log(elevation + 1) + 2;
-  }
-  return Math.round(alphaValue * 10) / 1000;
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createColorScheme.js
-
-
-const createColorScheme_defaultDarkOverlays = [...Array(25)].map((_, index) => {
-  if (index === 0) {
-    return 'none';
-  }
-  const overlay = getOverlayAlpha_getOverlayAlpha(index);
-  return `linear-gradient(rgba(255 255 255 / ${overlay}), rgba(255 255 255 / ${overlay}))`;
-});
-function createColorScheme_getOpacity(mode) {
-  return {
-    inputPlaceholder: mode === 'dark' ? 0.5 : 0.42,
-    inputUnderline: mode === 'dark' ? 0.7 : 0.42,
-    switchTrackDisabled: mode === 'dark' ? 0.2 : 0.12,
-    switchTrack: mode === 'dark' ? 0.3 : 0.38
-  };
-}
-function createColorScheme_getOverlays(mode) {
-  return mode === 'dark' ? createColorScheme_defaultDarkOverlays : [];
-}
-function createColorScheme_createColorScheme(options) {
-  const {
-    palette: paletteInput = {
-      mode: 'light'
-    },
-    // need to cast to avoid module augmentation test
-    opacity,
-    overlays,
-    colorSpace,
-    ...other
-  } = options;
-  // need to cast because `colorSpace` is considered internal at the moment.
-  const palette = createPalette_createPalette({
-    ...paletteInput,
-    colorSpace
-  });
-  return {
-    palette,
-    opacity: {
-      ...createColorScheme_getOpacity(palette.mode),
-      ...opacity
-    },
-    overlays: overlays || createColorScheme_getOverlays(palette.mode),
-    ...other
-  };
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/shouldSkipGeneratingVar.js
-function styles_shouldSkipGeneratingVar_shouldSkipGeneratingVar(keys) {
-  return !!keys[0].match(/(cssVarPrefix|colorSchemeSelector|modularCssLayers|rootSelector|typography|mixins|breakpoints|direction|transitions)/) || !!keys[0].match(/sxConfig$/) ||
-  // ends with sxConfig
-  keys[0] === 'palette' && !!keys[1]?.match(/(mode|contrastThreshold|tonalOffset)/);
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/excludeVariablesFromRoot.js
-/**
- * @internal These variables should not appear in the :root stylesheet when the `defaultColorScheme="dark"`
- */
-const excludeVariablesFromRoot_excludeVariablesFromRoot = cssVarPrefix => [...[...Array(25)].map((_, index) => `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}overlays-${index}`), `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}palette-AppBar-darkBg`, `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}palette-AppBar-darkColor`];
-/* harmony default export */ const esm_styles_excludeVariablesFromRoot = (excludeVariablesFromRoot_excludeVariablesFromRoot);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createGetSelector.js
-
-/* harmony default export */ const styles_createGetSelector = (theme => (colorScheme, css) => {
-  const root = theme.rootSelector || ':root';
-  const selector = theme.colorSchemeSelector;
-  let rule = selector;
-  if (selector === 'class') {
-    rule = '.%s';
-  }
-  if (selector === 'data') {
-    rule = '[data-%s]';
-  }
-  if (selector?.startsWith('data-') && !selector.includes('%s')) {
-    // 'data-mui-color-scheme' -> '[data-mui-color-scheme="%s"]'
-    rule = `[${selector}="%s"]`;
-  }
-  if (theme.defaultColorScheme === colorScheme) {
-    if (colorScheme === 'dark') {
-      const excludedVariables = {};
-      esm_styles_excludeVariablesFromRoot(theme.cssVarPrefix).forEach(cssVar => {
-        excludedVariables[cssVar] = css[cssVar];
-        delete css[cssVar];
-      });
-      if (rule === 'media') {
-        return {
-          [root]: css,
-          [`@media (prefers-color-scheme: dark)`]: {
-            [root]: excludedVariables
-          }
-        };
-      }
-      if (rule) {
-        return {
-          [rule.replace('%s', colorScheme)]: excludedVariables,
-          [`${root}, ${rule.replace('%s', colorScheme)}`]: css
-        };
-      }
-      return {
-        [root]: {
-          ...css,
-          ...excludedVariables
-        }
-      };
-    }
-    if (rule && rule !== 'media') {
-      return `${root}, ${rule.replace('%s', String(colorScheme))}`;
-    }
-  } else if (colorScheme) {
-    if (rule === 'media') {
-      return {
-        [`@media (prefers-color-scheme: ${String(colorScheme)})`]: {
-          [root]: css
-        }
-      };
-    }
-    if (rule) {
-      return rule.replace('%s', String(colorScheme));
-    }
-  }
-  return root;
-});
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createThemeWithVars.js
-
-
-
-
-
-
-
-
-
-
-
-
-
-function createThemeWithVars_assignNode(obj, keys) {
-  keys.forEach(k => {
-    if (!obj[k]) {
-      obj[k] = {};
-    }
-  });
-}
-function createThemeWithVars_setColor(obj, key, defaultValue) {
-  if (!obj[key] && defaultValue) {
-    obj[key] = defaultValue;
-  }
-}
-function createThemeWithVars_toRgb(color) {
-  if (typeof color !== 'string' || !color.startsWith('hsl')) {
-    return color;
-  }
-  return colorManipulator_hslToRgb(color);
-}
-function createThemeWithVars_setColorChannel(obj, key) {
-  if (!(`${key}Channel` in obj)) {
-    // custom channel token is not provided, generate one.
-    // if channel token can't be generated, show a warning.
-    obj[`${key}Channel`] = colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(obj[key]), `MUI: Can't create \`palette.${key}Channel\` because \`palette.${key}\` is not one of these formats: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color().` + '\n' + `To suppress this warning, you need to explicitly provide the \`palette.${key}Channel\` as a string (in rgb format, for example "12 12 12") or undefined if you want to remove the channel token.`);
-  }
-}
-function createThemeWithVars_getSpacingVal(spacingInput) {
-  if (typeof spacingInput === 'number') {
-    return `${spacingInput}px`;
-  }
-  if (typeof spacingInput === 'string' || typeof spacingInput === 'function' || Array.isArray(spacingInput)) {
-    return spacingInput;
-  }
-  return '8px';
-}
-const createThemeWithVars_silent = fn => {
-  try {
-    return fn();
-  } catch (error) {
-    // ignore error
-  }
-  return undefined;
-};
-const styles_createThemeWithVars_createGetCssVar = (cssVarPrefix = 'mui') => createGetCssVar_createGetCssVar(cssVarPrefix);
-function createThemeWithVars_attachColorScheme(colorSpace, colorSchemes, scheme, restTheme, colorScheme) {
-  if (!scheme) {
-    return undefined;
-  }
-  scheme = scheme === true ? {} : scheme;
-  const mode = colorScheme === 'dark' ? 'dark' : 'light';
-  if (!restTheme) {
-    colorSchemes[colorScheme] = createColorScheme_createColorScheme({
-      ...scheme,
-      palette: {
-        mode,
-        ...scheme?.palette
-      },
-      colorSpace
-    });
-    return undefined;
-  }
-  const {
-    palette,
-    ...muiTheme
-  } = esm_styles_createThemeNoVars({
-    ...restTheme,
-    palette: {
-      mode,
-      ...scheme?.palette
-    },
-    colorSpace
-  });
-  colorSchemes[colorScheme] = {
-    ...scheme,
-    palette,
-    opacity: {
-      ...createColorScheme_getOpacity(mode),
-      ...scheme?.opacity
-    },
-    overlays: scheme?.overlays || createColorScheme_getOverlays(mode)
-  };
-  return muiTheme;
-}
-
-/**
- * A default `createThemeWithVars` comes with a single color scheme, either `light` or `dark` based on the `defaultColorScheme`.
- * This is better suited for apps that only need a single color scheme.
- *
- * To enable built-in `light` and `dark` color schemes, either:
- * 1. provide a `colorSchemeSelector` to define how the color schemes will change.
- * 2. provide `colorSchemes.dark` will set `colorSchemeSelector: 'media'` by default.
- */
-function createThemeWithVars_createThemeWithVars(options = {}, ...args) {
-  const {
-    colorSchemes: colorSchemesInput = {
-      light: true
-    },
-    defaultColorScheme: defaultColorSchemeInput,
-    disableCssColorScheme = false,
-    cssVarPrefix = 'mui',
-    nativeColor = false,
-    shouldSkipGeneratingVar = styles_shouldSkipGeneratingVar_shouldSkipGeneratingVar,
-    colorSchemeSelector: selector = colorSchemesInput.light && colorSchemesInput.dark ? 'media' : undefined,
-    rootSelector = ':root',
-    ...input
-  } = options;
-  const firstColorScheme = Object.keys(colorSchemesInput)[0];
-  const defaultColorScheme = defaultColorSchemeInput || (colorSchemesInput.light && firstColorScheme !== 'light' ? 'light' : firstColorScheme);
-  const getCssVar = styles_createThemeWithVars_createGetCssVar(cssVarPrefix);
-  const {
-    [defaultColorScheme]: defaultSchemeInput,
-    light: builtInLight,
-    dark: builtInDark,
-    ...customColorSchemes
-  } = colorSchemesInput;
-  const colorSchemes = {
-    ...customColorSchemes
-  };
-  let defaultScheme = defaultSchemeInput;
-
-  // For built-in light and dark color schemes, ensure that the value is valid if they are the default color scheme.
-  if (defaultColorScheme === 'dark' && !('dark' in colorSchemesInput) || defaultColorScheme === 'light' && !('light' in colorSchemesInput)) {
-    defaultScheme = true;
-  }
-  if (!defaultScheme) {
-    throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(21, defaultColorScheme));
-  }
-
-  // The reason to use `oklch` is that it is the most perceptually uniform color space and widely supported.
-  let colorSpace;
-  if (nativeColor) {
-    colorSpace = 'oklch';
-  }
-
-  // Create the palette for the default color scheme, either `light`, `dark`, or custom color scheme.
-  const muiTheme = createThemeWithVars_attachColorScheme(colorSpace, colorSchemes, defaultScheme, input, defaultColorScheme);
-  if (builtInLight && !colorSchemes.light) {
-    createThemeWithVars_attachColorScheme(colorSpace, colorSchemes, builtInLight, undefined, 'light');
-  }
-  if (builtInDark && !colorSchemes.dark) {
-    createThemeWithVars_attachColorScheme(colorSpace, colorSchemes, builtInDark, undefined, 'dark');
-  }
-  let theme = {
-    defaultColorScheme,
-    ...muiTheme,
-    cssVarPrefix,
-    colorSchemeSelector: selector,
-    rootSelector,
-    getCssVar,
-    colorSchemes,
-    font: {
-      ...prepareTypographyVars_prepareTypographyVars(muiTheme.typography),
-      ...muiTheme.font
-    },
-    spacing: createThemeWithVars_getSpacingVal(input.spacing)
-  };
-  Object.keys(theme.colorSchemes).forEach(key => {
-    const palette = theme.colorSchemes[key].palette;
-    const setCssVarColor = cssVar => {
-      const tokens = cssVar.split('-');
-      const color = tokens[1];
-      const colorToken = tokens[2];
-      return getCssVar(cssVar, palette[color][colorToken]);
-    };
-
-    // attach black & white channels to common node
-    if (palette.mode === 'light') {
-      createThemeWithVars_setColor(palette.common, 'background', '#fff');
-      createThemeWithVars_setColor(palette.common, 'onBackground', '#000');
-    }
-    if (palette.mode === 'dark') {
-      createThemeWithVars_setColor(palette.common, 'background', '#000');
-      createThemeWithVars_setColor(palette.common, 'onBackground', '#fff');
-    }
-    function colorMix(method, color, coefficient) {
-      if (colorSpace) {
-        let mixer;
-        if (method === colorManipulator_private_safeAlpha) {
-          mixer = `transparent ${((1 - coefficient) * 100).toFixed(0)}%`;
-        }
-        if (method === colorManipulator_private_safeDarken) {
-          mixer = `#000 ${(coefficient * 100).toFixed(0)}%`;
-        }
-        if (method === colorManipulator_private_safeLighten) {
-          mixer = `#fff ${(coefficient * 100).toFixed(0)}%`;
-        }
-        return `color-mix(in ${colorSpace}, ${color}, ${mixer})`;
-      }
-      return method(color, coefficient);
-    }
-
-    // assign component variables
-    createThemeWithVars_assignNode(palette, ['Alert', 'AppBar', 'Avatar', 'Button', 'Chip', 'FilledInput', 'LinearProgress', 'Skeleton', 'Slider', 'SnackbarContent', 'SpeedDialAction', 'StepConnector', 'StepContent', 'Switch', 'TableCell', 'Tooltip']);
-    if (palette.mode === 'light') {
-      createThemeWithVars_setColor(palette.Alert, 'errorColor', colorMix(colorManipulator_private_safeDarken, palette.error.light, 0.6));
-      createThemeWithVars_setColor(palette.Alert, 'infoColor', colorMix(colorManipulator_private_safeDarken, palette.info.light, 0.6));
-      createThemeWithVars_setColor(palette.Alert, 'successColor', colorMix(colorManipulator_private_safeDarken, palette.success.light, 0.6));
-      createThemeWithVars_setColor(palette.Alert, 'warningColor', colorMix(colorManipulator_private_safeDarken, palette.warning.light, 0.6));
-      createThemeWithVars_setColor(palette.Alert, 'errorFilledBg', setCssVarColor('palette-error-main'));
-      createThemeWithVars_setColor(palette.Alert, 'infoFilledBg', setCssVarColor('palette-info-main'));
-      createThemeWithVars_setColor(palette.Alert, 'successFilledBg', setCssVarColor('palette-success-main'));
-      createThemeWithVars_setColor(palette.Alert, 'warningFilledBg', setCssVarColor('palette-warning-main'));
-      createThemeWithVars_setColor(palette.Alert, 'errorFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.error.main)));
-      createThemeWithVars_setColor(palette.Alert, 'infoFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.info.main)));
-      createThemeWithVars_setColor(palette.Alert, 'successFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.success.main)));
-      createThemeWithVars_setColor(palette.Alert, 'warningFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.warning.main)));
-      createThemeWithVars_setColor(palette.Alert, 'errorStandardBg', colorMix(colorManipulator_private_safeLighten, palette.error.light, 0.9));
-      createThemeWithVars_setColor(palette.Alert, 'infoStandardBg', colorMix(colorManipulator_private_safeLighten, palette.info.light, 0.9));
-      createThemeWithVars_setColor(palette.Alert, 'successStandardBg', colorMix(colorManipulator_private_safeLighten, palette.success.light, 0.9));
-      createThemeWithVars_setColor(palette.Alert, 'warningStandardBg', colorMix(colorManipulator_private_safeLighten, palette.warning.light, 0.9));
-      createThemeWithVars_setColor(palette.Alert, 'errorIconColor', setCssVarColor('palette-error-main'));
-      createThemeWithVars_setColor(palette.Alert, 'infoIconColor', setCssVarColor('palette-info-main'));
-      createThemeWithVars_setColor(palette.Alert, 'successIconColor', setCssVarColor('palette-success-main'));
-      createThemeWithVars_setColor(palette.Alert, 'warningIconColor', setCssVarColor('palette-warning-main'));
-      createThemeWithVars_setColor(palette.AppBar, 'defaultBg', setCssVarColor('palette-grey-100'));
-      createThemeWithVars_setColor(palette.Avatar, 'defaultBg', setCssVarColor('palette-grey-400'));
-      createThemeWithVars_setColor(palette.Button, 'inheritContainedBg', setCssVarColor('palette-grey-300'));
-      createThemeWithVars_setColor(palette.Button, 'inheritContainedHoverBg', setCssVarColor('palette-grey-A100'));
-      createThemeWithVars_setColor(palette.Chip, 'defaultBorder', setCssVarColor('palette-grey-400'));
-      createThemeWithVars_setColor(palette.Chip, 'defaultAvatarColor', setCssVarColor('palette-grey-700'));
-      createThemeWithVars_setColor(palette.Chip, 'defaultIconColor', setCssVarColor('palette-grey-700'));
-      createThemeWithVars_setColor(palette.FilledInput, 'bg', 'rgba(0, 0, 0, 0.06)');
-      createThemeWithVars_setColor(palette.FilledInput, 'hoverBg', 'rgba(0, 0, 0, 0.09)');
-      createThemeWithVars_setColor(palette.FilledInput, 'disabledBg', 'rgba(0, 0, 0, 0.12)');
-      createThemeWithVars_setColor(palette.LinearProgress, 'primaryBg', colorMix(colorManipulator_private_safeLighten, palette.primary.main, 0.62));
-      createThemeWithVars_setColor(palette.LinearProgress, 'secondaryBg', colorMix(colorManipulator_private_safeLighten, palette.secondary.main, 0.62));
-      createThemeWithVars_setColor(palette.LinearProgress, 'errorBg', colorMix(colorManipulator_private_safeLighten, palette.error.main, 0.62));
-      createThemeWithVars_setColor(palette.LinearProgress, 'infoBg', colorMix(colorManipulator_private_safeLighten, palette.info.main, 0.62));
-      createThemeWithVars_setColor(palette.LinearProgress, 'successBg', colorMix(colorManipulator_private_safeLighten, palette.success.main, 0.62));
-      createThemeWithVars_setColor(palette.LinearProgress, 'warningBg', colorMix(colorManipulator_private_safeLighten, palette.warning.main, 0.62));
-      createThemeWithVars_setColor(palette.Skeleton, 'bg', colorSpace ? colorMix(colorManipulator_private_safeAlpha, palette.text.primary, 0.11) : `rgba(${setCssVarColor('palette-text-primaryChannel')} / 0.11)`);
-      createThemeWithVars_setColor(palette.Slider, 'primaryTrack', colorMix(colorManipulator_private_safeLighten, palette.primary.main, 0.62));
-      createThemeWithVars_setColor(palette.Slider, 'secondaryTrack', colorMix(colorManipulator_private_safeLighten, palette.secondary.main, 0.62));
-      createThemeWithVars_setColor(palette.Slider, 'errorTrack', colorMix(colorManipulator_private_safeLighten, palette.error.main, 0.62));
-      createThemeWithVars_setColor(palette.Slider, 'infoTrack', colorMix(colorManipulator_private_safeLighten, palette.info.main, 0.62));
-      createThemeWithVars_setColor(palette.Slider, 'successTrack', colorMix(colorManipulator_private_safeLighten, palette.success.main, 0.62));
-      createThemeWithVars_setColor(palette.Slider, 'warningTrack', colorMix(colorManipulator_private_safeLighten, palette.warning.main, 0.62));
-      const snackbarContentBackground = colorSpace ? colorMix(colorManipulator_private_safeDarken, palette.background.default, 0.6825) // use `0.6825` instead of `0.8` to match the contrast ratio of JS implementation
-      : colorManipulator_private_safeEmphasize(palette.background.default, 0.8);
-      createThemeWithVars_setColor(palette.SnackbarContent, 'bg', snackbarContentBackground);
-      createThemeWithVars_setColor(palette.SnackbarContent, 'color', createThemeWithVars_silent(() => colorSpace ? createPalette_dark.text.primary : palette.getContrastText(snackbarContentBackground)));
-      createThemeWithVars_setColor(palette.SpeedDialAction, 'fabHoverBg', colorManipulator_private_safeEmphasize(palette.background.paper, 0.15));
-      createThemeWithVars_setColor(palette.StepConnector, 'border', setCssVarColor('palette-grey-400'));
-      createThemeWithVars_setColor(palette.StepContent, 'border', setCssVarColor('palette-grey-400'));
-      createThemeWithVars_setColor(palette.Switch, 'defaultColor', setCssVarColor('palette-common-white'));
-      createThemeWithVars_setColor(palette.Switch, 'defaultDisabledColor', setCssVarColor('palette-grey-100'));
-      createThemeWithVars_setColor(palette.Switch, 'primaryDisabledColor', colorMix(colorManipulator_private_safeLighten, palette.primary.main, 0.62));
-      createThemeWithVars_setColor(palette.Switch, 'secondaryDisabledColor', colorMix(colorManipulator_private_safeLighten, palette.secondary.main, 0.62));
-      createThemeWithVars_setColor(palette.Switch, 'errorDisabledColor', colorMix(colorManipulator_private_safeLighten, palette.error.main, 0.62));
-      createThemeWithVars_setColor(palette.Switch, 'infoDisabledColor', colorMix(colorManipulator_private_safeLighten, palette.info.main, 0.62));
-      createThemeWithVars_setColor(palette.Switch, 'successDisabledColor', colorMix(colorManipulator_private_safeLighten, palette.success.main, 0.62));
-      createThemeWithVars_setColor(palette.Switch, 'warningDisabledColor', colorMix(colorManipulator_private_safeLighten, palette.warning.main, 0.62));
-      createThemeWithVars_setColor(palette.TableCell, 'border', colorMix(colorManipulator_private_safeLighten, colorMix(colorManipulator_private_safeAlpha, palette.divider, 1), 0.88));
-      createThemeWithVars_setColor(palette.Tooltip, 'bg', colorMix(colorManipulator_private_safeAlpha, palette.grey[700], 0.92));
-    }
-    if (palette.mode === 'dark') {
-      createThemeWithVars_setColor(palette.Alert, 'errorColor', colorMix(colorManipulator_private_safeLighten, palette.error.light, 0.6));
-      createThemeWithVars_setColor(palette.Alert, 'infoColor', colorMix(colorManipulator_private_safeLighten, palette.info.light, 0.6));
-      createThemeWithVars_setColor(palette.Alert, 'successColor', colorMix(colorManipulator_private_safeLighten, palette.success.light, 0.6));
-      createThemeWithVars_setColor(palette.Alert, 'warningColor', colorMix(colorManipulator_private_safeLighten, palette.warning.light, 0.6));
-      createThemeWithVars_setColor(palette.Alert, 'errorFilledBg', setCssVarColor('palette-error-dark'));
-      createThemeWithVars_setColor(palette.Alert, 'infoFilledBg', setCssVarColor('palette-info-dark'));
-      createThemeWithVars_setColor(palette.Alert, 'successFilledBg', setCssVarColor('palette-success-dark'));
-      createThemeWithVars_setColor(palette.Alert, 'warningFilledBg', setCssVarColor('palette-warning-dark'));
-      createThemeWithVars_setColor(palette.Alert, 'errorFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.error.dark)));
-      createThemeWithVars_setColor(palette.Alert, 'infoFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.info.dark)));
-      createThemeWithVars_setColor(palette.Alert, 'successFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.success.dark)));
-      createThemeWithVars_setColor(palette.Alert, 'warningFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.warning.dark)));
-      createThemeWithVars_setColor(palette.Alert, 'errorStandardBg', colorMix(colorManipulator_private_safeDarken, palette.error.light, 0.9));
-      createThemeWithVars_setColor(palette.Alert, 'infoStandardBg', colorMix(colorManipulator_private_safeDarken, palette.info.light, 0.9));
-      createThemeWithVars_setColor(palette.Alert, 'successStandardBg', colorMix(colorManipulator_private_safeDarken, palette.success.light, 0.9));
-      createThemeWithVars_setColor(palette.Alert, 'warningStandardBg', colorMix(colorManipulator_private_safeDarken, palette.warning.light, 0.9));
-      createThemeWithVars_setColor(palette.Alert, 'errorIconColor', setCssVarColor('palette-error-main'));
-      createThemeWithVars_setColor(palette.Alert, 'infoIconColor', setCssVarColor('palette-info-main'));
-      createThemeWithVars_setColor(palette.Alert, 'successIconColor', setCssVarColor('palette-success-main'));
-      createThemeWithVars_setColor(palette.Alert, 'warningIconColor', setCssVarColor('palette-warning-main'));
-      createThemeWithVars_setColor(palette.AppBar, 'defaultBg', setCssVarColor('palette-grey-900'));
-      createThemeWithVars_setColor(palette.AppBar, 'darkBg', setCssVarColor('palette-background-paper')); // specific for dark mode
-      createThemeWithVars_setColor(palette.AppBar, 'darkColor', setCssVarColor('palette-text-primary')); // specific for dark mode
-      createThemeWithVars_setColor(palette.Avatar, 'defaultBg', setCssVarColor('palette-grey-600'));
-      createThemeWithVars_setColor(palette.Button, 'inheritContainedBg', setCssVarColor('palette-grey-800'));
-      createThemeWithVars_setColor(palette.Button, 'inheritContainedHoverBg', setCssVarColor('palette-grey-700'));
-      createThemeWithVars_setColor(palette.Chip, 'defaultBorder', setCssVarColor('palette-grey-700'));
-      createThemeWithVars_setColor(palette.Chip, 'defaultAvatarColor', setCssVarColor('palette-grey-300'));
-      createThemeWithVars_setColor(palette.Chip, 'defaultIconColor', setCssVarColor('palette-grey-300'));
-      createThemeWithVars_setColor(palette.FilledInput, 'bg', 'rgba(255, 255, 255, 0.09)');
-      createThemeWithVars_setColor(palette.FilledInput, 'hoverBg', 'rgba(255, 255, 255, 0.13)');
-      createThemeWithVars_setColor(palette.FilledInput, 'disabledBg', 'rgba(255, 255, 255, 0.12)');
-      createThemeWithVars_setColor(palette.LinearProgress, 'primaryBg', colorMix(colorManipulator_private_safeDarken, palette.primary.main, 0.5));
-      createThemeWithVars_setColor(palette.LinearProgress, 'secondaryBg', colorMix(colorManipulator_private_safeDarken, palette.secondary.main, 0.5));
-      createThemeWithVars_setColor(palette.LinearProgress, 'errorBg', colorMix(colorManipulator_private_safeDarken, palette.error.main, 0.5));
-      createThemeWithVars_setColor(palette.LinearProgress, 'infoBg', colorMix(colorManipulator_private_safeDarken, palette.info.main, 0.5));
-      createThemeWithVars_setColor(palette.LinearProgress, 'successBg', colorMix(colorManipulator_private_safeDarken, palette.success.main, 0.5));
-      createThemeWithVars_setColor(palette.LinearProgress, 'warningBg', colorMix(colorManipulator_private_safeDarken, palette.warning.main, 0.5));
-      createThemeWithVars_setColor(palette.Skeleton, 'bg', colorSpace ? colorMix(colorManipulator_private_safeAlpha, palette.text.primary, 0.13) : `rgba(${setCssVarColor('palette-text-primaryChannel')} / 0.13)`);
-      createThemeWithVars_setColor(palette.Slider, 'primaryTrack', colorMix(colorManipulator_private_safeDarken, palette.primary.main, 0.5));
-      createThemeWithVars_setColor(palette.Slider, 'secondaryTrack', colorMix(colorManipulator_private_safeDarken, palette.secondary.main, 0.5));
-      createThemeWithVars_setColor(palette.Slider, 'errorTrack', colorMix(colorManipulator_private_safeDarken, palette.error.main, 0.5));
-      createThemeWithVars_setColor(palette.Slider, 'infoTrack', colorMix(colorManipulator_private_safeDarken, palette.info.main, 0.5));
-      createThemeWithVars_setColor(palette.Slider, 'successTrack', colorMix(colorManipulator_private_safeDarken, palette.success.main, 0.5));
-      createThemeWithVars_setColor(palette.Slider, 'warningTrack', colorMix(colorManipulator_private_safeDarken, palette.warning.main, 0.5));
-      const snackbarContentBackground = colorSpace ? colorMix(colorManipulator_private_safeLighten, palette.background.default, 0.985) // use `0.985` instead of `0.98` to match the contrast ratio of JS implementation
-      : colorManipulator_private_safeEmphasize(palette.background.default, 0.98);
-      createThemeWithVars_setColor(palette.SnackbarContent, 'bg', snackbarContentBackground);
-      createThemeWithVars_setColor(palette.SnackbarContent, 'color', createThemeWithVars_silent(() => colorSpace ? createPalette_light.text.primary : palette.getContrastText(snackbarContentBackground)));
-      createThemeWithVars_setColor(palette.SpeedDialAction, 'fabHoverBg', colorManipulator_private_safeEmphasize(palette.background.paper, 0.15));
-      createThemeWithVars_setColor(palette.StepConnector, 'border', setCssVarColor('palette-grey-600'));
-      createThemeWithVars_setColor(palette.StepContent, 'border', setCssVarColor('palette-grey-600'));
-      createThemeWithVars_setColor(palette.Switch, 'defaultColor', setCssVarColor('palette-grey-300'));
-      createThemeWithVars_setColor(palette.Switch, 'defaultDisabledColor', setCssVarColor('palette-grey-600'));
-      createThemeWithVars_setColor(palette.Switch, 'primaryDisabledColor', colorMix(colorManipulator_private_safeDarken, palette.primary.main, 0.55));
-      createThemeWithVars_setColor(palette.Switch, 'secondaryDisabledColor', colorMix(colorManipulator_private_safeDarken, palette.secondary.main, 0.55));
-      createThemeWithVars_setColor(palette.Switch, 'errorDisabledColor', colorMix(colorManipulator_private_safeDarken, palette.error.main, 0.55));
-      createThemeWithVars_setColor(palette.Switch, 'infoDisabledColor', colorMix(colorManipulator_private_safeDarken, palette.info.main, 0.55));
-      createThemeWithVars_setColor(palette.Switch, 'successDisabledColor', colorMix(colorManipulator_private_safeDarken, palette.success.main, 0.55));
-      createThemeWithVars_setColor(palette.Switch, 'warningDisabledColor', colorMix(colorManipulator_private_safeDarken, palette.warning.main, 0.55));
-      createThemeWithVars_setColor(palette.TableCell, 'border', colorMix(colorManipulator_private_safeDarken, colorMix(colorManipulator_private_safeAlpha, palette.divider, 1), 0.68));
-      createThemeWithVars_setColor(palette.Tooltip, 'bg', colorMix(colorManipulator_private_safeAlpha, palette.grey[700], 0.92));
-    }
-
-    // MUI X - DataGrid needs this token.
-    createThemeWithVars_setColorChannel(palette.background, 'default');
-
-    // added for consistency with the `background.default` token
-    createThemeWithVars_setColorChannel(palette.background, 'paper');
-    createThemeWithVars_setColorChannel(palette.common, 'background');
-    createThemeWithVars_setColorChannel(palette.common, 'onBackground');
-    createThemeWithVars_setColorChannel(palette, 'divider');
-    Object.keys(palette).forEach(color => {
-      const colors = palette[color];
-
-      // The default palettes (primary, secondary, error, info, success, and warning) errors are handled by the above `createTheme(...)`.
-
-      if (color !== 'tonalOffset' && colors && typeof colors === 'object') {
-        // Silent the error for custom palettes.
-        if (colors.main) {
-          createThemeWithVars_setColor(palette[color], 'mainChannel', colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(colors.main)));
-        }
-        if (colors.light) {
-          createThemeWithVars_setColor(palette[color], 'lightChannel', colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(colors.light)));
-        }
-        if (colors.dark) {
-          createThemeWithVars_setColor(palette[color], 'darkChannel', colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(colors.dark)));
-        }
-        if (colors.contrastText) {
-          createThemeWithVars_setColor(palette[color], 'contrastTextChannel', colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(colors.contrastText)));
-        }
-        if (color === 'text') {
-          // Text colors: text.primary, text.secondary
-          createThemeWithVars_setColorChannel(palette[color], 'primary');
-          createThemeWithVars_setColorChannel(palette[color], 'secondary');
-        }
-        if (color === 'action') {
-          // Action colors: action.active, action.selected
-          if (colors.active) {
-            createThemeWithVars_setColorChannel(palette[color], 'active');
-          }
-          if (colors.selected) {
-            createThemeWithVars_setColorChannel(palette[color], 'selected');
-          }
-        }
-      }
-    });
-  });
-  theme = args.reduce((acc, argument) => deepmerge_deepmerge_deepmerge(acc, argument), theme);
-  const parserConfig = {
-    prefix: cssVarPrefix,
-    disableCssColorScheme,
-    shouldSkipGeneratingVar,
-    getSelector: styles_createGetSelector(theme),
-    enableContrastVars: nativeColor
-  };
-  const {
-    vars,
-    generateThemeVars,
-    generateStyleSheets
-  } = esm_cssVars_prepareCssVars(theme, parserConfig);
-  theme.vars = vars;
-  Object.entries(theme.colorSchemes[theme.defaultColorScheme]).forEach(([key, value]) => {
-    theme[key] = value;
-  });
-  theme.generateThemeVars = generateThemeVars;
-  theme.generateStyleSheets = generateStyleSheets;
-  theme.generateSpacing = function generateSpacing() {
-    return createSpacing_createSpacing(input.spacing, spacing_createUnarySpacing(this));
-  };
-  theme.getColorSchemeSelector = getColorSchemeSelector_createGetColorSchemeSelector(selector);
-  theme.spacing = theme.generateSpacing();
-  theme.shouldSkipGeneratingVar = shouldSkipGeneratingVar;
-  theme.unstable_sxConfig = {
-    ...esm_styleFunctionSx_defaultSxConfig,
-    ...input?.unstable_sxConfig
-  };
-  theme.unstable_sx = function sx(props) {
-    return esm_styleFunctionSx_styleFunctionSx({
-      sx: props,
-      theme: this
-    });
-  };
-  theme.toRuntimeSource = stringifyTheme_stringifyTheme; // for Pigment CSS integration
-
-  return theme;
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/createTheme.js
-
-
-
-// eslint-disable-next-line consistent-return
-function styles_createTheme_attachColorScheme(theme, scheme, colorScheme) {
-  if (!theme.colorSchemes) {
-    return undefined;
-  }
-  if (colorScheme) {
-    theme.colorSchemes[scheme] = {
-      ...(colorScheme !== true && colorScheme),
-      palette: createPalette_createPalette({
-        ...(colorScheme === true ? {} : colorScheme.palette),
-        mode: scheme
-      }) // cast type to skip module augmentation test
-    };
-  }
-}
-
-/**
- * Generate a theme base on the options received.
- * @param options Takes an incomplete theme object and adds the missing parts.
- * @param args Deep merge the arguments with the about to be returned theme.
- * @returns A complete, ready-to-use theme object.
- */
-function esm_styles_createTheme_createTheme(options = {},
-// cast type to skip module augmentation test
-...args) {
-  const {
-    palette,
-    cssVariables = false,
-    colorSchemes: initialColorSchemes = !palette ? {
-      light: true
-    } : undefined,
-    defaultColorScheme: initialDefaultColorScheme = palette?.mode,
-    ...other
-  } = options;
-  const defaultColorSchemeInput = initialDefaultColorScheme || 'light';
-  const defaultScheme = initialColorSchemes?.[defaultColorSchemeInput];
-  const colorSchemesInput = {
-    ...initialColorSchemes,
-    ...(palette ? {
-      [defaultColorSchemeInput]: {
-        ...(typeof defaultScheme !== 'boolean' && defaultScheme),
-        palette
-      }
-    } : undefined)
-  };
-  if (cssVariables === false) {
-    if (!('colorSchemes' in options)) {
-      // Behaves exactly as v5
-      return esm_styles_createThemeNoVars(options, ...args);
-    }
-    let paletteOptions = palette;
-    if (!('palette' in options)) {
-      if (colorSchemesInput[defaultColorSchemeInput]) {
-        if (colorSchemesInput[defaultColorSchemeInput] !== true) {
-          paletteOptions = colorSchemesInput[defaultColorSchemeInput].palette;
-        } else if (defaultColorSchemeInput === 'dark') {
-          // @ts-ignore to prevent the module augmentation test from failing
-          paletteOptions = {
-            mode: 'dark'
-          };
-        }
-      }
-    }
-    const theme = esm_styles_createThemeNoVars({
-      ...options,
-      palette: paletteOptions
-    }, ...args);
-    theme.defaultColorScheme = defaultColorSchemeInput;
-    theme.colorSchemes = colorSchemesInput;
-    if (theme.palette.mode === 'light') {
-      theme.colorSchemes.light = {
-        ...(colorSchemesInput.light !== true && colorSchemesInput.light),
-        palette: theme.palette
-      };
-      styles_createTheme_attachColorScheme(theme, 'dark', colorSchemesInput.dark);
-    }
-    if (theme.palette.mode === 'dark') {
-      theme.colorSchemes.dark = {
-        ...(colorSchemesInput.dark !== true && colorSchemesInput.dark),
-        palette: theme.palette
-      };
-      styles_createTheme_attachColorScheme(theme, 'light', colorSchemesInput.light);
-    }
-    return theme;
-  }
-  if (!palette && !('light' in colorSchemesInput) && defaultColorSchemeInput === 'light') {
-    colorSchemesInput.light = true;
-  }
-  return createThemeWithVars_createThemeWithVars({
-    ...other,
-    colorSchemes: colorSchemesInput,
-    defaultColorScheme: defaultColorSchemeInput,
-    ...(typeof cssVariables !== 'boolean' && cssVariables)
-  }, ...args);
-}
 ;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/defaultTheme.js
 'use client';
 
 
-const defaultTheme = esm_styles_createTheme_createTheme();
+const defaultTheme = styles_createTheme_createTheme();
 /* harmony default export */ const styles_defaultTheme = (defaultTheme);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/identifier.js
-/* harmony default export */ const styles_identifier = ('$$material');
 ;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/slotShouldForwardProp.js
 // copied from @mui/system/createStyled
 function slotShouldForwardProp(prop) {
@@ -9830,7 +6526,7 @@ const rootShouldForwardProp = prop => styles_slotShouldForwardProp(prop) && prop
 
 
 const styled = createStyled_createStyled({
-  themeId: styles_identifier,
+  themeId: identifier,
   defaultTheme: styles_defaultTheme,
   rootShouldForwardProp: styles_rootShouldForwardProp
 });
@@ -9910,114 +6606,6 @@ function checkSimplePaletteColorValues(obj, additionalPropertiesToCheck = []) {
 function createSimplePaletteValueFilter(additionalPropertiesToCheck = []) {
   return ([, value]) => value && checkSimplePaletteColorValues(value, additionalPropertiesToCheck);
 }
-;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/resolveProps/resolveProps.js
-
-
-/**
- * Add keys, values of `defaultProps` that does not exist in `props`
- * @param defaultProps
- * @param props
- * @param mergeClassNameAndStyle If `true`, merges `className` and `style` props instead of overriding them.
- *   When `false` (default), props override defaultProps. When `true`, `className` values are concatenated
- *   and `style` objects are merged with props taking precedence.
- * @returns resolved props
- */
-function resolveProps_resolveProps(defaultProps, props, mergeClassNameAndStyle = false) {
-  const output = {
-    ...props
-  };
-  for (const key in defaultProps) {
-    if (Object.prototype.hasOwnProperty.call(defaultProps, key)) {
-      const propName = key;
-      if (propName === 'components' || propName === 'slots') {
-        output[propName] = {
-          ...defaultProps[propName],
-          ...output[propName]
-        };
-      } else if (propName === 'componentsProps' || propName === 'slotProps') {
-        const defaultSlotProps = defaultProps[propName];
-        const slotProps = props[propName];
-        if (!slotProps) {
-          output[propName] = defaultSlotProps || {};
-        } else if (!defaultSlotProps) {
-          output[propName] = slotProps;
-        } else {
-          output[propName] = {
-            ...slotProps
-          };
-          for (const slotKey in defaultSlotProps) {
-            if (Object.prototype.hasOwnProperty.call(defaultSlotProps, slotKey)) {
-              const slotPropName = slotKey;
-              output[propName][slotPropName] = resolveProps_resolveProps(defaultSlotProps[slotPropName], slotProps[slotPropName], mergeClassNameAndStyle);
-            }
-          }
-        }
-      } else if (propName === 'className' && mergeClassNameAndStyle && props.className) {
-        output.className = dist_clsx(defaultProps?.className, props?.className);
-      } else if (propName === 'style' && mergeClassNameAndStyle && props.style) {
-        output.style = {
-          ...defaultProps?.style,
-          ...props?.style
-        };
-      } else if (output[propName] === undefined) {
-        output[propName] = defaultProps[propName];
-      }
-    }
-  }
-  return output;
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/DefaultPropsProvider/DefaultPropsProvider.js
-'use client';
-
-
-
-
-
-const DefaultPropsProvider_PropsContext = /*#__PURE__*/external_React_.createContext(undefined);
-function DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider({
-  value,
-  children
-}) {
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(DefaultPropsProvider_PropsContext.Provider, {
-    value: value,
-    children: children
-  });
-}
- false ? 0 : void 0;
-function DefaultPropsProvider_getThemeProps(params) {
-  const {
-    theme,
-    name,
-    props
-  } = params;
-  if (!theme || !theme.components || !theme.components[name]) {
-    return props;
-  }
-  const config = theme.components[name];
-  if (config.defaultProps) {
-    // compatible with v5 signature
-    return resolveProps_resolveProps(config.defaultProps, props, theme.components.mergeClassNameAndStyle);
-  }
-  if (!config.styleOverrides && !config.variants) {
-    // v6 signature, no property 'defaultProps'
-    return resolveProps_resolveProps(config, props, theme.components.mergeClassNameAndStyle);
-  }
-  return props;
-}
-function DefaultPropsProvider_useDefaultProps({
-  props,
-  name
-}) {
-  const ctx = external_React_.useContext(DefaultPropsProvider_PropsContext);
-  return DefaultPropsProvider_getThemeProps({
-    props,
-    name,
-    theme: {
-      components: ctx
-    }
-  });
-}
-/* harmony default export */ const esm_DefaultPropsProvider_DefaultPropsProvider = (DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider);
 ;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/DefaultPropsProvider/DefaultPropsProvider.js
 'use client';
 
@@ -10025,15 +6613,15 @@ function DefaultPropsProvider_useDefaultProps({
 
 
 
-function esm_DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider(props) {
+function DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider(props) {
   return /*#__PURE__*/_jsx(SystemDefaultPropsProvider, {
     ...props
   });
 }
  false ? 0 : void 0;
-/* harmony default export */ const material_esm_DefaultPropsProvider_DefaultPropsProvider = ((/* unused pure expression or super */ null && (esm_DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider)));
-function DefaultPropsProvider_DefaultPropsProvider_useDefaultProps(params) {
-  return DefaultPropsProvider_useDefaultProps(params);
+/* harmony default export */ const esm_DefaultPropsProvider_DefaultPropsProvider = ((/* unused pure expression or super */ null && (DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider)));
+function DefaultPropsProvider_useDefaultProps(params) {
+  return useDefaultProps(params);
 }
 ;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/isFocusVisible/isFocusVisible.js
 /**
@@ -10115,20 +6703,6 @@ function useForkRef(...refs) {
 
 
 /* harmony default export */ const utils_useForkRef = (useForkRef);
-;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/useEnhancedEffect/useEnhancedEffect.js
-'use client';
-
-
-
-/**
- * A version of `React.useLayoutEffect` that does not show a warning when server-side rendering.
- * This is useful for effects that are only needed for client-side rendering but not for SSR.
- *
- * Before you use this hook, make sure to read https://gist.github.com/gaearon/e7d97cdf38a2907924ea12e4ebdf3c85
- * and confirm it doesn't apply to your use-case.
- */
-const useEnhancedEffect_useEnhancedEffect_useEnhancedEffect = typeof window !== 'undefined' ? external_React_.useLayoutEffect : external_React_.useEffect;
-/* harmony default export */ const esm_useEnhancedEffect_useEnhancedEffect = (useEnhancedEffect_useEnhancedEffect_useEnhancedEffect);
 ;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/useEventCallback/useEventCallback.js
 'use client';
 
@@ -10142,7 +6716,7 @@ const useEnhancedEffect_useEnhancedEffect_useEnhancedEffect = typeof window !== 
 
 function useEventCallback(fn) {
   const ref = external_React_.useRef(fn);
-  esm_useEnhancedEffect_useEnhancedEffect(() => {
+  useEnhancedEffect_useEnhancedEffect(() => {
     ref.current = fn;
   });
   return external_React_.useRef((...args) =>
@@ -10859,7 +7433,7 @@ const TouchRippleRipple = styles_styled(ButtonBase_Ripple, {
  * TODO v5: Make private
  */
 const TouchRipple = /*#__PURE__*/external_React_.forwardRef(function TouchRipple(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiTouchRipple'
   });
@@ -11134,7 +7708,7 @@ const ButtonBaseRoot = styles_styled('button', {
  * It contains a load of style reset and some focus/ripple logic.
  */
 const ButtonBase = /*#__PURE__*/external_React_.forwardRef(function ButtonBase(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiButtonBase'
   });
@@ -11343,7 +7917,7 @@ function useRippleHandler(ripple, rippleAction, eventCallback, skipRippleAction 
 /* harmony default export */ const ButtonBase_ButtonBase = (ButtonBase);
 ;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/utils/capitalize.js
 
-/* harmony default export */ const utils_capitalize = (capitalize_capitalize_capitalize);
+/* harmony default export */ const utils_capitalize = (capitalize_capitalize);
 ;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/CircularProgress/circularProgressClasses.js
 
 
@@ -11517,7 +8091,7 @@ const CircularProgressTrack = styles_styled('circle', {
  * attribute to `true` on that region until it has finished loading.
  */
 const CircularProgress = /*#__PURE__*/external_React_.forwardRef(function CircularProgress(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiCircularProgress'
   });
@@ -11780,7 +8354,7 @@ const IconButtonLoadingIndicator = styles_styled('span', {
  * regarding the available icon options.
  */
 const IconButton = /*#__PURE__*/external_React_.forwardRef(function IconButton(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiIconButton'
   });
@@ -11961,7 +8535,7 @@ const SvgIconRoot = styles_styled('svg', {
   }]
 })));
 const SvgIcon = /*#__PURE__*/external_React_.forwardRef(function SvgIcon(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiSvgIcon'
   });
@@ -12044,7 +8618,7 @@ function createSvgIcon(path, displayName) {
 /* harmony default export */ const Settings = (createSvgIcon(/*#__PURE__*/(0,jsx_runtime.jsx)("path", {
   d: "M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6"
 }), 'Settings'));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/SettingsBar.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/SettingsBar.js
 const SettingsBarContainer=newStyled.div`
   position: absolute;
   top: 0;
@@ -12053,7 +8627,7 @@ const SettingsBarContainer=newStyled.div`
   justify-content: flex-end;
   padding: 5px;
 `,SettingsBar=({iconColor:t="white",onSettingsClick:i,children:n})=>(0,jsx_runtime.jsx)(SettingsBarContainer,{iconColor:t,children:n||(i?(0,jsx_runtime.jsx)(IconButton_IconButton,{"aria-label":"settings",onClick:i,children:(0,jsx_runtime.jsx)(Settings,{style:{color:t},sx:{fontSize:10}})}):null)});/* harmony default export */ const components_SettingsBar = (SettingsBar);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/WidgetBody.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/WidgetBody.js
 const WidgetBody=newStyled.div`
   padding: 10px;
   display: flex;
@@ -12063,1152 +8637,23 @@ const WidgetBody=newStyled.div`
   width: 100%;
   height: 100%;
 `;/* harmony default export */ const components_WidgetBody = (WidgetBody);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/SvgContainer.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/SvgContainer.js
 const StyledSvgContainer=newStyled.div`
-  fill: ${t=>t.fill||"white"};
-  margin-top: 10px;
+  fill: ${i=>i.fill||"white"};
+  margin-top: ${i=>i.marginTop??10}px;
 
   svg {
-    width: ${t=>t.width||38}px;
-    height: ${t=>t.height||38}px;
+    width: ${i=>i.width||38}px;
+    height: ${i=>i.height||38}px;
   }
-`,SvgContainer=({fill:t,children:i,width:e,height:l,className:h})=>(0,jsx_runtime.jsx)(StyledSvgContainer,{fill:t,width:e,height:l,className:h,children:i});/* harmony default export */ const components_SvgContainer = (SvgContainer);
-;// ./node_modules/.pnpm/@mui+private-theming@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/esm/useTheme/ThemeContext.js
-'use client';
-
-
-const ThemeContext_ThemeContext = /*#__PURE__*/external_React_.createContext(null);
-if (false) {}
-/* harmony default export */ const esm_useTheme_ThemeContext = (ThemeContext_ThemeContext);
-;// ./node_modules/.pnpm/@mui+private-theming@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/esm/useTheme/useTheme.js
-
-
-function useTheme_useTheme() {
-  const theme = external_React_.useContext(esm_useTheme_ThemeContext);
-  if (false) {}
-  return theme;
-}
-;// ./node_modules/.pnpm/@mui+private-theming@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/esm/ThemeProvider/nested.js
-const nested_hasSymbol = typeof Symbol === 'function' && Symbol.for;
-/* harmony default export */ const ThemeProvider_nested = (nested_hasSymbol ? Symbol.for('mui.nested') : '__THEME_NESTED__');
-;// ./node_modules/.pnpm/@mui+private-theming@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/private-theming/esm/ThemeProvider/ThemeProvider.js
-
-
-
-
-
-
-
-// To support composition of theme.
-
-function ThemeProvider_mergeOuterLocalTheme(outerTheme, localTheme) {
-  if (typeof localTheme === 'function') {
-    const mergedTheme = localTheme(outerTheme);
-    if (false) {}
-    return mergedTheme;
-  }
-  return {
-    ...outerTheme,
-    ...localTheme
-  };
-}
-
-/**
- * This component takes a `theme` prop.
- * It makes the `theme` available down the React tree thanks to React context.
- * This component should preferably be used at **the root of your component tree**.
- */
-function esm_ThemeProvider_ThemeProvider_ThemeProvider(props) {
-  const {
-    children,
-    theme: localTheme
-  } = props;
-  const outerTheme = useTheme_useTheme();
-  if (false) {}
-  const theme = external_React_.useMemo(() => {
-    const output = outerTheme === null ? {
-      ...localTheme
-    } : ThemeProvider_mergeOuterLocalTheme(outerTheme, localTheme);
-    if (output != null) {
-      output[ThemeProvider_nested] = outerTheme !== null;
-    }
-    return output;
-  }, [localTheme, outerTheme]);
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(esm_useTheme_ThemeContext.Provider, {
-    value: theme,
-    children: children
-  });
-}
- false ? 0 : void 0;
-if (false) {}
-/* harmony default export */ const private_theming_esm_ThemeProvider_ThemeProvider = (esm_ThemeProvider_ThemeProvider_ThemeProvider);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/useThemeWithoutDefault/useThemeWithoutDefault.js
-'use client';
-
-
-
-function useThemeWithoutDefault_isObjectEmpty(obj) {
-  return Object.keys(obj).length === 0;
-}
-function useThemeWithoutDefault_useThemeWithoutDefault_useTheme(defaultTheme = null) {
-  const contextTheme = external_React_.useContext(external_EmotionReact_.ThemeContext);
-  return !contextTheme || useThemeWithoutDefault_isObjectEmpty(contextTheme) ? defaultTheme : contextTheme;
-}
-/* harmony default export */ const useThemeWithoutDefault_useThemeWithoutDefault = (useThemeWithoutDefault_useThemeWithoutDefault_useTheme);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/RtlProvider/index.js
-'use client';
-
-
-
-
-const RtlProvider_RtlContext = /*#__PURE__*/external_React_.createContext();
-function RtlProvider_RtlProvider({
-  value,
-  ...props
-}) {
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(RtlProvider_RtlContext.Provider, {
-    value: value ?? true,
-    ...props
-  });
-}
- false ? 0 : void 0;
-const RtlProvider_useRtl = () => {
-  const value = React.useContext(RtlProvider_RtlContext);
-  return value ?? false;
-};
-/* harmony default export */ const system_esm_RtlProvider = (RtlProvider_RtlProvider);
-;// ./node_modules/.pnpm/@mui+styled-engine@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+s_26ij7y7oollnf3ukf76rheahxm/node_modules/@mui/styled-engine/esm/GlobalStyles/GlobalStyles.js
-'use client';
-
-
-
-
-
-function GlobalStyles_isEmpty(obj) {
-  return obj === undefined || obj === null || Object.keys(obj).length === 0;
-}
-function GlobalStyles_GlobalStyles_GlobalStyles(props) {
-  const {
-    styles,
-    defaultTheme = {}
-  } = props;
-  const globalStyles = typeof styles === 'function' ? themeInput => styles(GlobalStyles_isEmpty(themeInput) ? defaultTheme : themeInput) : styles;
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(external_EmotionReact_.Global, {
-    styles: globalStyles
-  });
-}
- false ? 0 : void 0;
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/useTheme/useTheme.js
-'use client';
-
-
-
-const useTheme_systemDefaultTheme = esm_createTheme_createTheme();
-function useTheme_useTheme_useTheme(defaultTheme = useTheme_systemDefaultTheme) {
-  return useThemeWithoutDefault_useThemeWithoutDefault(defaultTheme);
-}
-/* harmony default export */ const esm_useTheme_useTheme = (useTheme_useTheme_useTheme);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/GlobalStyles/GlobalStyles.js
-'use client';
-
-
-
-
-
-
-function wrapGlobalLayer(styles) {
-  const serialized = internal_serializeStyles(styles);
-  if (styles !== serialized && serialized.styles) {
-    if (!serialized.styles.match(/^@layer\s+[^{]*$/)) {
-      // If the styles are not already wrapped in a layer, wrap them in a global layer.
-      serialized.styles = `@layer global{${serialized.styles}}`;
-    }
-    return serialized;
-  }
-  return styles;
-}
-function esm_GlobalStyles_GlobalStyles_GlobalStyles({
-  styles,
-  themeId,
-  defaultTheme = {}
-}) {
-  const upperTheme = esm_useTheme_useTheme(defaultTheme);
-  const resolvedTheme = themeId ? upperTheme[themeId] || upperTheme : upperTheme;
-  let globalStyles = typeof styles === 'function' ? styles(resolvedTheme) : styles;
-  if (resolvedTheme.modularCssLayers) {
-    if (Array.isArray(globalStyles)) {
-      globalStyles = globalStyles.map(styleArg => {
-        if (typeof styleArg === 'function') {
-          return wrapGlobalLayer(styleArg(resolvedTheme));
-        }
-        return wrapGlobalLayer(styleArg);
-      });
-    } else {
-      globalStyles = wrapGlobalLayer(globalStyles);
-    }
-  }
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(GlobalStyles_GlobalStyles_GlobalStyles, {
-    styles: globalStyles
-  });
-}
- false ? 0 : void 0;
-/* harmony default export */ const esm_GlobalStyles_GlobalStyles = (esm_GlobalStyles_GlobalStyles_GlobalStyles);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/ThemeProvider/useLayerOrder.js
-
-
-
-
-
-
-/**
- * This hook returns a `GlobalStyles` component that sets the CSS layer order (for server-side rendering).
- * Then on client-side, it injects the CSS layer order into the document head to ensure that the layer order is always present first before other Emotion styles.
- */
-
-function useLayerOrder(theme) {
-  const upperTheme = useThemeWithoutDefault_useThemeWithoutDefault();
-  const id = useId() || '';
-  const {
-    modularCssLayers
-  } = theme;
-  let layerOrder = 'mui.global, mui.components, mui.theme, mui.custom, mui.sx';
-  if (!modularCssLayers || upperTheme !== null) {
-    // skip this hook if upper theme exists.
-    layerOrder = '';
-  } else if (typeof modularCssLayers === 'string') {
-    layerOrder = modularCssLayers.replace(/mui(?!\.)/g, layerOrder);
-  } else {
-    layerOrder = `@layer ${layerOrder};`;
-  }
-  esm_useEnhancedEffect_useEnhancedEffect(() => {
-    const head = document.querySelector('head');
-    if (!head) {
-      return;
-    }
-    const firstChild = head.firstChild;
-    if (layerOrder) {
-      // Only insert if first child doesn't have data-mui-layer-order attribute
-      if (firstChild && firstChild.hasAttribute?.('data-mui-layer-order') && firstChild.getAttribute('data-mui-layer-order') === id) {
-        return;
-      }
-      const styleElement = document.createElement('style');
-      styleElement.setAttribute('data-mui-layer-order', id);
-      styleElement.textContent = layerOrder;
-      head.prepend(styleElement);
-    } else {
-      head.querySelector(`style[data-mui-layer-order="${id}"]`)?.remove();
-    }
-  }, [layerOrder, id]);
-  if (!layerOrder) {
-    return null;
-  }
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(esm_GlobalStyles_GlobalStyles, {
-    styles: layerOrder
-  });
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/ThemeProvider/ThemeProvider.js
-'use client';
-
-
-
-
-
-
-
-
-
-
-
-const ThemeProvider_EMPTY_THEME = {};
-function ThemeProvider_useThemeScoping(themeId, upperTheme, localTheme, isPrivate = false) {
-  return external_React_.useMemo(() => {
-    const resolvedTheme = themeId ? upperTheme[themeId] || upperTheme : upperTheme;
-    if (typeof localTheme === 'function') {
-      const mergedTheme = localTheme(resolvedTheme);
-      const result = themeId ? {
-        ...upperTheme,
-        [themeId]: mergedTheme
-      } : mergedTheme;
-      // must return a function for the private theme to NOT merge with the upper theme.
-      // see the test case "use provided theme from a callback" in ThemeProvider.test.js
-      if (isPrivate) {
-        return () => result;
-      }
-      return result;
-    }
-    return themeId ? {
-      ...upperTheme,
-      [themeId]: localTheme
-    } : {
-      ...upperTheme,
-      ...localTheme
-    };
-  }, [themeId, upperTheme, localTheme, isPrivate]);
-}
-
-/**
- * This component makes the `theme` available down the React tree.
- * It should preferably be used at **the root of your component tree**.
- *
- * <ThemeProvider theme={theme}> // existing use case
- * <ThemeProvider theme={{ id: theme }}> // theme scoping
- */
-function system_esm_ThemeProvider_ThemeProvider_ThemeProvider(props) {
-  const {
-    children,
-    theme: localTheme,
-    themeId
-  } = props;
-  const upperTheme = useThemeWithoutDefault_useThemeWithoutDefault(ThemeProvider_EMPTY_THEME);
-  const upperPrivateTheme = useTheme_useTheme() || ThemeProvider_EMPTY_THEME;
-  if (false) {}
-  const engineTheme = ThemeProvider_useThemeScoping(themeId, upperTheme, localTheme);
-  const privateTheme = ThemeProvider_useThemeScoping(themeId, upperPrivateTheme, localTheme, true);
-  const rtlValue = (themeId ? engineTheme[themeId] : engineTheme).direction === 'rtl';
-  const layerOrder = useLayerOrder(engineTheme);
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(private_theming_esm_ThemeProvider_ThemeProvider, {
-    theme: privateTheme,
-    children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_EmotionReact_.ThemeContext.Provider, {
-      value: engineTheme,
-      children: /*#__PURE__*/(0,jsx_runtime.jsx)(system_esm_RtlProvider, {
-        value: rtlValue,
-        children: /*#__PURE__*/(0,jsx_runtime.jsxs)(esm_DefaultPropsProvider_DefaultPropsProvider, {
-          value: themeId ? engineTheme[themeId].components : engineTheme.components,
-          children: [layerOrder, children]
-        })
-      })
-    })
-  });
-}
- false ? 0 : void 0;
-if (false) {}
-/* harmony default export */ const system_esm_ThemeProvider_ThemeProvider = (system_esm_ThemeProvider_ThemeProvider_ThemeProvider);
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/ThemeProviderNoVars.js
-'use client';
-
-
-
-
-
-function ThemeProviderNoVars_ThemeProviderNoVars({
-  theme: themeInput,
-  ...props
-}) {
-  const scopedTheme = styles_identifier in themeInput ? themeInput[styles_identifier] : undefined;
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(system_esm_ThemeProvider_ThemeProvider, {
-    ...props,
-    themeId: scopedTheme ? styles_identifier : undefined,
-    theme: scopedTheme || themeInput
-  });
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/InitColorSchemeScript/InitColorSchemeScript.js
-/**
- * Split this component for RSC import
- */
-
-
-const InitColorSchemeScript_DEFAULT_MODE_STORAGE_KEY = 'mode';
-const InitColorSchemeScript_DEFAULT_COLOR_SCHEME_STORAGE_KEY = 'color-scheme';
-const InitColorSchemeScript_DEFAULT_ATTRIBUTE = 'data-color-scheme';
-function InitColorSchemeScript_InitColorSchemeScript_InitColorSchemeScript(options) {
-  const {
-    defaultMode = 'system',
-    defaultLightColorScheme = 'light',
-    defaultDarkColorScheme = 'dark',
-    modeStorageKey = InitColorSchemeScript_DEFAULT_MODE_STORAGE_KEY,
-    colorSchemeStorageKey = InitColorSchemeScript_DEFAULT_COLOR_SCHEME_STORAGE_KEY,
-    attribute: initialAttribute = InitColorSchemeScript_DEFAULT_ATTRIBUTE,
-    colorSchemeNode = 'document.documentElement',
-    nonce
-  } = options || {};
-  let setter = '';
-  let attribute = initialAttribute;
-  if (initialAttribute === 'class') {
-    attribute = '.%s';
-  }
-  if (initialAttribute === 'data') {
-    attribute = '[data-%s]';
-  }
-  if (attribute.startsWith('.')) {
-    const selector = attribute.substring(1);
-    setter += `${colorSchemeNode}.classList.remove('${selector}'.replace('%s', light), '${selector}'.replace('%s', dark));
-      ${colorSchemeNode}.classList.add('${selector}'.replace('%s', colorScheme));`;
-  }
-  const matches = attribute.match(/\[([^[\]]+)\]/); // case [data-color-scheme='%s'] or [data-color-scheme]
-  if (matches) {
-    const [attr, value] = matches[1].split('=');
-    if (!value) {
-      setter += `${colorSchemeNode}.removeAttribute('${attr}'.replace('%s', light));
-      ${colorSchemeNode}.removeAttribute('${attr}'.replace('%s', dark));`;
-    }
-    setter += `
-      ${colorSchemeNode}.setAttribute('${attr}'.replace('%s', colorScheme), ${value ? `${value}.replace('%s', colorScheme)` : '""'});`;
-  } else {
-    setter += `${colorSchemeNode}.setAttribute('${attribute}', colorScheme);`;
-  }
-  return /*#__PURE__*/(0,jsx_runtime.jsx)("script", {
-    suppressHydrationWarning: true,
-    nonce: typeof window === 'undefined' ? nonce : ''
-    // eslint-disable-next-line react/no-danger
-    ,
-    dangerouslySetInnerHTML: {
-      __html: `(function() {
-try {
-  let colorScheme = '';
-  const mode = localStorage.getItem('${modeStorageKey}') || '${defaultMode}';
-  const dark = localStorage.getItem('${colorSchemeStorageKey}-dark') || '${defaultDarkColorScheme}';
-  const light = localStorage.getItem('${colorSchemeStorageKey}-light') || '${defaultLightColorScheme}';
-  if (mode === 'system') {
-    // handle system mode
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    if (mql.matches) {
-      colorScheme = dark
-    } else {
-      colorScheme = light
-    }
-  }
-  if (mode === 'light') {
-    colorScheme = light;
-  }
-  if (mode === 'dark') {
-    colorScheme = dark;
-  }
-  if (colorScheme) {
-    ${setter}
-  }
-} catch(e){}})();`
-    }
-  }, "mui-color-scheme-init");
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/localStorageManager.js
-function noop() {}
-const localStorageManager = ({
-  key,
-  storageWindow
-}) => {
-  if (!storageWindow && typeof window !== 'undefined') {
-    storageWindow = window;
-  }
-  return {
-    get(defaultValue) {
-      if (typeof window === 'undefined') {
-        return undefined;
-      }
-      if (!storageWindow) {
-        return defaultValue;
-      }
-      let value;
-      try {
-        value = storageWindow.localStorage.getItem(key);
-      } catch {
-        // Unsupported
-      }
-      return value || defaultValue;
-    },
-    set: value => {
-      if (storageWindow) {
-        try {
-          storageWindow.localStorage.setItem(key, value);
-        } catch {
-          // Unsupported
-        }
-      }
-    },
-    subscribe: handler => {
-      if (!storageWindow) {
-        return noop;
-      }
-      const listener = event => {
-        const value = event.newValue;
-        if (event.key === key) {
-          handler(value);
-        }
-      };
-      storageWindow.addEventListener('storage', listener);
-      return () => {
-        storageWindow.removeEventListener('storage', listener);
-      };
-    }
-  };
-};
-/* harmony default export */ const cssVars_localStorageManager = (localStorageManager);
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/useCurrentColorScheme.js
-'use client';
-
-
-
-
-function useCurrentColorScheme_noop() {}
-function useCurrentColorScheme_getSystemMode(mode) {
-  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && mode === 'system') {
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    if (mql.matches) {
-      return 'dark';
-    }
-    return 'light';
-  }
-  return undefined;
-}
-function useCurrentColorScheme_processState(state, callback) {
-  if (state.mode === 'light' || state.mode === 'system' && state.systemMode === 'light') {
-    return callback('light');
-  }
-  if (state.mode === 'dark' || state.mode === 'system' && state.systemMode === 'dark') {
-    return callback('dark');
-  }
-  return undefined;
-}
-function useCurrentColorScheme_getColorScheme(state) {
-  return useCurrentColorScheme_processState(state, mode => {
-    if (mode === 'light') {
-      return state.lightColorScheme;
-    }
-    if (mode === 'dark') {
-      return state.darkColorScheme;
-    }
-    return undefined;
-  });
-}
-function useCurrentColorScheme_useCurrentColorScheme(options) {
-  const {
-    defaultMode = 'light',
-    defaultLightColorScheme,
-    defaultDarkColorScheme,
-    supportedColorSchemes = [],
-    modeStorageKey = InitColorSchemeScript_DEFAULT_MODE_STORAGE_KEY,
-    colorSchemeStorageKey = InitColorSchemeScript_DEFAULT_COLOR_SCHEME_STORAGE_KEY,
-    storageWindow = typeof window === 'undefined' ? undefined : window,
-    storageManager = cssVars_localStorageManager,
-    noSsr = false
-  } = options;
-  const joinedColorSchemes = supportedColorSchemes.join(',');
-  const isMultiSchemes = supportedColorSchemes.length > 1;
-  const modeStorage = external_React_.useMemo(() => storageManager?.({
-    key: modeStorageKey,
-    storageWindow
-  }), [storageManager, modeStorageKey, storageWindow]);
-  const lightStorage = external_React_.useMemo(() => storageManager?.({
-    key: `${colorSchemeStorageKey}-light`,
-    storageWindow
-  }), [storageManager, colorSchemeStorageKey, storageWindow]);
-  const darkStorage = external_React_.useMemo(() => storageManager?.({
-    key: `${colorSchemeStorageKey}-dark`,
-    storageWindow
-  }), [storageManager, colorSchemeStorageKey, storageWindow]);
-  const [state, setState] = external_React_.useState(() => {
-    const initialMode = modeStorage?.get(defaultMode) || defaultMode;
-    const lightColorScheme = lightStorage?.get(defaultLightColorScheme) || defaultLightColorScheme;
-    const darkColorScheme = darkStorage?.get(defaultDarkColorScheme) || defaultDarkColorScheme;
-    return {
-      mode: initialMode,
-      systemMode: useCurrentColorScheme_getSystemMode(initialMode),
-      lightColorScheme,
-      darkColorScheme
-    };
-  });
-  const [isClient, setIsClient] = external_React_.useState(noSsr || !isMultiSchemes);
-  external_React_.useEffect(() => {
-    setIsClient(true); // to rerender the component after hydration
-  }, []);
-  const colorScheme = useCurrentColorScheme_getColorScheme(state);
-  const setMode = external_React_.useCallback(mode => {
-    setState(currentState => {
-      if (mode === currentState.mode) {
-        // do nothing if mode does not change
-        return currentState;
-      }
-      const newMode = mode ?? defaultMode;
-      modeStorage?.set(newMode);
-      return {
-        ...currentState,
-        mode: newMode,
-        systemMode: useCurrentColorScheme_getSystemMode(newMode)
-      };
-    });
-  }, [modeStorage, defaultMode]);
-  const setColorScheme = external_React_.useCallback(value => {
-    if (!value) {
-      setState(currentState => {
-        lightStorage?.set(defaultLightColorScheme);
-        darkStorage?.set(defaultDarkColorScheme);
-        return {
-          ...currentState,
-          lightColorScheme: defaultLightColorScheme,
-          darkColorScheme: defaultDarkColorScheme
-        };
-      });
-    } else if (typeof value === 'string') {
-      if (value && !joinedColorSchemes.includes(value)) {
-        console.error(`\`${value}\` does not exist in \`theme.colorSchemes\`.`);
-      } else {
-        setState(currentState => {
-          const newState = {
-            ...currentState
-          };
-          useCurrentColorScheme_processState(currentState, mode => {
-            if (mode === 'light') {
-              lightStorage?.set(value);
-              newState.lightColorScheme = value;
-            }
-            if (mode === 'dark') {
-              darkStorage?.set(value);
-              newState.darkColorScheme = value;
-            }
-          });
-          return newState;
-        });
-      }
-    } else {
-      setState(currentState => {
-        const newState = {
-          ...currentState
-        };
-        const newLightColorScheme = value.light === null ? defaultLightColorScheme : value.light;
-        const newDarkColorScheme = value.dark === null ? defaultDarkColorScheme : value.dark;
-        if (newLightColorScheme) {
-          if (!joinedColorSchemes.includes(newLightColorScheme)) {
-            console.error(`\`${newLightColorScheme}\` does not exist in \`theme.colorSchemes\`.`);
-          } else {
-            newState.lightColorScheme = newLightColorScheme;
-            lightStorage?.set(newLightColorScheme);
-          }
-        }
-        if (newDarkColorScheme) {
-          if (!joinedColorSchemes.includes(newDarkColorScheme)) {
-            console.error(`\`${newDarkColorScheme}\` does not exist in \`theme.colorSchemes\`.`);
-          } else {
-            newState.darkColorScheme = newDarkColorScheme;
-            darkStorage?.set(newDarkColorScheme);
-          }
-        }
-        return newState;
-      });
-    }
-  }, [joinedColorSchemes, lightStorage, darkStorage, defaultLightColorScheme, defaultDarkColorScheme]);
-  const handleMediaQuery = external_React_.useCallback(event => {
-    if (state.mode === 'system') {
-      setState(currentState => {
-        const systemMode = event?.matches ? 'dark' : 'light';
-
-        // Early exit, nothing changed.
-        if (currentState.systemMode === systemMode) {
-          return currentState;
-        }
-        return {
-          ...currentState,
-          systemMode
-        };
-      });
-    }
-  }, [state.mode]);
-
-  // Ref hack to avoid adding handleMediaQuery as a dep
-  const mediaListener = external_React_.useRef(handleMediaQuery);
-  mediaListener.current = handleMediaQuery;
-  external_React_.useEffect(() => {
-    if (typeof window.matchMedia !== 'function' || !isMultiSchemes) {
-      return undefined;
-    }
-    const handler = (...args) => mediaListener.current(...args);
-
-    // Always listen to System preference
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-
-    // Intentionally use deprecated listener methods to support iOS & old browsers
-    media.addListener(handler);
-    handler(media);
-    return () => {
-      media.removeListener(handler);
-    };
-  }, [isMultiSchemes]);
-
-  // Handle when localStorage has changed
-  external_React_.useEffect(() => {
-    if (isMultiSchemes) {
-      const unsubscribeMode = modeStorage?.subscribe(value => {
-        if (!value || ['light', 'dark', 'system'].includes(value)) {
-          setMode(value || defaultMode);
-        }
-      }) || useCurrentColorScheme_noop;
-      const unsubscribeLight = lightStorage?.subscribe(value => {
-        if (!value || joinedColorSchemes.match(value)) {
-          setColorScheme({
-            light: value
-          });
-        }
-      }) || useCurrentColorScheme_noop;
-      const unsubscribeDark = darkStorage?.subscribe(value => {
-        if (!value || joinedColorSchemes.match(value)) {
-          setColorScheme({
-            dark: value
-          });
-        }
-      }) || useCurrentColorScheme_noop;
-      return () => {
-        unsubscribeMode();
-        unsubscribeLight();
-        unsubscribeDark();
-      };
-    }
-    return undefined;
-  }, [setColorScheme, setMode, joinedColorSchemes, defaultMode, storageWindow, isMultiSchemes, modeStorage, lightStorage, darkStorage]);
-  return {
-    ...state,
-    mode: isClient ? state.mode : undefined,
-    systemMode: isClient ? state.systemMode : undefined,
-    colorScheme: isClient ? colorScheme : undefined,
-    setMode,
-    setColorScheme
-  };
-}
-;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_dl5qc55cjtkrklcfjlunonoq5q/node_modules/@mui/system/esm/cssVars/createCssVarsProvider.js
-'use client';
-
-
-
-
-
-
-
-
-
-
-const createCssVarsProvider_DISABLE_CSS_TRANSITION = '*{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}';
-function createCssVarsProvider_createCssVarsProvider(options) {
-  const {
-    themeId,
-    /**
-     * This `theme` object needs to follow a certain structure to
-     * be used correctly by the finel `CssVarsProvider`. It should have a
-     * `colorSchemes` key with the light and dark (and any other) palette.
-     * It should also ideally have a vars object created using `prepareCssVars`.
-     */
-    theme: defaultTheme = {},
-    modeStorageKey: defaultModeStorageKey = InitColorSchemeScript_DEFAULT_MODE_STORAGE_KEY,
-    colorSchemeStorageKey: defaultColorSchemeStorageKey = InitColorSchemeScript_DEFAULT_COLOR_SCHEME_STORAGE_KEY,
-    disableTransitionOnChange: designSystemTransitionOnChange = false,
-    defaultColorScheme,
-    resolveTheme
-  } = options;
-  const defaultContext = {
-    allColorSchemes: [],
-    colorScheme: undefined,
-    darkColorScheme: undefined,
-    lightColorScheme: undefined,
-    mode: undefined,
-    setColorScheme: () => {},
-    setMode: () => {},
-    systemMode: undefined
-  };
-  const ColorSchemeContext = /*#__PURE__*/external_React_.createContext(undefined);
-  if (false) {}
-  const useColorScheme = () => external_React_.useContext(ColorSchemeContext) || defaultContext;
-  const defaultColorSchemes = {};
-  const defaultComponents = {};
-  function CssVarsProvider(props) {
-    const {
-      children,
-      theme: themeProp,
-      modeStorageKey = defaultModeStorageKey,
-      colorSchemeStorageKey = defaultColorSchemeStorageKey,
-      disableTransitionOnChange = designSystemTransitionOnChange,
-      storageManager,
-      storageWindow = typeof window === 'undefined' ? undefined : window,
-      documentNode = typeof document === 'undefined' ? undefined : document,
-      colorSchemeNode = typeof document === 'undefined' ? undefined : document.documentElement,
-      disableNestedContext = false,
-      disableStyleSheetGeneration = false,
-      defaultMode: initialMode = 'system',
-      forceThemeRerender = false,
-      noSsr
-    } = props;
-    const hasMounted = external_React_.useRef(false);
-    const upperTheme = useTheme_useTheme();
-    const ctx = external_React_.useContext(ColorSchemeContext);
-    const nested = !!ctx && !disableNestedContext;
-    const initialTheme = external_React_.useMemo(() => {
-      if (themeProp) {
-        return themeProp;
-      }
-      return typeof defaultTheme === 'function' ? defaultTheme() : defaultTheme;
-    }, [themeProp]);
-    const scopedTheme = initialTheme[themeId];
-    const restThemeProp = scopedTheme || initialTheme;
-    const {
-      colorSchemes = defaultColorSchemes,
-      components = defaultComponents,
-      cssVarPrefix
-    } = restThemeProp;
-    const joinedColorSchemes = Object.keys(colorSchemes).filter(k => !!colorSchemes[k]).join(',');
-    const allColorSchemes = external_React_.useMemo(() => joinedColorSchemes.split(','), [joinedColorSchemes]);
-    const defaultLightColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.light;
-    const defaultDarkColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.dark;
-    const defaultMode = colorSchemes[defaultLightColorScheme] && colorSchemes[defaultDarkColorScheme] ? initialMode : colorSchemes[restThemeProp.defaultColorScheme]?.palette?.mode || restThemeProp.palette?.mode;
-
-    // 1. Get the data about the `mode`, `colorScheme`, and setter functions.
-    const {
-      mode: stateMode,
-      setMode,
-      systemMode,
-      lightColorScheme,
-      darkColorScheme,
-      colorScheme: stateColorScheme,
-      setColorScheme
-    } = useCurrentColorScheme_useCurrentColorScheme({
-      supportedColorSchemes: allColorSchemes,
-      defaultLightColorScheme,
-      defaultDarkColorScheme,
-      modeStorageKey,
-      colorSchemeStorageKey,
-      defaultMode,
-      storageManager,
-      storageWindow,
-      noSsr
-    });
-    let mode = stateMode;
-    let colorScheme = stateColorScheme;
-    if (nested) {
-      mode = ctx.mode;
-      colorScheme = ctx.colorScheme;
-    }
-    if (false) {}
-
-    // `colorScheme` is undefined on the server and hydration phase
-    let calculatedColorScheme = colorScheme || restThemeProp.defaultColorScheme;
-    if (restThemeProp.vars && !forceThemeRerender) {
-      calculatedColorScheme = restThemeProp.defaultColorScheme;
-    }
-    const memoTheme = external_React_.useMemo(() => {
-      // 2. get the `vars` object that refers to the CSS custom properties
-      const themeVars = restThemeProp.generateThemeVars?.() || restThemeProp.vars;
-
-      // 3. Start composing the theme object
-      const theme = {
-        ...restThemeProp,
-        components,
-        colorSchemes,
-        cssVarPrefix,
-        vars: themeVars
-      };
-      if (typeof theme.generateSpacing === 'function') {
-        theme.spacing = theme.generateSpacing();
-      }
-
-      // 4. Resolve the color scheme and merge it to the theme
-      if (calculatedColorScheme) {
-        const scheme = colorSchemes[calculatedColorScheme];
-        if (scheme && typeof scheme === 'object') {
-          // 4.1 Merge the selected color scheme to the theme
-          Object.keys(scheme).forEach(schemeKey => {
-            if (scheme[schemeKey] && typeof scheme[schemeKey] === 'object') {
-              // shallow merge the 1st level structure of the theme.
-              theme[schemeKey] = {
-                ...theme[schemeKey],
-                ...scheme[schemeKey]
-              };
-            } else {
-              theme[schemeKey] = scheme[schemeKey];
-            }
-          });
-        }
-      }
-      return resolveTheme ? resolveTheme(theme) : theme;
-    }, [restThemeProp, calculatedColorScheme, components, colorSchemes, cssVarPrefix]);
-
-    // 5. Declaring effects
-    // 5.1 Updates the selector value to use the current color scheme which tells CSS to use the proper stylesheet.
-    const colorSchemeSelector = restThemeProp.colorSchemeSelector;
-    esm_useEnhancedEffect_useEnhancedEffect(() => {
-      if (colorScheme && colorSchemeNode && colorSchemeSelector && colorSchemeSelector !== 'media') {
-        const selector = colorSchemeSelector;
-        let rule = colorSchemeSelector;
-        if (selector === 'class') {
-          rule = `.%s`;
-        }
-        if (selector === 'data') {
-          rule = `[data-%s]`;
-        }
-        if (selector?.startsWith('data-') && !selector.includes('%s')) {
-          // 'data-mui-color-scheme' -> '[data-mui-color-scheme="%s"]'
-          rule = `[${selector}="%s"]`;
-        }
-        if (rule.startsWith('.')) {
-          colorSchemeNode.classList.remove(...allColorSchemes.map(scheme => rule.substring(1).replace('%s', scheme)));
-          colorSchemeNode.classList.add(rule.substring(1).replace('%s', colorScheme));
-        } else {
-          const matches = rule.replace('%s', colorScheme).match(/\[([^\]]+)\]/);
-          if (matches) {
-            const [attr, value] = matches[1].split('=');
-            if (!value) {
-              // for attributes like `data-theme-dark`, `data-theme-light`
-              // remove all the existing data attributes before setting the new one
-              allColorSchemes.forEach(scheme => {
-                colorSchemeNode.removeAttribute(attr.replace(colorScheme, scheme));
-              });
-            }
-            colorSchemeNode.setAttribute(attr, value ? value.replace(/"|'/g, '') : '');
-          } else {
-            colorSchemeNode.setAttribute(rule, colorScheme);
-          }
-        }
-      }
-    }, [colorScheme, colorSchemeSelector, colorSchemeNode, allColorSchemes]);
-
-    // 5.2 Remove the CSS transition when color scheme changes to create instant experience.
-    // credit: https://github.com/pacocoursey/next-themes/blob/b5c2bad50de2d61ad7b52a9c5cdc801a78507d7a/index.tsx#L313
-    external_React_.useEffect(() => {
-      let timer;
-      if (disableTransitionOnChange && hasMounted.current && documentNode) {
-        const css = documentNode.createElement('style');
-        css.appendChild(documentNode.createTextNode(createCssVarsProvider_DISABLE_CSS_TRANSITION));
-        documentNode.head.appendChild(css);
-
-        // Force browser repaint
-        (() => window.getComputedStyle(documentNode.body))();
-        timer = setTimeout(() => {
-          documentNode.head.removeChild(css);
-        }, 1);
-      }
-      return () => {
-        clearTimeout(timer);
-      };
-    }, [colorScheme, disableTransitionOnChange, documentNode]);
-    external_React_.useEffect(() => {
-      hasMounted.current = true;
-      return () => {
-        hasMounted.current = false;
-      };
-    }, []);
-    const contextValue = external_React_.useMemo(() => ({
-      allColorSchemes,
-      colorScheme,
-      darkColorScheme,
-      lightColorScheme,
-      mode,
-      setColorScheme,
-      setMode:  true ? setMode : 0,
-      systemMode
-    }), [allColorSchemes, colorScheme, darkColorScheme, lightColorScheme, mode, setColorScheme, setMode, systemMode, memoTheme.colorSchemeSelector]);
-    let shouldGenerateStyleSheet = true;
-    if (disableStyleSheetGeneration || restThemeProp.cssVariables === false || nested && upperTheme?.cssVarPrefix === cssVarPrefix) {
-      shouldGenerateStyleSheet = false;
-    }
-    const element = /*#__PURE__*/(0,jsx_runtime.jsxs)(external_React_.Fragment, {
-      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(system_esm_ThemeProvider_ThemeProvider, {
-        themeId: scopedTheme ? themeId : undefined,
-        theme: memoTheme,
-        children: children
-      }), shouldGenerateStyleSheet && /*#__PURE__*/(0,jsx_runtime.jsx)(GlobalStyles_GlobalStyles_GlobalStyles, {
-        styles: memoTheme.generateStyleSheets?.() || []
-      })]
-    });
-    if (nested) {
-      return element;
-    }
-    return /*#__PURE__*/(0,jsx_runtime.jsx)(ColorSchemeContext.Provider, {
-      value: contextValue,
-      children: element
-    });
-  }
-   false ? 0 : void 0;
-  const defaultLightColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.light;
-  const defaultDarkColorScheme = typeof defaultColorScheme === 'string' ? defaultColorScheme : defaultColorScheme.dark;
-  const getInitColorSchemeScript = params => InitColorSchemeScript_InitColorSchemeScript_InitColorSchemeScript({
-    colorSchemeStorageKey: defaultColorSchemeStorageKey,
-    defaultLightColorScheme,
-    defaultDarkColorScheme,
-    modeStorageKey: defaultModeStorageKey,
-    ...params
-  });
-  return {
-    CssVarsProvider,
-    useColorScheme,
-    getInitColorSchemeScript
-  };
-}
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/InitColorSchemeScript/InitColorSchemeScript.js
-
-
-
-
-const InitColorSchemeScript_defaultConfig = {
-  attribute: 'data-mui-color-scheme',
-  colorSchemeStorageKey: 'mui-color-scheme',
-  defaultLightColorScheme: 'light',
-  defaultDarkColorScheme: 'dark',
-  modeStorageKey: 'mui-mode'
-};
-/**
- *
- * Demos:
- *
- * - [InitColorSchemeScript](https://mui.com/material-ui/react-init-color-scheme-script/)
- *
- * API:
- *
- * - [InitColorSchemeScript API](https://mui.com/material-ui/api/init-color-scheme-script/)
- */
-function esm_InitColorSchemeScript_InitColorSchemeScript_InitColorSchemeScript(props) {
-  const {
-    defaultMode = 'system',
-    defaultLightColorScheme = InitColorSchemeScript_defaultConfig.defaultLightColorScheme,
-    defaultDarkColorScheme = InitColorSchemeScript_defaultConfig.defaultDarkColorScheme,
-    modeStorageKey = InitColorSchemeScript_defaultConfig.modeStorageKey,
-    colorSchemeStorageKey = InitColorSchemeScript_defaultConfig.colorSchemeStorageKey,
-    attribute: initialAttribute = InitColorSchemeScript_defaultConfig.attribute,
-    colorSchemeNode = 'document.documentElement',
-    nonce
-  } = props;
-  return /*#__PURE__*/_jsx(SystemInitColorSchemeScript, {
-    defaultMode: defaultMode,
-    defaultLightColorScheme: defaultLightColorScheme,
-    defaultDarkColorScheme: defaultDarkColorScheme,
-    modeStorageKey: modeStorageKey,
-    colorSchemeStorageKey: colorSchemeStorageKey,
-    attribute: initialAttribute,
-    colorSchemeNode: colorSchemeNode,
-    nonce: nonce
-  });
-}
- false ? 0 : void 0;
-/* harmony default export */ const esm_InitColorSchemeScript_InitColorSchemeScript = ((/* unused pure expression or super */ null && (esm_InitColorSchemeScript_InitColorSchemeScript_InitColorSchemeScript)));
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/ThemeProviderWithVars.js
-'use client';
-
-
-
-
-
-
-
-
-
-const {
-  CssVarsProvider: ThemeProviderWithVars_InternalCssVarsProvider,
-  useColorScheme: ThemeProviderWithVars_useColorScheme,
-  getInitColorSchemeScript: ThemeProviderWithVars_deprecatedGetInitColorSchemeScript
-} = createCssVarsProvider_createCssVarsProvider({
-  themeId: styles_identifier,
-  // @ts-ignore ignore module augmentation tests
-  theme: () => esm_styles_createTheme_createTheme({
-    cssVariables: true
-  }),
-  colorSchemeStorageKey: InitColorSchemeScript_defaultConfig.colorSchemeStorageKey,
-  modeStorageKey: InitColorSchemeScript_defaultConfig.modeStorageKey,
-  defaultColorScheme: {
-    light: InitColorSchemeScript_defaultConfig.defaultLightColorScheme,
-    dark: InitColorSchemeScript_defaultConfig.defaultDarkColorScheme
-  },
-  resolveTheme: theme => {
-    const newTheme = {
-      ...theme,
-      typography: createTypography_createTypography(theme.palette, theme.typography)
-    };
-    newTheme.unstable_sx = function sx(props) {
-      return esm_styleFunctionSx_styleFunctionSx({
-        sx: props,
-        theme: this
-      });
-    };
-    return newTheme;
-  }
-});
-let styles_ThemeProviderWithVars_warnedOnce = false;
-
-// TODO: remove in v7
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function ThemeProviderWithVars_Experimental_CssVarsProvider(props) {
-  if (false) {}
-  return /*#__PURE__*/_jsx(ThemeProviderWithVars_InternalCssVarsProvider, {
-    ...props
-  });
-}
-let ThemeProviderWithVars_warnedInitScriptOnce = false;
-
-// TODO: remove in v7
-const ThemeProviderWithVars_getInitColorSchemeScript = params => {
-  if (!ThemeProviderWithVars_warnedInitScriptOnce) {
-    console.warn(['MUI: The getInitColorSchemeScript function has been deprecated.', '', "You should use `import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'`", 'and replace the function call with `<InitColorSchemeScript />` instead.'].join('\n'));
-    ThemeProviderWithVars_warnedInitScriptOnce = true;
-  }
-  return ThemeProviderWithVars_deprecatedGetInitColorSchemeScript(params);
-};
-
-/**
- * TODO: remove this export in v7
- * @deprecated
- * The `CssVarsProvider` component has been deprecated and ported into `ThemeProvider`.
- *
- * You should use `ThemeProvider` and `createTheme()` instead:
- *
- * ```diff
- * - import { CssVarsProvider, extendTheme } from '@mui/material/styles';
- * + import { ThemeProvider, createTheme } from '@mui/material/styles';
- *
- * - const theme = extendTheme();
- * + const theme = createTheme({
- * +   cssVariables: true,
- * +   colorSchemes: { light: true, dark: true },
- * + });
- *
- * - <CssVarsProvider theme={theme}>
- * + <ThemeProvider theme={theme}>
- * ```
- *
- * To see the full documentation, check out https://mui.com/material-ui/customization/css-theme-variables/usage/.
- */
-const ThemeProviderWithVars_CssVarsProvider = ThemeProviderWithVars_InternalCssVarsProvider;
-
-;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/styles/ThemeProvider.js
-'use client';
-
-
-
-
-
-
-function esm_styles_ThemeProvider_ThemeProvider({
-  theme,
-  ...props
-}) {
-  const noVarsTheme = external_React_.useMemo(() => {
-    if (typeof theme === 'function') {
-      return theme;
-    }
-    const muiTheme = styles_identifier in theme ? theme[styles_identifier] : theme;
-    if (!('colorSchemes' in muiTheme)) {
-      if (!('vars' in muiTheme)) {
-        // For non-CSS variables themes, set `vars` to null to prevent theme inheritance from the upper theme.
-        // The example use case is the docs demo that uses ThemeProvider to customize the theme while the upper theme is using CSS variables.
-        return {
-          ...theme,
-          vars: null
-        };
-      }
-      return theme;
-    }
-    return null;
-  }, [theme]);
-  if (noVarsTheme) {
-    return /*#__PURE__*/(0,jsx_runtime.jsx)(ThemeProviderNoVars_ThemeProviderNoVars, {
-      theme: noVarsTheme,
-      ...props
-    });
-  }
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(ThemeProviderWithVars_CssVarsProvider, {
-    theme: theme,
-    ...props
-  });
-}
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/KemuThemeWrapper.js
-const defaultKemuTheme=esm_styles_createTheme_createTheme({palette:{primary:{main:"#4e3eff"}},typography:{fontFamily:'Nunito, "Segoe UI", arial'},components:{MuiButton:{styleOverrides:{root:{textTransform:"none"}}},MuiTab:{styleOverrides:{root:{textTransform:"none"}}},MuiChip:{styleOverrides:{root:{textTransform:"none"}}}}});const KemuThemeWrapper=({children:e,theme:r})=>{const t=r?esm_styles_createTheme_createTheme(defaultKemuTheme,r):defaultKemuTheme;return (0,jsx_runtime.jsx)(esm_styles_ThemeProvider_ThemeProvider,{theme:t,children:e})};/* harmony default export */ const components_KemuThemeWrapper = (KemuThemeWrapper);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/BaseWidget.js
+`,SvgContainer=({fill:i,children:t,width:e,height:l,className:n,marginTop:r})=>(0,jsx_runtime.jsx)(StyledSvgContainer,{fill:i,width:e,height:l,className:n,marginTop:r,children:t});/* harmony default export */ const components_SvgContainer = (SvgContainer);
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/BaseWidget.js
 const BaseWidget=({children:e,showSettings:t=!0,onOpenSettings:i,width:s=84,height:o=134,iconWidth:n=38,iconHeight:r=38,showIcon:a=!0,customIcon:m,settingsIconColor:c="white",customTheme:d,svgContainerClassName:g,widgetContainerClassName:h,widgetBodyClassName:l})=>(0,jsx_runtime.jsx)(components_KemuThemeWrapper,{theme:d,children:(0,jsx_runtime.jsxs)(components_WidgetContainer,{className:h,width:s,height:o,css:(0,external_EmotionReact_.css)`
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-        `,children:[t&&i&&(0,jsx_runtime.jsx)(components_SettingsBar,{iconColor:c,onSettingsClick:i}),(0,jsx_runtime.jsxs)(components_WidgetBody,{className:l,children:[a&&m&&(0,jsx_runtime.jsx)(components_SvgContainer,{width:n,height:r,className:g,children:m}),e]})]})});/* harmony default export */ const components_BaseWidget = (BaseWidget);
+        `,children:[t&&i&&(0,jsx_runtime.jsx)(components_SettingsBar,{iconColor:c,onSettingsClick:i}),(0,jsx_runtime.jsxs)(components_WidgetBody,{className:l,children:[a&&m&&(0,jsx_runtime.jsx)(components_SvgContainer,{width:n,height:r,className:g,marginTop:t?void 0:0,children:m}),e]})]})});/* harmony default export */ const components_BaseWidget = (BaseWidget);
 ;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/ownerDocument/ownerDocument.js
 function ownerDocument(node) {
   return node && node.ownerDocument || document;
@@ -13568,12 +9013,12 @@ const Portal = /*#__PURE__*/external_React_.forwardRef(function Portal(props, fo
   } = props;
   const [mountNode, setMountNode] = external_React_.useState(null);
   const handleRef = useForkRef(/*#__PURE__*/external_React_.isValidElement(children) ? getReactElementRef(children) : null, forwardedRef);
-  esm_useEnhancedEffect_useEnhancedEffect(() => {
+  useEnhancedEffect_useEnhancedEffect(() => {
     if (!disablePortal) {
       setMountNode(getContainer(container) || document.body);
     }
   }, [container, disablePortal]);
-  esm_useEnhancedEffect_useEnhancedEffect(() => {
+  useEnhancedEffect_useEnhancedEffect(() => {
     if (mountNode && !disablePortal) {
       setRef(forwardedRef, mountNode);
       return () => {
@@ -14313,7 +9758,7 @@ Transition.EXITING = EXITING;
 function styles_useTheme_useTheme() {
   const theme = esm_useTheme_useTheme(styles_defaultTheme);
   if (false) {}
-  return theme[styles_identifier] || theme;
+  return theme[identifier] || theme;
 }
 ;// ./node_modules/.pnpm/@mui+material@7.3.4_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_kop3oukuakutst7idhw3uwwsli/node_modules/@mui/material/esm/transitions/utils.js
 const reflow = node => node.scrollTop;
@@ -14527,7 +9972,7 @@ const BackdropRoot = styles_styled('div', {
   }]
 });
 const Backdrop = /*#__PURE__*/external_React_.forwardRef(function Backdrop(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiBackdrop'
   });
@@ -15119,7 +10564,7 @@ const ModalBackdrop = styles_styled(Backdrop_Backdrop, {
  * This component shares many concepts with [react-overlays](https://react-bootstrap.github.io/react-overlays/#modals).
  */
 const Modal = /*#__PURE__*/external_React_.forwardRef(function Modal(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     name: 'MuiModal',
     props: inProps
   });
@@ -15337,7 +10782,7 @@ const PaperRoot = styles_styled('div', {
   }]
 })));
 const Paper = /*#__PURE__*/external_React_.forwardRef(function Paper(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiPaper'
   });
@@ -15372,7 +10817,7 @@ const Paper = /*#__PURE__*/external_React_.forwardRef(function Paper(inProps, re
           '--Paper-overlay': theme.vars.overlays?.[elevation]
         }),
         ...(!theme.vars && theme.palette.mode === 'dark' && {
-          '--Paper-overlay': `linear-gradient(${colorManipulator_alpha('#fff', getOverlayAlpha_getOverlayAlpha(elevation))}, ${colorManipulator_alpha('#fff', getOverlayAlpha_getOverlayAlpha(elevation))})`
+          '--Paper-overlay': `linear-gradient(${alpha('#fff', getOverlayAlpha(elevation))}, ${alpha('#fff', getOverlayAlpha(elevation))})`
         })
       }),
       ...other.style
@@ -15589,7 +11034,7 @@ const DialogPaper = styles_styled(Paper_Paper, {
  * Dialogs are overlaid modal paper based components with a backdrop.
  */
 const Dialog = /*#__PURE__*/external_React_.forwardRef(function Dialog(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiDialog'
   });
@@ -15829,7 +11274,7 @@ const DialogContentRoot = styles_styled('div', {
   }]
 })));
 const DialogContent = /*#__PURE__*/external_React_.forwardRef(function DialogContent(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiDialogContent'
   });
@@ -15908,7 +11353,7 @@ const DialogActionsRoot = styles_styled('div', {
   }]
 });
 const DialogActions = /*#__PURE__*/external_React_.forwardRef(function DialogActions(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiDialogActions'
   });
@@ -17293,8 +12738,8 @@ const Button = /*#__PURE__*/external_React_.forwardRef(function Button(inProps, 
   // props priority: `inProps` > `contextProps` > `themeDefaultProps`
   const contextProps = external_React_.useContext(ButtonGroup_ButtonGroupContext);
   const buttonGroupButtonContextPositionClassName = external_React_.useContext(ButtonGroup_ButtonGroupButtonContext);
-  const resolvedProps = resolveProps_resolveProps(contextProps, inProps);
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const resolvedProps = resolveProps(contextProps, inProps);
+  const props = DefaultPropsProvider_useDefaultProps({
     props: resolvedProps,
     name: 'MuiButton'
   });
@@ -17389,9 +12834,9 @@ const Button = /*#__PURE__*/external_React_.forwardRef(function Button(inProps, 
 });
  false ? 0 : void 0;
 /* harmony default export */ const Button_Button = (Button);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/CommonElements.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/CommonElements.js
 const ButtonWithoutRipple=newStyled((({...t})=>(0,jsx_runtime.jsx)(Button_Button,{disableRipple:!0,...t})))``;
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/KemuPrimaryButton.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/KemuPrimaryButton.js
 const KemuPrimaryButton=newStyled(ButtonWithoutRipple)`
   color: #fff;
   box-shadow: ${({noShadow:o})=>o?"none":"0 2px 6px var(--kemu-color-primary)"};
@@ -17433,9 +12878,10 @@ const KemuPrimaryButton=newStyled(ButtonWithoutRipple)`
   &:disabled {
     opacity: 0.65;
     pointer-events: none;
+    color: #ffffffb0;
   }
 `;/* harmony default export */ const components_KemuPrimaryButton = (KemuPrimaryButton);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/KemuLightButton.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/KemuLightButton.js
 const KemuLightButton=newStyled(ButtonWithoutRipple)`
   background-color: var(--kemu-color-light);
   border-color: var(--kemu-color-light);
@@ -17479,37 +12925,14 @@ const KemuLightButton=newStyled(ButtonWithoutRipple)`
     background: rgba(24, 33, 45, 0.04);
   }
 `;/* harmony default export */ const components_KemuLightButton = (KemuLightButton);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/SettingsDialog.js
-const ScrollableContainer=newStyled.div`
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/SettingsDialog.js
+const ScrollableContainer=styles_styled("div")`
   height: 100%;
   overflow-y: auto;
   padding: 0px 25px;
   // Add extra pixels for the dialog actions
   padding-bottom: 54px;
-`,StyledDialogContent=newStyled(DialogContent_DialogContent)`
-  height: 100%;
-  overflow-y: unset;
-  padding: unset;
-  padding-top: 20px;
-`,Header=newStyled.div`
-  line-height: 30px;
-  align-self: center;
-  width: 100%;
-  padding: 10px 25px;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  margin-bottom: 0px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-`,Title=newStyled.h4`
-  font-size: 16px;
-  line-height: 28px;
-  padding-right: 10px;
-  margin-bottom: 0;
-  font-weight: 700;
-  font-family: 'Nunito', 'Segoe UI', arial;
-  color: #6c757d;
-`,ResizableDialog=newStyled(Dialog_Dialog)`
+`,StyledDialogContent=styles_styled(DialogContent_DialogContent)({height:"100%",overflowY:"unset",padding:"unset",paddingTop:"20px"}),Header=styles_styled("div")((({theme:e})=>({lineHeight:"30px",alignSelf:"center",width:"100%",padding:"10px 25px",display:"flex",alignItems:"center",boxSizing:"border-box",marginBottom:0,borderBottom:`1px solid ${e.palette.divider}`}))),Title=styles_styled("h4")((({theme:e})=>({fontSize:"16px",lineHeight:"28px",paddingRight:"10px",marginBottom:0,fontWeight:700,fontFamily:'"Nunito", "Segoe UI", arial',color:e.palette.text.primary}))),ResizableDialog=styles_styled(Dialog_Dialog)`
   & .MuiDialog-paper {
     margin: 0;
     position: absolute;
@@ -17531,30 +12954,8 @@ const ScrollableContainer=newStyled.div`
   & .MuiModal-backdrop {
     background-color: rgba(0, 0, 0, 0.35);
   }
-`,StyledDialogActions=newStyled(DialogActions_DialogActions)`
-  position: absolute;
-  margin-top: 20px;
-  width: 100%;
-  padding: 0 25px 20px;
-  bottom: 0;
-  right: 0;
-  background-color: white;
-  z-index: 2;
-  display: flex;
-  gap: 20px;
-`,ExpandButton=newStyled(IconButton_IconButton)`
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
-  
-  &:hover {
-    background-color: rgba(255, 255, 255, 1);
-  }
-`,SettingsDialog=({title:e="Settings",open:t,noHeader:i=!1,onClose:o,onSave:a,children:l,serviceOnline:n=!0,saveDisabled:r=!1,minHeight:s=400,minWidth:d=500,maxWidth:m,maxHeight:p,cancelButtonText:g="Cancel",saveButtonText:h="Save",disableResizing:c=!1,disableExpansion:x=!1,dialogClassName:u,resizableClassName:b,dialogContentClassName:f,dialogActionsClassName:y})=>{const[C,j]=(0,external_React_.useState)({width:d,height:s}),[w,D]=(0,external_React_.useState)(!1),[S,_]=(0,external_React_.useState)({width:d,height:s}),k=(0,external_React_.useCallback)(((e,t,i,o)=>{if(c)return;const a={width:i.offsetWidth,height:i.offsetHeight};j(a)}),[c]),z=(0,external_React_.useCallback)(((e,t)=>{"backdropClick"!==t&&"escapeKeyDown"!==t&&o()}),[o]),v=(0,external_React_.useCallback)((()=>{if(w)j(S),D(!1);else{_(C);const e=window.innerWidth-180,t=window.innerHeight-120-60;j({width:Math.max(d,e),height:Math.max(s,t)}),D(!0)}}),[w,C,S,d,s]),B={pointerEvents:"none"},K=!x,N=!c&&!w,R=(0,jsx_runtime.jsxs)(jsx_runtime.Fragment,{children:[!i&&(0,jsx_runtime.jsx)(Header,{children:(0,jsx_runtime.jsx)(Title,{children:e})}),K&&(0,jsx_runtime.jsx)(ExpandButton,{onClick:v,size:"small",children:(0,jsx_runtime.jsx)(w?FullscreenExit:Fullscreen,{})}),(0,jsx_runtime.jsx)(StyledDialogContent,{className:f,children:(0,jsx_runtime.jsx)(ScrollableContainer,{children:l})}),(0,jsx_runtime.jsxs)(StyledDialogActions,{className:y,children:[(0,jsx_runtime.jsx)(components_KemuLightButton,{onClick:o,children:g}),(0,jsx_runtime.jsx)(components_KemuPrimaryButton,{disabled:!n||r,onClick:a,children:h})]})]});return (0,jsx_runtime.jsx)(ResizableDialog,{onClose:z,open:t,className:u,children:(0,jsx_runtime.jsx)(components_KemuThemeWrapper,{children:c?(0,jsx_runtime.jsx)("div",{className:b,style:{width:C.width,height:C.height},children:R}):(0,jsx_runtime.jsx)(lib_Resizable,{enable:{top:N,right:N,bottom:N,left:N,topRight:N,bottomRight:N,bottomLeft:N,topLeft:N},handleStyles:{bottomLeft:B,bottomRight:{zIndex:2},bottom:B,top:B,topLeft:B,topRight:B},minHeight:s,minWidth:d,maxWidth:m,maxHeight:p,size:C,onResizeStop:k,className:b,children:R})})})};/* harmony default export */ const components_SettingsDialog = (SettingsDialog);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/HorizontalField.js
+`,StyledDialogActions=styles_styled(DialogActions_DialogActions)((({theme:e})=>({position:"absolute",marginTop:"20px",width:"100%",padding:"10px 25px 20px",bottom:0,right:0,backgroundColor:e.palette.background.paper,borderTop:`1px solid ${e.palette.divider}`,zIndex:2,display:"flex",gap:"20px"}))),ExpandButton=styles_styled(IconButton_IconButton)((({theme:e})=>({position:"absolute",top:8,right:8,zIndex:2,color:e.palette.text.secondary,backgroundColor:alpha(e.palette.background.paper,.9),backdropFilter:"blur(4px)","&:hover":{backgroundColor:e.palette.background.paper}}))),SettingsDialog=({title:e="Settings",open:t,noHeader:i=!1,onClose:o,onSave:a,children:l,serviceOnline:r=!0,saveDisabled:n=!1,minHeight:s=250,minWidth:d=450,maxWidth:m,maxHeight:p=(window.visualViewport?.height??window.innerHeight)-100,initialHeight:h=Math.min(800,(window.visualViewport?.height??window.innerHeight)-100),initialWidth:c=450,cancelButtonText:g="Cancel",saveButtonText:u="Save",disableResizing:x=!1,disableExpansion:b=!1,dialogClassName:f,resizableClassName:y,dialogContentClassName:w,dialogActionsClassName:C,persistenceSizeKey:S,dialogStyle:k,contentWrapperStyle:j})=>{const D=(0,external_React_.useCallback)((e=>{if(S)try{localStorage.setItem(S,JSON.stringify(e))}catch(e){console.warn(`Failed to save persisted dimensions for key "${S}":`,e)}}),[S]),v=(0,external_React_.useCallback)((()=>{if(!S)return null;try{const e=localStorage.getItem(S);if(e){const t=JSON.parse(e);if(t&&"number"==typeof t.width&&"number"==typeof t.height)return{width:t.width,height:t.height}}}catch(e){console.warn(`Failed to load persisted dimensions for key "${S}":`,e)}return null}),[S]),[_,z]=(0,external_React_.useState)({width:c,height:h}),[B,H]=(0,external_React_.useState)(!1),[F,K]=(0,external_React_.useState)({width:c,height:h});(0,external_React_.useEffect)((()=>{if(t&&S){const e=v();e&&(z(e),K(e))}}),[t,S,v]);const N=(0,external_React_.useCallback)(((e,t,i,o)=>{if(x)return;const a={width:i.offsetWidth,height:i.offsetHeight};z(a),D(a)}),[x,D]),W=(0,external_React_.useCallback)(((e,t)=>{"backdropClick"!==t&&"escapeKeyDown"!==t&&o()}),[o]),R=(0,external_React_.useCallback)((()=>{if(B)z(F),D(F),H(!1);else{K(_);const e=window.innerWidth-180,t=window.innerHeight-120-60,i={width:Math.max(d,e),height:Math.max(s,t)};z(i),D(i),H(!0)}}),[B,_,F,d,s,D]),I={pointerEvents:"none"},T=!b,E=!x&&!B,A=(0,jsx_runtime.jsxs)(jsx_runtime.Fragment,{children:[!i&&(0,jsx_runtime.jsx)(Header,{children:(0,jsx_runtime.jsx)(Title,{children:e})}),T&&(0,jsx_runtime.jsx)(ExpandButton,{onClick:R,size:"small",children:(0,jsx_runtime.jsx)(B?FullscreenExit:Fullscreen,{})}),(0,jsx_runtime.jsx)(StyledDialogContent,{className:w,children:(0,jsx_runtime.jsx)(ScrollableContainer,{style:j,children:l})}),(0,jsx_runtime.jsxs)(StyledDialogActions,{className:C,children:[(0,jsx_runtime.jsx)(components_KemuLightButton,{onClick:o,children:g}),(0,jsx_runtime.jsx)(components_KemuPrimaryButton,{disabled:!r||n,onClick:a,children:u})]})]});return (0,jsx_runtime.jsx)(ResizableDialog,{onClose:W,open:t,className:f,style:k,children:(0,jsx_runtime.jsx)(components_KemuThemeWrapper,{children:x?(0,jsx_runtime.jsx)("div",{className:y,style:{width:_.width,height:_.height},children:A}):(0,jsx_runtime.jsx)(lib_Resizable,{enable:{top:E,right:E,bottom:E,left:E,topRight:E,bottomRight:E,bottomLeft:E,topLeft:E},handleStyles:{bottomLeft:I,bottomRight:{zIndex:2},bottom:I,top:I,topLeft:I,topRight:I},minHeight:s,minWidth:d,maxWidth:m,maxHeight:p,size:_,onResizeStop:N,className:y,style:j,children:A})})})};/* harmony default export */ const components_SettingsDialog = (SettingsDialog);
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/HorizontalField.js
 const HorizontalField=newStyled.div`
   display: flex;
   margin-bottom: 10px;
@@ -17590,7 +12991,7 @@ const splitProps = props => {
     systemProps: {},
     otherProps: {}
   };
-  const config = props?.theme?.unstable_sxConfig ?? esm_styleFunctionSx_defaultSxConfig;
+  const config = props?.theme?.unstable_sxConfig ?? styleFunctionSx_defaultSxConfig;
   Object.keys(props).forEach(prop => {
     if (config[prop]) {
       result.systemProps[prop] = props[prop];
@@ -17615,7 +13016,7 @@ function extendSxProp(props) {
   } else if (typeof inSx === 'function') {
     finalSx = (...args) => {
       const result = inSx(...args);
-      if (!deepmerge_isPlainObject(result)) {
+      if (!isPlainObject(result)) {
         return systemProps;
       }
       return {
@@ -17801,7 +13202,7 @@ const Typography = /*#__PURE__*/external_React_.forwardRef(function Typography(i
   const {
     color,
     ...themeProps
-  } = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  } = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiTypography'
   });
@@ -17989,7 +13390,7 @@ const AsteriskComponent = styles_styled('span', {
  * Use this component if you want to display an extra label.
  */
 const FormControlLabel = /*#__PURE__*/external_React_.forwardRef(function FormControlLabel(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiFormControlLabel'
   });
@@ -18586,7 +13987,7 @@ const defaultCheckedIcon = /*#__PURE__*/(0,jsx_runtime.jsx)(CheckBox, {});
 const defaultIcon = /*#__PURE__*/(0,jsx_runtime.jsx)(CheckBoxOutlineBlank, {});
 const defaultIndeterminateIcon = /*#__PURE__*/(0,jsx_runtime.jsx)(IndeterminateCheckBox, {});
 const Checkbox = /*#__PURE__*/external_React_.forwardRef(function Checkbox(inProps, ref) {
-  const props = DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  const props = DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiCheckbox'
   });
@@ -18650,19 +14051,19 @@ const Checkbox = /*#__PURE__*/external_React_.forwardRef(function Checkbox(inPro
 });
  false ? 0 : void 0;
 /* harmony default export */ const Checkbox_Checkbox = (Checkbox);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/CheckboxField.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/CheckboxField.js
 const CheckboxField=e=>{const o=(0,external_React_.useCallback)((o=>{const l=o.target.checked;e.onChange&&e.onChange(l)}),[e.onChange]);return (0,jsx_runtime.jsx)(components_HorizontalField,{children:(0,jsx_runtime.jsx)(FormControlLabel_FormControlLabel,{css:(0,external_EmotionReact_.css)`
           margin-left: 0px;
         `,control:(0,jsx_runtime.jsx)(Checkbox_Checkbox,{style:{paddingRight:8},onChange:o,checked:e.checked,disabled:e.disabled}),label:e.label})})};/* harmony default export */ const components_CheckboxField = (CheckboxField);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/useOnBroadcastEvent.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/useOnBroadcastEvent.js
 const useOnBroadcastEvent=t=>{useContext(WidgetInstanceContext).useOnBroadcastEvent(t)};/* harmony default export */ const hooks_useOnBroadcastEvent = ((/* unused pure expression or super */ null && (useOnBroadcastEvent)));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/useOnParentEvent.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/useOnParentEvent.js
 const useOnParentEvent=t=>{useContext(WidgetInstanceContext).useOnParentEvent(t)};/* harmony default export */ const hooks_useOnParentEvent = ((/* unused pure expression or super */ null && (useOnParentEvent)));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/useOnSetOutputsEvent.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/useOnSetOutputsEvent.js
 const useOnSetOutputsEvent=t=>{useContext(WidgetInstanceContext).useOnSetOutputsEvent(t)};/* harmony default export */ const hooks_useOnSetOutputsEvent = ((/* unused pure expression or super */ null && (useOnSetOutputsEvent)));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/useReactiveWidgetState.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/useReactiveWidgetState.js
 const useReactiveWidgetState=(t,e)=>{const a=getContext(),{state:o,getState:i,setState:n}=a.useWidgetState();return[{...t,...o},(0,external_React_.useCallback)((async(a,o=!0)=>{let r=a;const s={...t,...i()};if("function"==typeof a&&(r=await a(s)),e){if(!e(s,r))return}return n(r,o)}),[i])]};/* harmony default export */ const hooks_useReactiveWidgetState = (useReactiveWidgetState);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/index.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/hooks/index.js
 
 ;// ./src/common/constants.ts
 var getScannerDefaultState = function getScannerDefaultState() {
@@ -18840,6 +14241,1478 @@ function styled_engine_internal_serializeStyles(styles) {
 
 
 
+// EXTERNAL MODULE: ./node_modules/.pnpm/react-is@19.0.0/node_modules/react-is/cjs/react-is.production.js
+var cjs_react_is_production = __webpack_require__(491);
+;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/deepmerge/deepmerge.js
+
+
+
+// https://github.com/sindresorhus/is-plain-obj/blob/main/index.js
+function deepmerge_isPlainObject(item) {
+  if (typeof item !== 'object' || item === null) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(item);
+  return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in item) && !(Symbol.iterator in item);
+}
+function deepmerge_deepClone(source) {
+  if (/*#__PURE__*/external_React_.isValidElement(source) || (0,cjs_react_is_production/* isValidElementType */.Hy)(source) || !deepmerge_isPlainObject(source)) {
+    return source;
+  }
+  const output = {};
+  Object.keys(source).forEach(key => {
+    output[key] = deepmerge_deepClone(source[key]);
+  });
+  return output;
+}
+
+/**
+ * Merge objects deeply.
+ * It will shallow copy React elements.
+ *
+ * If `options.clone` is set to `false` the source object will be merged directly into the target object.
+ *
+ * @example
+ * ```ts
+ * deepmerge({ a: { b: 1 }, d: 2 }, { a: { c: 2 }, d: 4 });
+ * // => { a: { b: 1, c: 2 }, d: 4 }
+ * ````
+ *
+ * @param target The target object.
+ * @param source The source object.
+ * @param options The merge options.
+ * @param options.clone Set to `false` to merge the source object directly into the target object.
+ * @returns The merged object.
+ */
+function deepmerge_deepmerge_deepmerge(target, source, options = {
+  clone: true
+}) {
+  const output = options.clone ? {
+    ...target
+  } : target;
+  if (deepmerge_isPlainObject(target) && deepmerge_isPlainObject(source)) {
+    Object.keys(source).forEach(key => {
+      if (/*#__PURE__*/external_React_.isValidElement(source[key]) || (0,cjs_react_is_production/* isValidElementType */.Hy)(source[key])) {
+        output[key] = source[key];
+      } else if (deepmerge_isPlainObject(source[key]) &&
+      // Avoid prototype pollution
+      Object.prototype.hasOwnProperty.call(target, key) && deepmerge_isPlainObject(target[key])) {
+        // Since `output` is a clone of `target` and we have narrowed `target` in this block we can cast to the same type.
+        output[key] = deepmerge_deepmerge_deepmerge(target[key], source[key], options);
+      } else if (options.clone) {
+        output[key] = deepmerge_isPlainObject(source[key]) ? deepmerge_deepClone(source[key]) : source[key];
+      } else {
+        output[key] = source[key];
+      }
+    });
+  }
+  return output;
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createBreakpoints/createBreakpoints.js
+// Sorted ASC by size. That's important.
+// It can't be configured as it's used statically for propTypes.
+const createBreakpoints_breakpointKeys = (/* unused pure expression or super */ null && (['xs', 'sm', 'md', 'lg', 'xl']));
+const createBreakpoints_sortBreakpointsValues = values => {
+  const breakpointsAsArray = Object.keys(values).map(key => ({
+    key,
+    val: values[key]
+  })) || [];
+  // Sort in ascending order
+  breakpointsAsArray.sort((breakpoint1, breakpoint2) => breakpoint1.val - breakpoint2.val);
+  return breakpointsAsArray.reduce((acc, obj) => {
+    return {
+      ...acc,
+      [obj.key]: obj.val
+    };
+  }, {});
+};
+
+// Keep in mind that @media is inclusive by the CSS specification.
+function createBreakpoints_createBreakpoints(breakpoints) {
+  const {
+    // The breakpoint **start** at this value.
+    // For instance with the first breakpoint xs: [xs, sm).
+    values = {
+      xs: 0,
+      // phone
+      sm: 600,
+      // tablet
+      md: 900,
+      // small laptop
+      lg: 1200,
+      // desktop
+      xl: 1536 // large screen
+    },
+    unit = 'px',
+    step = 5,
+    ...other
+  } = breakpoints;
+  const sortedValues = createBreakpoints_sortBreakpointsValues(values);
+  const keys = Object.keys(sortedValues);
+  function up(key) {
+    const value = typeof values[key] === 'number' ? values[key] : key;
+    return `@media (min-width:${value}${unit})`;
+  }
+  function down(key) {
+    const value = typeof values[key] === 'number' ? values[key] : key;
+    return `@media (max-width:${value - step / 100}${unit})`;
+  }
+  function between(start, end) {
+    const endIndex = keys.indexOf(end);
+    return `@media (min-width:${typeof values[start] === 'number' ? values[start] : start}${unit}) and ` + `(max-width:${(endIndex !== -1 && typeof values[keys[endIndex]] === 'number' ? values[keys[endIndex]] : end) - step / 100}${unit})`;
+  }
+  function only(key) {
+    if (keys.indexOf(key) + 1 < keys.length) {
+      return between(key, keys[keys.indexOf(key) + 1]);
+    }
+    return up(key);
+  }
+  function not(key) {
+    // handle first and last key separately, for better readability
+    const keyIndex = keys.indexOf(key);
+    if (keyIndex === 0) {
+      return up(keys[1]);
+    }
+    if (keyIndex === keys.length - 1) {
+      return down(keys[keyIndex]);
+    }
+    return between(key, keys[keys.indexOf(key) + 1]).replace('@media', '@media not all and');
+  }
+  return {
+    keys,
+    values: sortedValues,
+    up,
+    down,
+    between,
+    only,
+    not,
+    unit,
+    ...other
+  };
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssContainerQueries/cssContainerQueries.js
+
+/**
+ * For using in `sx` prop to sort the breakpoint from low to high.
+ * Note: this function does not work and will not support multiple units.
+ *       e.g. input: { '@container (min-width:300px)': '1rem', '@container (min-width:40rem)': '2rem' }
+ *            output: { '@container (min-width:40rem)': '2rem', '@container (min-width:300px)': '1rem' } // since 40 < 300 eventhough 40rem > 300px
+ */
+function cssContainerQueries_sortContainerQueries(theme, css) {
+  if (!theme.containerQueries) {
+    return css;
+  }
+  const sorted = Object.keys(css).filter(key => key.startsWith('@container')).sort((a, b) => {
+    const regex = /min-width:\s*([0-9.]+)/;
+    return +(a.match(regex)?.[1] || 0) - +(b.match(regex)?.[1] || 0);
+  });
+  if (!sorted.length) {
+    return css;
+  }
+  return sorted.reduce((acc, key) => {
+    const value = css[key];
+    delete acc[key];
+    acc[key] = value;
+    return acc;
+  }, {
+    ...css
+  });
+}
+function cssContainerQueries_isCqShorthand(breakpointKeys, value) {
+  return value === '@' || value.startsWith('@') && (breakpointKeys.some(key => value.startsWith(`@${key}`)) || !!value.match(/^@\d/));
+}
+function cssContainerQueries_getContainerQuery(theme, shorthand) {
+  const matches = shorthand.match(/^@([^/]+)?\/?(.+)?$/);
+  if (!matches) {
+    if (false) {}
+    return null;
+  }
+  const [, containerQuery, containerName] = matches;
+  const value = Number.isNaN(+containerQuery) ? containerQuery || 0 : +containerQuery;
+  return theme.containerQueries(containerName).up(value);
+}
+function cssContainerQueries_cssContainerQueries(themeInput) {
+  const toContainerQuery = (mediaQuery, name) => mediaQuery.replace('@media', name ? `@container ${name}` : '@container');
+  function attachCq(node, name) {
+    node.up = (...args) => toContainerQuery(themeInput.breakpoints.up(...args), name);
+    node.down = (...args) => toContainerQuery(themeInput.breakpoints.down(...args), name);
+    node.between = (...args) => toContainerQuery(themeInput.breakpoints.between(...args), name);
+    node.only = (...args) => toContainerQuery(themeInput.breakpoints.only(...args), name);
+    node.not = (...args) => {
+      const result = toContainerQuery(themeInput.breakpoints.not(...args), name);
+      if (result.includes('not all and')) {
+        // `@container` does not work with `not all and`, so need to invert the logic
+        return result.replace('not all and ', '').replace('min-width:', 'width<').replace('max-width:', 'width>').replace('and', 'or');
+      }
+      return result;
+    };
+  }
+  const node = {};
+  const containerQueries = name => {
+    attachCq(node, name);
+    return node;
+  };
+  attachCq(containerQueries);
+  return {
+    ...themeInput,
+    containerQueries
+  };
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createTheme/shape.js
+const shape_shape = {
+  borderRadius: 4
+};
+/* harmony default export */ const esm_createTheme_shape = (shape_shape);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/breakpoints/breakpoints.js
+
+
+
+
+
+// The breakpoint **start** at this value.
+// For instance with the first breakpoint xs: [xs, sm[.
+const breakpoints_values = {
+  xs: 0,
+  // phone
+  sm: 600,
+  // tablet
+  md: 900,
+  // small laptop
+  lg: 1200,
+  // desktop
+  xl: 1536 // large screen
+};
+const breakpoints_defaultBreakpoints = {
+  // Sorted ASC by size. That's important.
+  // It can't be configured as it's used statically for propTypes.
+  keys: ['xs', 'sm', 'md', 'lg', 'xl'],
+  up: key => `@media (min-width:${breakpoints_values[key]}px)`
+};
+const breakpoints_defaultContainerQueries = {
+  containerQueries: containerName => ({
+    up: key => {
+      let result = typeof key === 'number' ? key : breakpoints_values[key] || key;
+      if (typeof result === 'number') {
+        result = `${result}px`;
+      }
+      return containerName ? `@container ${containerName} (min-width:${result})` : `@container (min-width:${result})`;
+    }
+  })
+};
+function breakpoints_handleBreakpoints(props, propValue, styleFromPropValue) {
+  const theme = props.theme || {};
+  if (Array.isArray(propValue)) {
+    const themeBreakpoints = theme.breakpoints || breakpoints_defaultBreakpoints;
+    return propValue.reduce((acc, item, index) => {
+      acc[themeBreakpoints.up(themeBreakpoints.keys[index])] = styleFromPropValue(propValue[index]);
+      return acc;
+    }, {});
+  }
+  if (typeof propValue === 'object') {
+    const themeBreakpoints = theme.breakpoints || breakpoints_defaultBreakpoints;
+    return Object.keys(propValue).reduce((acc, breakpoint) => {
+      if (cssContainerQueries_isCqShorthand(themeBreakpoints.keys, breakpoint)) {
+        const containerKey = cssContainerQueries_getContainerQuery(theme.containerQueries ? theme : breakpoints_defaultContainerQueries, breakpoint);
+        if (containerKey) {
+          acc[containerKey] = styleFromPropValue(propValue[breakpoint], breakpoint);
+        }
+      }
+      // key is breakpoint
+      else if (Object.keys(themeBreakpoints.values || breakpoints_values).includes(breakpoint)) {
+        const mediaKey = themeBreakpoints.up(breakpoint);
+        acc[mediaKey] = styleFromPropValue(propValue[breakpoint], breakpoint);
+      } else {
+        const cssKey = breakpoint;
+        acc[cssKey] = propValue[cssKey];
+      }
+      return acc;
+    }, {});
+  }
+  const output = styleFromPropValue(propValue);
+  return output;
+}
+function breakpoints_breakpoints_breakpoints(styleFunction) {
+  // false positive
+  // eslint-disable-next-line react/function-component-definition
+  const newStyleFunction = props => {
+    const theme = props.theme || {};
+    const base = styleFunction(props);
+    const themeBreakpoints = theme.breakpoints || breakpoints_defaultBreakpoints;
+    const extended = themeBreakpoints.keys.reduce((acc, key) => {
+      if (props[key]) {
+        acc = acc || {};
+        acc[themeBreakpoints.up(key)] = styleFunction({
+          theme,
+          ...props[key]
+        });
+      }
+      return acc;
+    }, null);
+    return merge(base, extended);
+  };
+  newStyleFunction.propTypes =  false ? 0 : {};
+  newStyleFunction.filterProps = ['xs', 'sm', 'md', 'lg', 'xl', ...styleFunction.filterProps];
+  return newStyleFunction;
+}
+function breakpoints_createEmptyBreakpointObject(breakpointsInput = {}) {
+  const breakpointsInOrder = breakpointsInput.keys?.reduce((acc, key) => {
+    const breakpointStyleKey = breakpointsInput.up(key);
+    acc[breakpointStyleKey] = {};
+    return acc;
+  }, {});
+  return breakpointsInOrder || {};
+}
+function breakpoints_removeUnusedBreakpoints(breakpointKeys, style) {
+  return breakpointKeys.reduce((acc, key) => {
+    const breakpointOutput = acc[key];
+    const isBreakpointUnused = !breakpointOutput || Object.keys(breakpointOutput).length === 0;
+    if (isBreakpointUnused) {
+      delete acc[key];
+    }
+    return acc;
+  }, style);
+}
+function breakpoints_mergeBreakpointsInOrder(breakpointsInput, ...styles) {
+  const emptyBreakpoints = breakpoints_createEmptyBreakpointObject(breakpointsInput);
+  const mergedOutput = [emptyBreakpoints, ...styles].reduce((prev, next) => deepmerge(prev, next), {});
+  return breakpoints_removeUnusedBreakpoints(Object.keys(emptyBreakpoints), mergedOutput);
+}
+
+// compute base for responsive values; e.g.,
+// [1,2,3] => {xs: true, sm: true, md: true}
+// {xs: 1, sm: 2, md: 3} => {xs: true, sm: true, md: true}
+function breakpoints_computeBreakpointsBase(breakpointValues, themeBreakpoints) {
+  // fixed value
+  if (typeof breakpointValues !== 'object') {
+    return {};
+  }
+  const base = {};
+  const breakpointsKeys = Object.keys(themeBreakpoints);
+  if (Array.isArray(breakpointValues)) {
+    breakpointsKeys.forEach((breakpoint, i) => {
+      if (i < breakpointValues.length) {
+        base[breakpoint] = true;
+      }
+    });
+  } else {
+    breakpointsKeys.forEach(breakpoint => {
+      if (breakpointValues[breakpoint] != null) {
+        base[breakpoint] = true;
+      }
+    });
+  }
+  return base;
+}
+function breakpoints_resolveBreakpointValues({
+  values: breakpointValues,
+  breakpoints: themeBreakpoints,
+  base: customBase
+}) {
+  const base = customBase || breakpoints_computeBreakpointsBase(breakpointValues, themeBreakpoints);
+  const keys = Object.keys(base);
+  if (keys.length === 0) {
+    return breakpointValues;
+  }
+  let previous;
+  return keys.reduce((acc, breakpoint, i) => {
+    if (Array.isArray(breakpointValues)) {
+      acc[breakpoint] = breakpointValues[i] != null ? breakpointValues[i] : breakpointValues[previous];
+      previous = i;
+    } else if (typeof breakpointValues === 'object') {
+      acc[breakpoint] = breakpointValues[breakpoint] != null ? breakpointValues[breakpoint] : breakpointValues[previous];
+      previous = breakpoint;
+    } else {
+      acc[breakpoint] = breakpointValues;
+    }
+    return acc;
+  }, {});
+}
+/* harmony default export */ const esm_breakpoints_breakpoints = ((/* unused pure expression or super */ null && (breakpoints_breakpoints_breakpoints)));
+;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/formatMuiErrorMessage/formatMuiErrorMessage.js
+/**
+ * WARNING: Don't import this directly. It's imported by the code generated by
+ * `@mui/interal-babel-plugin-minify-errors`. Make sure to always use string literals in `Error`
+ * constructors to ensure the plugin works as expected. Supported patterns include:
+ *   throw new Error('My message');
+ *   throw new Error(`My message: ${foo}`);
+ *   throw new Error(`My message: ${foo}` + 'another string');
+ *   ...
+ * @param {number} code
+ */
+function formatMuiErrorMessage_formatMuiErrorMessage(code, ...args) {
+  const url = new URL(`https://mui.com/production-error/?code=${code}`);
+  args.forEach(arg => url.searchParams.append('args[]', arg));
+  return `Minified MUI error #${code}; visit ${url} for the full message.`;
+}
+;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/capitalize/capitalize.js
+
+// It should to be noted that this function isn't equivalent to `text-transform: capitalize`.
+//
+// A strict capitalization should uppercase the first letter of each word in the sentence.
+// We only handle the first word.
+function capitalize_capitalize_capitalize(string) {
+  if (typeof string !== 'string') {
+    throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(7));
+  }
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/style/style.js
+
+
+
+function style_getPath(obj, path, checkVars = true) {
+  if (!path || typeof path !== 'string') {
+    return null;
+  }
+
+  // Check if CSS variables are used
+  if (obj && obj.vars && checkVars) {
+    const val = `vars.${path}`.split('.').reduce((acc, item) => acc && acc[item] ? acc[item] : null, obj);
+    if (val != null) {
+      return val;
+    }
+  }
+  return path.split('.').reduce((acc, item) => {
+    if (acc && acc[item] != null) {
+      return acc[item];
+    }
+    return null;
+  }, obj);
+}
+function style_getStyleValue(themeMapping, transform, propValueFinal, userValue = propValueFinal) {
+  let value;
+  if (typeof themeMapping === 'function') {
+    value = themeMapping(propValueFinal);
+  } else if (Array.isArray(themeMapping)) {
+    value = themeMapping[propValueFinal] || userValue;
+  } else {
+    value = style_getPath(themeMapping, propValueFinal) || userValue;
+  }
+  if (transform) {
+    value = transform(value, userValue, themeMapping);
+  }
+  return value;
+}
+function style_style_style(options) {
+  const {
+    prop,
+    cssProperty = options.prop,
+    themeKey,
+    transform
+  } = options;
+
+  // false positive
+  // eslint-disable-next-line react/function-component-definition
+  const fn = props => {
+    if (props[prop] == null) {
+      return null;
+    }
+    const propValue = props[prop];
+    const theme = props.theme;
+    const themeMapping = style_getPath(theme, themeKey) || {};
+    const styleFromPropValue = propValueFinal => {
+      let value = style_getStyleValue(themeMapping, transform, propValueFinal);
+      if (propValueFinal === value && typeof propValueFinal === 'string') {
+        // Haven't found value
+        value = style_getStyleValue(themeMapping, transform, `${prop}${propValueFinal === 'default' ? '' : capitalize_capitalize_capitalize(propValueFinal)}`, propValueFinal);
+      }
+      if (cssProperty === false) {
+        return value;
+      }
+      return {
+        [cssProperty]: value
+      };
+    };
+    return breakpoints_handleBreakpoints(props, propValue, styleFromPropValue);
+  };
+  fn.propTypes =  false ? 0 : {};
+  fn.filterProps = [prop];
+  return fn;
+}
+/* harmony default export */ const esm_style_style = (style_style_style);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/merge/merge.js
+
+function merge_merge_merge(acc, item) {
+  if (!item) {
+    return acc;
+  }
+  return deepmerge_deepmerge_deepmerge(acc, item, {
+    clone: false // No need to clone deep, it's way faster.
+  });
+}
+/* harmony default export */ const system_esm_merge_merge = (merge_merge_merge);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/memoize/memoize.js
+function memoize_memoize(fn) {
+  const cache = {};
+  return arg => {
+    if (cache[arg] === undefined) {
+      cache[arg] = fn(arg);
+    }
+    return cache[arg];
+  };
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/spacing/spacing.js
+
+
+
+
+
+const spacing_properties = {
+  m: 'margin',
+  p: 'padding'
+};
+const spacing_directions = {
+  t: 'Top',
+  r: 'Right',
+  b: 'Bottom',
+  l: 'Left',
+  x: ['Left', 'Right'],
+  y: ['Top', 'Bottom']
+};
+const spacing_aliases = {
+  marginX: 'mx',
+  marginY: 'my',
+  paddingX: 'px',
+  paddingY: 'py'
+};
+
+// memoize() impact:
+// From 300,000 ops/sec
+// To 350,000 ops/sec
+const spacing_getCssProperties = memoize_memoize(prop => {
+  // It's not a shorthand notation.
+  if (prop.length > 2) {
+    if (spacing_aliases[prop]) {
+      prop = spacing_aliases[prop];
+    } else {
+      return [prop];
+    }
+  }
+  const [a, b] = prop.split('');
+  const property = spacing_properties[a];
+  const direction = spacing_directions[b] || '';
+  return Array.isArray(direction) ? direction.map(dir => property + dir) : [property + direction];
+});
+const spacing_marginKeys = ['m', 'mt', 'mr', 'mb', 'ml', 'mx', 'my', 'margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'marginX', 'marginY', 'marginInline', 'marginInlineStart', 'marginInlineEnd', 'marginBlock', 'marginBlockStart', 'marginBlockEnd'];
+const spacing_paddingKeys = ['p', 'pt', 'pr', 'pb', 'pl', 'px', 'py', 'padding', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'paddingX', 'paddingY', 'paddingInline', 'paddingInlineStart', 'paddingInlineEnd', 'paddingBlock', 'paddingBlockStart', 'paddingBlockEnd'];
+const spacing_spacingKeys = [...spacing_marginKeys, ...spacing_paddingKeys];
+function spacing_createUnaryUnit(theme, themeKey, defaultValue, propName) {
+  const themeSpacing = style_getPath(theme, themeKey, true) ?? defaultValue;
+  if (typeof themeSpacing === 'number' || typeof themeSpacing === 'string') {
+    return val => {
+      if (typeof val === 'string') {
+        return val;
+      }
+      if (false) {}
+      if (typeof themeSpacing === 'string') {
+        return `calc(${val} * ${themeSpacing})`;
+      }
+      return themeSpacing * val;
+    };
+  }
+  if (Array.isArray(themeSpacing)) {
+    return val => {
+      if (typeof val === 'string') {
+        return val;
+      }
+      const abs = Math.abs(val);
+      if (false) {}
+      const transformed = themeSpacing[abs];
+      if (val >= 0) {
+        return transformed;
+      }
+      if (typeof transformed === 'number') {
+        return -transformed;
+      }
+      return `-${transformed}`;
+    };
+  }
+  if (typeof themeSpacing === 'function') {
+    return themeSpacing;
+  }
+  if (false) {}
+  return () => undefined;
+}
+function spacing_createUnarySpacing(theme) {
+  return spacing_createUnaryUnit(theme, 'spacing', 8, 'spacing');
+}
+function spacing_getValue(transformer, propValue) {
+  if (typeof propValue === 'string' || propValue == null) {
+    return propValue;
+  }
+  return transformer(propValue);
+}
+function spacing_getStyleFromPropValue(cssProperties, transformer) {
+  return propValue => cssProperties.reduce((acc, cssProperty) => {
+    acc[cssProperty] = spacing_getValue(transformer, propValue);
+    return acc;
+  }, {});
+}
+function spacing_resolveCssProperty(props, keys, prop, transformer) {
+  // Using a hash computation over an array iteration could be faster, but with only 28 items,
+  // it's doesn't worth the bundle size.
+  if (!keys.includes(prop)) {
+    return null;
+  }
+  const cssProperties = spacing_getCssProperties(prop);
+  const styleFromPropValue = spacing_getStyleFromPropValue(cssProperties, transformer);
+  const propValue = props[prop];
+  return breakpoints_handleBreakpoints(props, propValue, styleFromPropValue);
+}
+function spacing_spacing_style(props, keys) {
+  const transformer = spacing_createUnarySpacing(props.theme);
+  return Object.keys(props).map(prop => spacing_resolveCssProperty(props, keys, prop, transformer)).reduce(system_esm_merge_merge, {});
+}
+function spacing_margin(props) {
+  return spacing_spacing_style(props, spacing_marginKeys);
+}
+spacing_margin.propTypes =  false ? 0 : {};
+spacing_margin.filterProps = spacing_marginKeys;
+function spacing_padding(props) {
+  return spacing_spacing_style(props, spacing_paddingKeys);
+}
+spacing_padding.propTypes =  false ? 0 : {};
+spacing_padding.filterProps = spacing_paddingKeys;
+function spacing_spacing_spacing(props) {
+  return spacing_spacing_style(props, spacing_spacingKeys);
+}
+spacing_spacing_spacing.propTypes =  false ? 0 : {};
+spacing_spacing_spacing.filterProps = spacing_spacingKeys;
+/* harmony default export */ const esm_spacing_spacing = ((/* unused pure expression or super */ null && (spacing_spacing_spacing)));
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createTheme/createSpacing.js
+
+
+// The different signatures imply different meaning for their arguments that can't be expressed structurally.
+// We express the difference with variable names.
+
+function createSpacing_createSpacing(spacingInput = 8,
+// Material Design layouts are visually balanced. Most measurements align to an 8dp grid, which aligns both spacing and the overall layout.
+// Smaller components, such as icons, can align to a 4dp grid.
+// https://m2.material.io/design/layout/understanding-layout.html
+transform = spacing_createUnarySpacing({
+  spacing: spacingInput
+})) {
+  // Already transformed.
+  if (spacingInput.mui) {
+    return spacingInput;
+  }
+  const spacing = (...argsInput) => {
+    if (false) {}
+    const args = argsInput.length === 0 ? [1] : argsInput;
+    return args.map(argument => {
+      const output = transform(argument);
+      return typeof output === 'number' ? `${output}px` : output;
+    }).join(' ');
+  };
+  spacing.mui = true;
+  return spacing;
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/compose/compose.js
+
+function compose_compose_compose(...styles) {
+  const handlers = styles.reduce((acc, style) => {
+    style.filterProps.forEach(prop => {
+      acc[prop] = style;
+    });
+    return acc;
+  }, {});
+
+  // false positive
+  // eslint-disable-next-line react/function-component-definition
+  const fn = props => {
+    return Object.keys(props).reduce((acc, prop) => {
+      if (handlers[prop]) {
+        return system_esm_merge_merge(acc, handlers[prop](props));
+      }
+      return acc;
+    }, {});
+  };
+  fn.propTypes =  false ? 0 : {};
+  fn.filterProps = styles.reduce((acc, style) => acc.concat(style.filterProps), []);
+  return fn;
+}
+/* harmony default export */ const esm_compose_compose = (compose_compose_compose);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/borders/borders.js
+
+
+
+
+
+function borders_borderTransform(value) {
+  if (typeof value !== 'number') {
+    return value;
+  }
+  return `${value}px solid`;
+}
+function borders_createBorderStyle(prop, transform) {
+  return esm_style_style({
+    prop,
+    themeKey: 'borders',
+    transform
+  });
+}
+const borders_border = borders_createBorderStyle('border', borders_borderTransform);
+const borders_borderTop = borders_createBorderStyle('borderTop', borders_borderTransform);
+const borders_borderRight = borders_createBorderStyle('borderRight', borders_borderTransform);
+const borders_borderBottom = borders_createBorderStyle('borderBottom', borders_borderTransform);
+const borders_borderLeft = borders_createBorderStyle('borderLeft', borders_borderTransform);
+const borders_borderColor = borders_createBorderStyle('borderColor');
+const borders_borderTopColor = borders_createBorderStyle('borderTopColor');
+const borders_borderRightColor = borders_createBorderStyle('borderRightColor');
+const borders_borderBottomColor = borders_createBorderStyle('borderBottomColor');
+const borders_borderLeftColor = borders_createBorderStyle('borderLeftColor');
+const borders_outline = borders_createBorderStyle('outline', borders_borderTransform);
+const borders_outlineColor = borders_createBorderStyle('outlineColor');
+
+// false positive
+// eslint-disable-next-line react/function-component-definition
+const borders_borderRadius = props => {
+  if (props.borderRadius !== undefined && props.borderRadius !== null) {
+    const transformer = spacing_createUnaryUnit(props.theme, 'shape.borderRadius', 4, 'borderRadius');
+    const styleFromPropValue = propValue => ({
+      borderRadius: spacing_getValue(transformer, propValue)
+    });
+    return breakpoints_handleBreakpoints(props, props.borderRadius, styleFromPropValue);
+  }
+  return null;
+};
+borders_borderRadius.propTypes =  false ? 0 : {};
+borders_borderRadius.filterProps = ['borderRadius'];
+const borders_borders_borders = esm_compose_compose(borders_border, borders_borderTop, borders_borderRight, borders_borderBottom, borders_borderLeft, borders_borderColor, borders_borderTopColor, borders_borderRightColor, borders_borderBottomColor, borders_borderLeftColor, borders_borderRadius, borders_outline, borders_outlineColor);
+/* harmony default export */ const esm_borders_borders = ((/* unused pure expression or super */ null && (borders_borders_borders)));
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssGrid/cssGrid.js
+
+
+
+
+
+
+// false positive
+// eslint-disable-next-line react/function-component-definition
+const cssGrid_gap = props => {
+  if (props.gap !== undefined && props.gap !== null) {
+    const transformer = spacing_createUnaryUnit(props.theme, 'spacing', 8, 'gap');
+    const styleFromPropValue = propValue => ({
+      gap: spacing_getValue(transformer, propValue)
+    });
+    return breakpoints_handleBreakpoints(props, props.gap, styleFromPropValue);
+  }
+  return null;
+};
+cssGrid_gap.propTypes =  false ? 0 : {};
+cssGrid_gap.filterProps = ['gap'];
+
+// false positive
+// eslint-disable-next-line react/function-component-definition
+const cssGrid_columnGap = props => {
+  if (props.columnGap !== undefined && props.columnGap !== null) {
+    const transformer = spacing_createUnaryUnit(props.theme, 'spacing', 8, 'columnGap');
+    const styleFromPropValue = propValue => ({
+      columnGap: spacing_getValue(transformer, propValue)
+    });
+    return breakpoints_handleBreakpoints(props, props.columnGap, styleFromPropValue);
+  }
+  return null;
+};
+cssGrid_columnGap.propTypes =  false ? 0 : {};
+cssGrid_columnGap.filterProps = ['columnGap'];
+
+// false positive
+// eslint-disable-next-line react/function-component-definition
+const cssGrid_rowGap = props => {
+  if (props.rowGap !== undefined && props.rowGap !== null) {
+    const transformer = spacing_createUnaryUnit(props.theme, 'spacing', 8, 'rowGap');
+    const styleFromPropValue = propValue => ({
+      rowGap: spacing_getValue(transformer, propValue)
+    });
+    return breakpoints_handleBreakpoints(props, props.rowGap, styleFromPropValue);
+  }
+  return null;
+};
+cssGrid_rowGap.propTypes =  false ? 0 : {};
+cssGrid_rowGap.filterProps = ['rowGap'];
+const cssGrid_gridColumn = esm_style_style({
+  prop: 'gridColumn'
+});
+const cssGrid_gridRow = esm_style_style({
+  prop: 'gridRow'
+});
+const cssGrid_gridAutoFlow = esm_style_style({
+  prop: 'gridAutoFlow'
+});
+const cssGrid_gridAutoColumns = esm_style_style({
+  prop: 'gridAutoColumns'
+});
+const cssGrid_gridAutoRows = esm_style_style({
+  prop: 'gridAutoRows'
+});
+const cssGrid_gridTemplateColumns = esm_style_style({
+  prop: 'gridTemplateColumns'
+});
+const cssGrid_gridTemplateRows = esm_style_style({
+  prop: 'gridTemplateRows'
+});
+const cssGrid_gridTemplateAreas = esm_style_style({
+  prop: 'gridTemplateAreas'
+});
+const cssGrid_gridArea = esm_style_style({
+  prop: 'gridArea'
+});
+const cssGrid_grid = esm_compose_compose(cssGrid_gap, cssGrid_columnGap, cssGrid_rowGap, cssGrid_gridColumn, cssGrid_gridRow, cssGrid_gridAutoFlow, cssGrid_gridAutoColumns, cssGrid_gridAutoRows, cssGrid_gridTemplateColumns, cssGrid_gridTemplateRows, cssGrid_gridTemplateAreas, cssGrid_gridArea);
+/* harmony default export */ const cssGrid_cssGrid = ((/* unused pure expression or super */ null && (cssGrid_grid)));
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/palette/palette.js
+
+
+function palette_paletteTransform(value, userValue) {
+  if (userValue === 'grey') {
+    return userValue;
+  }
+  return value;
+}
+const palette_color = esm_style_style({
+  prop: 'color',
+  themeKey: 'palette',
+  transform: palette_paletteTransform
+});
+const palette_bgcolor = esm_style_style({
+  prop: 'bgcolor',
+  cssProperty: 'backgroundColor',
+  themeKey: 'palette',
+  transform: palette_paletteTransform
+});
+const palette_backgroundColor = esm_style_style({
+  prop: 'backgroundColor',
+  themeKey: 'palette',
+  transform: palette_paletteTransform
+});
+const palette_palette_palette = esm_compose_compose(palette_color, palette_bgcolor, palette_backgroundColor);
+/* harmony default export */ const esm_palette_palette = ((/* unused pure expression or super */ null && (palette_palette_palette)));
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/sizing/sizing.js
+
+
+
+function sizing_sizingTransform(value) {
+  return value <= 1 && value !== 0 ? `${value * 100}%` : value;
+}
+const sizing_width = esm_style_style({
+  prop: 'width',
+  transform: sizing_sizingTransform
+});
+const sizing_maxWidth = props => {
+  if (props.maxWidth !== undefined && props.maxWidth !== null) {
+    const styleFromPropValue = propValue => {
+      const breakpoint = props.theme?.breakpoints?.values?.[propValue] || breakpoints_values[propValue];
+      if (!breakpoint) {
+        return {
+          maxWidth: sizing_sizingTransform(propValue)
+        };
+      }
+      if (props.theme?.breakpoints?.unit !== 'px') {
+        return {
+          maxWidth: `${breakpoint}${props.theme.breakpoints.unit}`
+        };
+      }
+      return {
+        maxWidth: breakpoint
+      };
+    };
+    return breakpoints_handleBreakpoints(props, props.maxWidth, styleFromPropValue);
+  }
+  return null;
+};
+sizing_maxWidth.filterProps = ['maxWidth'];
+const sizing_minWidth = esm_style_style({
+  prop: 'minWidth',
+  transform: sizing_sizingTransform
+});
+const sizing_height = esm_style_style({
+  prop: 'height',
+  transform: sizing_sizingTransform
+});
+const sizing_maxHeight = esm_style_style({
+  prop: 'maxHeight',
+  transform: sizing_sizingTransform
+});
+const sizing_minHeight = esm_style_style({
+  prop: 'minHeight',
+  transform: sizing_sizingTransform
+});
+const sizing_sizeWidth = esm_style_style({
+  prop: 'size',
+  cssProperty: 'width',
+  transform: sizing_sizingTransform
+});
+const sizing_sizeHeight = esm_style_style({
+  prop: 'size',
+  cssProperty: 'height',
+  transform: sizing_sizingTransform
+});
+const sizing_boxSizing = esm_style_style({
+  prop: 'boxSizing'
+});
+const sizing_sizing_sizing = esm_compose_compose(sizing_width, sizing_maxWidth, sizing_minWidth, sizing_height, sizing_maxHeight, sizing_minHeight, sizing_boxSizing);
+/* harmony default export */ const esm_sizing_sizing = ((/* unused pure expression or super */ null && (sizing_sizing_sizing)));
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/styleFunctionSx/defaultSxConfig.js
+
+
+
+
+
+const defaultSxConfig_defaultSxConfig = {
+  // borders
+  border: {
+    themeKey: 'borders',
+    transform: borders_borderTransform
+  },
+  borderTop: {
+    themeKey: 'borders',
+    transform: borders_borderTransform
+  },
+  borderRight: {
+    themeKey: 'borders',
+    transform: borders_borderTransform
+  },
+  borderBottom: {
+    themeKey: 'borders',
+    transform: borders_borderTransform
+  },
+  borderLeft: {
+    themeKey: 'borders',
+    transform: borders_borderTransform
+  },
+  borderColor: {
+    themeKey: 'palette'
+  },
+  borderTopColor: {
+    themeKey: 'palette'
+  },
+  borderRightColor: {
+    themeKey: 'palette'
+  },
+  borderBottomColor: {
+    themeKey: 'palette'
+  },
+  borderLeftColor: {
+    themeKey: 'palette'
+  },
+  outline: {
+    themeKey: 'borders',
+    transform: borders_borderTransform
+  },
+  outlineColor: {
+    themeKey: 'palette'
+  },
+  borderRadius: {
+    themeKey: 'shape.borderRadius',
+    style: borders_borderRadius
+  },
+  // palette
+  color: {
+    themeKey: 'palette',
+    transform: palette_paletteTransform
+  },
+  bgcolor: {
+    themeKey: 'palette',
+    cssProperty: 'backgroundColor',
+    transform: palette_paletteTransform
+  },
+  backgroundColor: {
+    themeKey: 'palette',
+    transform: palette_paletteTransform
+  },
+  // spacing
+  p: {
+    style: spacing_padding
+  },
+  pt: {
+    style: spacing_padding
+  },
+  pr: {
+    style: spacing_padding
+  },
+  pb: {
+    style: spacing_padding
+  },
+  pl: {
+    style: spacing_padding
+  },
+  px: {
+    style: spacing_padding
+  },
+  py: {
+    style: spacing_padding
+  },
+  padding: {
+    style: spacing_padding
+  },
+  paddingTop: {
+    style: spacing_padding
+  },
+  paddingRight: {
+    style: spacing_padding
+  },
+  paddingBottom: {
+    style: spacing_padding
+  },
+  paddingLeft: {
+    style: spacing_padding
+  },
+  paddingX: {
+    style: spacing_padding
+  },
+  paddingY: {
+    style: spacing_padding
+  },
+  paddingInline: {
+    style: spacing_padding
+  },
+  paddingInlineStart: {
+    style: spacing_padding
+  },
+  paddingInlineEnd: {
+    style: spacing_padding
+  },
+  paddingBlock: {
+    style: spacing_padding
+  },
+  paddingBlockStart: {
+    style: spacing_padding
+  },
+  paddingBlockEnd: {
+    style: spacing_padding
+  },
+  m: {
+    style: spacing_margin
+  },
+  mt: {
+    style: spacing_margin
+  },
+  mr: {
+    style: spacing_margin
+  },
+  mb: {
+    style: spacing_margin
+  },
+  ml: {
+    style: spacing_margin
+  },
+  mx: {
+    style: spacing_margin
+  },
+  my: {
+    style: spacing_margin
+  },
+  margin: {
+    style: spacing_margin
+  },
+  marginTop: {
+    style: spacing_margin
+  },
+  marginRight: {
+    style: spacing_margin
+  },
+  marginBottom: {
+    style: spacing_margin
+  },
+  marginLeft: {
+    style: spacing_margin
+  },
+  marginX: {
+    style: spacing_margin
+  },
+  marginY: {
+    style: spacing_margin
+  },
+  marginInline: {
+    style: spacing_margin
+  },
+  marginInlineStart: {
+    style: spacing_margin
+  },
+  marginInlineEnd: {
+    style: spacing_margin
+  },
+  marginBlock: {
+    style: spacing_margin
+  },
+  marginBlockStart: {
+    style: spacing_margin
+  },
+  marginBlockEnd: {
+    style: spacing_margin
+  },
+  // display
+  displayPrint: {
+    cssProperty: false,
+    transform: value => ({
+      '@media print': {
+        display: value
+      }
+    })
+  },
+  display: {},
+  overflow: {},
+  textOverflow: {},
+  visibility: {},
+  whiteSpace: {},
+  // flexbox
+  flexBasis: {},
+  flexDirection: {},
+  flexWrap: {},
+  justifyContent: {},
+  alignItems: {},
+  alignContent: {},
+  order: {},
+  flex: {},
+  flexGrow: {},
+  flexShrink: {},
+  alignSelf: {},
+  justifyItems: {},
+  justifySelf: {},
+  // grid
+  gap: {
+    style: cssGrid_gap
+  },
+  rowGap: {
+    style: cssGrid_rowGap
+  },
+  columnGap: {
+    style: cssGrid_columnGap
+  },
+  gridColumn: {},
+  gridRow: {},
+  gridAutoFlow: {},
+  gridAutoColumns: {},
+  gridAutoRows: {},
+  gridTemplateColumns: {},
+  gridTemplateRows: {},
+  gridTemplateAreas: {},
+  gridArea: {},
+  // positions
+  position: {},
+  zIndex: {
+    themeKey: 'zIndex'
+  },
+  top: {},
+  right: {},
+  bottom: {},
+  left: {},
+  // shadows
+  boxShadow: {
+    themeKey: 'shadows'
+  },
+  // sizing
+  width: {
+    transform: sizing_sizingTransform
+  },
+  maxWidth: {
+    style: sizing_maxWidth
+  },
+  minWidth: {
+    transform: sizing_sizingTransform
+  },
+  height: {
+    transform: sizing_sizingTransform
+  },
+  maxHeight: {
+    transform: sizing_sizingTransform
+  },
+  minHeight: {
+    transform: sizing_sizingTransform
+  },
+  boxSizing: {},
+  // typography
+  font: {
+    themeKey: 'font'
+  },
+  fontFamily: {
+    themeKey: 'typography'
+  },
+  fontSize: {
+    themeKey: 'typography'
+  },
+  fontStyle: {
+    themeKey: 'typography'
+  },
+  fontWeight: {
+    themeKey: 'typography'
+  },
+  letterSpacing: {},
+  textTransform: {},
+  lineHeight: {},
+  textAlign: {},
+  typography: {
+    cssProperty: false,
+    themeKey: 'typography'
+  }
+};
+/* harmony default export */ const esm_styleFunctionSx_defaultSxConfig = (defaultSxConfig_defaultSxConfig);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/styleFunctionSx/styleFunctionSx.js
+
+
+
+
+
+
+function styleFunctionSx_objectsHaveSameKeys(...objects) {
+  const allKeys = objects.reduce((keys, object) => keys.concat(Object.keys(object)), []);
+  const union = new Set(allKeys);
+  return objects.every(object => union.size === Object.keys(object).length);
+}
+function styleFunctionSx_callIfFn(maybeFn, arg) {
+  return typeof maybeFn === 'function' ? maybeFn(arg) : maybeFn;
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function styleFunctionSx_unstable_createStyleFunctionSx() {
+  function getThemeValue(prop, val, theme, config) {
+    const props = {
+      [prop]: val,
+      theme
+    };
+    const options = config[prop];
+    if (!options) {
+      return {
+        [prop]: val
+      };
+    }
+    const {
+      cssProperty = prop,
+      themeKey,
+      transform,
+      style
+    } = options;
+    if (val == null) {
+      return null;
+    }
+
+    // TODO v6: remove, see https://github.com/mui/material-ui/pull/38123
+    if (themeKey === 'typography' && val === 'inherit') {
+      return {
+        [prop]: val
+      };
+    }
+    const themeMapping = style_getPath(theme, themeKey) || {};
+    if (style) {
+      return style(props);
+    }
+    const styleFromPropValue = propValueFinal => {
+      let value = style_getStyleValue(themeMapping, transform, propValueFinal);
+      if (propValueFinal === value && typeof propValueFinal === 'string') {
+        // Haven't found value
+        value = style_getStyleValue(themeMapping, transform, `${prop}${propValueFinal === 'default' ? '' : capitalize_capitalize_capitalize(propValueFinal)}`, propValueFinal);
+      }
+      if (cssProperty === false) {
+        return value;
+      }
+      return {
+        [cssProperty]: value
+      };
+    };
+    return breakpoints_handleBreakpoints(props, val, styleFromPropValue);
+  }
+  function styleFunctionSx(props) {
+    const {
+      sx,
+      theme = {}
+    } = props || {};
+    if (!sx) {
+      return null; // Emotion & styled-components will neglect null
+    }
+    const config = theme.unstable_sxConfig ?? esm_styleFunctionSx_defaultSxConfig;
+
+    /*
+     * Receive `sxInput` as object or callback
+     * and then recursively check keys & values to create media query object styles.
+     * (the result will be used in `styled`)
+     */
+    function traverse(sxInput) {
+      let sxObject = sxInput;
+      if (typeof sxInput === 'function') {
+        sxObject = sxInput(theme);
+      } else if (typeof sxInput !== 'object') {
+        // value
+        return sxInput;
+      }
+      if (!sxObject) {
+        return null;
+      }
+      const emptyBreakpoints = breakpoints_createEmptyBreakpointObject(theme.breakpoints);
+      const breakpointsKeys = Object.keys(emptyBreakpoints);
+      let css = emptyBreakpoints;
+      Object.keys(sxObject).forEach(styleKey => {
+        const value = styleFunctionSx_callIfFn(sxObject[styleKey], theme);
+        if (value !== null && value !== undefined) {
+          if (typeof value === 'object') {
+            if (config[styleKey]) {
+              css = system_esm_merge_merge(css, getThemeValue(styleKey, value, theme, config));
+            } else {
+              const breakpointsValues = breakpoints_handleBreakpoints({
+                theme
+              }, value, x => ({
+                [styleKey]: x
+              }));
+              if (styleFunctionSx_objectsHaveSameKeys(breakpointsValues, value)) {
+                css[styleKey] = styleFunctionSx({
+                  sx: value,
+                  theme
+                });
+              } else {
+                css = system_esm_merge_merge(css, breakpointsValues);
+              }
+            }
+          } else {
+            css = system_esm_merge_merge(css, getThemeValue(styleKey, value, theme, config));
+          }
+        }
+      });
+      return cssContainerQueries_sortContainerQueries(theme, breakpoints_removeUnusedBreakpoints(breakpointsKeys, css));
+    }
+    return Array.isArray(sx) ? sx.map(traverse) : traverse(sx);
+  }
+  return styleFunctionSx;
+}
+const styleFunctionSx_styleFunctionSx_styleFunctionSx = styleFunctionSx_unstable_createStyleFunctionSx();
+styleFunctionSx_styleFunctionSx_styleFunctionSx.filterProps = ['sx'];
+/* harmony default export */ const esm_styleFunctionSx_styleFunctionSx = (styleFunctionSx_styleFunctionSx_styleFunctionSx);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createTheme/applyStyles.js
+/**
+ * A universal utility to style components with multiple color modes. Always use it from the theme object.
+ * It works with:
+ *  - [Basic theme](https://mui.com/material-ui/customization/dark-mode/)
+ *  - [CSS theme variables](https://mui.com/material-ui/customization/css-theme-variables/overview/)
+ *  - Zero-runtime engine
+ *
+ * Tips: Use an array over object spread and place `theme.applyStyles()` last.
+ *
+ * With the styled function:
+ * ✅ [{ background: '#e5e5e5' }, theme.applyStyles('dark', { background: '#1c1c1c' })]
+ * 🚫 { background: '#e5e5e5', ...theme.applyStyles('dark', { background: '#1c1c1c' })}
+ *
+ * With the sx prop:
+ * ✅ [{ background: '#e5e5e5' }, theme => theme.applyStyles('dark', { background: '#1c1c1c' })]
+ * 🚫 { background: '#e5e5e5', ...theme => theme.applyStyles('dark', { background: '#1c1c1c' })}
+ *
+ * @example
+ * 1. using with `styled`:
+ * ```jsx
+ *   const Component = styled('div')(({ theme }) => [
+ *     { background: '#e5e5e5' },
+ *     theme.applyStyles('dark', {
+ *       background: '#1c1c1c',
+ *       color: '#fff',
+ *     }),
+ *   ]);
+ * ```
+ *
+ * @example
+ * 2. using with `sx` prop:
+ * ```jsx
+ *   <Box sx={[
+ *     { background: '#e5e5e5' },
+ *     theme => theme.applyStyles('dark', {
+ *        background: '#1c1c1c',
+ *        color: '#fff',
+ *      }),
+ *     ]}
+ *   />
+ * ```
+ *
+ * @example
+ * 3. theming a component:
+ * ```jsx
+ *   extendTheme({
+ *     components: {
+ *       MuiButton: {
+ *         styleOverrides: {
+ *           root: ({ theme }) => [
+ *             { background: '#e5e5e5' },
+ *             theme.applyStyles('dark', {
+ *               background: '#1c1c1c',
+ *               color: '#fff',
+ *             }),
+ *           ],
+ *         },
+ *       }
+ *     }
+ *   })
+ *```
+ */
+function applyStyles_applyStyles(key, styles) {
+  // @ts-expect-error this is 'any' type
+  const theme = this;
+  if (theme.vars) {
+    if (!theme.colorSchemes?.[key] || typeof theme.getColorSchemeSelector !== 'function') {
+      return {};
+    }
+    // If CssVarsProvider is used as a provider, returns '*:where({selector}) &'
+    let selector = theme.getColorSchemeSelector(key);
+    if (selector === '&') {
+      return styles;
+    }
+    if (selector.includes('data-') || selector.includes('.')) {
+      // '*' is required as a workaround for Emotion issue (https://github.com/emotion-js/emotion/issues/2836)
+      selector = `*:where(${selector.replace(/\s*&$/, '')}) &`;
+    }
+    return {
+      [selector]: styles
+    };
+  }
+  if (theme.palette.mode === key) {
+    return styles;
+  }
+  return {};
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/createTheme/createTheme.js
+
+
+
+
+
+
+
+
+function createTheme_createTheme_createTheme(options = {}, ...args) {
+  const {
+    breakpoints: breakpointsInput = {},
+    palette: paletteInput = {},
+    spacing: spacingInput,
+    shape: shapeInput = {},
+    ...other
+  } = options;
+  const breakpoints = createBreakpoints_createBreakpoints(breakpointsInput);
+  const spacing = createSpacing_createSpacing(spacingInput);
+  let muiTheme = deepmerge_deepmerge_deepmerge({
+    breakpoints,
+    direction: 'ltr',
+    components: {},
+    // Inject component definitions.
+    palette: {
+      mode: 'light',
+      ...paletteInput
+    },
+    spacing,
+    shape: {
+      ...esm_createTheme_shape,
+      ...shapeInput
+    }
+  }, other);
+  muiTheme = cssContainerQueries_cssContainerQueries(muiTheme);
+  muiTheme.applyStyles = applyStyles_applyStyles;
+  muiTheme = args.reduce((acc, argument) => deepmerge_deepmerge_deepmerge(acc, argument), muiTheme);
+  muiTheme.unstable_sxConfig = {
+    ...esm_styleFunctionSx_defaultSxConfig,
+    ...other?.unstable_sxConfig
+  };
+  muiTheme.unstable_sx = function sx(props) {
+    return esm_styleFunctionSx_styleFunctionSx({
+      sx: props,
+      theme: this
+    });
+  };
+  return muiTheme;
+}
+/* harmony default export */ const esm_createTheme_createTheme = (createTheme_createTheme_createTheme);
 ;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/preprocessStyles.js
 
 function preprocessStyles_preprocessStyles(input) {
@@ -18879,7 +15752,7 @@ function preprocessStyles_preprocessStyles(input) {
 /* eslint-disable no-labels */
 /* eslint-disable no-lone-blocks */
 
-const createStyled_systemDefaultTheme = createTheme_createTheme();
+const createStyled_createStyled_systemDefaultTheme = esm_createTheme_createTheme();
 
 // Update /system/styled/#api in case if this changes
 function createStyled_shouldForwardProp(prop) {
@@ -18963,7 +15836,7 @@ function createStyled_processStyleVariants(props, variants, results = []) {
 function createStyled_createStyled_createStyled(input = {}) {
   const {
     themeId,
-    defaultTheme = createStyled_systemDefaultTheme,
+    defaultTheme = createStyled_createStyled_systemDefaultTheme,
     rootShouldForwardProp = createStyled_shouldForwardProp,
     slotShouldForwardProp = createStyled_shouldForwardProp
   } = input;
@@ -18973,7 +15846,7 @@ function createStyled_createStyled_createStyled(input = {}) {
   const styled = (tag, inputOptions = {}) => {
     // If `tag` is already a styled component, filter out the `sx` style function
     // to prevent unnecessary styles generated by the composite components.
-    styled_engine_internal_mutateStyles(tag, styles => styles.filter(style => style !== styleFunctionSx_styleFunctionSx));
+    styled_engine_internal_mutateStyles(tag, styles => styles.filter(style => style !== esm_styleFunctionSx_styleFunctionSx));
     const {
       name: componentName,
       slot: componentSlot,
@@ -19018,7 +15891,7 @@ function createStyled_createStyled_createStyled(input = {}) {
           return createStyled_processStyle(props, style);
         };
       }
-      if (isPlainObject(style)) {
+      if (deepmerge_isPlainObject(style)) {
         const serialized = preprocessStyles_preprocessStyles(style);
         if (!serialized.variants) {
           return serialized.style;
@@ -19065,7 +15938,7 @@ function createStyled_createStyled_createStyled(input = {}) {
         });
       }
       if (!skipSx) {
-        expressionsTail.push(styleFunctionSx_styleFunctionSx);
+        expressionsTail.push(esm_styleFunctionSx_styleFunctionSx);
       }
 
       // This function can be called as a tagged template, so the first argument would contain
@@ -19135,12 +16008,2047 @@ function createStyled_lowercaseFirstLetter(string) {
   }
   return string.charAt(0).toLowerCase() + string.slice(1);
 }
+;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/clamp/clamp.js
+function clamp_clamp_clamp(val, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER) {
+  return Math.max(min, Math.min(val, max));
+}
+/* harmony default export */ const esm_clamp_clamp = (clamp_clamp_clamp);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/colorManipulator/colorManipulator.js
+
+/* eslint-disable @typescript-eslint/naming-convention */
+
+
+/**
+ * Returns a number whose value is limited to the given range.
+ * @param {number} value The value to be clamped
+ * @param {number} min The lower boundary of the output range
+ * @param {number} max The upper boundary of the output range
+ * @returns {number} A number in the range [min, max]
+ */
+function colorManipulator_clampWrapper(value, min = 0, max = 1) {
+  if (false) {}
+  return esm_clamp_clamp(value, min, max);
+}
+
+/**
+ * Converts a color from CSS hex format to CSS rgb format.
+ * @param {string} color - Hex color, i.e. #nnn or #nnnnnn
+ * @returns {string} A CSS rgb color string
+ */
+function colorManipulator_hexToRgb(color) {
+  color = color.slice(1);
+  const re = new RegExp(`.{1,${color.length >= 6 ? 2 : 1}}`, 'g');
+  let colors = color.match(re);
+  if (colors && colors[0].length === 1) {
+    colors = colors.map(n => n + n);
+  }
+  if (false) {}
+  return colors ? `rgb${colors.length === 4 ? 'a' : ''}(${colors.map((n, index) => {
+    return index < 3 ? parseInt(n, 16) : Math.round(parseInt(n, 16) / 255 * 1000) / 1000;
+  }).join(', ')})` : '';
+}
+function colorManipulator_intToHex(int) {
+  const hex = int.toString(16);
+  return hex.length === 1 ? `0${hex}` : hex;
+}
+
+/**
+ * Returns an object with the type and values of a color.
+ *
+ * Note: Does not support rgb % values.
+ * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
+ * @returns {object} - A MUI color object: {type: string, values: number[]}
+ */
+function colorManipulator_decomposeColor(color) {
+  // Idempotent
+  if (color.type) {
+    return color;
+  }
+  if (color.charAt(0) === '#') {
+    return colorManipulator_decomposeColor(colorManipulator_hexToRgb(color));
+  }
+  const marker = color.indexOf('(');
+  const type = color.substring(0, marker);
+  if (!['rgb', 'rgba', 'hsl', 'hsla', 'color'].includes(type)) {
+    throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(9, color));
+  }
+  let values = color.substring(marker + 1, color.length - 1);
+  let colorSpace;
+  if (type === 'color') {
+    values = values.split(' ');
+    colorSpace = values.shift();
+    if (values.length === 4 && values[3].charAt(0) === '/') {
+      values[3] = values[3].slice(1);
+    }
+    if (!['srgb', 'display-p3', 'a98-rgb', 'prophoto-rgb', 'rec-2020'].includes(colorSpace)) {
+      throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(10, colorSpace));
+    }
+  } else {
+    values = values.split(',');
+  }
+  values = values.map(value => parseFloat(value));
+  return {
+    type,
+    values,
+    colorSpace
+  };
+}
+
+/**
+ * Returns a channel created from the input color.
+ *
+ * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
+ * @returns {string} - The channel for the color, that can be used in rgba or hsla colors
+ */
+const colorManipulator_colorChannel = color => {
+  const decomposedColor = colorManipulator_decomposeColor(color);
+  return decomposedColor.values.slice(0, 3).map((val, idx) => decomposedColor.type.includes('hsl') && idx !== 0 ? `${val}%` : val).join(' ');
+};
+const colorManipulator_private_safeColorChannel = (color, warning) => {
+  try {
+    return colorManipulator_colorChannel(color);
+  } catch (error) {
+    if (warning && "production" !== 'production') {}
+    return color;
+  }
+};
+
+/**
+ * Converts a color object with type and values to a string.
+ * @param {object} color - Decomposed color
+ * @param {string} color.type - One of: 'rgb', 'rgba', 'hsl', 'hsla', 'color'
+ * @param {array} color.values - [n,n,n] or [n,n,n,n]
+ * @returns {string} A CSS color string
+ */
+function colorManipulator_recomposeColor(color) {
+  const {
+    type,
+    colorSpace
+  } = color;
+  let {
+    values
+  } = color;
+  if (type.includes('rgb')) {
+    // Only convert the first 3 values to int (i.e. not alpha)
+    values = values.map((n, i) => i < 3 ? parseInt(n, 10) : n);
+  } else if (type.includes('hsl')) {
+    values[1] = `${values[1]}%`;
+    values[2] = `${values[2]}%`;
+  }
+  if (type.includes('color')) {
+    values = `${colorSpace} ${values.join(' ')}`;
+  } else {
+    values = `${values.join(', ')}`;
+  }
+  return `${type}(${values})`;
+}
+
+/**
+ * Converts a color from CSS rgb format to CSS hex format.
+ * @param {string} color - RGB color, i.e. rgb(n, n, n)
+ * @returns {string} A CSS rgb color string, i.e. #nnnnnn
+ */
+function colorManipulator_rgbToHex(color) {
+  // Idempotent
+  if (color.startsWith('#')) {
+    return color;
+  }
+  const {
+    values
+  } = colorManipulator_decomposeColor(color);
+  return `#${values.map((n, i) => colorManipulator_intToHex(i === 3 ? Math.round(255 * n) : n)).join('')}`;
+}
+
+/**
+ * Converts a color from hsl format to rgb format.
+ * @param {string} color - HSL color values
+ * @returns {string} rgb color values
+ */
+function colorManipulator_hslToRgb(color) {
+  color = colorManipulator_decomposeColor(color);
+  const {
+    values
+  } = color;
+  const h = values[0];
+  const s = values[1] / 100;
+  const l = values[2] / 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n, k = (n + h / 30) % 12) => l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+  let type = 'rgb';
+  const rgb = [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+  if (color.type === 'hsla') {
+    type += 'a';
+    rgb.push(values[3]);
+  }
+  return colorManipulator_recomposeColor({
+    type,
+    values: rgb
+  });
+}
+/**
+ * The relative brightness of any point in a color space,
+ * normalized to 0 for darkest black and 1 for lightest white.
+ *
+ * Formula: https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
+ * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
+ * @returns {number} The relative brightness of the color in the range 0 - 1
+ */
+function colorManipulator_getLuminance(color) {
+  color = colorManipulator_decomposeColor(color);
+  let rgb = color.type === 'hsl' || color.type === 'hsla' ? colorManipulator_decomposeColor(colorManipulator_hslToRgb(color)).values : color.values;
+  rgb = rgb.map(val => {
+    if (color.type !== 'color') {
+      val /= 255; // normalized
+    }
+    return val <= 0.03928 ? val / 12.92 : ((val + 0.055) / 1.055) ** 2.4;
+  });
+
+  // Truncate at 3 digits
+  return Number((0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]).toFixed(3));
+}
+
+/**
+ * Calculates the contrast ratio between two colors.
+ *
+ * Formula: https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
+ * @param {string} foreground - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla()
+ * @param {string} background - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla()
+ * @returns {number} A contrast ratio value in the range 0 - 21.
+ */
+function colorManipulator_getContrastRatio(foreground, background) {
+  const lumA = colorManipulator_getLuminance(foreground);
+  const lumB = colorManipulator_getLuminance(background);
+  return (Math.max(lumA, lumB) + 0.05) / (Math.min(lumA, lumB) + 0.05);
+}
+
+/**
+ * Sets the absolute transparency of a color.
+ * Any existing alpha values are overwritten.
+ * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
+ * @param {number} value - value to set the alpha channel to in the range 0 - 1
+ * @returns {string} A CSS color string. Hex input values are returned as rgb
+ */
+function colorManipulator_alpha(color, value) {
+  color = colorManipulator_decomposeColor(color);
+  value = colorManipulator_clampWrapper(value);
+  if (color.type === 'rgb' || color.type === 'hsl') {
+    color.type += 'a';
+  }
+  if (color.type === 'color') {
+    color.values[3] = `/${value}`;
+  } else {
+    color.values[3] = value;
+  }
+  return colorManipulator_recomposeColor(color);
+}
+function colorManipulator_private_safeAlpha(color, value, warning) {
+  try {
+    return colorManipulator_alpha(color, value);
+  } catch (error) {
+    if (warning && "production" !== 'production') {}
+    return color;
+  }
+}
+
+/**
+ * Darkens a color.
+ * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
+ * @param {number} coefficient - multiplier in the range 0 - 1
+ * @returns {string} A CSS color string. Hex input values are returned as rgb
+ */
+function colorManipulator_darken(color, coefficient) {
+  color = colorManipulator_decomposeColor(color);
+  coefficient = colorManipulator_clampWrapper(coefficient);
+  if (color.type.includes('hsl')) {
+    color.values[2] *= 1 - coefficient;
+  } else if (color.type.includes('rgb') || color.type.includes('color')) {
+    for (let i = 0; i < 3; i += 1) {
+      color.values[i] *= 1 - coefficient;
+    }
+  }
+  return colorManipulator_recomposeColor(color);
+}
+function colorManipulator_private_safeDarken(color, coefficient, warning) {
+  try {
+    return colorManipulator_darken(color, coefficient);
+  } catch (error) {
+    if (warning && "production" !== 'production') {}
+    return color;
+  }
+}
+
+/**
+ * Lightens a color.
+ * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
+ * @param {number} coefficient - multiplier in the range 0 - 1
+ * @returns {string} A CSS color string. Hex input values are returned as rgb
+ */
+function colorManipulator_lighten(color, coefficient) {
+  color = colorManipulator_decomposeColor(color);
+  coefficient = colorManipulator_clampWrapper(coefficient);
+  if (color.type.includes('hsl')) {
+    color.values[2] += (100 - color.values[2]) * coefficient;
+  } else if (color.type.includes('rgb')) {
+    for (let i = 0; i < 3; i += 1) {
+      color.values[i] += (255 - color.values[i]) * coefficient;
+    }
+  } else if (color.type.includes('color')) {
+    for (let i = 0; i < 3; i += 1) {
+      color.values[i] += (1 - color.values[i]) * coefficient;
+    }
+  }
+  return colorManipulator_recomposeColor(color);
+}
+function colorManipulator_private_safeLighten(color, coefficient, warning) {
+  try {
+    return colorManipulator_lighten(color, coefficient);
+  } catch (error) {
+    if (warning && "production" !== 'production') {}
+    return color;
+  }
+}
+
+/**
+ * Darken or lighten a color, depending on its luminance.
+ * Light colors are darkened, dark colors are lightened.
+ * @param {string} color - CSS color, i.e. one of: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color()
+ * @param {number} coefficient=0.15 - multiplier in the range 0 - 1
+ * @returns {string} A CSS color string. Hex input values are returned as rgb
+ */
+function colorManipulator_emphasize(color, coefficient = 0.15) {
+  return colorManipulator_getLuminance(color) > 0.5 ? colorManipulator_darken(color, coefficient) : colorManipulator_lighten(color, coefficient);
+}
+function colorManipulator_private_safeEmphasize(color, coefficient, warning) {
+  try {
+    return colorManipulator_emphasize(color, coefficient);
+  } catch (error) {
+    if (warning && "production" !== 'production') {}
+    return color;
+  }
+}
+
+/**
+ * Blend a transparent overlay color with a background color, resulting in a single
+ * RGB color.
+ * @param {string} background - CSS color
+ * @param {string} overlay - CSS color
+ * @param {number} opacity - Opacity multiplier in the range 0 - 1
+ * @param {number} [gamma=1.0] - Gamma correction factor. For gamma-correct blending, 2.2 is usual.
+ */
+function colorManipulator_blend(background, overlay, opacity, gamma = 1.0) {
+  const blendChannel = (b, o) => Math.round((b ** (1 / gamma) * (1 - opacity) + o ** (1 / gamma) * opacity) ** gamma);
+  const backgroundColor = colorManipulator_decomposeColor(background);
+  const overlayColor = colorManipulator_decomposeColor(overlay);
+  const rgb = [blendChannel(backgroundColor.values[0], overlayColor.values[0]), blendChannel(backgroundColor.values[1], overlayColor.values[1]), blendChannel(backgroundColor.values[2], overlayColor.values[2])];
+  return colorManipulator_recomposeColor({
+    type: 'rgb',
+    values: rgb
+  });
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/common.js
+const common_common = {
+  black: '#000',
+  white: '#fff'
+};
+/* harmony default export */ const material_colors_common = (common_common);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/grey.js
+const grey_grey = {
+  50: '#fafafa',
+  100: '#f5f5f5',
+  200: '#eeeeee',
+  300: '#e0e0e0',
+  400: '#bdbdbd',
+  500: '#9e9e9e',
+  600: '#757575',
+  700: '#616161',
+  800: '#424242',
+  900: '#212121',
+  A100: '#f5f5f5',
+  A200: '#eeeeee',
+  A400: '#bdbdbd',
+  A700: '#616161'
+};
+/* harmony default export */ const material_colors_grey = (grey_grey);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/purple.js
+const purple_purple = {
+  50: '#f3e5f5',
+  100: '#e1bee7',
+  200: '#ce93d8',
+  300: '#ba68c8',
+  400: '#ab47bc',
+  500: '#9c27b0',
+  600: '#8e24aa',
+  700: '#7b1fa2',
+  800: '#6a1b9a',
+  900: '#4a148c',
+  A100: '#ea80fc',
+  A200: '#e040fb',
+  A400: '#d500f9',
+  A700: '#aa00ff'
+};
+/* harmony default export */ const material_colors_purple = (purple_purple);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/red.js
+const red_red = {
+  50: '#ffebee',
+  100: '#ffcdd2',
+  200: '#ef9a9a',
+  300: '#e57373',
+  400: '#ef5350',
+  500: '#f44336',
+  600: '#e53935',
+  700: '#d32f2f',
+  800: '#c62828',
+  900: '#b71c1c',
+  A100: '#ff8a80',
+  A200: '#ff5252',
+  A400: '#ff1744',
+  A700: '#d50000'
+};
+/* harmony default export */ const material_colors_red = (red_red);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/orange.js
+const orange_orange = {
+  50: '#fff3e0',
+  100: '#ffe0b2',
+  200: '#ffcc80',
+  300: '#ffb74d',
+  400: '#ffa726',
+  500: '#ff9800',
+  600: '#fb8c00',
+  700: '#f57c00',
+  800: '#ef6c00',
+  900: '#e65100',
+  A100: '#ffd180',
+  A200: '#ffab40',
+  A400: '#ff9100',
+  A700: '#ff6d00'
+};
+/* harmony default export */ const material_colors_orange = (orange_orange);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/blue.js
+const blue_blue = {
+  50: '#e3f2fd',
+  100: '#bbdefb',
+  200: '#90caf9',
+  300: '#64b5f6',
+  400: '#42a5f5',
+  500: '#2196f3',
+  600: '#1e88e5',
+  700: '#1976d2',
+  800: '#1565c0',
+  900: '#0d47a1',
+  A100: '#82b1ff',
+  A200: '#448aff',
+  A400: '#2979ff',
+  A700: '#2962ff'
+};
+/* harmony default export */ const material_colors_blue = (blue_blue);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/lightBlue.js
+const lightBlue_lightBlue = {
+  50: '#e1f5fe',
+  100: '#b3e5fc',
+  200: '#81d4fa',
+  300: '#4fc3f7',
+  400: '#29b6f6',
+  500: '#03a9f4',
+  600: '#039be5',
+  700: '#0288d1',
+  800: '#0277bd',
+  900: '#01579b',
+  A100: '#80d8ff',
+  A200: '#40c4ff',
+  A400: '#00b0ff',
+  A700: '#0091ea'
+};
+/* harmony default export */ const material_colors_lightBlue = (lightBlue_lightBlue);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/colors/green.js
+const green_green = {
+  50: '#e8f5e9',
+  100: '#c8e6c9',
+  200: '#a5d6a7',
+  300: '#81c784',
+  400: '#66bb6a',
+  500: '#4caf50',
+  600: '#43a047',
+  700: '#388e3c',
+  800: '#2e7d32',
+  900: '#1b5e20',
+  A100: '#b9f6ca',
+  A200: '#69f0ae',
+  A400: '#00e676',
+  A700: '#00c853'
+};
+/* harmony default export */ const material_colors_green = (green_green);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createPalette.js
+
+
+
+
+
+
+
+
+
+
+
+function createPalette_getLight() {
+  return {
+    // The colors used to style the text.
+    text: {
+      // The most important text.
+      primary: 'rgba(0, 0, 0, 0.87)',
+      // Secondary text.
+      secondary: 'rgba(0, 0, 0, 0.6)',
+      // Disabled text have even lower visual prominence.
+      disabled: 'rgba(0, 0, 0, 0.38)'
+    },
+    // The color used to divide different elements.
+    divider: 'rgba(0, 0, 0, 0.12)',
+    // The background colors used to style the surfaces.
+    // Consistency between these values is important.
+    background: {
+      paper: material_colors_common.white,
+      default: material_colors_common.white
+    },
+    // The colors used to style the action elements.
+    action: {
+      // The color of an active action like an icon button.
+      active: 'rgba(0, 0, 0, 0.54)',
+      // The color of an hovered action.
+      hover: 'rgba(0, 0, 0, 0.04)',
+      hoverOpacity: 0.04,
+      // The color of a selected action.
+      selected: 'rgba(0, 0, 0, 0.08)',
+      selectedOpacity: 0.08,
+      // The color of a disabled action.
+      disabled: 'rgba(0, 0, 0, 0.26)',
+      // The background color of a disabled action.
+      disabledBackground: 'rgba(0, 0, 0, 0.12)',
+      disabledOpacity: 0.38,
+      focus: 'rgba(0, 0, 0, 0.12)',
+      focusOpacity: 0.12,
+      activatedOpacity: 0.12
+    }
+  };
+}
+const createPalette_light = createPalette_getLight();
+function createPalette_getDark() {
+  return {
+    text: {
+      primary: material_colors_common.white,
+      secondary: 'rgba(255, 255, 255, 0.7)',
+      disabled: 'rgba(255, 255, 255, 0.5)',
+      icon: 'rgba(255, 255, 255, 0.5)'
+    },
+    divider: 'rgba(255, 255, 255, 0.12)',
+    background: {
+      paper: '#121212',
+      default: '#121212'
+    },
+    action: {
+      active: material_colors_common.white,
+      hover: 'rgba(255, 255, 255, 0.08)',
+      hoverOpacity: 0.08,
+      selected: 'rgba(255, 255, 255, 0.16)',
+      selectedOpacity: 0.16,
+      disabled: 'rgba(255, 255, 255, 0.3)',
+      disabledBackground: 'rgba(255, 255, 255, 0.12)',
+      disabledOpacity: 0.38,
+      focus: 'rgba(255, 255, 255, 0.12)',
+      focusOpacity: 0.12,
+      activatedOpacity: 0.24
+    }
+  };
+}
+const createPalette_dark = createPalette_getDark();
+function createPalette_addLightOrDark(intent, direction, shade, tonalOffset) {
+  const tonalOffsetLight = tonalOffset.light || tonalOffset;
+  const tonalOffsetDark = tonalOffset.dark || tonalOffset * 1.5;
+  if (!intent[direction]) {
+    if (intent.hasOwnProperty(shade)) {
+      intent[direction] = intent[shade];
+    } else if (direction === 'light') {
+      intent.light = colorManipulator_lighten(intent.main, tonalOffsetLight);
+    } else if (direction === 'dark') {
+      intent.dark = colorManipulator_darken(intent.main, tonalOffsetDark);
+    }
+  }
+}
+function createPalette_getDefaultPrimary(mode = 'light') {
+  if (mode === 'dark') {
+    return {
+      main: material_colors_blue[200],
+      light: material_colors_blue[50],
+      dark: material_colors_blue[400]
+    };
+  }
+  return {
+    main: material_colors_blue[700],
+    light: material_colors_blue[400],
+    dark: material_colors_blue[800]
+  };
+}
+function createPalette_getDefaultSecondary(mode = 'light') {
+  if (mode === 'dark') {
+    return {
+      main: material_colors_purple[200],
+      light: material_colors_purple[50],
+      dark: material_colors_purple[400]
+    };
+  }
+  return {
+    main: material_colors_purple[500],
+    light: material_colors_purple[300],
+    dark: material_colors_purple[700]
+  };
+}
+function createPalette_getDefaultError(mode = 'light') {
+  if (mode === 'dark') {
+    return {
+      main: material_colors_red[500],
+      light: material_colors_red[300],
+      dark: material_colors_red[700]
+    };
+  }
+  return {
+    main: material_colors_red[700],
+    light: material_colors_red[400],
+    dark: material_colors_red[800]
+  };
+}
+function createPalette_getDefaultInfo(mode = 'light') {
+  if (mode === 'dark') {
+    return {
+      main: material_colors_lightBlue[400],
+      light: material_colors_lightBlue[300],
+      dark: material_colors_lightBlue[700]
+    };
+  }
+  return {
+    main: material_colors_lightBlue[700],
+    light: material_colors_lightBlue[500],
+    dark: material_colors_lightBlue[900]
+  };
+}
+function createPalette_getDefaultSuccess(mode = 'light') {
+  if (mode === 'dark') {
+    return {
+      main: material_colors_green[400],
+      light: material_colors_green[300],
+      dark: material_colors_green[700]
+    };
+  }
+  return {
+    main: material_colors_green[800],
+    light: material_colors_green[500],
+    dark: material_colors_green[900]
+  };
+}
+function createPalette_getDefaultWarning(mode = 'light') {
+  if (mode === 'dark') {
+    return {
+      main: material_colors_orange[400],
+      light: material_colors_orange[300],
+      dark: material_colors_orange[700]
+    };
+  }
+  return {
+    main: '#ed6c02',
+    // closest to orange[800] that pass 3:1.
+    light: material_colors_orange[500],
+    dark: material_colors_orange[900]
+  };
+}
+function createPalette_createPalette(palette) {
+  const {
+    mode = 'light',
+    contrastThreshold = 3,
+    tonalOffset = 0.2,
+    ...other
+  } = palette;
+  const primary = palette.primary || createPalette_getDefaultPrimary(mode);
+  const secondary = palette.secondary || createPalette_getDefaultSecondary(mode);
+  const error = palette.error || createPalette_getDefaultError(mode);
+  const info = palette.info || createPalette_getDefaultInfo(mode);
+  const success = palette.success || createPalette_getDefaultSuccess(mode);
+  const warning = palette.warning || createPalette_getDefaultWarning(mode);
+
+  // Use the same logic as
+  // Bootstrap: https://github.com/twbs/bootstrap/blob/1d6e3710dd447de1a200f29e8fa521f8a0908f70/scss/_functions.scss#L59
+  // and material-components-web https://github.com/material-components/material-components-web/blob/ac46b8863c4dab9fc22c4c662dc6bd1b65dd652f/packages/mdc-theme/_functions.scss#L54
+  function getContrastText(background) {
+    const contrastText = colorManipulator_getContrastRatio(background, createPalette_dark.text.primary) >= contrastThreshold ? createPalette_dark.text.primary : createPalette_light.text.primary;
+    if (false) {}
+    return contrastText;
+  }
+  const augmentColor = ({
+    color,
+    name,
+    mainShade = 500,
+    lightShade = 300,
+    darkShade = 700
+  }) => {
+    color = {
+      ...color
+    };
+    if (!color.main && color[mainShade]) {
+      color.main = color[mainShade];
+    }
+    if (!color.hasOwnProperty('main')) {
+      throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(11, name ? ` (${name})` : '', mainShade));
+    }
+    if (typeof color.main !== 'string') {
+      throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(12, name ? ` (${name})` : '', JSON.stringify(color.main)));
+    }
+    createPalette_addLightOrDark(color, 'light', lightShade, tonalOffset);
+    createPalette_addLightOrDark(color, 'dark', darkShade, tonalOffset);
+    if (!color.contrastText) {
+      color.contrastText = getContrastText(color.main);
+    }
+    return color;
+  };
+  let modeHydrated;
+  if (mode === 'light') {
+    modeHydrated = createPalette_getLight();
+  } else if (mode === 'dark') {
+    modeHydrated = createPalette_getDark();
+  }
+  if (false) {}
+  const paletteOutput = deepmerge_deepmerge_deepmerge({
+    // A collection of common colors.
+    common: {
+      ...material_colors_common
+    },
+    // prevent mutable object.
+    // The palette mode, can be light or dark.
+    mode,
+    // The colors used to represent primary interface elements for a user.
+    primary: augmentColor({
+      color: primary,
+      name: 'primary'
+    }),
+    // The colors used to represent secondary interface elements for a user.
+    secondary: augmentColor({
+      color: secondary,
+      name: 'secondary',
+      mainShade: 'A400',
+      lightShade: 'A200',
+      darkShade: 'A700'
+    }),
+    // The colors used to represent interface elements that the user should be made aware of.
+    error: augmentColor({
+      color: error,
+      name: 'error'
+    }),
+    // The colors used to represent potentially dangerous actions or important messages.
+    warning: augmentColor({
+      color: warning,
+      name: 'warning'
+    }),
+    // The colors used to present information to the user that is neutral and not necessarily important.
+    info: augmentColor({
+      color: info,
+      name: 'info'
+    }),
+    // The colors used to indicate the successful completion of an action that user triggered.
+    success: augmentColor({
+      color: success,
+      name: 'success'
+    }),
+    // The grey colors.
+    grey: material_colors_grey,
+    // Used by `getContrastText()` to maximize the contrast between
+    // the background and the text.
+    contrastThreshold,
+    // Takes a background color and returns the text color that maximizes the contrast.
+    getContrastText,
+    // Generate a rich color object.
+    augmentColor,
+    // Used by the functions below to shift a color's luminance by approximately
+    // two indexes within its tonal palette.
+    // E.g., shift from Red 500 to Red 300 or Red 700.
+    tonalOffset,
+    // The light and dark mode object.
+    ...modeHydrated
+  }, other);
+  return paletteOutput;
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/createGetCssVar.js
+/**
+ * The benefit of this function is to help developers get CSS var from theme without specifying the whole variable
+ * and they does not need to remember the prefix (defined once).
+ */
+function createGetCssVar_createGetCssVar(prefix = '') {
+  function appendVar(...vars) {
+    if (!vars.length) {
+      return '';
+    }
+    const value = vars[0];
+    if (typeof value === 'string' && !value.match(/(#|\(|\)|(-?(\d*\.)?\d+)(px|em|%|ex|ch|rem|vw|vh|vmin|vmax|cm|mm|in|pt|pc))|^(-?(\d*\.)?\d+)$|(\d+ \d+ \d+)/)) {
+      return `, var(--${prefix ? `${prefix}-` : ''}${value}${appendVar(...vars.slice(1))})`;
+    }
+    return `, ${value}`;
+  }
+
+  // AdditionalVars makes `getCssVar` less strict, so it can be use like this `getCssVar('non-mui-variable')` without type error.
+  const getCssVar = (field, ...fallbacks) => {
+    return `var(--${prefix ? `${prefix}-` : ''}${field}${appendVar(...fallbacks)})`;
+  };
+  return getCssVar;
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/prepareTypographyVars.js
+function prepareTypographyVars_prepareTypographyVars(typography) {
+  const vars = {};
+  const entries = Object.entries(typography);
+  entries.forEach(entry => {
+    const [key, value] = entry;
+    if (typeof value === 'object') {
+      vars[key] = `${value.fontStyle ? `${value.fontStyle} ` : ''}${value.fontVariant ? `${value.fontVariant} ` : ''}${value.fontWeight ? `${value.fontWeight} ` : ''}${value.fontStretch ? `${value.fontStretch} ` : ''}${value.fontSize || ''}${value.lineHeight ? `/${value.lineHeight} ` : ''}${value.fontFamily || ''}`;
+    }
+  });
+  return vars;
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/cssVarsParser.js
+/**
+ * This function create an object from keys, value and then assign to target
+ *
+ * @param {Object} obj : the target object to be assigned
+ * @param {string[]} keys
+ * @param {string | number} value
+ *
+ * @example
+ * const source = {}
+ * assignNestedKeys(source, ['palette', 'primary'], 'var(--palette-primary)')
+ * console.log(source) // { palette: { primary: 'var(--palette-primary)' } }
+ *
+ * @example
+ * const source = { palette: { primary: 'var(--palette-primary)' } }
+ * assignNestedKeys(source, ['palette', 'secondary'], 'var(--palette-secondary)')
+ * console.log(source) // { palette: { primary: 'var(--palette-primary)', secondary: 'var(--palette-secondary)' } }
+ */
+const cssVarsParser_assignNestedKeys = (obj, keys, value, arrayKeys = []) => {
+  let temp = obj;
+  keys.forEach((k, index) => {
+    if (index === keys.length - 1) {
+      if (Array.isArray(temp)) {
+        temp[Number(k)] = value;
+      } else if (temp && typeof temp === 'object') {
+        temp[k] = value;
+      }
+    } else if (temp && typeof temp === 'object') {
+      if (!temp[k]) {
+        temp[k] = arrayKeys.includes(k) ? [] : {};
+      }
+      temp = temp[k];
+    }
+  });
+};
+
+/**
+ *
+ * @param {Object} obj : source object
+ * @param {Function} callback : a function that will be called when
+ *                   - the deepest key in source object is reached
+ *                   - the value of the deepest key is NOT `undefined` | `null`
+ *
+ * @example
+ * walkObjectDeep({ palette: { primary: { main: '#000000' } } }, console.log)
+ * // ['palette', 'primary', 'main'] '#000000'
+ */
+const cssVarsParser_walkObjectDeep = (obj, callback, shouldSkipPaths) => {
+  function recurse(object, parentKeys = [], arrayKeys = []) {
+    Object.entries(object).forEach(([key, value]) => {
+      if (!shouldSkipPaths || shouldSkipPaths && !shouldSkipPaths([...parentKeys, key])) {
+        if (value !== undefined && value !== null) {
+          if (typeof value === 'object' && Object.keys(value).length > 0) {
+            recurse(value, [...parentKeys, key], Array.isArray(value) ? [...arrayKeys, key] : arrayKeys);
+          } else {
+            callback([...parentKeys, key], value, arrayKeys);
+          }
+        }
+      }
+    });
+  }
+  recurse(obj);
+};
+const cssVarsParser_getCssValue = (keys, value) => {
+  if (typeof value === 'number') {
+    if (['lineHeight', 'fontWeight', 'opacity', 'zIndex'].some(prop => keys.includes(prop))) {
+      // CSS property that are unitless
+      return value;
+    }
+    const lastKey = keys[keys.length - 1];
+    if (lastKey.toLowerCase().includes('opacity')) {
+      // opacity values are unitless
+      return value;
+    }
+    return `${value}px`;
+  }
+  return value;
+};
+
+/**
+ * a function that parse theme and return { css, vars }
+ *
+ * @param {Object} theme
+ * @param {{
+ *  prefix?: string,
+ *  shouldSkipGeneratingVar?: (objectPathKeys: Array<string>, value: string | number) => boolean
+ * }} options.
+ *  `prefix`: The prefix of the generated CSS variables. This function does not change the value.
+ *
+ * @returns {{ css: Object, vars: Object }} `css` is the stylesheet, `vars` is an object to get css variable (same structure as theme).
+ *
+ * @example
+ * const { css, vars } = parser({
+ *   fontSize: 12,
+ *   lineHeight: 1.2,
+ *   palette: { primary: { 500: 'var(--color)' } }
+ * }, { prefix: 'foo' })
+ *
+ * console.log(css) // { '--foo-fontSize': '12px', '--foo-lineHeight': 1.2, '--foo-palette-primary-500': 'var(--color)' }
+ * console.log(vars) // { fontSize: 'var(--foo-fontSize)', lineHeight: 'var(--foo-lineHeight)', palette: { primary: { 500: 'var(--foo-palette-primary-500)' } } }
+ */
+function cssVarsParser_cssVarsParser(theme, options) {
+  const {
+    prefix,
+    shouldSkipGeneratingVar
+  } = options || {};
+  const css = {};
+  const vars = {};
+  const varsWithDefaults = {};
+  cssVarsParser_walkObjectDeep(theme, (keys, value, arrayKeys) => {
+    if (typeof value === 'string' || typeof value === 'number') {
+      if (!shouldSkipGeneratingVar || !shouldSkipGeneratingVar(keys, value)) {
+        // only create css & var if `shouldSkipGeneratingVar` return false
+        const cssVar = `--${prefix ? `${prefix}-` : ''}${keys.join('-')}`;
+        const resolvedValue = cssVarsParser_getCssValue(keys, value);
+        Object.assign(css, {
+          [cssVar]: resolvedValue
+        });
+        cssVarsParser_assignNestedKeys(vars, keys, `var(${cssVar})`, arrayKeys);
+        cssVarsParser_assignNestedKeys(varsWithDefaults, keys, `var(${cssVar}, ${resolvedValue})`, arrayKeys);
+      }
+    }
+  }, keys => keys[0] === 'vars' // skip 'vars/*' paths
+  );
+  return {
+    css,
+    vars,
+    varsWithDefaults
+  };
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/prepareCssVars.js
+
+
+function prepareCssVars_prepareCssVars(theme, parserConfig = {}) {
+  const {
+    getSelector = defaultGetSelector,
+    disableCssColorScheme,
+    colorSchemeSelector: selector
+  } = parserConfig;
+  // @ts-ignore - ignore components do not exist
+  const {
+    colorSchemes = {},
+    components,
+    defaultColorScheme = 'light',
+    ...otherTheme
+  } = theme;
+  const {
+    vars: rootVars,
+    css: rootCss,
+    varsWithDefaults: rootVarsWithDefaults
+  } = cssVarsParser_cssVarsParser(otherTheme, parserConfig);
+  let themeVars = rootVarsWithDefaults;
+  const colorSchemesMap = {};
+  const {
+    [defaultColorScheme]: defaultScheme,
+    ...otherColorSchemes
+  } = colorSchemes;
+  Object.entries(otherColorSchemes || {}).forEach(([key, scheme]) => {
+    const {
+      vars,
+      css,
+      varsWithDefaults
+    } = cssVarsParser_cssVarsParser(scheme, parserConfig);
+    themeVars = deepmerge_deepmerge_deepmerge(themeVars, varsWithDefaults);
+    colorSchemesMap[key] = {
+      css,
+      vars
+    };
+  });
+  if (defaultScheme) {
+    // default color scheme vars should be merged last to set as default
+    const {
+      css,
+      vars,
+      varsWithDefaults
+    } = cssVarsParser_cssVarsParser(defaultScheme, parserConfig);
+    themeVars = deepmerge_deepmerge_deepmerge(themeVars, varsWithDefaults);
+    colorSchemesMap[defaultColorScheme] = {
+      css,
+      vars
+    };
+  }
+  function defaultGetSelector(colorScheme, cssObject) {
+    let rule = selector;
+    if (selector === 'class') {
+      rule = '.%s';
+    }
+    if (selector === 'data') {
+      rule = '[data-%s]';
+    }
+    if (selector?.startsWith('data-') && !selector.includes('%s')) {
+      // 'data-joy-color-scheme' -> '[data-joy-color-scheme="%s"]'
+      rule = `[${selector}="%s"]`;
+    }
+    if (colorScheme) {
+      if (rule === 'media') {
+        if (theme.defaultColorScheme === colorScheme) {
+          return ':root';
+        }
+        const mode = colorSchemes[colorScheme]?.palette?.mode || colorScheme;
+        return {
+          [`@media (prefers-color-scheme: ${mode})`]: {
+            ':root': cssObject
+          }
+        };
+      }
+      if (rule) {
+        if (theme.defaultColorScheme === colorScheme) {
+          return `:root, ${rule.replace('%s', String(colorScheme))}`;
+        }
+        return rule.replace('%s', String(colorScheme));
+      }
+    }
+    return ':root';
+  }
+  const generateThemeVars = () => {
+    let vars = {
+      ...rootVars
+    };
+    Object.entries(colorSchemesMap).forEach(([, {
+      vars: schemeVars
+    }]) => {
+      vars = deepmerge_deepmerge_deepmerge(vars, schemeVars);
+    });
+    return vars;
+  };
+  const generateStyleSheets = () => {
+    const stylesheets = [];
+    const colorScheme = theme.defaultColorScheme || 'light';
+    function insertStyleSheet(key, css) {
+      if (Object.keys(css).length) {
+        stylesheets.push(typeof key === 'string' ? {
+          [key]: {
+            ...css
+          }
+        } : key);
+      }
+    }
+    insertStyleSheet(getSelector(undefined, {
+      ...rootCss
+    }), rootCss);
+    const {
+      [colorScheme]: defaultSchemeVal,
+      ...other
+    } = colorSchemesMap;
+    if (defaultSchemeVal) {
+      // default color scheme has to come before other color schemes
+      const {
+        css
+      } = defaultSchemeVal;
+      const cssColorSheme = colorSchemes[colorScheme]?.palette?.mode;
+      const finalCss = !disableCssColorScheme && cssColorSheme ? {
+        colorScheme: cssColorSheme,
+        ...css
+      } : {
+        ...css
+      };
+      insertStyleSheet(getSelector(colorScheme, {
+        ...finalCss
+      }), finalCss);
+    }
+    Object.entries(other).forEach(([key, {
+      css
+    }]) => {
+      const cssColorSheme = colorSchemes[key]?.palette?.mode;
+      const finalCss = !disableCssColorScheme && cssColorSheme ? {
+        colorScheme: cssColorSheme,
+        ...css
+      } : {
+        ...css
+      };
+      insertStyleSheet(getSelector(key, {
+        ...finalCss
+      }), finalCss);
+    });
+    return stylesheets;
+  };
+  return {
+    vars: themeVars,
+    generateThemeVars,
+    generateStyleSheets
+  };
+}
+/* harmony default export */ const esm_cssVars_prepareCssVars = (prepareCssVars_prepareCssVars);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/cssVars/getColorSchemeSelector.js
+/* eslint-disable import/prefer-default-export */
+function getColorSchemeSelector_createGetColorSchemeSelector(selector) {
+  return function getColorSchemeSelector(colorScheme) {
+    if (selector === 'media') {
+      if (false) {}
+      return `@media (prefers-color-scheme: ${colorScheme})`;
+    }
+    if (selector) {
+      if (selector.startsWith('data-') && !selector.includes('%s')) {
+        return `[${selector}="${colorScheme}"] &`;
+      }
+      if (selector === 'class') {
+        return `.${colorScheme} &`;
+      }
+      if (selector === 'data') {
+        return `[data-${colorScheme}] &`;
+      }
+      return `${selector.replace('%s', colorScheme)} &`;
+    }
+    return '&';
+  };
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createMixins.js
+function createMixins_createMixins(breakpoints, mixins) {
+  return {
+    toolbar: {
+      minHeight: 56,
+      [breakpoints.up('xs')]: {
+        '@media (orientation: landscape)': {
+          minHeight: 48
+        }
+      },
+      [breakpoints.up('sm')]: {
+        minHeight: 64
+      }
+    },
+    ...mixins
+  };
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createTypography.js
+
+function createTypography_round(value) {
+  return Math.round(value * 1e5) / 1e5;
+}
+const createTypography_caseAllCaps = {
+  textTransform: 'uppercase'
+};
+const createTypography_defaultFontFamily = '"Roboto", "Helvetica", "Arial", sans-serif';
+
+/**
+ * @see @link{https://m2.material.io/design/typography/the-type-system.html}
+ * @see @link{https://m2.material.io/design/typography/understanding-typography.html}
+ */
+function createTypography_createTypography(palette, typography) {
+  const {
+    fontFamily = createTypography_defaultFontFamily,
+    // The default font size of the Material Specification.
+    fontSize = 14,
+    // px
+    fontWeightLight = 300,
+    fontWeightRegular = 400,
+    fontWeightMedium = 500,
+    fontWeightBold = 700,
+    // Tell MUI what's the font-size on the html element.
+    // 16px is the default font-size used by browsers.
+    htmlFontSize = 16,
+    // Apply the CSS properties to all the variants.
+    allVariants,
+    pxToRem: pxToRem2,
+    ...other
+  } = typeof typography === 'function' ? typography(palette) : typography;
+  if (false) {}
+  const coef = fontSize / 14;
+  const pxToRem = pxToRem2 || (size => `${size / htmlFontSize * coef}rem`);
+  const buildVariant = (fontWeight, size, lineHeight, letterSpacing, casing) => ({
+    fontFamily,
+    fontWeight,
+    fontSize: pxToRem(size),
+    // Unitless following https://meyerweb.com/eric/thoughts/2006/02/08/unitless-line-heights/
+    lineHeight,
+    // The letter spacing was designed for the Roboto font-family. Using the same letter-spacing
+    // across font-families can cause issues with the kerning.
+    ...(fontFamily === createTypography_defaultFontFamily ? {
+      letterSpacing: `${createTypography_round(letterSpacing / size)}em`
+    } : {}),
+    ...casing,
+    ...allVariants
+  });
+  const variants = {
+    h1: buildVariant(fontWeightLight, 96, 1.167, -1.5),
+    h2: buildVariant(fontWeightLight, 60, 1.2, -0.5),
+    h3: buildVariant(fontWeightRegular, 48, 1.167, 0),
+    h4: buildVariant(fontWeightRegular, 34, 1.235, 0.25),
+    h5: buildVariant(fontWeightRegular, 24, 1.334, 0),
+    h6: buildVariant(fontWeightMedium, 20, 1.6, 0.15),
+    subtitle1: buildVariant(fontWeightRegular, 16, 1.75, 0.15),
+    subtitle2: buildVariant(fontWeightMedium, 14, 1.57, 0.1),
+    body1: buildVariant(fontWeightRegular, 16, 1.5, 0.15),
+    body2: buildVariant(fontWeightRegular, 14, 1.43, 0.15),
+    button: buildVariant(fontWeightMedium, 14, 1.75, 0.4, createTypography_caseAllCaps),
+    caption: buildVariant(fontWeightRegular, 12, 1.66, 0.4),
+    overline: buildVariant(fontWeightRegular, 12, 2.66, 1, createTypography_caseAllCaps),
+    // TODO v6: Remove handling of 'inherit' variant from the theme as it is already handled in Material UI's Typography component. Also, remember to remove the associated types.
+    inherit: {
+      fontFamily: 'inherit',
+      fontWeight: 'inherit',
+      fontSize: 'inherit',
+      lineHeight: 'inherit',
+      letterSpacing: 'inherit'
+    }
+  };
+  return deepmerge_deepmerge_deepmerge({
+    htmlFontSize,
+    pxToRem,
+    fontFamily,
+    fontSize,
+    fontWeightLight,
+    fontWeightRegular,
+    fontWeightMedium,
+    fontWeightBold,
+    ...variants
+  }, other, {
+    clone: false // No need to clone deep
+  });
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/shadows.js
+const shadows_shadowKeyUmbraOpacity = 0.2;
+const shadows_shadowKeyPenumbraOpacity = 0.14;
+const shadows_shadowAmbientShadowOpacity = 0.12;
+function shadows_createShadow(...px) {
+  return [`${px[0]}px ${px[1]}px ${px[2]}px ${px[3]}px rgba(0,0,0,${shadows_shadowKeyUmbraOpacity})`, `${px[4]}px ${px[5]}px ${px[6]}px ${px[7]}px rgba(0,0,0,${shadows_shadowKeyPenumbraOpacity})`, `${px[8]}px ${px[9]}px ${px[10]}px ${px[11]}px rgba(0,0,0,${shadows_shadowAmbientShadowOpacity})`].join(',');
+}
+
+// Values from https://github.com/material-components/material-components-web/blob/be8747f94574669cb5e7add1a7c54fa41a89cec7/packages/mdc-elevation/_variables.scss
+const shadows_shadows = ['none', shadows_createShadow(0, 2, 1, -1, 0, 1, 1, 0, 0, 1, 3, 0), shadows_createShadow(0, 3, 1, -2, 0, 2, 2, 0, 0, 1, 5, 0), shadows_createShadow(0, 3, 3, -2, 0, 3, 4, 0, 0, 1, 8, 0), shadows_createShadow(0, 2, 4, -1, 0, 4, 5, 0, 0, 1, 10, 0), shadows_createShadow(0, 3, 5, -1, 0, 5, 8, 0, 0, 1, 14, 0), shadows_createShadow(0, 3, 5, -1, 0, 6, 10, 0, 0, 1, 18, 0), shadows_createShadow(0, 4, 5, -2, 0, 7, 10, 1, 0, 2, 16, 1), shadows_createShadow(0, 5, 5, -3, 0, 8, 10, 1, 0, 3, 14, 2), shadows_createShadow(0, 5, 6, -3, 0, 9, 12, 1, 0, 3, 16, 2), shadows_createShadow(0, 6, 6, -3, 0, 10, 14, 1, 0, 4, 18, 3), shadows_createShadow(0, 6, 7, -4, 0, 11, 15, 1, 0, 4, 20, 3), shadows_createShadow(0, 7, 8, -4, 0, 12, 17, 2, 0, 5, 22, 4), shadows_createShadow(0, 7, 8, -4, 0, 13, 19, 2, 0, 5, 24, 4), shadows_createShadow(0, 7, 9, -4, 0, 14, 21, 2, 0, 5, 26, 4), shadows_createShadow(0, 8, 9, -5, 0, 15, 22, 2, 0, 6, 28, 5), shadows_createShadow(0, 8, 10, -5, 0, 16, 24, 2, 0, 6, 30, 5), shadows_createShadow(0, 8, 11, -5, 0, 17, 26, 2, 0, 6, 32, 5), shadows_createShadow(0, 9, 11, -5, 0, 18, 28, 2, 0, 7, 34, 6), shadows_createShadow(0, 9, 12, -6, 0, 19, 29, 2, 0, 7, 36, 6), shadows_createShadow(0, 10, 13, -6, 0, 20, 31, 3, 0, 8, 38, 7), shadows_createShadow(0, 10, 13, -6, 0, 21, 33, 3, 0, 8, 40, 7), shadows_createShadow(0, 10, 14, -6, 0, 22, 35, 3, 0, 8, 42, 7), shadows_createShadow(0, 11, 14, -7, 0, 23, 36, 3, 0, 9, 44, 8), shadows_createShadow(0, 11, 15, -7, 0, 24, 38, 3, 0, 9, 46, 8)];
+/* harmony default export */ const material_styles_shadows = (shadows_shadows);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createTransitions.js
+// Follow https://material.google.com/motion/duration-easing.html#duration-easing-natural-easing-curves
+// to learn the context in which each easing should be used.
+const createTransitions_easing = {
+  // This is the most common easing curve.
+  easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  // Objects enter the screen at full velocity from off-screen and
+  // slowly decelerate to a resting point.
+  easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
+  // Objects leave the screen at full velocity. They do not decelerate when off-screen.
+  easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+  // The sharp curve is used by objects that may return to the screen at any time.
+  sharp: 'cubic-bezier(0.4, 0, 0.6, 1)'
+};
+
+// Follow https://m2.material.io/guidelines/motion/duration-easing.html#duration-easing-common-durations
+// to learn when use what timing
+const createTransitions_duration = {
+  shortest: 150,
+  shorter: 200,
+  short: 250,
+  // most basic recommended timing
+  standard: 300,
+  // this is to be used in complex animations
+  complex: 375,
+  // recommended when something is entering screen
+  enteringScreen: 225,
+  // recommended when something is leaving screen
+  leavingScreen: 195
+};
+function createTransitions_formatMs(milliseconds) {
+  return `${Math.round(milliseconds)}ms`;
+}
+function createTransitions_getAutoHeightDuration(height) {
+  if (!height) {
+    return 0;
+  }
+  const constant = height / 36;
+
+  // https://www.desmos.com/calculator/vbrp3ggqet
+  return Math.min(Math.round((4 + 15 * constant ** 0.25 + constant / 5) * 10), 3000);
+}
+function createTransitions_createTransitions(inputTransitions) {
+  const mergedEasing = {
+    ...createTransitions_easing,
+    ...inputTransitions.easing
+  };
+  const mergedDuration = {
+    ...createTransitions_duration,
+    ...inputTransitions.duration
+  };
+  const create = (props = ['all'], options = {}) => {
+    const {
+      duration: durationOption = mergedDuration.standard,
+      easing: easingOption = mergedEasing.easeInOut,
+      delay = 0,
+      ...other
+    } = options;
+    if (false) {}
+    return (Array.isArray(props) ? props : [props]).map(animatedProp => `${animatedProp} ${typeof durationOption === 'string' ? durationOption : createTransitions_formatMs(durationOption)} ${easingOption} ${typeof delay === 'string' ? delay : createTransitions_formatMs(delay)}`).join(',');
+  };
+  return {
+    getAutoHeightDuration: createTransitions_getAutoHeightDuration,
+    create,
+    ...inputTransitions,
+    easing: mergedEasing,
+    duration: mergedDuration
+  };
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/zIndex.js
+// We need to centralize the zIndex definitions as they work
+// like global values in the browser.
+const zIndex_zIndex = {
+  mobileStepper: 1000,
+  fab: 1050,
+  speedDial: 1050,
+  appBar: 1100,
+  drawer: 1200,
+  modal: 1300,
+  snackbar: 1400,
+  tooltip: 1500
+};
+/* harmony default export */ const material_styles_zIndex = (zIndex_zIndex);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/stringifyTheme.js
+/* eslint-disable import/prefer-default-export */
+
+function stringifyTheme_isSerializable(val) {
+  return deepmerge_isPlainObject(val) || typeof val === 'undefined' || typeof val === 'string' || typeof val === 'boolean' || typeof val === 'number' || Array.isArray(val);
+}
+
+/**
+ * `baseTheme` usually comes from `createTheme()` or `extendTheme()`.
+ *
+ * This function is intended to be used with zero-runtime CSS-in-JS like Pigment CSS
+ * For example, in a Next.js project:
+ *
+ * ```js
+ * // next.config.js
+ * const { extendTheme } = require('@mui/material/styles');
+ *
+ * const theme = extendTheme();
+ * // `.toRuntimeSource` is Pigment CSS specific to create a theme that is available at runtime.
+ * theme.toRuntimeSource = stringifyTheme;
+ *
+ * module.exports = withPigment({
+ *  theme,
+ * });
+ * ```
+ */
+function stringifyTheme_stringifyTheme(baseTheme = {}) {
+  const serializableTheme = {
+    ...baseTheme
+  };
+  function serializeTheme(object) {
+    const array = Object.entries(object);
+    // eslint-disable-next-line no-plusplus
+    for (let index = 0; index < array.length; index++) {
+      const [key, value] = array[index];
+      if (!stringifyTheme_isSerializable(value) || key.startsWith('unstable_')) {
+        delete object[key];
+      } else if (deepmerge_isPlainObject(value)) {
+        object[key] = {
+          ...value
+        };
+        serializeTheme(object[key]);
+      }
+    }
+  }
+  serializeTheme(serializableTheme);
+  return `import { unstable_createBreakpoints as createBreakpoints, createTransitions } from '@mui/material/styles';
+
+const theme = ${JSON.stringify(serializableTheme, null, 2)};
+
+theme.breakpoints = createBreakpoints(theme.breakpoints || {});
+theme.transitions = createTransitions(theme.transitions || {});
+
+export default theme;`;
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createThemeNoVars.js
+
+
+
+
+
+
+
+
+
+
+
+
+function createThemeNoVars_createThemeNoVars(options = {}, ...args) {
+  const {
+    breakpoints: breakpointsInput,
+    mixins: mixinsInput = {},
+    spacing: spacingInput,
+    palette: paletteInput = {},
+    transitions: transitionsInput = {},
+    typography: typographyInput = {},
+    shape: shapeInput,
+    ...other
+  } = options;
+  if (options.vars) {
+    throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(20));
+  }
+  const palette = createPalette_createPalette(paletteInput);
+  const systemTheme = esm_createTheme_createTheme(options);
+  let muiTheme = deepmerge_deepmerge_deepmerge(systemTheme, {
+    mixins: createMixins_createMixins(systemTheme.breakpoints, mixinsInput),
+    palette,
+    // Don't use [...shadows] until you've verified its transpiled code is not invoking the iterator protocol.
+    shadows: material_styles_shadows.slice(),
+    typography: createTypography_createTypography(palette, typographyInput),
+    transitions: createTransitions_createTransitions(transitionsInput),
+    zIndex: {
+      ...material_styles_zIndex
+    }
+  });
+  muiTheme = deepmerge_deepmerge_deepmerge(muiTheme, other);
+  muiTheme = args.reduce((acc, argument) => deepmerge_deepmerge_deepmerge(acc, argument), muiTheme);
+  if (false) {}
+  muiTheme.unstable_sxConfig = {
+    ...esm_styleFunctionSx_defaultSxConfig,
+    ...other?.unstable_sxConfig
+  };
+  muiTheme.unstable_sx = function sx(props) {
+    return esm_styleFunctionSx_styleFunctionSx({
+      sx: props,
+      theme: this
+    });
+  };
+  muiTheme.toRuntimeSource = stringifyTheme_stringifyTheme; // for Pigment CSS integration
+
+  return muiTheme;
+}
+let createThemeNoVars_warnedOnce = false;
+function createMuiTheme(...args) {
+  if (false) {}
+  return createThemeNoVars_createThemeNoVars(...args);
+}
+/* harmony default export */ const material_styles_createThemeNoVars = (createThemeNoVars_createThemeNoVars);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/getOverlayAlpha.js
+// Inspired by https://github.com/material-components/material-components-ios/blob/bca36107405594d5b7b16265a5b0ed698f85a5ee/components/Elevation/src/UIColor%2BMaterialElevation.m#L61
+function getOverlayAlpha_getOverlayAlpha(elevation) {
+  let alphaValue;
+  if (elevation < 1) {
+    alphaValue = 5.11916 * elevation ** 2;
+  } else {
+    alphaValue = 4.5 * Math.log(elevation + 1) + 2;
+  }
+  return Math.round(alphaValue * 10) / 1000;
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createColorScheme.js
+
+
+const createColorScheme_defaultDarkOverlays = [...Array(25)].map((_, index) => {
+  if (index === 0) {
+    return 'none';
+  }
+  const overlay = getOverlayAlpha_getOverlayAlpha(index);
+  return `linear-gradient(rgba(255 255 255 / ${overlay}), rgba(255 255 255 / ${overlay}))`;
+});
+function createColorScheme_getOpacity(mode) {
+  return {
+    inputPlaceholder: mode === 'dark' ? 0.5 : 0.42,
+    inputUnderline: mode === 'dark' ? 0.7 : 0.42,
+    switchTrackDisabled: mode === 'dark' ? 0.2 : 0.12,
+    switchTrack: mode === 'dark' ? 0.3 : 0.38
+  };
+}
+function createColorScheme_getOverlays(mode) {
+  return mode === 'dark' ? createColorScheme_defaultDarkOverlays : [];
+}
+function createColorScheme_createColorScheme(options) {
+  const {
+    palette: paletteInput = {
+      mode: 'light'
+    },
+    // need to cast to avoid module augmentation test
+    opacity,
+    overlays,
+    ...rest
+  } = options;
+  const palette = createPalette_createPalette(paletteInput);
+  return {
+    palette,
+    opacity: {
+      ...createColorScheme_getOpacity(palette.mode),
+      ...opacity
+    },
+    overlays: overlays || createColorScheme_getOverlays(palette.mode),
+    ...rest
+  };
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/shouldSkipGeneratingVar.js
+function styles_shouldSkipGeneratingVar_shouldSkipGeneratingVar(keys) {
+  return !!keys[0].match(/(cssVarPrefix|colorSchemeSelector|rootSelector|typography|mixins|breakpoints|direction|transitions)/) || !!keys[0].match(/sxConfig$/) ||
+  // ends with sxConfig
+  keys[0] === 'palette' && !!keys[1]?.match(/(mode|contrastThreshold|tonalOffset)/);
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/excludeVariablesFromRoot.js
+/**
+ * @internal These variables should not appear in the :root stylesheet when the `defaultColorScheme="dark"`
+ */
+const excludeVariablesFromRoot_excludeVariablesFromRoot = cssVarPrefix => [...[...Array(25)].map((_, index) => `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}overlays-${index}`), `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}palette-AppBar-darkBg`, `--${cssVarPrefix ? `${cssVarPrefix}-` : ''}palette-AppBar-darkColor`];
+/* harmony default export */ const material_styles_excludeVariablesFromRoot = (excludeVariablesFromRoot_excludeVariablesFromRoot);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createGetSelector.js
+
+/* harmony default export */ const styles_createGetSelector = (theme => (colorScheme, css) => {
+  const root = theme.rootSelector || ':root';
+  const selector = theme.colorSchemeSelector;
+  let rule = selector;
+  if (selector === 'class') {
+    rule = '.%s';
+  }
+  if (selector === 'data') {
+    rule = '[data-%s]';
+  }
+  if (selector?.startsWith('data-') && !selector.includes('%s')) {
+    // 'data-mui-color-scheme' -> '[data-mui-color-scheme="%s"]'
+    rule = `[${selector}="%s"]`;
+  }
+  if (theme.defaultColorScheme === colorScheme) {
+    if (colorScheme === 'dark') {
+      const excludedVariables = {};
+      material_styles_excludeVariablesFromRoot(theme.cssVarPrefix).forEach(cssVar => {
+        excludedVariables[cssVar] = css[cssVar];
+        delete css[cssVar];
+      });
+      if (rule === 'media') {
+        return {
+          [root]: css,
+          [`@media (prefers-color-scheme: dark)`]: {
+            [root]: excludedVariables
+          }
+        };
+      }
+      if (rule) {
+        return {
+          [rule.replace('%s', colorScheme)]: excludedVariables,
+          [`${root}, ${rule.replace('%s', colorScheme)}`]: css
+        };
+      }
+      return {
+        [root]: {
+          ...css,
+          ...excludedVariables
+        }
+      };
+    }
+    if (rule && rule !== 'media') {
+      return `${root}, ${rule.replace('%s', String(colorScheme))}`;
+    }
+  } else if (colorScheme) {
+    if (rule === 'media') {
+      return {
+        [`@media (prefers-color-scheme: ${String(colorScheme)})`]: {
+          [root]: css
+        }
+      };
+    }
+    if (rule) {
+      return rule.replace('%s', String(colorScheme));
+    }
+  }
+  return root;
+});
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createThemeWithVars.js
+
+
+
+
+
+
+
+
+
+
+
+
+function createThemeWithVars_assignNode(obj, keys) {
+  keys.forEach(k => {
+    if (!obj[k]) {
+      obj[k] = {};
+    }
+  });
+}
+function createThemeWithVars_setColor(obj, key, defaultValue) {
+  if (!obj[key] && defaultValue) {
+    obj[key] = defaultValue;
+  }
+}
+function createThemeWithVars_toRgb(color) {
+  if (typeof color !== 'string' || !color.startsWith('hsl')) {
+    return color;
+  }
+  return colorManipulator_hslToRgb(color);
+}
+function createThemeWithVars_setColorChannel(obj, key) {
+  if (!(`${key}Channel` in obj)) {
+    // custom channel token is not provided, generate one.
+    // if channel token can't be generated, show a warning.
+    obj[`${key}Channel`] = colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(obj[key]), `MUI: Can't create \`palette.${key}Channel\` because \`palette.${key}\` is not one of these formats: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), color().` + '\n' + `To suppress this warning, you need to explicitly provide the \`palette.${key}Channel\` as a string (in rgb format, for example "12 12 12") or undefined if you want to remove the channel token.`);
+  }
+}
+function createThemeWithVars_getSpacingVal(spacingInput) {
+  if (typeof spacingInput === 'number') {
+    return `${spacingInput}px`;
+  }
+  if (typeof spacingInput === 'string' || typeof spacingInput === 'function' || Array.isArray(spacingInput)) {
+    return spacingInput;
+  }
+  return '8px';
+}
+const createThemeWithVars_silent = fn => {
+  try {
+    return fn();
+  } catch (error) {
+    // ignore error
+  }
+  return undefined;
+};
+const styles_createThemeWithVars_createGetCssVar = (cssVarPrefix = 'mui') => createGetCssVar_createGetCssVar(cssVarPrefix);
+function createThemeWithVars_attachColorScheme(colorSchemes, scheme, restTheme, colorScheme) {
+  if (!scheme) {
+    return undefined;
+  }
+  scheme = scheme === true ? {} : scheme;
+  const mode = colorScheme === 'dark' ? 'dark' : 'light';
+  if (!restTheme) {
+    colorSchemes[colorScheme] = createColorScheme_createColorScheme({
+      ...scheme,
+      palette: {
+        mode,
+        ...scheme?.palette
+      }
+    });
+    return undefined;
+  }
+  const {
+    palette,
+    ...muiTheme
+  } = material_styles_createThemeNoVars({
+    ...restTheme,
+    palette: {
+      mode,
+      ...scheme?.palette
+    }
+  });
+  colorSchemes[colorScheme] = {
+    ...scheme,
+    palette,
+    opacity: {
+      ...createColorScheme_getOpacity(mode),
+      ...scheme?.opacity
+    },
+    overlays: scheme?.overlays || createColorScheme_getOverlays(mode)
+  };
+  return muiTheme;
+}
+
+/**
+ * A default `createThemeWithVars` comes with a single color scheme, either `light` or `dark` based on the `defaultColorScheme`.
+ * This is better suited for apps that only need a single color scheme.
+ *
+ * To enable built-in `light` and `dark` color schemes, either:
+ * 1. provide a `colorSchemeSelector` to define how the color schemes will change.
+ * 2. provide `colorSchemes.dark` will set `colorSchemeSelector: 'media'` by default.
+ */
+function createThemeWithVars_createThemeWithVars(options = {}, ...args) {
+  const {
+    colorSchemes: colorSchemesInput = {
+      light: true
+    },
+    defaultColorScheme: defaultColorSchemeInput,
+    disableCssColorScheme = false,
+    cssVarPrefix = 'mui',
+    shouldSkipGeneratingVar = styles_shouldSkipGeneratingVar_shouldSkipGeneratingVar,
+    colorSchemeSelector: selector = colorSchemesInput.light && colorSchemesInput.dark ? 'media' : undefined,
+    rootSelector = ':root',
+    ...input
+  } = options;
+  const firstColorScheme = Object.keys(colorSchemesInput)[0];
+  const defaultColorScheme = defaultColorSchemeInput || (colorSchemesInput.light && firstColorScheme !== 'light' ? 'light' : firstColorScheme);
+  const getCssVar = styles_createThemeWithVars_createGetCssVar(cssVarPrefix);
+  const {
+    [defaultColorScheme]: defaultSchemeInput,
+    light: builtInLight,
+    dark: builtInDark,
+    ...customColorSchemes
+  } = colorSchemesInput;
+  const colorSchemes = {
+    ...customColorSchemes
+  };
+  let defaultScheme = defaultSchemeInput;
+
+  // For built-in light and dark color schemes, ensure that the value is valid if they are the default color scheme.
+  if (defaultColorScheme === 'dark' && !('dark' in colorSchemesInput) || defaultColorScheme === 'light' && !('light' in colorSchemesInput)) {
+    defaultScheme = true;
+  }
+  if (!defaultScheme) {
+    throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(21, defaultColorScheme));
+  }
+
+  // Create the palette for the default color scheme, either `light`, `dark`, or custom color scheme.
+  const muiTheme = createThemeWithVars_attachColorScheme(colorSchemes, defaultScheme, input, defaultColorScheme);
+  if (builtInLight && !colorSchemes.light) {
+    createThemeWithVars_attachColorScheme(colorSchemes, builtInLight, undefined, 'light');
+  }
+  if (builtInDark && !colorSchemes.dark) {
+    createThemeWithVars_attachColorScheme(colorSchemes, builtInDark, undefined, 'dark');
+  }
+  let theme = {
+    defaultColorScheme,
+    ...muiTheme,
+    cssVarPrefix,
+    colorSchemeSelector: selector,
+    rootSelector,
+    getCssVar,
+    colorSchemes,
+    font: {
+      ...prepareTypographyVars_prepareTypographyVars(muiTheme.typography),
+      ...muiTheme.font
+    },
+    spacing: createThemeWithVars_getSpacingVal(input.spacing)
+  };
+  Object.keys(theme.colorSchemes).forEach(key => {
+    const palette = theme.colorSchemes[key].palette;
+    const setCssVarColor = cssVar => {
+      const tokens = cssVar.split('-');
+      const color = tokens[1];
+      const colorToken = tokens[2];
+      return getCssVar(cssVar, palette[color][colorToken]);
+    };
+
+    // attach black & white channels to common node
+    if (palette.mode === 'light') {
+      createThemeWithVars_setColor(palette.common, 'background', '#fff');
+      createThemeWithVars_setColor(palette.common, 'onBackground', '#000');
+    }
+    if (palette.mode === 'dark') {
+      createThemeWithVars_setColor(palette.common, 'background', '#000');
+      createThemeWithVars_setColor(palette.common, 'onBackground', '#fff');
+    }
+
+    // assign component variables
+    createThemeWithVars_assignNode(palette, ['Alert', 'AppBar', 'Avatar', 'Button', 'Chip', 'FilledInput', 'LinearProgress', 'Skeleton', 'Slider', 'SnackbarContent', 'SpeedDialAction', 'StepConnector', 'StepContent', 'Switch', 'TableCell', 'Tooltip']);
+    if (palette.mode === 'light') {
+      createThemeWithVars_setColor(palette.Alert, 'errorColor', colorManipulator_private_safeDarken(palette.error.light, 0.6));
+      createThemeWithVars_setColor(palette.Alert, 'infoColor', colorManipulator_private_safeDarken(palette.info.light, 0.6));
+      createThemeWithVars_setColor(palette.Alert, 'successColor', colorManipulator_private_safeDarken(palette.success.light, 0.6));
+      createThemeWithVars_setColor(palette.Alert, 'warningColor', colorManipulator_private_safeDarken(palette.warning.light, 0.6));
+      createThemeWithVars_setColor(palette.Alert, 'errorFilledBg', setCssVarColor('palette-error-main'));
+      createThemeWithVars_setColor(palette.Alert, 'infoFilledBg', setCssVarColor('palette-info-main'));
+      createThemeWithVars_setColor(palette.Alert, 'successFilledBg', setCssVarColor('palette-success-main'));
+      createThemeWithVars_setColor(palette.Alert, 'warningFilledBg', setCssVarColor('palette-warning-main'));
+      createThemeWithVars_setColor(palette.Alert, 'errorFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.error.main)));
+      createThemeWithVars_setColor(palette.Alert, 'infoFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.info.main)));
+      createThemeWithVars_setColor(palette.Alert, 'successFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.success.main)));
+      createThemeWithVars_setColor(palette.Alert, 'warningFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.warning.main)));
+      createThemeWithVars_setColor(palette.Alert, 'errorStandardBg', colorManipulator_private_safeLighten(palette.error.light, 0.9));
+      createThemeWithVars_setColor(palette.Alert, 'infoStandardBg', colorManipulator_private_safeLighten(palette.info.light, 0.9));
+      createThemeWithVars_setColor(palette.Alert, 'successStandardBg', colorManipulator_private_safeLighten(palette.success.light, 0.9));
+      createThemeWithVars_setColor(palette.Alert, 'warningStandardBg', colorManipulator_private_safeLighten(palette.warning.light, 0.9));
+      createThemeWithVars_setColor(palette.Alert, 'errorIconColor', setCssVarColor('palette-error-main'));
+      createThemeWithVars_setColor(palette.Alert, 'infoIconColor', setCssVarColor('palette-info-main'));
+      createThemeWithVars_setColor(palette.Alert, 'successIconColor', setCssVarColor('palette-success-main'));
+      createThemeWithVars_setColor(palette.Alert, 'warningIconColor', setCssVarColor('palette-warning-main'));
+      createThemeWithVars_setColor(palette.AppBar, 'defaultBg', setCssVarColor('palette-grey-100'));
+      createThemeWithVars_setColor(palette.Avatar, 'defaultBg', setCssVarColor('palette-grey-400'));
+      createThemeWithVars_setColor(palette.Button, 'inheritContainedBg', setCssVarColor('palette-grey-300'));
+      createThemeWithVars_setColor(palette.Button, 'inheritContainedHoverBg', setCssVarColor('palette-grey-A100'));
+      createThemeWithVars_setColor(palette.Chip, 'defaultBorder', setCssVarColor('palette-grey-400'));
+      createThemeWithVars_setColor(palette.Chip, 'defaultAvatarColor', setCssVarColor('palette-grey-700'));
+      createThemeWithVars_setColor(palette.Chip, 'defaultIconColor', setCssVarColor('palette-grey-700'));
+      createThemeWithVars_setColor(palette.FilledInput, 'bg', 'rgba(0, 0, 0, 0.06)');
+      createThemeWithVars_setColor(palette.FilledInput, 'hoverBg', 'rgba(0, 0, 0, 0.09)');
+      createThemeWithVars_setColor(palette.FilledInput, 'disabledBg', 'rgba(0, 0, 0, 0.12)');
+      createThemeWithVars_setColor(palette.LinearProgress, 'primaryBg', colorManipulator_private_safeLighten(palette.primary.main, 0.62));
+      createThemeWithVars_setColor(palette.LinearProgress, 'secondaryBg', colorManipulator_private_safeLighten(palette.secondary.main, 0.62));
+      createThemeWithVars_setColor(palette.LinearProgress, 'errorBg', colorManipulator_private_safeLighten(palette.error.main, 0.62));
+      createThemeWithVars_setColor(palette.LinearProgress, 'infoBg', colorManipulator_private_safeLighten(palette.info.main, 0.62));
+      createThemeWithVars_setColor(palette.LinearProgress, 'successBg', colorManipulator_private_safeLighten(palette.success.main, 0.62));
+      createThemeWithVars_setColor(palette.LinearProgress, 'warningBg', colorManipulator_private_safeLighten(palette.warning.main, 0.62));
+      createThemeWithVars_setColor(palette.Skeleton, 'bg', `rgba(${setCssVarColor('palette-text-primaryChannel')} / 0.11)`);
+      createThemeWithVars_setColor(palette.Slider, 'primaryTrack', colorManipulator_private_safeLighten(palette.primary.main, 0.62));
+      createThemeWithVars_setColor(palette.Slider, 'secondaryTrack', colorManipulator_private_safeLighten(palette.secondary.main, 0.62));
+      createThemeWithVars_setColor(palette.Slider, 'errorTrack', colorManipulator_private_safeLighten(palette.error.main, 0.62));
+      createThemeWithVars_setColor(palette.Slider, 'infoTrack', colorManipulator_private_safeLighten(palette.info.main, 0.62));
+      createThemeWithVars_setColor(palette.Slider, 'successTrack', colorManipulator_private_safeLighten(palette.success.main, 0.62));
+      createThemeWithVars_setColor(palette.Slider, 'warningTrack', colorManipulator_private_safeLighten(palette.warning.main, 0.62));
+      const snackbarContentBackground = colorManipulator_private_safeEmphasize(palette.background.default, 0.8);
+      createThemeWithVars_setColor(palette.SnackbarContent, 'bg', snackbarContentBackground);
+      createThemeWithVars_setColor(palette.SnackbarContent, 'color', createThemeWithVars_silent(() => palette.getContrastText(snackbarContentBackground)));
+      createThemeWithVars_setColor(palette.SpeedDialAction, 'fabHoverBg', colorManipulator_private_safeEmphasize(palette.background.paper, 0.15));
+      createThemeWithVars_setColor(palette.StepConnector, 'border', setCssVarColor('palette-grey-400'));
+      createThemeWithVars_setColor(palette.StepContent, 'border', setCssVarColor('palette-grey-400'));
+      createThemeWithVars_setColor(palette.Switch, 'defaultColor', setCssVarColor('palette-common-white'));
+      createThemeWithVars_setColor(palette.Switch, 'defaultDisabledColor', setCssVarColor('palette-grey-100'));
+      createThemeWithVars_setColor(palette.Switch, 'primaryDisabledColor', colorManipulator_private_safeLighten(palette.primary.main, 0.62));
+      createThemeWithVars_setColor(palette.Switch, 'secondaryDisabledColor', colorManipulator_private_safeLighten(palette.secondary.main, 0.62));
+      createThemeWithVars_setColor(palette.Switch, 'errorDisabledColor', colorManipulator_private_safeLighten(palette.error.main, 0.62));
+      createThemeWithVars_setColor(palette.Switch, 'infoDisabledColor', colorManipulator_private_safeLighten(palette.info.main, 0.62));
+      createThemeWithVars_setColor(palette.Switch, 'successDisabledColor', colorManipulator_private_safeLighten(palette.success.main, 0.62));
+      createThemeWithVars_setColor(palette.Switch, 'warningDisabledColor', colorManipulator_private_safeLighten(palette.warning.main, 0.62));
+      createThemeWithVars_setColor(palette.TableCell, 'border', colorManipulator_private_safeLighten(colorManipulator_private_safeAlpha(palette.divider, 1), 0.88));
+      createThemeWithVars_setColor(palette.Tooltip, 'bg', colorManipulator_private_safeAlpha(palette.grey[700], 0.92));
+    }
+    if (palette.mode === 'dark') {
+      createThemeWithVars_setColor(palette.Alert, 'errorColor', colorManipulator_private_safeLighten(palette.error.light, 0.6));
+      createThemeWithVars_setColor(palette.Alert, 'infoColor', colorManipulator_private_safeLighten(palette.info.light, 0.6));
+      createThemeWithVars_setColor(palette.Alert, 'successColor', colorManipulator_private_safeLighten(palette.success.light, 0.6));
+      createThemeWithVars_setColor(palette.Alert, 'warningColor', colorManipulator_private_safeLighten(palette.warning.light, 0.6));
+      createThemeWithVars_setColor(palette.Alert, 'errorFilledBg', setCssVarColor('palette-error-dark'));
+      createThemeWithVars_setColor(palette.Alert, 'infoFilledBg', setCssVarColor('palette-info-dark'));
+      createThemeWithVars_setColor(palette.Alert, 'successFilledBg', setCssVarColor('palette-success-dark'));
+      createThemeWithVars_setColor(palette.Alert, 'warningFilledBg', setCssVarColor('palette-warning-dark'));
+      createThemeWithVars_setColor(palette.Alert, 'errorFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.error.dark)));
+      createThemeWithVars_setColor(palette.Alert, 'infoFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.info.dark)));
+      createThemeWithVars_setColor(palette.Alert, 'successFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.success.dark)));
+      createThemeWithVars_setColor(palette.Alert, 'warningFilledColor', createThemeWithVars_silent(() => palette.getContrastText(palette.warning.dark)));
+      createThemeWithVars_setColor(palette.Alert, 'errorStandardBg', colorManipulator_private_safeDarken(palette.error.light, 0.9));
+      createThemeWithVars_setColor(palette.Alert, 'infoStandardBg', colorManipulator_private_safeDarken(palette.info.light, 0.9));
+      createThemeWithVars_setColor(palette.Alert, 'successStandardBg', colorManipulator_private_safeDarken(palette.success.light, 0.9));
+      createThemeWithVars_setColor(palette.Alert, 'warningStandardBg', colorManipulator_private_safeDarken(palette.warning.light, 0.9));
+      createThemeWithVars_setColor(palette.Alert, 'errorIconColor', setCssVarColor('palette-error-main'));
+      createThemeWithVars_setColor(palette.Alert, 'infoIconColor', setCssVarColor('palette-info-main'));
+      createThemeWithVars_setColor(palette.Alert, 'successIconColor', setCssVarColor('palette-success-main'));
+      createThemeWithVars_setColor(palette.Alert, 'warningIconColor', setCssVarColor('palette-warning-main'));
+      createThemeWithVars_setColor(palette.AppBar, 'defaultBg', setCssVarColor('palette-grey-900'));
+      createThemeWithVars_setColor(palette.AppBar, 'darkBg', setCssVarColor('palette-background-paper')); // specific for dark mode
+      createThemeWithVars_setColor(palette.AppBar, 'darkColor', setCssVarColor('palette-text-primary')); // specific for dark mode
+      createThemeWithVars_setColor(palette.Avatar, 'defaultBg', setCssVarColor('palette-grey-600'));
+      createThemeWithVars_setColor(palette.Button, 'inheritContainedBg', setCssVarColor('palette-grey-800'));
+      createThemeWithVars_setColor(palette.Button, 'inheritContainedHoverBg', setCssVarColor('palette-grey-700'));
+      createThemeWithVars_setColor(palette.Chip, 'defaultBorder', setCssVarColor('palette-grey-700'));
+      createThemeWithVars_setColor(palette.Chip, 'defaultAvatarColor', setCssVarColor('palette-grey-300'));
+      createThemeWithVars_setColor(palette.Chip, 'defaultIconColor', setCssVarColor('palette-grey-300'));
+      createThemeWithVars_setColor(palette.FilledInput, 'bg', 'rgba(255, 255, 255, 0.09)');
+      createThemeWithVars_setColor(palette.FilledInput, 'hoverBg', 'rgba(255, 255, 255, 0.13)');
+      createThemeWithVars_setColor(palette.FilledInput, 'disabledBg', 'rgba(255, 255, 255, 0.12)');
+      createThemeWithVars_setColor(palette.LinearProgress, 'primaryBg', colorManipulator_private_safeDarken(palette.primary.main, 0.5));
+      createThemeWithVars_setColor(palette.LinearProgress, 'secondaryBg', colorManipulator_private_safeDarken(palette.secondary.main, 0.5));
+      createThemeWithVars_setColor(palette.LinearProgress, 'errorBg', colorManipulator_private_safeDarken(palette.error.main, 0.5));
+      createThemeWithVars_setColor(palette.LinearProgress, 'infoBg', colorManipulator_private_safeDarken(palette.info.main, 0.5));
+      createThemeWithVars_setColor(palette.LinearProgress, 'successBg', colorManipulator_private_safeDarken(palette.success.main, 0.5));
+      createThemeWithVars_setColor(palette.LinearProgress, 'warningBg', colorManipulator_private_safeDarken(palette.warning.main, 0.5));
+      createThemeWithVars_setColor(palette.Skeleton, 'bg', `rgba(${setCssVarColor('palette-text-primaryChannel')} / 0.13)`);
+      createThemeWithVars_setColor(palette.Slider, 'primaryTrack', colorManipulator_private_safeDarken(palette.primary.main, 0.5));
+      createThemeWithVars_setColor(palette.Slider, 'secondaryTrack', colorManipulator_private_safeDarken(palette.secondary.main, 0.5));
+      createThemeWithVars_setColor(palette.Slider, 'errorTrack', colorManipulator_private_safeDarken(palette.error.main, 0.5));
+      createThemeWithVars_setColor(palette.Slider, 'infoTrack', colorManipulator_private_safeDarken(palette.info.main, 0.5));
+      createThemeWithVars_setColor(palette.Slider, 'successTrack', colorManipulator_private_safeDarken(palette.success.main, 0.5));
+      createThemeWithVars_setColor(palette.Slider, 'warningTrack', colorManipulator_private_safeDarken(palette.warning.main, 0.5));
+      const snackbarContentBackground = colorManipulator_private_safeEmphasize(palette.background.default, 0.98);
+      createThemeWithVars_setColor(palette.SnackbarContent, 'bg', snackbarContentBackground);
+      createThemeWithVars_setColor(palette.SnackbarContent, 'color', createThemeWithVars_silent(() => palette.getContrastText(snackbarContentBackground)));
+      createThemeWithVars_setColor(palette.SpeedDialAction, 'fabHoverBg', colorManipulator_private_safeEmphasize(palette.background.paper, 0.15));
+      createThemeWithVars_setColor(palette.StepConnector, 'border', setCssVarColor('palette-grey-600'));
+      createThemeWithVars_setColor(palette.StepContent, 'border', setCssVarColor('palette-grey-600'));
+      createThemeWithVars_setColor(palette.Switch, 'defaultColor', setCssVarColor('palette-grey-300'));
+      createThemeWithVars_setColor(palette.Switch, 'defaultDisabledColor', setCssVarColor('palette-grey-600'));
+      createThemeWithVars_setColor(palette.Switch, 'primaryDisabledColor', colorManipulator_private_safeDarken(palette.primary.main, 0.55));
+      createThemeWithVars_setColor(palette.Switch, 'secondaryDisabledColor', colorManipulator_private_safeDarken(palette.secondary.main, 0.55));
+      createThemeWithVars_setColor(palette.Switch, 'errorDisabledColor', colorManipulator_private_safeDarken(palette.error.main, 0.55));
+      createThemeWithVars_setColor(palette.Switch, 'infoDisabledColor', colorManipulator_private_safeDarken(palette.info.main, 0.55));
+      createThemeWithVars_setColor(palette.Switch, 'successDisabledColor', colorManipulator_private_safeDarken(palette.success.main, 0.55));
+      createThemeWithVars_setColor(palette.Switch, 'warningDisabledColor', colorManipulator_private_safeDarken(palette.warning.main, 0.55));
+      createThemeWithVars_setColor(palette.TableCell, 'border', colorManipulator_private_safeDarken(colorManipulator_private_safeAlpha(palette.divider, 1), 0.68));
+      createThemeWithVars_setColor(palette.Tooltip, 'bg', colorManipulator_private_safeAlpha(palette.grey[700], 0.92));
+    }
+
+    // MUI X - DataGrid needs this token.
+    createThemeWithVars_setColorChannel(palette.background, 'default');
+
+    // added for consistency with the `background.default` token
+    createThemeWithVars_setColorChannel(palette.background, 'paper');
+    createThemeWithVars_setColorChannel(palette.common, 'background');
+    createThemeWithVars_setColorChannel(palette.common, 'onBackground');
+    createThemeWithVars_setColorChannel(palette, 'divider');
+    Object.keys(palette).forEach(color => {
+      const colors = palette[color];
+
+      // The default palettes (primary, secondary, error, info, success, and warning) errors are handled by the above `createTheme(...)`.
+
+      if (color !== 'tonalOffset' && colors && typeof colors === 'object') {
+        // Silent the error for custom palettes.
+        if (colors.main) {
+          createThemeWithVars_setColor(palette[color], 'mainChannel', colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(colors.main)));
+        }
+        if (colors.light) {
+          createThemeWithVars_setColor(palette[color], 'lightChannel', colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(colors.light)));
+        }
+        if (colors.dark) {
+          createThemeWithVars_setColor(palette[color], 'darkChannel', colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(colors.dark)));
+        }
+        if (colors.contrastText) {
+          createThemeWithVars_setColor(palette[color], 'contrastTextChannel', colorManipulator_private_safeColorChannel(createThemeWithVars_toRgb(colors.contrastText)));
+        }
+        if (color === 'text') {
+          // Text colors: text.primary, text.secondary
+          createThemeWithVars_setColorChannel(palette[color], 'primary');
+          createThemeWithVars_setColorChannel(palette[color], 'secondary');
+        }
+        if (color === 'action') {
+          // Action colors: action.active, action.selected
+          if (colors.active) {
+            createThemeWithVars_setColorChannel(palette[color], 'active');
+          }
+          if (colors.selected) {
+            createThemeWithVars_setColorChannel(palette[color], 'selected');
+          }
+        }
+      }
+    });
+  });
+  theme = args.reduce((acc, argument) => deepmerge_deepmerge_deepmerge(acc, argument), theme);
+  const parserConfig = {
+    prefix: cssVarPrefix,
+    disableCssColorScheme,
+    shouldSkipGeneratingVar,
+    getSelector: styles_createGetSelector(theme)
+  };
+  const {
+    vars,
+    generateThemeVars,
+    generateStyleSheets
+  } = esm_cssVars_prepareCssVars(theme, parserConfig);
+  theme.vars = vars;
+  Object.entries(theme.colorSchemes[theme.defaultColorScheme]).forEach(([key, value]) => {
+    theme[key] = value;
+  });
+  theme.generateThemeVars = generateThemeVars;
+  theme.generateStyleSheets = generateStyleSheets;
+  theme.generateSpacing = function generateSpacing() {
+    return createSpacing_createSpacing(input.spacing, spacing_createUnarySpacing(this));
+  };
+  theme.getColorSchemeSelector = getColorSchemeSelector_createGetColorSchemeSelector(selector);
+  theme.spacing = theme.generateSpacing();
+  theme.shouldSkipGeneratingVar = shouldSkipGeneratingVar;
+  theme.unstable_sxConfig = {
+    ...esm_styleFunctionSx_defaultSxConfig,
+    ...input?.unstable_sxConfig
+  };
+  theme.unstable_sx = function sx(props) {
+    return esm_styleFunctionSx_styleFunctionSx({
+      sx: props,
+      theme: this
+    });
+  };
+  theme.toRuntimeSource = stringifyTheme_stringifyTheme; // for Pigment CSS integration
+
+  return theme;
+}
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/createTheme.js
+
+
+
+
+// eslint-disable-next-line consistent-return
+function styles_createTheme_attachColorScheme(theme, scheme, colorScheme) {
+  if (!theme.colorSchemes) {
+    return undefined;
+  }
+  if (colorScheme) {
+    theme.colorSchemes[scheme] = {
+      ...(colorScheme !== true && colorScheme),
+      palette: createPalette_createPalette({
+        ...(colorScheme === true ? {} : colorScheme.palette),
+        mode: scheme
+      }) // cast type to skip module augmentation test
+    };
+  }
+}
+
+/**
+ * Generate a theme base on the options received.
+ * @param options Takes an incomplete theme object and adds the missing parts.
+ * @param args Deep merge the arguments with the about to be returned theme.
+ * @returns A complete, ready-to-use theme object.
+ */
+function material_styles_createTheme_createTheme(options = {},
+// cast type to skip module augmentation test
+...args) {
+  const {
+    palette,
+    cssVariables = false,
+    colorSchemes: initialColorSchemes = !palette ? {
+      light: true
+    } : undefined,
+    defaultColorScheme: initialDefaultColorScheme = palette?.mode,
+    ...rest
+  } = options;
+  const defaultColorSchemeInput = initialDefaultColorScheme || 'light';
+  const defaultScheme = initialColorSchemes?.[defaultColorSchemeInput];
+  const colorSchemesInput = {
+    ...initialColorSchemes,
+    ...(palette ? {
+      [defaultColorSchemeInput]: {
+        ...(typeof defaultScheme !== 'boolean' && defaultScheme),
+        palette
+      }
+    } : undefined)
+  };
+  if (cssVariables === false) {
+    if (!('colorSchemes' in options)) {
+      // Behaves exactly as v5
+      return material_styles_createThemeNoVars(options, ...args);
+    }
+    let paletteOptions = palette;
+    if (!('palette' in options)) {
+      if (colorSchemesInput[defaultColorSchemeInput]) {
+        if (colorSchemesInput[defaultColorSchemeInput] !== true) {
+          paletteOptions = colorSchemesInput[defaultColorSchemeInput].palette;
+        } else if (defaultColorSchemeInput === 'dark') {
+          // @ts-ignore to prevent the module augmentation test from failing
+          paletteOptions = {
+            mode: 'dark'
+          };
+        }
+      }
+    }
+    const theme = material_styles_createThemeNoVars({
+      ...options,
+      palette: paletteOptions
+    }, ...args);
+    theme.defaultColorScheme = defaultColorSchemeInput;
+    theme.colorSchemes = colorSchemesInput;
+    if (theme.palette.mode === 'light') {
+      theme.colorSchemes.light = {
+        ...(colorSchemesInput.light !== true && colorSchemesInput.light),
+        palette: theme.palette
+      };
+      styles_createTheme_attachColorScheme(theme, 'dark', colorSchemesInput.dark);
+    }
+    if (theme.palette.mode === 'dark') {
+      theme.colorSchemes.dark = {
+        ...(colorSchemesInput.dark !== true && colorSchemesInput.dark),
+        palette: theme.palette
+      };
+      styles_createTheme_attachColorScheme(theme, 'light', colorSchemesInput.light);
+    }
+    return theme;
+  }
+  if (!palette && !('light' in colorSchemesInput) && defaultColorSchemeInput === 'light') {
+    colorSchemesInput.light = true;
+  }
+  return createThemeWithVars_createThemeWithVars({
+    ...rest,
+    colorSchemes: colorSchemesInput,
+    defaultColorScheme: defaultColorSchemeInput,
+    ...(typeof cssVariables !== 'boolean' && cssVariables)
+  }, ...args);
+}
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/defaultTheme.js
 'use client';
 
 
-const defaultTheme_defaultTheme = styles_createTheme_createTheme();
+const defaultTheme_defaultTheme = material_styles_createTheme_createTheme();
 /* harmony default export */ const material_styles_defaultTheme = (defaultTheme_defaultTheme);
+;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/identifier.js
+/* harmony default export */ const styles_identifier = ('$$material');
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/styles/slotShouldForwardProp.js
 // copied from @mui/system/createStyled
 function slotShouldForwardProp_slotShouldForwardProp(prop) {
@@ -19161,11 +18069,107 @@ const rootShouldForwardProp_rootShouldForwardProp = prop => material_styles_slot
 
 
 const styled_styled = createStyled_createStyled_createStyled({
-  themeId: identifier,
+  themeId: styles_identifier,
   defaultTheme: material_styles_defaultTheme,
   rootShouldForwardProp: material_styles_rootShouldForwardProp
 });
 /* harmony default export */ const material_styles_styled = (styled_styled);
+;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/resolveProps/resolveProps.js
+/**
+ * Add keys, values of `defaultProps` that does not exist in `props`
+ * @param defaultProps
+ * @param props
+ * @returns resolved props
+ */
+function resolveProps_resolveProps(defaultProps, props) {
+  const output = {
+    ...props
+  };
+  for (const key in defaultProps) {
+    if (Object.prototype.hasOwnProperty.call(defaultProps, key)) {
+      const propName = key;
+      if (propName === 'components' || propName === 'slots') {
+        output[propName] = {
+          ...defaultProps[propName],
+          ...output[propName]
+        };
+      } else if (propName === 'componentsProps' || propName === 'slotProps') {
+        const defaultSlotProps = defaultProps[propName];
+        const slotProps = props[propName];
+        if (!slotProps) {
+          output[propName] = defaultSlotProps || {};
+        } else if (!defaultSlotProps) {
+          output[propName] = slotProps;
+        } else {
+          output[propName] = {
+            ...slotProps
+          };
+          for (const slotKey in defaultSlotProps) {
+            if (Object.prototype.hasOwnProperty.call(defaultSlotProps, slotKey)) {
+              const slotPropName = slotKey;
+              output[propName][slotPropName] = resolveProps_resolveProps(defaultSlotProps[slotPropName], slotProps[slotPropName]);
+            }
+          }
+        }
+      } else if (output[propName] === undefined) {
+        output[propName] = defaultProps[propName];
+      }
+    }
+  }
+  return output;
+}
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/DefaultPropsProvider/DefaultPropsProvider.js
+'use client';
+
+
+
+
+
+const DefaultPropsProvider_PropsContext = /*#__PURE__*/external_React_.createContext(undefined);
+function esm_DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider({
+  value,
+  children
+}) {
+  return /*#__PURE__*/_jsx(DefaultPropsProvider_PropsContext.Provider, {
+    value: value,
+    children: children
+  });
+}
+ false ? 0 : void 0;
+function DefaultPropsProvider_getThemeProps(params) {
+  const {
+    theme,
+    name,
+    props
+  } = params;
+  if (!theme || !theme.components || !theme.components[name]) {
+    return props;
+  }
+  const config = theme.components[name];
+  if (config.defaultProps) {
+    // compatible with v5 signature
+    return resolveProps_resolveProps(config.defaultProps, props);
+  }
+  if (!config.styleOverrides && !config.variants) {
+    // v6 signature, no property 'defaultProps'
+    return resolveProps_resolveProps(config, props);
+  }
+  return props;
+}
+function DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
+  props,
+  name
+}) {
+  const ctx = external_React_.useContext(DefaultPropsProvider_PropsContext);
+  return DefaultPropsProvider_getThemeProps({
+    props,
+    name,
+    theme: {
+      components: ctx
+    }
+  });
+}
+/* harmony default export */ const system_esm_DefaultPropsProvider_DefaultPropsProvider = ((/* unused pure expression or super */ null && (esm_DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider)));
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/DefaultPropsProvider/DefaultPropsProvider.js
 'use client';
 
@@ -19181,7 +18185,7 @@ function material_DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider
  false ? 0 : void 0;
 /* harmony default export */ const material_DefaultPropsProvider_DefaultPropsProvider = ((/* unused pure expression or super */ null && (material_DefaultPropsProvider_DefaultPropsProvider_DefaultPropsProvider)));
 function material_DefaultPropsProvider_DefaultPropsProvider_useDefaultProps(params) {
-  return useDefaultProps(params);
+  return DefaultPropsProvider_DefaultPropsProvider_useDefaultProps(params);
 }
 ;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/setRef/setRef.js
 /**
@@ -19255,6 +18259,20 @@ function ownerWindow_ownerWindow(node) {
   const doc = ownerDocument_ownerDocument(node);
   return doc.defaultView || window;
 }
+;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/useEnhancedEffect/useEnhancedEffect.js
+'use client';
+
+
+
+/**
+ * A version of `React.useLayoutEffect` that does not show a warning when server-side rendering.
+ * This is useful for effects that are only needed for client-side rendering but not for SSR.
+ *
+ * Before you use this hook, make sure to read https://gist.github.com/gaearon/e7d97cdf38a2907924ea12e4ebdf3c85
+ * and confirm it doesn't apply to your use-case.
+ */
+const useEnhancedEffect_useEnhancedEffect_useEnhancedEffect = typeof window !== 'undefined' ? external_React_.useLayoutEffect : external_React_.useEffect;
+/* harmony default export */ const esm_useEnhancedEffect_useEnhancedEffect = (useEnhancedEffect_useEnhancedEffect_useEnhancedEffect);
 ;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/debounce/debounce.js
 // Corresponds to 10 frames at 60 Hz.
 // A few bytes payload overhead when lodash/debounce is ~3 kB and debounce ~300 B.
@@ -19391,7 +18409,7 @@ const TextareaAutosize = /*#__PURE__*/external_React_.forwardRef(function Textar
     }
     input.style.overflow = textareaStyles.overflowing ? 'hidden' : '';
   }, [calculateTextareaStyles]);
-  useEnhancedEffect_useEnhancedEffect(() => {
+  esm_useEnhancedEffect_useEnhancedEffect(() => {
     const handleResize = () => {
       syncHeight();
     };
@@ -19424,7 +18442,7 @@ const TextareaAutosize = /*#__PURE__*/external_React_.forwardRef(function Textar
       }
     };
   }, [calculateTextareaStyles, syncHeight]);
-  useEnhancedEffect_useEnhancedEffect(() => {
+  esm_useEnhancedEffect_useEnhancedEffect(() => {
     syncHeight();
   });
   const handleChange = event => {
@@ -19512,7 +18530,7 @@ const extendSxProp_splitProps = props => {
     systemProps: {},
     otherProps: {}
   };
-  const config = props?.theme?.unstable_sxConfig ?? styleFunctionSx_defaultSxConfig;
+  const config = props?.theme?.unstable_sxConfig ?? esm_styleFunctionSx_defaultSxConfig;
   Object.keys(props).forEach(prop => {
     if (config[prop]) {
       result.systemProps[prop] = props[prop];
@@ -19537,7 +18555,7 @@ function extendSxProp_extendSxProp(props) {
   } else if (typeof inSx === 'function') {
     finalSx = (...args) => {
       const result = inSx(...args);
-      if (!isPlainObject(result)) {
+      if (!deepmerge_isPlainObject(result)) {
         return systemProps;
       }
       return {
@@ -19556,16 +18574,50 @@ function extendSxProp_extendSxProp(props) {
     sx: finalSx
   };
 }
+;// ./node_modules/.pnpm/@mui+styled-engine@6.4.0_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+s_x7v5n4lf3nu5lz7wyzk6kbd3tu/node_modules/@mui/styled-engine/GlobalStyles/GlobalStyles.js
+'use client';
+
+
+
+
+
+function GlobalStyles_isEmpty(obj) {
+  return obj === undefined || obj === null || Object.keys(obj).length === 0;
+}
+function styled_engine_GlobalStyles_GlobalStyles_GlobalStyles(props) {
+  const {
+    styles,
+    defaultTheme = {}
+  } = props;
+  const globalStyles = typeof styles === 'function' ? themeInput => styles(GlobalStyles_isEmpty(themeInput) ? defaultTheme : themeInput) : styles;
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(external_EmotionReact_.Global, {
+    styles: globalStyles
+  });
+}
+ false ? 0 : void 0;
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/useThemeWithoutDefault/useThemeWithoutDefault.js
+'use client';
+
+
+
+function useThemeWithoutDefault_isObjectEmpty(obj) {
+  return Object.keys(obj).length === 0;
+}
+function useThemeWithoutDefault_useThemeWithoutDefault_useTheme(defaultTheme = null) {
+  const contextTheme = external_React_.useContext(external_EmotionReact_.ThemeContext);
+  return !contextTheme || useThemeWithoutDefault_isObjectEmpty(contextTheme) ? defaultTheme : contextTheme;
+}
+/* harmony default export */ const useThemeWithoutDefault_useThemeWithoutDefault = (useThemeWithoutDefault_useThemeWithoutDefault_useTheme);
 ;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/useTheme/useTheme.js
 'use client';
 
 
 
-const useTheme_useTheme_systemDefaultTheme = createTheme_createTheme();
-function esm_useTheme_useTheme_useTheme(defaultTheme = useTheme_useTheme_systemDefaultTheme) {
-  return useThemeWithoutDefault(defaultTheme);
+const useTheme_systemDefaultTheme = esm_createTheme_createTheme();
+function useTheme_useTheme_useTheme(defaultTheme = useTheme_systemDefaultTheme) {
+  return useThemeWithoutDefault_useThemeWithoutDefault(defaultTheme);
 }
-/* harmony default export */ const system_esm_useTheme_useTheme = (esm_useTheme_useTheme_useTheme);
+/* harmony default export */ const system_esm_useTheme_useTheme = (useTheme_useTheme_useTheme);
 ;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/GlobalStyles/GlobalStyles.js
 'use client';
 
@@ -19574,19 +18626,19 @@ function esm_useTheme_useTheme_useTheme(defaultTheme = useTheme_useTheme_systemD
 
 
 
-function system_esm_GlobalStyles_GlobalStyles_GlobalStyles({
+function esm_GlobalStyles_GlobalStyles_GlobalStyles({
   styles,
   themeId,
   defaultTheme = {}
 }) {
   const upperTheme = system_esm_useTheme_useTheme(defaultTheme);
   const globalStyles = typeof styles === 'function' ? styles(themeId ? upperTheme[themeId] || upperTheme : upperTheme) : styles;
-  return /*#__PURE__*/(0,jsx_runtime.jsx)(GlobalStyles_GlobalStyles, {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(styled_engine_GlobalStyles_GlobalStyles_GlobalStyles, {
     styles: globalStyles
   });
 }
  false ? 0 : void 0;
-/* harmony default export */ const system_esm_GlobalStyles_GlobalStyles = (system_esm_GlobalStyles_GlobalStyles_GlobalStyles);
+/* harmony default export */ const system_esm_GlobalStyles_GlobalStyles = (esm_GlobalStyles_GlobalStyles_GlobalStyles);
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/GlobalStyles/GlobalStyles.js
 'use client';
 
@@ -19600,7 +18652,7 @@ function material_GlobalStyles_GlobalStyles_GlobalStyles(props) {
   return /*#__PURE__*/(0,jsx_runtime.jsx)(system_esm_GlobalStyles_GlobalStyles, {
     ...props,
     defaultTheme: material_styles_defaultTheme,
-    themeId: identifier
+    themeId: styles_identifier
   });
 }
  false ? 0 : void 0;
@@ -19668,7 +18720,7 @@ const memoTheme_memoTheme = memoTheme_unstable_memoTheme;
 /* harmony default export */ const material_utils_memoTheme = (memoTheme_memoTheme);
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/utils/capitalize.js
 
-/* harmony default export */ const material_utils_capitalize = (capitalize_capitalize);
+/* harmony default export */ const material_utils_capitalize = (capitalize_capitalize_capitalize);
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/utils/useForkRef.js
 'use client';
 
@@ -19678,7 +18730,7 @@ const memoTheme_memoTheme = memoTheme_unstable_memoTheme;
 'use client';
 
 
-/* harmony default export */ const utils_useEnhancedEffect = (useEnhancedEffect_useEnhancedEffect);
+/* harmony default export */ const utils_useEnhancedEffect = (esm_useEnhancedEffect_useEnhancedEffect);
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/InputBase/utils.js
 // Supports determination of isControlled().
 // Controlled input accepts its current value as a prop.
@@ -20130,7 +19182,7 @@ const InputBase = /*#__PURE__*/external_React_.forwardRef(function InputBase(inP
     if (!isControlled) {
       const element = event.target || inputRef.current;
       if (element == null) {
-        throw new Error( false ? 0 : formatMuiErrorMessage(1));
+        throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(1));
       }
       checkDirty({
         value: element.value
@@ -20485,7 +19537,7 @@ const Input = /*#__PURE__*/external_React_.forwardRef(function Input(inProps, re
       ownerState
     }
   };
-  const componentsProps = slotProps ?? componentsPropsProp ? deepmerge_deepmerge(slotProps ?? componentsPropsProp, inputComponentsProps) : inputComponentsProps;
+  const componentsProps = slotProps ?? componentsPropsProp ? deepmerge_deepmerge_deepmerge(slotProps ?? componentsPropsProp, inputComponentsProps) : inputComponentsProps;
   const RootSlot = slots.root ?? components.Root ?? InputRoot;
   const InputSlot = slots.input ?? components.Input ?? InputInput;
   return /*#__PURE__*/(0,jsx_runtime.jsx)(InputBase_InputBase, {
@@ -20823,7 +19875,7 @@ const FilledInput = /*#__PURE__*/external_React_.forwardRef(function FilledInput
       ownerState
     }
   };
-  const componentsProps = slotProps ?? componentsPropsProp ? deepmerge_deepmerge(filledInputComponentsProps, slotProps ?? componentsPropsProp) : filledInputComponentsProps;
+  const componentsProps = slotProps ?? componentsPropsProp ? deepmerge_deepmerge_deepmerge(filledInputComponentsProps, slotProps ?? componentsPropsProp) : filledInputComponentsProps;
   const RootSlot = slots.root ?? components.Root ?? FilledInputRoot;
   const InputSlot = slots.input ?? components.Input ?? FilledInputInput;
   return /*#__PURE__*/(0,jsx_runtime.jsx)(InputBase_InputBase, {
@@ -21995,6 +21047,28 @@ function getReactElementRef_getReactElementRef(element) {
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/utils/ownerDocument.js
 
 /* harmony default export */ const utils_ownerDocument = (ownerDocument_ownerDocument);
+;// ./node_modules/.pnpm/@mui+system@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled@1_pduhc6zcyqy754dvtvmbmj7vsu/node_modules/@mui/system/esm/RtlProvider/index.js
+'use client';
+
+
+
+
+const RtlProvider_RtlContext = /*#__PURE__*/external_React_.createContext();
+function RtlProvider_RtlProvider({
+  value,
+  ...props
+}) {
+  return /*#__PURE__*/_jsx(RtlProvider_RtlContext.Provider, {
+    value: value ?? true,
+    ...props
+  });
+}
+ false ? 0 : void 0;
+const RtlProvider_useRtl = () => {
+  const value = external_React_.useContext(RtlProvider_RtlContext);
+  return value ?? false;
+};
+/* harmony default export */ const system_esm_RtlProvider = ((/* unused pure expression or super */ null && (RtlProvider_RtlProvider)));
 ;// ./node_modules/.pnpm/@mui+utils@6.4.1_@types+react@18.3.18_react@18.3.1/node_modules/@mui/utils/esm/isHostComponent/isHostComponent.js
 /**
  * Determines if a given element is a DOM element name (i.e. not a React component).
@@ -22665,7 +21739,7 @@ function useTimeout_useTimeout() {
 function material_styles_useTheme_useTheme() {
   const theme = system_esm_useTheme_useTheme(material_styles_defaultTheme);
   if (false) {}
-  return theme[identifier] || theme;
+  return theme[styles_identifier] || theme;
 }
 ;// ./node_modules/.pnpm/@mui+material@6.4.1_@emotion+react@11.14.0_@types+react@18.3.18_react@18.3.1__@emotion+styled_yh4ioczyn5opzmtpjym7xdekzq/node_modules/@mui/material/transitions/utils.js
 const utils_reflow = node => node.scrollTop;
@@ -23174,12 +22248,12 @@ const Portal_Portal_Portal = /*#__PURE__*/external_React_.forwardRef(function Po
   } = props;
   const [mountNode, setMountNode] = external_React_.useState(null);
   const handleRef = useForkRef_useForkRef(/*#__PURE__*/external_React_.isValidElement(children) ? getReactElementRef_getReactElementRef(children) : null, forwardedRef);
-  useEnhancedEffect_useEnhancedEffect(() => {
+  esm_useEnhancedEffect_useEnhancedEffect(() => {
     if (!disablePortal) {
       setMountNode(Portal_getContainer(container) || document.body);
     }
   }, [container, disablePortal]);
-  useEnhancedEffect_useEnhancedEffect(() => {
+  esm_useEnhancedEffect_useEnhancedEffect(() => {
     if (mountNode && !disablePortal) {
       setRef_setRef(forwardedRef, mountNode);
       return () => {
@@ -23558,7 +22632,7 @@ const Backdrop_Backdrop_Backdrop = /*#__PURE__*/external_React_.forwardRef(funct
 
 function useEventCallback_useEventCallback_useEventCallback(fn) {
   const ref = external_React_.useRef(fn);
-  useEnhancedEffect_useEnhancedEffect(() => {
+  esm_useEnhancedEffect_useEnhancedEffect(() => {
     ref.current = fn;
   });
   return external_React_.useRef((...args) =>
@@ -24345,7 +23419,7 @@ const Paper_Paper_Paper = /*#__PURE__*/external_React_.forwardRef(function Paper
           '--Paper-overlay': theme.vars.overlays?.[elevation]
         }),
         ...(!theme.vars && theme.palette.mode === 'dark' && {
-          '--Paper-overlay': `linear-gradient(${alpha('#fff', getOverlayAlpha(elevation))}, ${alpha('#fff', getOverlayAlpha(elevation))})`
+          '--Paper-overlay': `linear-gradient(${colorManipulator_alpha('#fff', getOverlayAlpha_getOverlayAlpha(elevation))}, ${colorManipulator_alpha('#fff', getOverlayAlpha_getOverlayAlpha(elevation))})`
         })
       }),
       ...other.style
@@ -24809,7 +23883,7 @@ const Menu = /*#__PURE__*/external_React_.forwardRef(function Menu(inProps, ref)
     slotProps = {},
     ...other
   } = props;
-  const isRtl = useRtl();
+  const isRtl = RtlProvider_useRtl();
   const ownerState = {
     ...props,
     autoFocus,
@@ -25499,7 +24573,7 @@ const SelectInput = /*#__PURE__*/external_React_.forwardRef(function SelectInput
     let selected;
     if (multiple) {
       if (!Array.isArray(value)) {
-        throw new Error( false ? 0 : formatMuiErrorMessage(2));
+        throw new Error( false ? 0 : formatMuiErrorMessage_formatMuiErrorMessage(2));
       }
       selected = value.some(v => areEqualValues(v, child.props.value));
       if (selected && computeDisplay) {
@@ -26010,7 +25084,7 @@ const Select = /*#__PURE__*/external_React_.forwardRef(function Select(inProps, 
           }
         }),
         ...inputProps,
-        classes: inputProps ? deepmerge_deepmerge(restOfClasses, inputProps.classes) : restOfClasses,
+        classes: inputProps ? deepmerge_deepmerge_deepmerge(restOfClasses, inputProps.classes) : restOfClasses,
         ...(input ? input.props.inputProps : {})
       },
       ...((multiple && native || displayEmpty) && variant === 'outlined' ? {
@@ -29300,7 +28374,7 @@ const PopperTooltip = /*#__PURE__*/external_React_.forwardRef(function PopperToo
   const popperRef = external_React_.useRef(null);
   const handlePopperRef = useForkRef_useForkRef(popperRef, popperRefProp);
   const handlePopperRefRef = external_React_.useRef(handlePopperRef);
-  useEnhancedEffect_useEnhancedEffect(() => {
+  esm_useEnhancedEffect_useEnhancedEffect(() => {
     handlePopperRefRef.current = handlePopperRef;
   }, [handlePopperRef]);
   external_React_.useImperativeHandle(popperRefProp, () => popperRef.current, []);
@@ -29321,7 +28395,7 @@ const PopperTooltip = /*#__PURE__*/external_React_.forwardRef(function PopperToo
       setResolvedAnchorElement(BasePopper_resolveAnchorEl(anchorEl));
     }
   }, [anchorEl]);
-  useEnhancedEffect_useEnhancedEffect(() => {
+  esm_useEnhancedEffect_useEnhancedEffect(() => {
     if (!resolvedAnchorElement || !open) {
       return undefined;
     }
@@ -29503,7 +28577,7 @@ const PopperRoot = material_styles_styled(BasePopper, {
  * - [Popper API](https://mui.com/material-ui/api/popper/)
  */
 const Popper_Popper = /*#__PURE__*/external_React_.forwardRef(function Popper(inProps, ref) {
-  const isRtl = useRtl();
+  const isRtl = RtlProvider_useRtl();
   const props = material_DefaultPropsProvider_DefaultPropsProvider_useDefaultProps({
     props: inProps,
     name: 'MuiPopper'
@@ -30764,7 +29838,7 @@ const IconButton_IconButtonRoot = material_styles_styled(material_ButtonBase_But
   variants: [{
     props: props => !props.disableRipple,
     style: {
-      '--IconButton-hoverBg': theme.vars ? `rgba(${theme.vars.palette.action.activeChannel} / ${theme.vars.palette.action.hoverOpacity})` : alpha(theme.palette.action.active, theme.palette.action.hoverOpacity),
+      '--IconButton-hoverBg': theme.vars ? `rgba(${theme.vars.palette.action.activeChannel} / ${theme.vars.palette.action.hoverOpacity})` : colorManipulator_alpha(theme.palette.action.active, theme.palette.action.hoverOpacity),
       '&:hover': {
         backgroundColor: 'var(--IconButton-hoverBg)',
         // Reset on touch devices, it doesn't add specificity
@@ -30828,7 +29902,7 @@ const IconButton_IconButtonRoot = material_styles_styled(material_ButtonBase_But
       color
     },
     style: {
-      '--IconButton-hoverBg': theme.vars ? `rgba(${(theme.vars || theme).palette[color].mainChannel} / ${theme.vars.palette.action.hoverOpacity})` : alpha((theme.vars || theme).palette[color].main, theme.palette.action.hoverOpacity)
+      '--IconButton-hoverBg': theme.vars ? `rgba(${(theme.vars || theme).palette[color].mainChannel} / ${theme.vars.palette.action.hoverOpacity})` : colorManipulator_alpha((theme.vars || theme).palette[color].main, theme.palette.action.hoverOpacity)
     }
   })), {
     props: {
@@ -31103,12 +30177,12 @@ const ChipRoot = material_styles_styled('div', {
     },
     [`& .${Chip_chipClasses.deleteIcon}`]: {
       WebkitTapHighlightColor: 'transparent',
-      color: theme.vars ? `rgba(${theme.vars.palette.text.primaryChannel} / 0.26)` : alpha(theme.palette.text.primary, 0.26),
+      color: theme.vars ? `rgba(${theme.vars.palette.text.primaryChannel} / 0.26)` : colorManipulator_alpha(theme.palette.text.primary, 0.26),
       fontSize: 22,
       cursor: 'pointer',
       margin: '0 5px 0 -6px',
       '&:hover': {
-        color: theme.vars ? `rgba(${theme.vars.palette.text.primaryChannel} / 0.4)` : alpha(theme.palette.text.primary, 0.4)
+        color: theme.vars ? `rgba(${theme.vars.palette.text.primaryChannel} / 0.4)` : colorManipulator_alpha(theme.palette.text.primary, 0.4)
       }
     },
     variants: [{
@@ -31137,7 +30211,7 @@ const ChipRoot = material_styles_styled('div', {
           backgroundColor: (theme.vars || theme).palette[color].main,
           color: (theme.vars || theme).palette[color].contrastText,
           [`& .${Chip_chipClasses.deleteIcon}`]: {
-            color: theme.vars ? `rgba(${theme.vars.palette[color].contrastTextChannel} / 0.7)` : alpha(theme.palette[color].contrastText, 0.7),
+            color: theme.vars ? `rgba(${theme.vars.palette[color].contrastTextChannel} / 0.7)` : colorManipulator_alpha(theme.palette[color].contrastText, 0.7),
             '&:hover, &:active': {
               color: (theme.vars || theme).palette[color].contrastText
             }
@@ -31164,7 +30238,7 @@ const ChipRoot = material_styles_styled('div', {
       },
       style: {
         [`&.${Chip_chipClasses.focusVisible}`]: {
-          backgroundColor: theme.vars ? `rgba(${theme.vars.palette.action.selectedChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.focusOpacity}))` : alpha(theme.palette.action.selected, theme.palette.action.selectedOpacity + theme.palette.action.focusOpacity)
+          backgroundColor: theme.vars ? `rgba(${theme.vars.palette.action.selectedChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.focusOpacity}))` : colorManipulator_alpha(theme.palette.action.selected, theme.palette.action.selectedOpacity + theme.palette.action.focusOpacity)
         }
       }
     }, ...Object.entries(theme.palette).filter(createSimplePaletteValueFilter_createSimplePaletteValueFilter(['dark'])).map(([color]) => {
@@ -31188,10 +30262,10 @@ const ChipRoot = material_styles_styled('div', {
         WebkitTapHighlightColor: 'transparent',
         cursor: 'pointer',
         '&:hover': {
-          backgroundColor: theme.vars ? `rgba(${theme.vars.palette.action.selectedChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.hoverOpacity}))` : alpha(theme.palette.action.selected, theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity)
+          backgroundColor: theme.vars ? `rgba(${theme.vars.palette.action.selectedChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.hoverOpacity}))` : colorManipulator_alpha(theme.palette.action.selected, theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity)
         },
         [`&.${Chip_chipClasses.focusVisible}`]: {
-          backgroundColor: theme.vars ? `rgba(${theme.vars.palette.action.selectedChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.focusOpacity}))` : alpha(theme.palette.action.selected, theme.palette.action.selectedOpacity + theme.palette.action.focusOpacity)
+          backgroundColor: theme.vars ? `rgba(${theme.vars.palette.action.selectedChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.focusOpacity}))` : colorManipulator_alpha(theme.palette.action.selected, theme.palette.action.selectedOpacity + theme.palette.action.focusOpacity)
         },
         '&:active': {
           boxShadow: (theme.vars || theme).shadows[1]
@@ -31247,15 +30321,15 @@ const ChipRoot = material_styles_styled('div', {
       },
       style: {
         color: (theme.vars || theme).palette[color].main,
-        border: `1px solid ${theme.vars ? `rgba(${theme.vars.palette[color].mainChannel} / 0.7)` : alpha(theme.palette[color].main, 0.7)}`,
+        border: `1px solid ${theme.vars ? `rgba(${theme.vars.palette[color].mainChannel} / 0.7)` : colorManipulator_alpha(theme.palette[color].main, 0.7)}`,
         [`&.${Chip_chipClasses.clickable}:hover`]: {
-          backgroundColor: theme.vars ? `rgba(${theme.vars.palette[color].mainChannel} / ${theme.vars.palette.action.hoverOpacity})` : alpha(theme.palette[color].main, theme.palette.action.hoverOpacity)
+          backgroundColor: theme.vars ? `rgba(${theme.vars.palette[color].mainChannel} / ${theme.vars.palette.action.hoverOpacity})` : colorManipulator_alpha(theme.palette[color].main, theme.palette.action.hoverOpacity)
         },
         [`&.${Chip_chipClasses.focusVisible}`]: {
-          backgroundColor: theme.vars ? `rgba(${theme.vars.palette[color].mainChannel} / ${theme.vars.palette.action.focusOpacity})` : alpha(theme.palette[color].main, theme.palette.action.focusOpacity)
+          backgroundColor: theme.vars ? `rgba(${theme.vars.palette[color].mainChannel} / ${theme.vars.palette.action.focusOpacity})` : colorManipulator_alpha(theme.palette[color].main, theme.palette.action.focusOpacity)
         },
         [`& .${Chip_chipClasses.deleteIcon}`]: {
-          color: theme.vars ? `rgba(${theme.vars.palette[color].mainChannel} / 0.7)` : alpha(theme.palette[color].main, 0.7),
+          color: theme.vars ? `rgba(${theme.vars.palette[color].mainChannel} / 0.7)` : colorManipulator_alpha(theme.palette[color].main, 0.7),
           '&:hover, &:active': {
             color: (theme.vars || theme).palette[color].main
           }
@@ -31832,16 +30906,16 @@ const AutocompleteListbox = material_styles_styled('ul', {
       backgroundColor: (theme.vars || theme).palette.action.focus
     },
     '&[aria-selected="true"]': {
-      backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / ${theme.vars.palette.action.selectedOpacity})` : alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
+      backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / ${theme.vars.palette.action.selectedOpacity})` : colorManipulator_alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
       [`&.${Autocomplete_autocompleteClasses.focused}`]: {
-        backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.hoverOpacity}))` : alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity),
+        backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.hoverOpacity}))` : colorManipulator_alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity),
         // Reset on touch devices, it doesn't add specificity
         '@media (hover: none)': {
           backgroundColor: (theme.vars || theme).palette.action.selected
         }
       },
       [`&.${Autocomplete_autocompleteClasses.focusVisible}`]: {
-        backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.focusOpacity}))` : alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + theme.palette.action.focusOpacity)
+        backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.focusOpacity}))` : colorManipulator_alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + theme.palette.action.focusOpacity)
       }
     }
   }
@@ -32684,6 +31758,8 @@ var DirScanner = function DirScanner(props) {
     onClose: handleCloseDialog,
     onSave: handleSaveSettings,
     serviceOnline: serviceOnline,
+    initialHeight: 400,
+    initialWidth: 500,
     disableExpansion: true,
     disableResizing: true,
     title: "Scan Directory Settings"
@@ -32915,7 +31991,7 @@ const TooltipTooltip = material_styles_styled('div', {
 })(material_utils_memoTheme(({
   theme
 }) => ({
-  backgroundColor: theme.vars ? theme.vars.palette.Tooltip.bg : alpha(theme.palette.grey[700], 0.92),
+  backgroundColor: theme.vars ? theme.vars.palette.Tooltip.bg : colorManipulator_alpha(theme.palette.grey[700], 0.92),
   borderRadius: (theme.vars || theme).shape.borderRadius,
   color: (theme.vars || theme).palette.common.white,
   fontFamily: theme.typography.fontFamily,
@@ -33037,7 +32113,7 @@ const TooltipArrow = material_styles_styled('span', {
   width: '1em',
   height: '0.71em' /* = width / sqrt(2) = (length of the hypotenuse) */,
   boxSizing: 'border-box',
-  color: theme.vars ? theme.vars.palette.Tooltip.bg : alpha(theme.palette.grey[700], 0.9),
+  color: theme.vars ? theme.vars.palette.Tooltip.bg : colorManipulator_alpha(theme.palette.grey[700], 0.9),
   '&::before': {
     content: '""',
     margin: 'auto',
@@ -33110,7 +32186,7 @@ const Tooltip = /*#__PURE__*/external_React_.forwardRef(function Tooltip(inProps
     children: childrenProp
   });
   const theme = material_styles_useTheme_useTheme();
-  const isRtl = useRtl();
+  const isRtl = RtlProvider_useRtl();
   const [childNode, setChildNode] = external_React_.useState();
   const [arrowRef, setArrowRef] = external_React_.useState(null);
   const ignoreNonTouchEvents = external_React_.useRef(false);
@@ -33562,6 +32638,8 @@ var FilterGlob = function FilterGlob(props) {
     onClose: handleCloseDialog,
     onSave: handleSaveSettings,
     serviceOnline: serviceOnline,
+    initialHeight: 400,
+    initialWidth: 500,
     disableExpansion: true,
     disableResizing: true,
     title: "Filter Glob Settings"
@@ -33698,6 +32776,8 @@ var FilterMimeType = function FilterMimeType(props) {
     onClose: handleCloseDialog,
     onSave: handleSaveSettings,
     serviceOnline: serviceOnline,
+    initialHeight: 400,
+    initialWidth: 500,
     disableExpansion: true,
     disableResizing: true,
     title: "Filter MIME Type Settings"
@@ -33729,7 +32809,7 @@ var FilterMimeType = function FilterMimeType(props) {
   })));
 };
 /* harmony default export */ const variants_FilterMimeType = (FilterMimeType);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/ResizableContainer.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/ResizableContainer.js
 const ResizeHandle=newStyled.div`
   position: absolute;
   width: 20px;
@@ -33744,7 +32824,7 @@ const ResizeHandle=newStyled.div`
   right: 0;
   cursor: se-resize;
 `,getDimensions=t=>({width:t.clientWidth,height:t.clientHeight}),ResizableContainer=t=>{const{children:e,lockAspectRatio:i,maxHeight:o,maxWidth:n,minHeight:s,minWidth:a,defaultWidth:g,defaultHeight:d,className:m,style:h,...r}=t,c=useContext(WidgetInstanceContext),l=c.getWidgetProps(),x=useCallback(((e,i,o)=>{if(l.repaintPorts(),t.onResize){const i=getDimensions(o);t.onResize(i.width,i.height,e)}}),[]),I=useCallback(((t,e,i)=>{const o=getDimensions(i);c.setWidgetDimensions(o.width,o.height)}),[]),b=c.getWidgetDimensions(),p=Math.max(a||0,64),C=Math.max(s||0,64),w=Math.max(b.width||g||0,p),u=Math.max(b.height||d||0,C);return _jsx(Resizable,{lockAspectRatio:i,minWidth:p,minHeight:C,maxWidth:n,maxHeight:o,defaultSize:{width:w,height:u},onResizeStop:I,onResize:x,enable:{bottomRight:!0,top:!1,right:!1,bottom:!1,bottomLeft:!1,left:!1,topLeft:!1,topRight:!1},handleComponent:{bottomRight:_jsx(ResizeHandle,{className:PREVENT_DRAGGING_CLS})},children:_jsx(WidgetContainer,{width:"100%",height:"100%",style:h,className:m,...r,children:e})})};/* harmony default export */ const components_ResizableContainer = ((/* unused pure expression or super */ null && (ResizableContainer)));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/Field.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/Field.js
 const Field_Field=newStyled.div`
   display: flex;
   margin-bottom: ${t=>t.mb||10}px;
@@ -33754,9 +32834,9 @@ const Field_Field=newStyled.div`
     margin-bottom: 5px;
   }
 `;/* harmony default export */ const components_Field = ((/* unused pure expression or super */ null && (Field_Field)));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/FieldWithLabel.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/FieldWithLabel.js
 const FieldWithLabel=({label:e,children:l,mb:s,mt:i})=>_jsxs(Field,{mb:s,mt:i,children:[_jsx("label",{children:e}),l]});/* harmony default export */ const components_FieldWithLabel = ((/* unused pure expression or super */ null && (FieldWithLabel)));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.1_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/index.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.18/node_modules/@kemu-io/hs-react/mjs/components/index.js
 
 ;// ./src/components/WidgetBody.tsx
 
@@ -33946,6 +33026,8 @@ var WriteContents = function WriteContents(props) {
     disableExpansion: true,
     disableResizing: true,
     serviceOnline: serviceOnline,
+    initialHeight: 400,
+    initialWidth: 500,
     title: "Write Contents Settings"
   }, (0,external_EmotionReact_.jsx)(components_GenericTextField, {
     label: "File Path",
@@ -34081,16 +33163,16 @@ const MenuItemRoot = material_styles_styled(material_ButtonBase_ButtonBase, {
     }
   },
   [`&.${MenuItem_menuItemClasses.selected}`]: {
-    backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / ${theme.vars.palette.action.selectedOpacity})` : alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
+    backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / ${theme.vars.palette.action.selectedOpacity})` : colorManipulator_alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
     [`&.${MenuItem_menuItemClasses.focusVisible}`]: {
-      backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.focusOpacity}))` : alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + theme.palette.action.focusOpacity)
+      backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.focusOpacity}))` : colorManipulator_alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + theme.palette.action.focusOpacity)
     }
   },
   [`&.${MenuItem_menuItemClasses.selected}:hover`]: {
-    backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.hoverOpacity}))` : alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity),
+    backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / calc(${theme.vars.palette.action.selectedOpacity} + ${theme.vars.palette.action.hoverOpacity}))` : colorManipulator_alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity),
     // Reset on touch devices, it doesn't add specificity
     '@media (hover: none)': {
-      backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / ${theme.vars.palette.action.selectedOpacity})` : alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity)
+      backgroundColor: theme.vars ? `rgba(${theme.vars.palette.primary.mainChannel} / ${theme.vars.palette.action.selectedOpacity})` : colorManipulator_alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity)
     }
   },
   [`&.${MenuItem_menuItemClasses.focusVisible}`]: {
@@ -34345,6 +33427,8 @@ var FileToText = function FileToText(props) {
     open: showSettings,
     onClose: handleCloseDialog,
     onSave: handleSaveSettings,
+    initialHeight: 400,
+    initialWidth: 500,
     disableExpansion: true,
     disableResizing: true,
     serviceOnline: serviceOnline,
@@ -34491,6 +33575,8 @@ var DeleteFile = function DeleteFile(props) {
     open: showSettings,
     onClose: handleCloseDialog,
     onSave: handleSaveSettings,
+    initialHeight: 400,
+    initialWidth: 500,
     disableExpansion: true,
     disableResizing: true,
     serviceOnline: serviceOnline,
@@ -34536,12 +33622,6 @@ var DeleteFile = function DeleteFile(props) {
 
 
 
-
-var theme = styles_createTheme_createTheme({
-  typography: {
-    fontFamily: 'Nunito, "Segoe UI", arial'
-  }
-});
 var WidgetUI = function WidgetUI(props) {
   var variantId = props.variantId;
   // The default variant does not have an id
@@ -34552,9 +33632,7 @@ var WidgetUI = function WidgetUI(props) {
   var isWriteContents = variantId === 'write-contents';
   var isFileToText = variantId === 'file-to-text';
   var isDeleteFile = variantId === 'delete-file';
-  return (0,external_EmotionReact_.jsx)(styles_ThemeProvider_ThemeProvider, {
-    theme: theme
-  }, isDirScanner && (0,external_EmotionReact_.jsx)(variants_DirScanner, props), isFilterGlob && (0,external_EmotionReact_.jsx)(variants_FilterGlob, props), isFilterMimeType && (0,external_EmotionReact_.jsx)(variants_FilterMimeType, props), isReadContents && (0,external_EmotionReact_.jsx)(variants_ReadContents, props), isWriteContents && (0,external_EmotionReact_.jsx)(variants_WriteContents, props), isFileToText && (0,external_EmotionReact_.jsx)(variants_FileToText, props), isDeleteFile && (0,external_EmotionReact_.jsx)(variants_DeleteFile, props));
+  return (0,external_EmotionReact_.jsx)((external_React_default()).Fragment, null, isDirScanner && (0,external_EmotionReact_.jsx)(variants_DirScanner, props), isFilterGlob && (0,external_EmotionReact_.jsx)(variants_FilterGlob, props), isFilterMimeType && (0,external_EmotionReact_.jsx)(variants_FilterMimeType, props), isReadContents && (0,external_EmotionReact_.jsx)(variants_ReadContents, props), isWriteContents && (0,external_EmotionReact_.jsx)(variants_WriteContents, props), isFileToText && (0,external_EmotionReact_.jsx)(variants_FileToText, props), isDeleteFile && (0,external_EmotionReact_.jsx)(variants_DeleteFile, props));
 };
 /* harmony default export */ const src_WidgetUI = (createWidgetUI(WidgetUI, manifest_namespaceObject.UU, manifest_namespaceObject.rE));
 __webpack_exports__ = __webpack_exports__["default"];

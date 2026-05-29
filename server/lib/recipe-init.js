@@ -61,6 +61,15 @@ export async function initRecipe(projectDir) {
     });
   }
 
+  // Fallback: KEMU canvas still wired to single AgentReasoning var (pre-per-agent wiring)
+  state.recipe.globalVariables.onChange('AgentReasoning', (variable) => {
+    const text = serializeVar(variable);
+    if (!text) return;
+    const agent = state.fallbackAgent ?? 'Unknown';
+    console.log(`[reasoning:${agent}] ${text}`);
+    broadcast({ type: 'reasoning', agent, text });
+  });
+
   state.recipe.globalVariables.onChange('AgentDebug', (variable) => {
     const text = serializeVar(variable);
     if (!text) return;

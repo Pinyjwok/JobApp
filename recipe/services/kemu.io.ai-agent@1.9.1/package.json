@@ -28,8 +28,8 @@
   "dependencies": {
     "@kemu-io/hs": "^0.10.4",
     "@napi-rs/canvas": "^0.1.80",
-    "openai": "^6.3.0",
     "@paralleldrive/cuid2": "^2.2.2",
+    "openai": "^6.3.0",
     "typeconv": "^2.3.1"
   }
 }

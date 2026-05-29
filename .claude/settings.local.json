@@ -43,7 +43,10 @@
       "Bash(railway --version)",
       "Bash(railway variables *)",
       "Bash(railway status *)",
-      "Bash(railway service *)"
+      "Bash(railway service *)",
+      "Read(//Users/piny/.claude/plugins/cache/**)",
+      "Read(//Users/piny/.claude/plugins/cache/caveman/caveman/63e797cd753b/**)",
+      "Bash(chmod +x *)"
     ]
   }
 }

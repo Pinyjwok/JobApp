@@ -36,13 +36,101 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { cleanText } = parseAndStripStatus(raw);
-      if (cleanText) broadcast({ type: 'agent_message', agent: 'Analyst', text: cleanText, background: false });
-      broadcast({ type: 'stream_done' });
+      state.analystOutputText = await _runValidator(cleanText, 'analyst', 'gap_analysis.json');
       state.analystDone = true;
       syncTADone();
       await checkJoin();
     })
     .catch(err => console.error('[Analyst] error:', err));
+}
+
+// ── Server-owned fit score calculation ───────────────────────────────────────
+
+const STRICTNESS_WEIGHTS = {
+  RIGID:    { baseline: 8.5, differentiator: 1.5 },
+  STANDARD: { baseline: 7.0, differentiator: 3.0 },
+  FLEXIBLE: { baseline: 5.0, differentiator: 5.0 },
+};
+
+function calculateFitScore(gapAnalysis) {
+  const reqs = gapAnalysis.requirements ?? [];
+  const isMet = r => r.candidate_status === 'Met' || r.candidate_status === 'Met (Candidate Evidence)';
+  const baseline = reqs.filter(r => r.tier === 'Baseline');
+  const differentiator = reqs.filter(r => r.tier === 'Differentiator');
+  const baselineMet = baseline.filter(isMet).length;
+  const differentiatorMet = differentiator.filter(isMet).length;
+
+  const tag = gapAnalysis.role_strictness;
+  const weights = STRICTNESS_WEIGHTS[tag] ?? STRICTNESS_WEIGHTS.STANDARD;
+  if (!STRICTNESS_WEIGHTS[tag]) {
+    console.warn(`[fit_score] unknown role_strictness="${tag}" — defaulting to STANDARD`);
+  }
+
+  const baselineScore = baseline.length > 0 ? (baselineMet / baseline.length) * weights.baseline : 0;
+  const differentiatorScore = differentiator.length > 0 ? (differentiatorMet / differentiator.length) * weights.differentiator : 0;
+  const total = Math.round((baselineScore + differentiatorScore) * 10) / 10;
+
+  console.log(`[fit_score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} total=${total}`);
+  return total;
+}
+
+export function applyFitScore(gapAnalysisPath) {
+  const gapAnalysis = JSON.parse(readFileSync(gapAnalysisPath, 'utf8'));
+  const score = calculateFitScore(gapAnalysis);
+  const qualitative = String(gapAnalysis.fit_rationale ?? '').replace(/^Fit Score: \d+(\.\d+)?\/10\s*—\s*/, '').trim();
+  gapAnalysis.overall_fit_score = score;
+  gapAnalysis.fit_rationale = qualitative ? `Fit Score: ${score}/10 — ${qualitative}` : `Fit Score: ${score}/10`;
+  gapAnalysis.fit_score_source = 'server';
+  writeFileSync(gapAnalysisPath, JSON.stringify(gapAnalysis, null, 2), 'utf8');
+  return score;
+}
+
+// Strip any reasoning/preamble the Analyst leaks before its completion message.
+// The completion block always starts with a "✓ Analyst Complete" header; keep from
+// there onward and ensure the header begins on its own line so markdown renders it.
+function stripAnalystNarration(text) {
+  if (!text) return text;
+  const idx = text.search(/#*\s*✓\s*Analyst Complete/);
+  if (idx === -1) return text.trim();
+  return text.slice(idx).replace(/^#*\s*/, '# ').trim();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function _runValidator(callerText, agent, outputFile) {
+  try {
+    await sendToNodeAndWait('validator_input', 'Validator', agent);
+    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'validator_verdict.json'), 'utf8'));
+    console.log(`[Validator] verdict=${verdict.verdict} for ${agent} (${verdict.issues?.length ?? 0} issue(s))`);
+
+    if (verdict.verdict === 'APPROVE') return callerText;
+
+    if (verdict.verdict === 'FLAG') {
+      const warnings = (verdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
+      return callerText + '\n\n⚠ Quality notes:\n' + warnings;
+    }
+
+    if (verdict.verdict === 'REJECT') {
+      console.log(`[Validator] REJECT for ${agent} — retrying once`);
+      const retryResult = await sendToNodeAndWait('analyst_background_input', null, '__analyze__');
+      const { cleanText: retryText } = parseAndStripStatus(
+        typeof retryResult === 'string' ? retryResult : JSON.stringify(retryResult ?? '')
+      );
+      await sendToNodeAndWait('validator_input', 'Validator', agent);
+      try {
+        const retryVerdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'validator_verdict.json'), 'utf8'));
+        console.log(`[Validator] retry verdict=${retryVerdict.verdict} for ${agent}`);
+        if (retryVerdict.verdict === 'FLAG') {
+          const warnings = (retryVerdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
+          return retryText + '\n\n⚠ Quality notes:\n' + warnings;
+        }
+      } catch {}
+      return retryText;
+    }
+  } catch (err) {
+    console.error('[Validator] error:', err.message);
+  }
+  return callerText; // fallback: show original on any Validator failure
 }
 
 export async function checkJoin() {
@@ -66,22 +154,24 @@ export async function checkJoin() {
     try {
       if (existsSync(gapAnalysisPath)) {
         const parsed = JSON.parse(readFileSync(gapAnalysisPath, 'utf8'));
-        if (parsed.overall_fit_score !== undefined) gapAnalysisReady = true;
+        if (Array.isArray(parsed.requirements)) gapAnalysisReady = true;
       }
     } catch {}
     if (!gapAnalysisReady) { retries++; await new Promise(r => setTimeout(r, 100)); }
   }
   if (!gapAnalysisReady) console.error('[checkJoin] gap_analysis.json never became ready — proceeding anyway');
 
+  let computedScore = null;
   try {
-    const gapAnalysis = JSON.parse(readFileSync(gapAnalysisPath, 'utf8'));
-    console.log(`[join] gap_analysis ready, fit score ${gapAnalysis.overall_fit_score ?? '?'}`);
+    computedScore = applyFitScore(gapAnalysisPath);
+    console.log(`[join] gap_analysis ready, server fit score ${computedScore}`);
   } catch (err) {
-    console.error('[join] gap_analysis read error:', err.message);
+    console.error('[join] applyFitScore error:', err.message);
   }
 
   if (state.analystOutputText) {
-    broadcast({ type: 'agent_message', agent: 'Analyst', text: state.analystOutputText, background: false });
+    const banner = computedScore !== null ? `**Fit Score: ${computedScore}/10**\n\n` : '';
+    broadcast({ type: 'agent_message', agent: 'Analyst', text: banner + stripAnalystNarration(state.analystOutputText), background: false });
     broadcast({ type: 'stream_done' });
     state.analystOutputText = null;
     await new Promise(r => setTimeout(r, 300));

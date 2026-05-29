@@ -202,6 +202,17 @@ function ActionBubble({ msg, onAction, onUpload }) {
   );
 }
 
+// System notices — terse, centered status lines (not full agent bubbles)
+function SystemNotice({ msg }) {
+  return (
+    <div className="animate-fade-in-up flex items-center gap-2 mx-auto max-w-[80%] text-xs text-slate-500">
+      <span className="h-px flex-1 bg-slate-700/40" />
+      <span className="shrink-0 px-1">{msg.text}</span>
+      <span className="h-px flex-1 bg-slate-700/40" />
+    </div>
+  );
+}
+
 function ThinkingIndicator() {
   return (
     <div className="flex justify-start animate-fade-in-up">
@@ -237,6 +248,8 @@ export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
             </div>
           ) : msg.role === 'actions' ? (
             <ActionBubble msg={msg} onAction={onAction} onUpload={onUpload} />
+          ) : msg.agent === 'System' && !msg.background ? (
+            <SystemNotice msg={msg} />
           ) : (
             <AgentBubble msg={msg} />
           )}

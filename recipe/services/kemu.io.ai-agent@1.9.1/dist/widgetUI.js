@@ -147,7 +147,7 @@ exports.swap32IfBE = exports.isLE
     ? (u) => u
     : byteSwap32;
 // Built-in hex conversion https://caniuse.com/mdn-javascript_builtins_uint8array_fromhex
-const hasHexBuiltin = /* @__PURE__ */ (() =>
+const hasHexBuiltin = /* @__PURE__ */ (() => 
 // @ts-ignore
 typeof Uint8Array.from([]).toHex === 'function' && typeof Uint8Array.fromHex === 'function')();
 // Array where index 0xf0 (240) is mapped to string 'f0'
@@ -696,7 +696,7 @@ class TokenTree {
   }
 
   /**
-   * @typedef { import("./html_renderer.js").Renderer } Renderer
+   * @typedef { import("./html_renderer").Renderer } Renderer
    * @param {Renderer} builder
    */
   walk(builder) {
@@ -11250,7 +11250,7 @@ code.hljs {
 .hljs-punctuation,
 .hljs-tag {
   /* purposely ignored */
-
+  
 }`, ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
@@ -11719,7 +11719,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__917__;
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/
+/******/ 	
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -11733,14 +11733,14 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__917__;
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/
+/******/ 	
 /******/ 		// Execute the module function
 /******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
+/******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
@@ -11753,7 +11753,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__917__;
 /******/ 			return getter;
 /******/ 		};
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/create fake namespace object */
 /******/ 	(() => {
 /******/ 		var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
@@ -11783,7 +11783,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__917__;
 /******/ 			return ns;
 /******/ 		};
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -11795,7 +11795,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__917__;
 /******/ 			}
 /******/ 		};
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/global */
 /******/ 	(() => {
 /******/ 		__webpack_require__.g = (function() {
@@ -11807,12 +11807,12 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__917__;
 /******/ 			}
 /******/ 		})();
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -11823,12 +11823,12 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__917__;
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
 /******/ 	})();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/nonce */
 /******/ 	(() => {
 /******/ 		__webpack_require__.nc = undefined;
 /******/ 	})();
-/******/
+/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
@@ -11881,14 +11881,12 @@ var client = __webpack_require__(576);
 var external_EmotionReact_ = __webpack_require__(644);
 // EXTERNAL MODULE: external "EmotionCache"
 var external_EmotionCache_ = __webpack_require__(917);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/lib/cache.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/lib/cache.js
 const create=(e,t,r)=>{const a=`${e}-${t.split(".").map((e=>e.split("").map((e=>{const t=parseInt(e);return isNaN(t)?e:String.fromCharCode(t+97)})).join(""))).join("").toLocaleString()}`;return external_EmotionCache_({key:a,container:r})};/* harmony default export */ const cache = (create);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/lib/globalContext.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/lib/globalContext.js
 let context;const setContext=t=>{context=t},getContext=()=>{if(!context)throw new Error("Context not set");return context};
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/lib/InstanceContext.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/lib/InstanceContext.js
 const WidgetInstanceContext=(0,external_React_.createContext)({useOnBroadcastEvent:()=>{},useOnParentEvent:()=>{},useOnSetOutputsEvent:()=>{},setWidgetDimensions:()=>{},getWidgetDimensions:()=>({width:0,height:0}),getWidgetProps:()=>({})});const WidgetInstanceContextProvider=WidgetInstanceContext.Provider;/* harmony default export */ const InstanceContext = (WidgetInstanceContextProvider);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/WidgetWrapper.js
-const KemuService=e=>{const{repaintPorts:t,onDestroy:n,globalContext:r,getParentContext:a}=e,[s,o]=(0,external_React_.useState)(null),[c,i]=(0,external_React_.useState)({disabled:!1,serviceOnline:!0}),l=(0,external_React_.useRef)(null),d=(0,external_React_.useRef)(null),u=(0,external_React_.useRef)(null),m=(0,external_React_.useCallback)((e=>{l.current=e}),[]),v=(0,external_React_.useCallback)((e=>{d.current=e}),[]),p=(0,external_React_.useCallback)((e=>{u.current=e}),[]);(0,external_React_.useEffect)((()=>(e.container&&o((t=>t||cache(e.serviceName,e.serviceVersion,e.container))),()=>{n&&n()})),[e.container]),(0,external_React_.useEffect)((()=>{const e=a();e.handleSetOutputsEvent=async e=>{u.current&&await u.current(e)},e.handleBroadcastEvent=async e=>{if(d.current)return d.current(e)},e.handleParentEvent=async e=>!!l.current&&(await l.current(e),!0),e.handleRender=e=>{i((t=>({...t,...e})))}}),[]);const f=(0,external_React_.useMemo)((()=>({setOutputs:r.setOutputs,callProcessorHandler:r.callProcessorHandler,repaintPorts:t,defineDynamicPorts:r.defineDynamicPorts,utils:r.utils,widgetId:r.widgetId,recipeId:r.recipeId,manifest:r.manifest,disabled:c.disabled,variantId:r.variantId,serviceOnline:c.serviceOnline})),[r,t,c.disabled,c.serviceOnline]),h=(0,external_React_.useMemo)((()=>({useOnParentEvent:m,useOnBroadcastEvent:v,useOnSetOutputsEvent:p,setWidgetDimensions:r.setWidgetDimensions,getWidgetDimensions:r.getWidgetDimensions,getWidgetProps:()=>f})),[m,v,p,f]);if((0,external_React_.useEffect)((()=>{s&&(console.log("Cache updated, repainting ports"),t&&t())}),[s]),!s||!e.container)return null;const g=e.children;return (0,jsx_runtime.jsx)(InstanceContext,{value:h,children:(0,jsx_runtime.jsx)(external_EmotionReact_.CacheProvider,{value:s,children:(0,jsx_runtime.jsx)(g,{...f})})})};const createWidgetUI=(e,t,n)=>({mountComponent:(r,a)=>{const s=(0,client/* createRoot */.H)(r);if(!a.globalContext)throw new Error("`globalContext` not provided");setContext(a.globalContext);const o={};s.render((0,jsx_runtime.jsx)(KemuService,{...a,serviceName:t.replace(/\./g,"-").replace(/[0-9]/g,"").toLowerCase(),serviceVersion:n,container:r,getParentContext:()=>o,children:e}));const c={render:e=>{o.handleRender&&o.handleRender(e)},destroy:()=>{s.unmount()},handleParentEvent:async e=>{let t=!1;o.handleParentEvent&&(t=await o.handleParentEvent(e)),!1===t&&(c.handleParentEvent=null)},handleBroadcastEvent:async e=>{o.handleBroadcastEvent&&await o.handleBroadcastEvent(e)},handleSetOutputsEvent:async e=>{o.handleSetOutputsEvent&&await o.handleSetOutputsEvent(e)}};return c}});
 ;// ./node_modules/.pnpm/@mui+utils@7.3.3_@types+react@18.3.26_react@18.3.1/node_modules/@mui/utils/esm/formatMuiErrorMessage/formatMuiErrorMessage.js
 /**
  * WARNING: Don't import this directly. It's imported by the code generated by
@@ -17546,10 +17544,14 @@ function styles_ThemeProvider_ThemeProvider({
     ...props
   });
 }
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/hooks/useReactiveWidgetState.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/KemuThemeWrapper.js
+const createKemuTheme=e=>{const r=e?.colorScheme??"light",t="dark"===r,o=e?.colors;return styles_createTheme_createTheme({palette:{mode:r,primary:{main:o?.primary??"#4e3eff"},background:{default:o?.appBackground??(t?"#12161d":"#f6f6f6"),paper:o?.surface??(t?"#1b2230":"#ffffff")},text:{primary:o?.textPrimary??(t?"#e6edf7":"#18212d"),secondary:o?.textSecondary??(t?"#a5b1bb":"#6c757d")},divider:o?.border??(t?"#3a455a":"#d9d9d9")},typography:{fontFamily:'Nunito, "Segoe UI", arial'},components:{MuiButton:{styleOverrides:{root:{textTransform:"none"}}},MuiTab:{styleOverrides:{root:{textTransform:"none"}}},MuiChip:{styleOverrides:{root:{textTransform:"none"}}},MuiPaper:{styleOverrides:{root:{backgroundImage:"none"}}}}})};const defaultKemuTheme=createKemuTheme();const KemuThemeWrapper=({children:e,theme:r,hostTheme:t})=>{const o=(0,external_React_.useContext)(WidgetInstanceContext),m=o.getWidgetProps()?.hostTheme,a=(0,external_React_.useMemo)((()=>createKemuTheme(t??m)),[t,m]),n=(0,external_React_.useMemo)((()=>r?styles_createTheme_createTheme(a,r):a),[a,r]);return (0,jsx_runtime.jsx)(styles_ThemeProvider_ThemeProvider,{theme:n,children:e})};/* harmony default export */ const components_KemuThemeWrapper = (KemuThemeWrapper);
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/WidgetWrapper.js
+const KemuService=e=>{const{repaintPorts:t,onDestroy:n,globalContext:r,getParentContext:s}=e,[a,o]=(0,external_React_.useState)(null),[c,i]=(0,external_React_.useState)({disabled:!1,serviceOnline:!0,hostTheme:r.hostTheme}),l=(0,external_React_.useRef)(null),d=(0,external_React_.useRef)(null),u=(0,external_React_.useRef)(null),m=(0,external_React_.useCallback)((e=>{l.current=e}),[]),h=(0,external_React_.useCallback)((e=>{d.current=e}),[]),p=(0,external_React_.useCallback)((e=>{u.current=e}),[]);(0,external_React_.useEffect)((()=>(e.container&&o((t=>t||cache(e.serviceName,e.serviceVersion,e.container))),()=>{n&&n()})),[e.container]),(0,external_React_.useEffect)((()=>{const e=s();e.handleSetOutputsEvent=async e=>{u.current&&await u.current(e)},e.handleBroadcastEvent=async e=>{if(d.current)return d.current(e)},e.handleParentEvent=async e=>!!l.current&&(await l.current(e),!0),e.handleRender=e=>{i((t=>({...t,...e})))}}),[]);const v=(0,external_React_.useMemo)((()=>({setOutputs:r.setOutputs,callProcessorHandler:r.callProcessorHandler,repaintPorts:t,defineDynamicPorts:r.defineDynamicPorts,utils:r.utils,widgetId:r.widgetId,recipeId:r.recipeId,manifest:r.manifest,hostTheme:c.hostTheme||r.hostTheme,disabled:c.disabled,variantId:r.variantId,serviceOnline:c.serviceOnline})),[r,t,c.disabled,c.hostTheme,c.serviceOnline]),f=(0,external_React_.useMemo)((()=>({useOnParentEvent:m,useOnBroadcastEvent:h,useOnSetOutputsEvent:p,setWidgetDimensions:r.setWidgetDimensions,getWidgetDimensions:r.getWidgetDimensions,getWidgetProps:()=>v})),[m,h,p,v]);if((0,external_React_.useEffect)((()=>{a&&(console.log("Cache updated, repainting ports"),t&&t())}),[a]),!a||!e.container)return null;const g=e.children;return (0,jsx_runtime.jsx)(InstanceContext,{value:f,children:(0,jsx_runtime.jsx)(external_EmotionReact_.CacheProvider,{value:a,children:(0,jsx_runtime.jsx)(components_KemuThemeWrapper,{hostTheme:v.hostTheme,children:(0,jsx_runtime.jsx)(g,{...v})})})})};const createWidgetUI=(e,t,n)=>({mountComponent:(r,s)=>{const a=(0,client/* createRoot */.H)(r);if(!s.globalContext)throw new Error("`globalContext` not provided");setContext(s.globalContext);const o={};a.render((0,jsx_runtime.jsx)(KemuService,{...s,serviceName:t.replace(/\./g,"-").replace(/[0-9]/g,"").toLowerCase(),serviceVersion:n,container:r,getParentContext:()=>o,children:e}));const c={render:e=>{o.handleRender&&o.handleRender(e)},destroy:()=>{a.unmount()},handleParentEvent:async e=>{let t=!1;o.handleParentEvent&&(t=await o.handleParentEvent(e)),!1===t&&(c.handleParentEvent=null)},handleBroadcastEvent:async e=>{o.handleBroadcastEvent&&await o.handleBroadcastEvent(e)},handleSetOutputsEvent:async e=>{o.handleSetOutputsEvent&&await o.handleSetOutputsEvent(e)}};return c}});
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/hooks/useReactiveWidgetState.js
 const useReactiveWidgetState=(t,e)=>{const a=getContext(),{state:o,getState:i,setState:n}=a.useWidgetState();return[{...t,...o},(0,external_React_.useCallback)((async(a,o=!0)=>{let r=a;const s={...t,...i()};if("function"==typeof a&&(r=await a(s)),e){if(!e(s,r))return}return n(r,o)}),[i])]};/* harmony default export */ const hooks_useReactiveWidgetState = (useReactiveWidgetState);
 ;// ./src/manifest.json
-const manifest_namespaceObject = /*#__PURE__*/JSON.parse('{"UU":"test.kemu.io.ai-agent","rE":"1.8.2"}');
+const manifest_namespaceObject = /*#__PURE__*/JSON.parse('{"UU":"test.kemu.io.ai-agent","rE":"1.9.1"}');
 ;// ./node_modules/.pnpm/@mui+system@7.3.3_@emotion+react@11.14.0_@types+react@18.3.26_react@18.3.1__@emotion+styled@1_3j7tjy2etsbyk3eyso5pflk5cq/node_modules/@mui/system/esm/styleFunctionSx/extendSxProp.js
 
 
@@ -31977,9 +31979,9 @@ const TextField = /*#__PURE__*/external_React_.forwardRef(function TextField(inP
 }), 'AutoFixHigh'));
 // EXTERNAL MODULE: ./node_modules/.pnpm/@paralleldrive+cuid2@2.2.2/node_modules/@paralleldrive/cuid2/index.js
 var cuid2 = __webpack_require__(167);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/constants.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/constants.js
 const PREVENT_DRAGGING_CLS="no-dragging";const ABORT_CHILD_DRAGGING_CLS="no-child-drag";const WIDGET_SELECTED_CLS="widget-selected";
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/WidgetContainer.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/WidgetContainer.js
 const WidgetContainer=styled.div`
   width: ${({cWidth:e})=>"number"==typeof e?`${e}px`:e||"64px"};
   height: ${({cHeight:e})=>"number"==typeof e?`${e}px`:e||"64px"};
@@ -32001,7 +32003,7 @@ const WidgetContainer=styled.div`
 /* harmony default export */ const Settings = (createSvgIcon(/*#__PURE__*/(0,jsx_runtime.jsx)("path", {
   d: "M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6"
 }), 'Settings'));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/SettingsBar.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/SettingsBar.js
 const SettingsBarContainer=styled.div`
   position: absolute;
   top: 0;
@@ -32010,7 +32012,7 @@ const SettingsBarContainer=styled.div`
   justify-content: flex-end;
   padding: 5px;
 `,SettingsBar=({iconColor:t="white",onSettingsClick:i,children:n})=>(0,jsx_runtime.jsx)(SettingsBarContainer,{iconColor:t,children:n||(i?(0,jsx_runtime.jsx)(IconButton_IconButton,{"aria-label":"settings",onClick:i,children:(0,jsx_runtime.jsx)(Settings,{style:{color:t},sx:{fontSize:10}})}):null)});/* harmony default export */ const components_SettingsBar = (SettingsBar);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/WidgetBody.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/WidgetBody.js
 const WidgetBody=styled.div`
   padding: 10px;
   display: flex;
@@ -32020,7 +32022,7 @@ const WidgetBody=styled.div`
   width: 100%;
   height: 100%;
 `;/* harmony default export */ const components_WidgetBody = (WidgetBody);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/SvgContainer.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/SvgContainer.js
 const StyledSvgContainer=styled.div`
   fill: ${i=>i.fill||"white"};
   margin-top: ${i=>i.marginTop??10}px;
@@ -32030,9 +32032,7 @@ const StyledSvgContainer=styled.div`
     height: ${i=>i.height||38}px;
   }
 `,SvgContainer=({fill:i,children:t,width:e,height:l,className:n,marginTop:r})=>(0,jsx_runtime.jsx)(StyledSvgContainer,{fill:i,width:e,height:l,className:n,marginTop:r,children:t});/* harmony default export */ const components_SvgContainer = (SvgContainer);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/KemuThemeWrapper.js
-const defaultKemuTheme=styles_createTheme_createTheme({palette:{primary:{main:"#4e3eff"}},typography:{fontFamily:'Nunito, "Segoe UI", arial'},components:{MuiButton:{styleOverrides:{root:{textTransform:"none"}}},MuiTab:{styleOverrides:{root:{textTransform:"none"}}},MuiChip:{styleOverrides:{root:{textTransform:"none"}}}}});const KemuThemeWrapper=({children:e,theme:r})=>{const t=r?styles_createTheme_createTheme(defaultKemuTheme,r):defaultKemuTheme;return (0,jsx_runtime.jsx)(styles_ThemeProvider_ThemeProvider,{theme:t,children:e})};/* harmony default export */ const components_KemuThemeWrapper = (KemuThemeWrapper);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/BaseWidget.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/BaseWidget.js
 const BaseWidget=({children:e,showSettings:t=!0,onOpenSettings:i,width:s=84,height:o=134,iconWidth:n=38,iconHeight:r=38,showIcon:a=!0,customIcon:m,settingsIconColor:c="white",customTheme:d,svgContainerClassName:g,widgetContainerClassName:h,widgetBodyClassName:l})=>(0,jsx_runtime.jsx)(components_KemuThemeWrapper,{theme:d,children:(0,jsx_runtime.jsxs)(components_WidgetContainer,{className:h,width:s,height:o,css:(0,external_EmotionReact_.css)`
           display: flex;
           flex-direction: column;
@@ -33395,7 +33395,7 @@ var Resizable = /** @class */ (function (_super) {
             style.flexBasis = this.state.flexBasis;
         }
         var Wrapper = this.props.as || 'div';
-        return ((0,jsx_runtime.jsxs)(Wrapper, lib_assign({ style: style, className: this.props.className }, extendsProps, {
+        return ((0,jsx_runtime.jsxs)(Wrapper, lib_assign({ style: style, className: this.props.className }, extendsProps, { 
             // `ref` is after `extendsProps` to ensure this one wins over a version
             // passed in
             ref: function (c) {
@@ -34050,15 +34050,15 @@ const Button = /*#__PURE__*/external_React_.forwardRef(function Button(inProps, 
 });
  false ? 0 : void 0;
 /* harmony default export */ const Button_Button = (Button);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/CommonElements.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/CommonElements.js
 const ButtonWithoutRipple=styled((({...t})=>(0,jsx_runtime.jsx)(Button_Button,{disableRipple:!0,...t})))``;
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/KemuPrimaryButton.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/KemuPrimaryButton.js
 const KemuPrimaryButton=styled(ButtonWithoutRipple)`
   color: #fff;
   box-shadow: ${({noShadow:o})=>o?"none":"0 2px 6px var(--kemu-color-primary)"};
   background-color: var(--kemu-color-primary);
   border-color: var(--kemu-color-primary);
-
+  
   margin-left: .25rem;
   cursor: pointer;
   font-weight: 600;
@@ -34097,7 +34097,7 @@ const KemuPrimaryButton=styled(ButtonWithoutRipple)`
     color: #ffffffb0;
   }
 `;/* harmony default export */ const components_KemuPrimaryButton = (KemuPrimaryButton);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/KemuLightButton.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/KemuLightButton.js
 const KemuLightButton=styled(ButtonWithoutRipple)`
   background-color: var(--kemu-color-light);
   border-color: var(--kemu-color-light);
@@ -34141,37 +34141,14 @@ const KemuLightButton=styled(ButtonWithoutRipple)`
     background: rgba(24, 33, 45, 0.04);
   }
 `;/* harmony default export */ const components_KemuLightButton = (KemuLightButton);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/SettingsDialog.js
-const ScrollableContainer=styled.div`
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/SettingsDialog.js
+const ScrollableContainer=styles_styled("div")`
   height: 100%;
   overflow-y: auto;
   padding: 0px 25px;
   // Add extra pixels for the dialog actions
   padding-bottom: 54px;
-`,StyledDialogContent=styled(DialogContent_DialogContent)`
-  height: 100%;
-  overflow-y: unset;
-  padding: unset;
-  padding-top: 20px;
-`,Header=styled.div`
-  line-height: 30px;
-  align-self: center;
-  width: 100%;
-  padding: 10px 25px;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  margin-bottom: 0px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-`,Title=styled.h4`
-  font-size: 16px;
-  line-height: 28px;
-  padding-right: 10px;
-  margin-bottom: 0;
-  font-weight: 700;
-  font-family: 'Nunito', 'Segoe UI', arial;
-  color: #6c757d;
-`,ResizableDialog=styled(Dialog_Dialog)`
+`,StyledDialogContent=styles_styled(DialogContent_DialogContent)({height:"100%",overflowY:"unset",padding:"unset",paddingTop:"20px"}),Header=styles_styled("div")((({theme:e})=>({lineHeight:"30px",alignSelf:"center",width:"100%",padding:"10px 25px",display:"flex",alignItems:"center",boxSizing:"border-box",marginBottom:0,borderBottom:`1px solid ${e.palette.divider}`}))),Title=styles_styled("h4")((({theme:e})=>({fontSize:"16px",lineHeight:"28px",paddingRight:"10px",marginBottom:0,fontWeight:700,fontFamily:'"Nunito", "Segoe UI", arial',color:e.palette.text.primary}))),ResizableDialog=styles_styled(Dialog_Dialog)`
   & .MuiDialog-paper {
     margin: 0;
     position: absolute;
@@ -34193,29 +34170,7 @@ const ScrollableContainer=styled.div`
   & .MuiModal-backdrop {
     background-color: rgba(0, 0, 0, 0.35);
   }
-`,StyledDialogActions=styled(DialogActions_DialogActions)`
-  position: absolute;
-  margin-top: 20px;
-  width: 100%;
-  padding: 10px 25px 20px;
-  bottom: 0;
-  right: 0;
-  background-color: white;
-  z-index: 2;
-  display: flex;
-  gap: 20px;
-`,ExpandButton=styled(IconButton_IconButton)`
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 1);
-  }
-`,SettingsDialog=({title:e="Settings",open:t,noHeader:i=!1,onClose:o,onSave:a,children:l,serviceOnline:n=!0,saveDisabled:r=!1,minHeight:s=250,minWidth:d=450,maxWidth:m,maxHeight:h=(window.visualViewport?.height??window.innerHeight)-100,initialHeight:p=Math.min(800,(window.visualViewport?.height??window.innerHeight)-100),initialWidth:g=450,cancelButtonText:c="Cancel",saveButtonText:x="Save",disableResizing:u=!1,disableExpansion:b=!1,dialogClassName:f,resizableClassName:w,dialogContentClassName:y,dialogActionsClassName:C})=>{const[j,D]=(0,external_React_.useState)({width:g,height:p}),[S,_]=(0,external_React_.useState)(!1),[k,v]=(0,external_React_.useState)({width:g,height:p}),z=(0,external_React_.useCallback)(((e,t,i,o)=>{if(u)return;const a={width:i.offsetWidth,height:i.offsetHeight};D(a)}),[u]),B=(0,external_React_.useCallback)(((e,t)=>{"backdropClick"!==t&&"escapeKeyDown"!==t&&o()}),[o]),H=(0,external_React_.useCallback)((()=>{if(S)D(k),_(!1);else{v(j);const e=window.innerWidth-180,t=window.innerHeight-120-60;D({width:Math.max(d,e),height:Math.max(s,t)}),_(!0)}}),[S,j,k,d,s]),K={pointerEvents:"none"},N=!b,R=!u&&!S,W=(0,jsx_runtime.jsxs)(jsx_runtime.Fragment,{children:[!i&&(0,jsx_runtime.jsx)(Header,{children:(0,jsx_runtime.jsx)(Title,{children:e})}),N&&(0,jsx_runtime.jsx)(ExpandButton,{onClick:H,size:"small",children:(0,jsx_runtime.jsx)(S?FullscreenExit:Fullscreen,{})}),(0,jsx_runtime.jsx)(StyledDialogContent,{className:y,children:(0,jsx_runtime.jsx)(ScrollableContainer,{children:l})}),(0,jsx_runtime.jsxs)(StyledDialogActions,{className:C,children:[(0,jsx_runtime.jsx)(components_KemuLightButton,{onClick:o,children:c}),(0,jsx_runtime.jsx)(components_KemuPrimaryButton,{disabled:!n||r,onClick:a,children:x})]})]});return (0,jsx_runtime.jsx)(ResizableDialog,{onClose:B,open:t,className:f,children:(0,jsx_runtime.jsx)(components_KemuThemeWrapper,{children:u?(0,jsx_runtime.jsx)("div",{className:w,style:{width:j.width,height:j.height},children:W}):(0,jsx_runtime.jsx)(Resizable,{enable:{top:R,right:R,bottom:R,left:R,topRight:R,bottomRight:R,bottomLeft:R,topLeft:R},handleStyles:{bottomLeft:K,bottomRight:{zIndex:2},bottom:K,top:K,topLeft:K,topRight:K},minHeight:s,minWidth:d,maxWidth:m,maxHeight:h,size:j,onResizeStop:z,className:w,children:W})})})};/* harmony default export */ const components_SettingsDialog = (SettingsDialog);
+`,StyledDialogActions=styles_styled(DialogActions_DialogActions)((({theme:e})=>({position:"absolute",marginTop:"20px",width:"100%",padding:"10px 25px 20px",bottom:0,right:0,backgroundColor:e.palette.background.paper,borderTop:`1px solid ${e.palette.divider}`,zIndex:2,display:"flex",gap:"20px"}))),ExpandButton=styles_styled(IconButton_IconButton)((({theme:e})=>({position:"absolute",top:8,right:8,zIndex:2,color:e.palette.text.secondary,backgroundColor:alpha(e.palette.background.paper,.9),backdropFilter:"blur(4px)","&:hover":{backgroundColor:e.palette.background.paper}}))),SettingsDialog=({title:e="Settings",open:t,noHeader:i=!1,onClose:o,onSave:a,children:l,serviceOnline:r=!0,saveDisabled:n=!1,minHeight:s=250,minWidth:d=450,maxWidth:m,maxHeight:p=(window.visualViewport?.height??window.innerHeight)-100,initialHeight:h=Math.min(800,(window.visualViewport?.height??window.innerHeight)-100),initialWidth:c=450,cancelButtonText:g="Cancel",saveButtonText:u="Save",disableResizing:x=!1,disableExpansion:b=!1,dialogClassName:f,resizableClassName:y,dialogContentClassName:w,dialogActionsClassName:C,persistenceSizeKey:S,dialogStyle:k,contentWrapperStyle:j})=>{const D=(0,external_React_.useCallback)((e=>{if(S)try{localStorage.setItem(S,JSON.stringify(e))}catch(e){console.warn(`Failed to save persisted dimensions for key "${S}":`,e)}}),[S]),v=(0,external_React_.useCallback)((()=>{if(!S)return null;try{const e=localStorage.getItem(S);if(e){const t=JSON.parse(e);if(t&&"number"==typeof t.width&&"number"==typeof t.height)return{width:t.width,height:t.height}}}catch(e){console.warn(`Failed to load persisted dimensions for key "${S}":`,e)}return null}),[S]),[_,z]=(0,external_React_.useState)({width:c,height:h}),[B,H]=(0,external_React_.useState)(!1),[F,K]=(0,external_React_.useState)({width:c,height:h});(0,external_React_.useEffect)((()=>{if(t&&S){const e=v();e&&(z(e),K(e))}}),[t,S,v]);const N=(0,external_React_.useCallback)(((e,t,i,o)=>{if(x)return;const a={width:i.offsetWidth,height:i.offsetHeight};z(a),D(a)}),[x,D]),W=(0,external_React_.useCallback)(((e,t)=>{"backdropClick"!==t&&"escapeKeyDown"!==t&&o()}),[o]),R=(0,external_React_.useCallback)((()=>{if(B)z(F),D(F),H(!1);else{K(_);const e=window.innerWidth-180,t=window.innerHeight-120-60,i={width:Math.max(d,e),height:Math.max(s,t)};z(i),D(i),H(!0)}}),[B,_,F,d,s,D]),I={pointerEvents:"none"},T=!b,E=!x&&!B,A=(0,jsx_runtime.jsxs)(jsx_runtime.Fragment,{children:[!i&&(0,jsx_runtime.jsx)(Header,{children:(0,jsx_runtime.jsx)(Title,{children:e})}),T&&(0,jsx_runtime.jsx)(ExpandButton,{onClick:R,size:"small",children:(0,jsx_runtime.jsx)(B?FullscreenExit:Fullscreen,{})}),(0,jsx_runtime.jsx)(StyledDialogContent,{className:w,children:(0,jsx_runtime.jsx)(ScrollableContainer,{style:j,children:l})}),(0,jsx_runtime.jsxs)(StyledDialogActions,{className:C,children:[(0,jsx_runtime.jsx)(components_KemuLightButton,{onClick:o,children:g}),(0,jsx_runtime.jsx)(components_KemuPrimaryButton,{disabled:!r||n,onClick:a,children:u})]})]});return (0,jsx_runtime.jsx)(ResizableDialog,{onClose:W,open:t,className:f,style:k,children:(0,jsx_runtime.jsx)(components_KemuThemeWrapper,{children:x?(0,jsx_runtime.jsx)("div",{className:y,style:{width:_.width,height:_.height},children:A}):(0,jsx_runtime.jsx)(Resizable,{enable:{top:E,right:E,bottom:E,left:E,topRight:E,bottomRight:E,bottomLeft:E,topLeft:E},handleStyles:{bottomLeft:I,bottomRight:{zIndex:2},bottom:I,top:I,topLeft:I,topRight:I},minHeight:s,minWidth:d,maxWidth:m,maxHeight:p,size:_,onResizeStop:N,className:y,style:j,children:A})})})};/* harmony default export */ const components_SettingsDialog = (SettingsDialog);
 ;// ./src/components/SettingsContainer.tsx
 
 function _EMOTION_STRINGIFIED_CSS_ERROR__() { return "You have tried to stringify object returned from `css` function. It isn't supposed to be used directly (e.g. as value of the `className` prop), but rather handed to emotion so it can handle it (e.g. as value of `css` prop)."; }
@@ -34226,7 +34181,7 @@ var SettingsContainer = /*#__PURE__*/createStyled("div",  true ? {
   styles: "padding-bottom:4rem"
 } : 0);
 /* harmony default export */ const components_SettingsContainer = (SettingsContainer);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/Field.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/Field.js
 const Field_Field=styled.div`
   display: flex;
   margin-bottom: ${t=>t.mb||10}px;
@@ -34238,11 +34193,33 @@ const Field_Field=styled.div`
 `;/* harmony default export */ const components_Field = (Field_Field);
 ;// ./src/components/TextareaAutosize.tsx
 
-var components_TextareaAutosize_TextareaAutosize = /*#__PURE__*/createStyled("textarea",  true ? {
-  target: "e4hoozn0"
-} : 0)("resize:vertical;width:100%;height:100%;min-height:", function (props) {
-  return props.minHeight || 100;
-}, "px;border-radius:5px;padding:5px;border-color:#c4c4c4;" + ( true ? "" : 0));
+var components_TextareaAutosize_TextareaAutosize = styles_styled('textarea')(function (_ref) {
+  var theme = _ref.theme,
+    _ref$minHeight = _ref.minHeight,
+    minHeight = _ref$minHeight === void 0 ? 100 : _ref$minHeight;
+  return {
+    resize: 'vertical',
+    width: '100%',
+    height: '100%',
+    minHeight: "".concat(minHeight, "px"),
+    borderRadius: '5px',
+    padding: '8px 10px',
+    border: "1px solid ".concat(theme.palette.divider),
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    font: 'inherit',
+    outline: 'none',
+    transition: theme.transitions.create(['border-color', 'box-shadow', 'background-color']),
+    '&::placeholder': {
+      color: theme.palette.text.secondary,
+      opacity: 1
+    },
+    '&:focus': {
+      borderColor: theme.palette.primary.main,
+      boxShadow: "0 0 0 1px ".concat(theme.palette.primary.main)
+    }
+  };
+});
 /* harmony default export */ const components_TextareaAutosize = (components_TextareaAutosize_TextareaAutosize);
 ;// ./node_modules/.pnpm/@marijn+find-cluster-break@1.0.2/node_modules/@marijn/find-cluster-break/src/index.js
 // These are filled with ranges (rangeFrom[i] up to but not including
@@ -34419,7 +34396,7 @@ class Text {
     Return a cursor that iterates over the given range of lines,
     _without_ returning the line breaks between, and yielding empty
     strings for empty lines.
-
+    
     When `from` and `to` are given, they should be 1-based line numbers.
     */
     iterLines(from, to) {
@@ -34869,16 +34846,16 @@ class Line {
     /**
     The position of the start of the line.
     */
-    from,
+    from, 
     /**
     The position at the end of the line (_before_ the line break,
     or at the end of document for the last line).
     */
-    to,
+    to, 
     /**
     This line's line number (1-based).
     */
-    number,
+    number, 
     /**
     The line's content.
     */
@@ -35034,7 +35011,7 @@ class ChangeDesc {
     `fromA`/`toA` provides the extent of the change in the starting
     document, `fromB`/`toB` the extent of the replacement in the
     changed document.
-
+    
     When `individual` is true, adjacent changes (which are kept
     separate for [position mapping](https://codemirror.net/6/docs/ref/#state.ChangeDesc.mapPos)) are
     reported separately.
@@ -35143,7 +35120,7 @@ stores the document length, and can only be applied to documents
 with exactly that length.
 */
 class ChangeSet extends ChangeDesc {
-    constructor(sections,
+    constructor(sections, 
     /**
     @internal
     */
@@ -35197,7 +35174,7 @@ class ChangeSet extends ChangeDesc {
     applied to the document produced by applying `other`. When
     `before` is `true`, order changes as if `this` comes before
     `other`, otherwise (the default) treat `other` as coming first.
-
+    
     Given two changes `A` and `B`, `A.compose(B.map(A))` and
     `B.compose(A.map(B, true))` will produce the same document. This
     provides a basic form of [operational
@@ -35210,7 +35187,7 @@ class ChangeSet extends ChangeDesc {
     each, with the range in the original document (`fromA`-`toA`)
     and the range that replaces it in the new document
     (`fromB`-`toB`).
-
+    
     When `individual` is true, adjacent changes are reported
     separately.
     */
@@ -35594,7 +35571,7 @@ class SelectionRange {
     /**
     The lower boundary of the range.
     */
-    from,
+    from, 
     /**
     The upper boundary of the range.
     */
@@ -35702,7 +35679,7 @@ class dist_EditorSelection {
     The ranges in the selection, sorted by position. Ranges cannot
     overlap (but they may touch, if they aren't empty).
     */
-    ranges,
+    ranges, 
     /**
     The index of the _main_ range in the selection (which is
     usually the range that was added last).
@@ -35861,11 +35838,11 @@ class Facet {
     /**
     @internal
     */
-    combine,
+    combine, 
     /**
     @internal
     */
-    compareInput,
+    compareInput, 
     /**
     @internal
     */
@@ -35903,7 +35880,7 @@ class Facet {
     state. You must take care to declare the parts of the state that
     this value depends on, since your function is only called again
     for a new state when one of those parts changed.
-
+    
     In cases where your value depends only on a single field, you'll
     want to use the [`from`](https://codemirror.net/6/docs/ref/#state.Facet.from) method instead.
     */
@@ -36063,7 +36040,7 @@ class dist_StateField {
     /**
     @internal
     */
-    id, createF, updateF, compareF,
+    id, createF, updateF, compareF, 
     /**
     @internal
     */
@@ -36384,7 +36361,7 @@ class Annotation {
     /**
     The annotation type.
     */
-    type,
+    type, 
     /**
     The value of this annotation.
     */
@@ -36446,7 +36423,7 @@ class dist_StateEffect {
     /**
     @internal
     */
-    type,
+    type, 
     /**
     The value of this effect.
     */
@@ -36518,24 +36495,24 @@ class Transaction {
     /**
     The state from which the transaction starts.
     */
-    startState,
+    startState, 
     /**
     The document changes made by this transaction.
     */
-    changes,
+    changes, 
     /**
     The selection set by this transaction, or undefined if it
     doesn't explicitly set a selection.
     */
-    selection,
+    selection, 
     /**
     The effects added to the transaction.
     */
-    effects,
+    effects, 
     /**
     @internal
     */
-    annotations,
+    annotations, 
     /**
     Whether the selection should be scrolled into view after this
     transaction is dispatched.
@@ -36856,15 +36833,15 @@ class EditorState {
     /**
     @internal
     */
-    config,
+    config, 
     /**
     The current document.
     */
-    doc,
+    doc, 
     /**
     The current selection.
     */
-    selection,
+    selection, 
     /**
     @internal
     */
@@ -37100,7 +37077,7 @@ class EditorState {
     Look up a translation for the given phrase (via the
     [`phrases`](https://codemirror.net/6/docs/ref/#state.EditorState^phrases) facet), or return the
     original string if no translation is found.
-
+    
     If additional arguments are passed, they will be inserted in
     place of markers like `$1` (for the first value) and `$2`, etc.
     A single `$` is equivalent to `$1`, and `$$` will produce a
@@ -37124,9 +37101,9 @@ class EditorState {
     /**
     Find the values for a given language data field, provided by the
     the [`languageData`](https://codemirror.net/6/docs/ref/#state.EditorState^languageData) facet.
-
+    
     Examples of language data fields are...
-
+    
     - [`"commentTokens"`](https://codemirror.net/6/docs/ref/#commands.CommentTokens) for specifying
       comment syntax.
     - [`"autocomplete"`](https://codemirror.net/6/docs/ref/#autocomplete.autocompletion^config.override)
@@ -37151,7 +37128,7 @@ class EditorState {
     Return a function that can categorize strings (expected to
     represent a single [grapheme cluster](https://codemirror.net/6/docs/ref/#state.findClusterBreak))
     into one of:
-
+    
      - Word (contains an alphanumeric character or a character
        explicitly listed in the local language's `"wordChars"`
        language data, which should be a string)
@@ -37353,11 +37330,11 @@ class Range {
     /**
     The range's start position.
     */
-    from,
+    from, 
     /**
     Its end position.
     */
-    to,
+    to, 
     /**
     The value associated with this range.
     */
@@ -37377,7 +37354,7 @@ function cmpRange(a, b) {
     return a.from - b.from || a.value.startSide - b.value.startSide;
 }
 class Chunk {
-    constructor(from, to, value,
+    constructor(from, to, value, 
     // Chunks are marked with the largest point that occurs
     // in them (or -1 for no points), so that scans that are
     // only interested in points (such as the
@@ -37456,15 +37433,15 @@ class dist_RangeSet {
     /**
     @internal
     */
-    chunkPos,
+    chunkPos, 
     /**
     @internal
     */
-    chunk,
+    chunk, 
     /**
     @internal
     */
-    nextLayer,
+    nextLayer, 
     /**
     @internal
     */
@@ -37507,7 +37484,7 @@ class dist_RangeSet {
     /**
     Update the range set, optionally adding new ranges or filtering
     out existing ones.
-
+    
     (Note: The type parameter is just there as a kludge to work
     around TypeScript variance issues that prevented `RangeSet<X>`
     from being a subtype of `RangeSet<Y>` when `X` is a subtype of
@@ -37613,12 +37590,12 @@ class dist_RangeSet {
     Iterate over two groups of sets, calling methods on `comparator`
     to notify it of possible differences.
     */
-    static compare(oldSets, newSets,
+    static compare(oldSets, newSets, 
     /**
     This indicates how the underlying data changed between these
     ranges, and is needed to synchronize the iteration.
     */
-    textDiff, comparator,
+    textDiff, comparator, 
     /**
     Can be used to ignore all non-point ranges, and points below
     the given size. When -1, all ranges are compared.
@@ -37666,7 +37643,7 @@ class dist_RangeSet {
     [`SpanIterator.span`](https://codemirror.net/6/docs/ref/#state.SpanIterator.span)) at the end
     of the iteration.
     */
-    static spans(sets, from, to, iterator,
+    static spans(sets, from, to, iterator, 
     /**
     When given and greater than -1, only points of at least this
     size are taken into account.
@@ -39786,15 +39763,15 @@ class Decoration extends RangeValue {
     /**
     @internal
     */
-    startSide,
+    startSide, 
     /**
     @internal
     */
-    endSide,
+    endSide, 
     /**
     @internal
     */
-    widget,
+    widget, 
     /**
     The config object used to create this decoration. You can
     include additional properties in there to store metadata about
@@ -40457,11 +40434,11 @@ class BidiSpan {
     /**
     The start of the span (relative to the start of the line).
     */
-    from,
+    from, 
     /**
     The end of the span.
     */
-    to,
+    to, 
     /**
     The ["bidi
     level"](https://unicode.org/reports/tr9/#Basic_Display_Algorithm)
@@ -40896,7 +40873,7 @@ const nativeSelectionHidden = /*@__PURE__*/Facet.define({
 });
 const scrollHandler = /*@__PURE__*/Facet.define();
 class ScrollTarget {
-    constructor(range, y = "nearest", x = "nearest", yMargin = 5, xMargin = 5,
+    constructor(range, y = "nearest", x = "nearest", yMargin = 5, xMargin = 5, 
     // This data structure is abused to also store precise scroll
     // snapshots, instead of a `scrollIntoView` request. When this
     // flag is `true`, `range` points at a position in the reference
@@ -40969,15 +40946,15 @@ class dist_ViewPlugin {
     /**
     @internal
     */
-    id,
+    id, 
     /**
     @internal
     */
-    create,
+    create, 
     /**
     @internal
     */
-    domEventHandlers,
+    domEventHandlers, 
     /**
     @internal
     */
@@ -41195,11 +41172,11 @@ class ViewUpdate {
     /**
     The editor view that the update is associated with.
     */
-    view,
+    view, 
     /**
     The new editor state.
     */
-    state,
+    state, 
     /**
     The transactions involved in the update. May be empty.
     */
@@ -43714,20 +43691,20 @@ class BlockInfo {
     /**
     The start of the element in the document.
     */
-    from,
+    from, 
     /**
     The length of the element.
     */
-    length,
+    length, 
     /**
     The top position of the element (relative to the top of the
     document).
     */
-    top,
+    top, 
     /**
     Its height.
     */
-    height,
+    height, 
     /**
     @internal Weird packed field that holds an array of children
     for composite blocks, a decoration for block widgets, and a
@@ -46620,7 +46597,7 @@ class EditorView {
     When the start position was the last one on the line, the
     returned position will be across the line break. If there is no
     further line, the original position is returned.
-
+    
     By default, this method moves over a single cluster. The
     optional `by` argument can be used to move across more. It will
     be called with the first cluster as argument, and should return
@@ -46664,7 +46641,7 @@ class EditorView {
     it defaults to moving to the next line (including wrapped
     lines). Otherwise, `distance` should provide a positive distance
     in pixels.
-
+    
     When `start` has a
     [`goalColumn`](https://codemirror.net/6/docs/ref/#state.SelectionRange.goalColumn), the vertical
     motion will use that as a target horizontal position. Otherwise,
@@ -46679,7 +46656,7 @@ class EditorView {
     Find the DOM parent node and offset (child offset if `node` is
     an element, character offset when it is a text node) at the
     given document position.
-
+    
     Note that for positions that aren't currently in
     `visibleRanges`, the resulting DOM position isn't necessarily
     meaningful (it may just point before or after a placeholder
@@ -46856,7 +46833,7 @@ class EditorView {
     only affects the editor's own scrollable element, not parents.
     See also
     [`EditorViewConfig.scrollTo`](https://codemirror.net/6/docs/ref/#view.EditorViewConfig.scrollTo).
-
+    
     The effect should be used with a document identical to the one
     it was created for. Failing to do so is not an error, but may
     not scroll to the expected position. You can
@@ -46872,7 +46849,7 @@ class EditorView {
     for Tab and Shift-Tab, letting the browser's default
     focus-changing behavior go through instead. This is useful to
     prevent trapping keyboard users in your editor.
-
+    
     Without argument, this toggles the mode. With a boolean, it
     enables (true) or disables it (false). Given a number, it
     temporarily enables the mode until that number of milliseconds
@@ -46917,14 +46894,14 @@ class EditorView {
     [`style-mod`](https://github.com/marijnh/style-mod#documentation)
     style spec providing the styles for the theme. These will be
     prefixed with a generated class for the style.
-
+    
     Because the selectors will be prefixed with a scope class, rule
     that directly match the editor's [wrapper
     element](https://codemirror.net/6/docs/ref/#view.EditorView.dom)—to which the scope class will be
     added—need to be explicitly differentiated by adding an `&` to
     the selector for that element—for example
     `&.cm-focused`.
-
+    
     When `dark` is set to true, the theme will be marked as dark,
     which will cause the `&dark` rules from [base
     themes](https://codemirror.net/6/docs/ref/#view.EditorView^baseTheme) to be used (as opposed to
@@ -47398,19 +47375,19 @@ class RectangleMarker {
     Create a marker with the given class and dimensions. If `width`
     is null, the DOM element will get no width style.
     */
-    constructor(className,
+    constructor(className, 
     /**
     The left position of the marker (in pixels, document-relative).
     */
-    left,
+    left, 
     /**
     The top position of the marker.
     */
-    top,
+    top, 
     /**
     The width of the marker, or null if it shouldn't get a width assigned.
     */
-    width,
+    width, 
     /**
     The height of the marker.
     */
@@ -50072,7 +50049,7 @@ class MountedTree {
     /**
     The inner tree.
     */
-    tree,
+    tree, 
     /**
     If this is null, this tree replaces the entire node (it will
     be included in the regular iteration instead of its host
@@ -50082,7 +50059,7 @@ class MountedTree {
     only entered by [`resolveInner`](#common.Tree.resolveInner)
     and [`enter`](#common.SyntaxNode.enter).
     */
-    overlay,
+    overlay, 
     /**
     The parser used to create this subtree.
     */
@@ -50113,16 +50090,16 @@ class NodeType {
     same name within a node set should play the same semantic
     role.
     */
-    name,
+    name, 
     /**
     @internal
     */
-    props,
+    props, 
     /**
     The id of this node in its set. Corresponds to the term ids
     used in the parser.
     */
-    id,
+    id, 
     /**
     @internal
     */
@@ -50319,20 +50296,20 @@ class Tree {
     /**
     The type of the top node.
     */
-    type,
+    type, 
     /**
     This node's child nodes.
     */
-    children,
+    children, 
     /**
     The positions (offsets relative to the start of this tree) of
     the children.
     */
-    positions,
+    positions, 
     /**
     The total length of this tree
     */
-    length,
+    length, 
     /**
     Per-node [node props](#common.NodeProp) to associate with this node.
     */
@@ -50404,7 +50381,7 @@ class Tree {
     position. If 1, it'll move into nodes that start at the
     position. With 0, it'll only enter nodes that cover the position
     from both sides.
-
+    
     Note that this will not enter
     [overlays](#common.MountedTree.overlay), and you often want
     [`resolveInner`](#common.Tree.resolveInner) instead.
@@ -50529,11 +50506,11 @@ class TreeBuffer {
     /**
     The buffer's content.
     */
-    buffer,
+    buffer, 
     /**
     The total length of the group of nodes in the buffer.
     */
-    length,
+    length, 
     /**
     The node set used in this buffer.
     */
@@ -50678,7 +50655,7 @@ class BaseNode {
     get next() { return this.parent; }
 }
 class TreeNode extends BaseNode {
-    constructor(_tree, from,
+    constructor(_tree, from, 
     // Index in parent node, set to -1 if the node is not a direct child of _parent.node (overlay)
     index, _parent) {
         super();
@@ -50921,7 +50898,7 @@ class TreeCursor {
     /**
     @internal
     */
-    constructor(node,
+    constructor(node, 
     /**
     @internal
     */
@@ -51471,17 +51448,17 @@ function nodeSize(balanceType, node) {
 }
 function balanceRange(
 // The type the balanced tree's inner nodes.
-balanceType,
+balanceType, 
 // The direct children and their positions
-children, positions,
+children, positions, 
 // The index range in children/positions to use
-from, to,
+from, to, 
 // The start position of the nodes, relative to their parent.
-start,
+start, 
 // Length of the outer node
-length,
+length, 
 // Function to build the top node of the balanced tree
-mkTop,
+mkTop, 
 // Function to build internal nodes for the balanced tree
 mkTree) {
     let total = 0;
@@ -51592,15 +51569,15 @@ class TreeFragment {
     This refers to an offset in the _updated_ document (as opposed
     to the original tree).
     */
-    from,
+    from, 
     /**
     The end of the unchanged range.
     */
-    to,
+    to, 
     /**
     The tree that this fragment is based on.
     */
-    tree,
+    tree, 
     /**
     The offset between the fragment's tree and the document that
     this fragment can be used against. Add this when going from
@@ -51683,7 +51660,7 @@ class Parser {
     Start a parse, returning a [partial parse](#common.PartialParse)
     object. [`fragments`](#common.TreeFragment) can be passed in to
     make the parse incremental.
-
+    
     By default, the entire input is parsed. You can pass `ranges`,
     which should be a sorted array of non-empty, non-overlapping
     ranges, to parse only those ranges. The tree returned in that
@@ -52171,17 +52148,17 @@ class Tag {
     /**
     The optional name of the base tag @internal
     */
-    name,
+    name, 
     /**
     The set of this tag and all its parent tags, starting with
     this one itself and sorted in order of decreasing specificity.
     */
-    set,
+    set, 
     /**
     The base unmodified tag that this one is based on, if it's
     modified @internal
     */
-    base,
+    base, 
     /**
     The modifiers applied to this.base @internal
     */
@@ -52221,7 +52198,7 @@ class Tag {
     same modifier to a twice tag will return the same value (`m1(t1)
     == m1(t1)`) and applying multiple modifiers will, regardless or
     order, produce the same tag (`m1(m2(t1)) == m2(m1(t1))`).
-
+    
     When multiple modifiers are applied to a given base tag, each
     smaller set of modifiers is registered as a parent, so that for
     example `m1(m2(m3(t1)))` is a subtype of `m1(m2(t1))`,
@@ -52451,17 +52428,17 @@ Highlight the given [tree](#common.Tree) with the given
 [`highlightCode`](#highlight.highlightCode) function is easier to
 use.
 */
-function highlightTree(tree, highlighter,
+function highlightTree(tree, highlighter, 
 /**
 Assign styling to a region of the text. Will be called, in order
 of position, for any ranges where more than zero classes apply.
 `classes` is a space separated string of CSS classes.
 */
-putStyle,
+putStyle, 
 /**
 The start of the range to highlight.
 */
-from = 0,
+from = 0, 
 /**
 The end of the range.
 */
@@ -53120,7 +53097,7 @@ class Language {
     The [language data](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt) facet
     used for this language.
     */
-    data, parser, extraExtensions = [],
+    data, parser, extraExtensions = [], 
     /**
     A language name.
     */
@@ -53349,23 +53326,23 @@ let currentContext = null;
 A parse context provided to parsers working on the editor content.
 */
 class ParseContext {
-    constructor(parser,
+    constructor(parser, 
     /**
     The current editor state.
     */
-    state,
+    state, 
     /**
     Tree fragments that can be reused by incremental re-parses.
     */
-    fragments = [],
+    fragments = [], 
     /**
     @internal
     */
-    tree,
+    tree, 
     /**
     @internal
     */
-    treeLen,
+    treeLen, 
     /**
     The current editor viewport (or some overapproximation
     thereof). Intended to be used for opportunistically avoiding
@@ -53374,11 +53351,11 @@ class ParseContext {
     should be called to make sure the parser is restarted when the
     skipped region becomes visible).
     */
-    viewport,
+    viewport, 
     /**
     @internal
     */
-    skipped,
+    skipped, 
     /**
     This is where skipping parsers can register a promise that,
     when resolved, will schedule a new parse. It is cleared when
@@ -53542,7 +53519,7 @@ class ParseContext {
     asynchronously loading a nested parser. It'll skip its input and
     mark it as not-really-parsed, so that the next update will parse
     it again.
-
+    
     When `until` is given, a reparse will be scheduled when that
     promise resolves.
     */
@@ -53748,7 +53725,7 @@ class LanguageSupport {
     /**
     The language object.
     */
-    language,
+    language, 
     /**
     An optional set of supporting extensions. When nesting a
     language in another language, the outer language is encouraged
@@ -53772,20 +53749,20 @@ class LanguageDescription {
     /**
     The name of this language.
     */
-    name,
+    name, 
     /**
     Alternative names for the mode (lowercased, includes `this.name`).
     */
-    alias,
+    alias, 
     /**
     File extensions associated with this language.
     */
-    extensions,
+    extensions, 
     /**
     Optional filename pattern that should be associated with this
     language.
     */
-    filename, loadFunc,
+    filename, loadFunc, 
     /**
     If the language has been loaded, this will hold its value.
     */
@@ -53972,7 +53949,7 @@ class IndentContext {
     /**
     The editor state.
     */
-    state,
+    state, 
     /**
     @internal
     */
@@ -54102,11 +54079,11 @@ Objects of this type provide context information and helper
 methods to indentation functions registered on syntax nodes.
 */
 class TreeIndentContext extends IndentContext {
-    constructor(base,
+    constructor(base, 
     /**
     The position at which indentation is being computed.
     */
-    pos,
+    pos, 
     /**
     @internal
     */
@@ -54762,7 +54739,7 @@ class HighlightStyle {
     that rely on external styling), or a
     [`style-mod`](https://github.com/marijnh/style-mod#documentation)-style
     set of CSS properties (which define the styling for those tags).
-
+    
     The CSS rules created for a highlighter will be emitted in the
     order of the spec's properties. That means that for elements that
     have multiple tags associated with them, styles defined further
@@ -55097,7 +55074,7 @@ class StringStream {
     /**
     The line.
     */
-    string, tabSize,
+    string, tabSize, 
     /**
     The current indent unit size.
     */
@@ -55213,10 +55190,10 @@ class StringStream {
     Match the input against the given string or regular expression
     (which should start with a `^`). Return true or the regexp match
     if it matches.
-
+    
     Unless `consume` is set to `false`, this will move `this.pos`
     past the matched text.
-
+    
     When matching a string `caseInsensitive` can be set to true to
     make the match case-insensitive.
     */
@@ -56081,14 +56058,14 @@ class HistEvent {
     // events before the first change, in which case a special type of
     // instance is created which doesn't hold any changes, with
     // changes == startSelection == undefined
-    changes,
+    changes, 
     // The effects associated with this event
-    effects,
+    effects, 
     // Accumulated mapping (from addToHistory==false) that should be
     // applied to events below this one.
-    mapped,
+    mapped, 
     // The selection before this event
-    startSelection,
+    startSelection, 
     // Stores selection changes after this event, to be used for
     // selection undo/redo.
     selectionsAfter) {
@@ -57738,15 +57715,15 @@ class dist_Decoration extends RangeValue {
     /**
     @internal
     */
-    startSide,
+    startSide, 
     /**
     @internal
     */
-    endSide,
+    endSide, 
     /**
     @internal
     */
-    widget,
+    widget, 
     /**
     The config object used to create this decoration. You can
     include additional properties in there to store metadata about
@@ -58393,11 +58370,11 @@ class dist_BidiSpan {
     /**
     The start of the span (relative to the start of the line).
     */
-    from,
+    from, 
     /**
     The end of the span.
     */
-    to,
+    to, 
     /**
     The ["bidi
     level"](https://unicode.org/reports/tr9/#Basic_Display_Algorithm)
@@ -58832,7 +58809,7 @@ const dist_nativeSelectionHidden = /*@__PURE__*/Facet.define({
 });
 const dist_scrollHandler = /*@__PURE__*/Facet.define();
 class dist_ScrollTarget {
-    constructor(range, y = "nearest", x = "nearest", yMargin = 5, xMargin = 5,
+    constructor(range, y = "nearest", x = "nearest", yMargin = 5, xMargin = 5, 
     // This data structure is abused to also store precise scroll
     // snapshots, instead of a `scrollIntoView` request. When this
     // flag is `true`, `range` points at a position in the reference
@@ -58905,15 +58882,15 @@ class view_dist_ViewPlugin {
     /**
     @internal
     */
-    id,
+    id, 
     /**
     @internal
     */
-    create,
+    create, 
     /**
     @internal
     */
-    domEventHandlers,
+    domEventHandlers, 
     /**
     @internal
     */
@@ -59147,11 +59124,11 @@ class dist_ViewUpdate {
     /**
     The editor view that the update is associated with.
     */
-    view,
+    view, 
     /**
     The new editor state.
     */
-    state,
+    state, 
     /**
     The transactions involved in the update. May be empty.
     */
@@ -62738,20 +62715,20 @@ class dist_BlockInfo {
     /**
     The start of the element in the document.
     */
-    from,
+    from, 
     /**
     The length of the element.
     */
-    length,
+    length, 
     /**
     The top position of the element (relative to the top of the
     document).
     */
-    top,
+    top, 
     /**
     Its height.
     */
-    height,
+    height, 
     /**
     @internal Weird packed field that holds an array of children
     for composite blocks, a decoration for block widgets, and a
@@ -65668,7 +65645,7 @@ class dist_EditorView {
     When the start position was the last one on the line, the
     returned position will be across the line break. If there is no
     further line, the original position is returned.
-
+    
     By default, this method moves over a single cluster. The
     optional `by` argument can be used to move across more. It will
     be called with the first cluster as argument, and should return
@@ -65712,7 +65689,7 @@ class dist_EditorView {
     it defaults to moving to the next line (including wrapped
     lines). Otherwise, `distance` should provide a positive distance
     in pixels.
-
+    
     When `start` has a
     [`goalColumn`](https://codemirror.net/6/docs/ref/#state.SelectionRange.goalColumn), the vertical
     motion will use that as a target horizontal position. Otherwise,
@@ -65727,7 +65704,7 @@ class dist_EditorView {
     Find the DOM parent node and offset (child offset if `node` is
     an element, character offset when it is a text node) at the
     given document position.
-
+    
     Note that for positions that aren't currently in
     `visibleRanges`, the resulting DOM position isn't necessarily
     meaningful (it may just point before or after a placeholder
@@ -65909,7 +65886,7 @@ class dist_EditorView {
     only affects the editor's own scrollable element, not parents.
     See also
     [`EditorViewConfig.scrollTo`](https://codemirror.net/6/docs/ref/#view.EditorViewConfig.scrollTo).
-
+    
     The effect should be used with a document identical to the one
     it was created for. Failing to do so is not an error, but may
     not scroll to the expected position. You can
@@ -65925,7 +65902,7 @@ class dist_EditorView {
     for Tab and Shift-Tab, letting the browser's default
     focus-changing behavior go through instead. This is useful to
     prevent trapping keyboard users in your editor.
-
+    
     Without argument, this toggles the mode. With a boolean, it
     enables (true) or disables it (false). Given a number, it
     temporarily enables the mode until that number of milliseconds
@@ -65970,14 +65947,14 @@ class dist_EditorView {
     [`style-mod`](https://github.com/marijnh/style-mod#documentation)
     style spec providing the styles for the theme. These will be
     prefixed with a generated class for the style.
-
+    
     Because the selectors will be prefixed with a scope class, rule
     that directly match the editor's [wrapper
     element](https://codemirror.net/6/docs/ref/#view.EditorView.dom)—to which the scope class will be
     added—need to be explicitly differentiated by adding an `&` to
     the selector for that element—for example
     `&.cm-focused`.
-
+    
     When `dark` is set to true, the theme will be marked as dark,
     which will cause the `&dark` rules from [base
     themes](https://codemirror.net/6/docs/ref/#view.EditorView^baseTheme) to be used (as opposed to
@@ -66459,19 +66436,19 @@ class dist_RectangleMarker {
     Create a marker with the given class and dimensions. If `width`
     is null, the DOM element will get no width style.
     */
-    constructor(className,
+    constructor(className, 
     /**
     The left position of the marker (in pixels, document-relative).
     */
-    left,
+    left, 
     /**
     The top position of the marker.
     */
-    top,
+    top, 
     /**
     The width of the marker, or null if it shouldn't get a width assigned.
     */
-    width,
+    width, 
     /**
     The height of the marker.
     */
@@ -69065,12 +69042,12 @@ class SearchCursor {
     /**
     Create a text cursor. The query is the search string, `from` to
     `to` provides the region to search.
-
+    
     When `normalize` is given, it will be called, on both the query
     string and the content it is matched against, before comparing.
     You can, for example, create a case-insensitive search by
     passing `s => s.toLowerCase()`.
-
+    
     Text is always normalized with
     [`.normalize("NFKD")`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)
     (when supported).
@@ -70323,18 +70300,18 @@ class CompletionContext {
     /**
     The editor state that the completion happens in.
     */
-    state,
+    state, 
     /**
     The position at which the completion is happening.
     */
-    pos,
+    pos, 
     /**
     Indicates whether completion was activated explicitly, or
     implicitly by typing. The usual way to respond to this is to
     only return completions when either there is part of a
     completable entity before the cursor, or `explicit` is true.
     */
-    explicit,
+    explicit, 
     /**
     The editor view. May be undefined if the context was created
     in a situation where there is no such view available, such as
@@ -70388,7 +70365,7 @@ class CompletionContext {
     Allows you to register abort handlers, which will be called when
     the query is
     [aborted](https://codemirror.net/6/docs/ref/#autocomplete.CompletionContext.aborted).
-
+    
     By default, running queries will not be aborted for regular
     typing or backspacing, on the assumption that they are likely to
     return a result with a
@@ -74047,16 +74024,16 @@ class Stack {
     /**
     The parse that this stack is part of @internal
     */
-    p,
+    p, 
     /**
     Holds state, input pos, buffer index triplets for all but the
     top state @internal
     */
-    stack,
+    stack, 
     /**
     The current parse state @internal
     */
-    state,
+    state, 
     // The position at which the next reduce should take place. This
     // can be less than `this.pos` when skipped expressions have been
     // added to the stack (which should be moved outside of the next
@@ -74064,24 +74041,24 @@ class Stack {
     /**
     @internal
     */
-    reducePos,
+    reducePos, 
     /**
     The input position up to which this stack has parsed.
     */
-    pos,
+    pos, 
     /**
     The dynamic score of the stack, including dynamic precedence
     and error-recovery penalties
     @internal
     */
-    score,
+    score, 
     // The output buffer. Holds (type, start, end, size) quads
     // representing nodes created by the parser, where `size` is
     // amount of buffer array entries covered by this node.
     /**
     @internal
     */
-    buffer,
+    buffer, 
     // The base offset of the buffer. When stacks are split, the split
     // instance shared the buffer history with its parent up to
     // `bufferBase`, which is the absolute offset (including the
@@ -74090,15 +74067,15 @@ class Stack {
     /**
     @internal
     */
-    bufferBase,
+    bufferBase, 
     /**
     @internal
     */
-    curContext,
+    curContext, 
     /**
     @internal
     */
-    lookAhead = 0,
+    lookAhead = 0, 
     // A parent stack from which this was split off, if any. This is
     // set up so that it always points to a stack that has some
     // additional buffer content, never to a stack with an equal
@@ -74695,7 +74672,7 @@ class InputStream {
     /**
     @internal
     */
-    input,
+    input, 
     /**
     @internal
     */
@@ -74767,7 +74744,7 @@ class InputStream {
     Look at a code unit near the stream position. `.peek(0)` equals
     `.next`, `.peek(-1)` gives you the previous character, and so
     on.
-
+    
     Note that looking around during tokenizing creates dependencies
     on potentially far-away content, which may reduce the
     effectiveness incremental parsing—when looking forward—or even
@@ -76825,7 +76802,8 @@ var SyntaxHighlightedTextarea = function SyntaxHighlightedTextarea(_ref) {
     fontSize: "small"
   })))), (0,external_EmotionReact_.jsx)(Box_Box, {
     sx: {
-      border: '1px solid #ccc',
+      border: '1px solid',
+      borderColor: 'divider',
       borderRadius: 1,
       overflow: 'hidden',
       backgroundColor: '#282c34',
@@ -76868,7 +76846,7 @@ class CompositeBlock {
         let hash = (parentHash + (parentHash << 8) + type + (value << 4)) | 0;
         return new CompositeBlock(type, value, from, hash, end, [], []);
     }
-    constructor(type,
+    constructor(type, 
     // Used for indentation in list items, markup character in lists
     value, from, hash, end, children, positions) {
         this.type = type;
@@ -76956,7 +76934,7 @@ class LeafBlock {
     /**
     The start position of the block.
     */
-    start,
+    start, 
     /**
     The block's text content.
     */
@@ -77562,11 +77540,11 @@ class BlockContext {
     /**
     The parser configuration used.
     */
-    parser,
+    parser, 
     /**
     @internal
     */
-    input, fragments,
+    input, fragments, 
     /**
     @internal
     */
@@ -77916,35 +77894,35 @@ class MarkdownParser extends Parser {
     The parser's syntax [node
     types](https://lezer.codemirror.net/docs/ref/#common.NodeSet).
     */
-    nodeSet,
+    nodeSet, 
     /**
     @internal
     */
-    blockParsers,
+    blockParsers, 
     /**
     @internal
     */
-    leafBlockParsers,
+    leafBlockParsers, 
     /**
     @internal
     */
-    blockNames,
+    blockNames, 
     /**
     @internal
     */
-    endLeafBlock,
+    endLeafBlock, 
     /**
     @internal
     */
-    skipContextMarkup,
+    skipContextMarkup, 
     /**
     @internal
     */
-    inlineParsers,
+    inlineParsers, 
     /**
     @internal
     */
-    inlineNames,
+    inlineNames, 
     /**
     @internal
     */
@@ -78169,15 +78147,15 @@ class dist_Element {
     The node's
     [id](https://lezer.codemirror.net/docs/ref/#common.NodeType.id).
     */
-    type,
+    type, 
     /**
     The start of the node, as an offset from the start of the document.
     */
-    from,
+    from, 
     /**
     The end of the node.
     */
-    to,
+    to, 
     /**
     The node's child nodes @internal
     */
@@ -78483,11 +78461,11 @@ class InlineContext {
     /**
     The parser that is being used.
     */
-    parser,
+    parser, 
     /**
     The text of this inline section.
     */
-    text,
+    text, 
     /**
     The starting offset of the section in the document.
     */
@@ -79476,7 +79454,7 @@ function maybeNest(node, input, tags) {
 //   tagName?: string,
 //   parser: Parser
 // }[]
-
+ 
 function configureNesting(tags = [], attributes = []) {
   let script = [], style = [], textarea = [], other = [];
   for (let tag of tags) {
@@ -81096,24 +81074,64 @@ const pasteURLAsLink = /*@__PURE__*/EditorView.domEventHandlers({
 
 
 
-var StyledCodeMirror = styles_styled(esm)({
-  backgroundColor: 'transparent',
-  '& .cm-editor.cm-focused': {
-    outline: 'none'
-  }
+var StyledCodeMirror = styles_styled(esm)(function (_ref) {
+  var theme = _ref.theme;
+  return {
+    backgroundColor: 'transparent',
+    color: theme.palette.text.primary,
+    '& .cm-editor': {
+      backgroundColor: 'transparent',
+      color: theme.palette.text.primary
+    },
+    '& .cm-editor.cm-focused': {
+      outline: 'none'
+    },
+    '& .cm-scroller': {
+      backgroundColor: 'transparent'
+    },
+    '& .cm-content': {
+      color: theme.palette.text.primary,
+      caretColor: theme.palette.text.primary
+    },
+    '& .cm-line': {
+      backgroundColor: 'transparent'
+    },
+    '& .cm-activeLine': {
+      backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.14 : 0.08)
+    },
+    '& .cm-activeLineGutter': {
+      backgroundColor: 'transparent'
+    },
+    '& .cm-cursor, & .cm-dropCursor': {
+      borderLeftColor: theme.palette.text.primary
+    },
+    '& .cm-selectionBackground, & .cm-content ::selection': {
+      backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.26 : 0.18)
+    },
+    '& .cm-placeholder': {
+      color: theme.palette.text.secondary
+    },
+    '& .cm-gutters': {
+      backgroundColor: 'transparent',
+      color: theme.palette.text.secondary,
+      border: 'none'
+    }
+  };
 });
-var MarkdownTextarea = function MarkdownTextarea(_ref) {
-  var value = _ref.value,
-    onChange = _ref.onChange,
-    _ref$placeholder = _ref.placeholder,
-    placeholder = _ref$placeholder === void 0 ? '' : _ref$placeholder,
-    _ref$minHeight = _ref.minHeight,
-    minHeight = _ref$minHeight === void 0 ? 100 : _ref$minHeight,
-    _ref$disabled = _ref.disabled,
-    disabled = _ref$disabled === void 0 ? false : _ref$disabled;
+var MarkdownTextarea = function MarkdownTextarea(_ref2) {
+  var value = _ref2.value,
+    onChange = _ref2.onChange,
+    _ref2$placeholder = _ref2.placeholder,
+    placeholder = _ref2$placeholder === void 0 ? '' : _ref2$placeholder,
+    _ref2$minHeight = _ref2.minHeight,
+    minHeight = _ref2$minHeight === void 0 ? 100 : _ref2$minHeight,
+    _ref2$disabled = _ref2.disabled,
+    disabled = _ref2$disabled === void 0 ? false : _ref2$disabled;
   return (0,external_EmotionReact_.jsx)(Box_Box, {
     sx: {
-      border: '1px solid #c4c4c4',
+      border: function border(theme) {
+        return "1px solid ".concat(theme.palette.divider);
+      },
       borderRadius: '5px',
       overflow: 'hidden',
       backgroundColor: 'transparent',
@@ -84873,24 +84891,27 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 
 
-var StyledRow = styles_styled('div')({
-  borderBottom: '1px solid #e0e0e0',
-  padding: '10px',
-  cursor: 'pointer',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-  }
+var StyledRow = styles_styled('div')(function (_ref) {
+  var theme = _ref.theme;
+  return {
+    borderBottom: "1px solid ".concat(theme.palette.divider),
+    padding: '10px',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover
+    }
+  };
 });
-var ModelSelector = function ModelSelector(_ref) {
-  var value = _ref.value,
-    onChange = _ref.onChange,
-    models = _ref.models,
-    _ref$loading = _ref.loading,
-    loading = _ref$loading === void 0 ? false : _ref$loading,
-    _ref$disabled = _ref.disabled,
-    disabled = _ref$disabled === void 0 ? false : _ref$disabled,
-    _ref$placeholder = _ref.placeholder,
-    placeholder = _ref$placeholder === void 0 ? 'Select a model...' : _ref$placeholder;
+var ModelSelector = function ModelSelector(_ref2) {
+  var value = _ref2.value,
+    onChange = _ref2.onChange,
+    models = _ref2.models,
+    _ref2$loading = _ref2.loading,
+    loading = _ref2$loading === void 0 ? false : _ref2$loading,
+    _ref2$disabled = _ref2.disabled,
+    disabled = _ref2$disabled === void 0 ? false : _ref2$disabled,
+    _ref2$placeholder = _ref2.placeholder,
+    placeholder = _ref2$placeholder === void 0 ? 'Select a model...' : _ref2$placeholder;
   var _useState = (0,external_React_.useState)(''),
     _useState2 = _slicedToArray(_useState, 2),
     searchQuery = _useState2[0],
@@ -85080,9 +85101,9 @@ var ModelSelector = function ModelSelector(_ref) {
       }
       return 90; // Default height
     };
-    var Row = function Row(_ref2) {
-      var index = _ref2.index,
-        style = _ref2.style;
+    var Row = function Row(_ref3) {
+      var index = _ref3.index,
+        style = _ref3.style;
       var child = Array.isArray(children) ? children[index] : null;
 
       // Extract the option from the child's props
@@ -86745,11 +86766,11 @@ var AgentVariant = function AgentVariant(_ref) {
     value: "mistral-ocr"
   }, "Mistral OCR"), (0,external_EmotionReact_.jsx)(MenuItem_MenuItem, {
     value: "native"
-  }, "Native"))), tempSettings.fileParser === 'native' && (0,external_EmotionReact_.jsx)("div", {
-    style: {
+  }, "Native"))), tempSettings.fileParser === 'native' && (0,external_EmotionReact_.jsx)(Box_Box, {
+    sx: {
       margin: '4px 14px 0 14px',
       fontSize: '0.75rem',
-      color: '#666'
+      color: 'text.secondary'
     }
   }, "Only available for models that support file input natively, charged as input tokens.")), (0,external_EmotionReact_.jsx)(components_Field, {
     mb: 20
@@ -86794,11 +86815,11 @@ var AgentVariant = function AgentVariant(_ref) {
       key: ratio.value,
       value: ratio.value
     }, ratio.label, " - ", ratio.dimensions);
-  }))), !supportsImageGeneration && (0,external_EmotionReact_.jsx)("div", {
-    style: {
+  }))), !supportsImageGeneration && (0,external_EmotionReact_.jsx)(Box_Box, {
+    sx: {
       marginTop: '4px',
       fontSize: '0.75rem',
-      color: '#666'
+      color: 'text.secondary'
     }
   }, "Available only for models that support image generation")), supportsReasoning && (0,external_EmotionReact_.jsx)(components_Field, null, (0,external_EmotionReact_.jsx)(FormControl_FormControl, {
     component: "fieldset"
@@ -86838,11 +86859,11 @@ var AgentVariant = function AgentVariant(_ref) {
     loading: loadingProviders,
     disabled: !serviceOnline,
     placeholder: "Select providers in order..."
-  }), (0,external_EmotionReact_.jsx)("div", {
-    style: {
+  }), (0,external_EmotionReact_.jsx)(Box_Box, {
+    sx: {
       marginTop: '4px',
       fontSize: '0.75rem',
-      color: '#666'
+      color: 'text.secondary'
     }
   }, "Select providers in the order they should be tried. Leave empty to use OpenRouter's default load balancing.")), (0,external_EmotionReact_.jsx)(components_Field, null, (0,external_EmotionReact_.jsx)(esm_FormControlLabel_FormControlLabel, {
     disabled: !tempSettings.providerOrder || tempSettings.providerOrder.length === 0,
@@ -86851,11 +86872,11 @@ var AgentVariant = function AgentVariant(_ref) {
       onChange: handleAllowFallbacksChange
     }),
     label: "Allow Fallbacks"
-  }), (0,external_EmotionReact_.jsx)("div", {
-    style: {
+  }), (0,external_EmotionReact_.jsx)(Box_Box, {
+    sx: {
       marginTop: '4px',
       fontSize: '0.75rem',
-      color: '#666'
+      color: 'text.secondary'
     }
   }, "When enabled, backup providers will be used if the primary provider is unavailable.")))), (0,external_EmotionReact_.jsx)(components_AgentFieldAiDialog, {
     open: !!aiDialogField,
@@ -86888,7 +86909,7 @@ var AgentVariant = function AgentVariant(_ref) {
 /* harmony default export */ const Delete = (createSvgIcon(/*#__PURE__*/(0,jsx_runtime.jsx)("path", {
   d: "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
 }), 'Delete'));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/HorizontalField.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/HorizontalField.js
 const HorizontalField_HorizontalField=styled.div`
   display: flex;
   margin-bottom: 10px;
@@ -86900,13 +86921,16 @@ const HorizontalField_HorizontalField=styled.div`
 `;/* harmony default export */ const components_HorizontalField = (HorizontalField_HorizontalField);
 ;// ./src/components/ArgumentContainer.tsx
 
-function ArgumentContainer_EMOTION_STRINGIFIED_CSS_ERROR_() { return "You have tried to stringify object returned from `css` function. It isn't supposed to be used directly (e.g. as value of the `className` prop), but rather handed to emotion so it can handle it (e.g. as value of `css` prop)."; }
-var ArgumentContainer = /*#__PURE__*/createStyled("div",  true ? {
-  target: "e1b3b87t0"
-} : 0)( true ? {
-  name: "1eus823",
-  styles: "border:1px solid #e0e0e0;border-radius:8px;padding:15px;margin-bottom:15px;background-color:#f9f9f9"
-} : 0);
+var ArgumentContainer = styles_styled('div')(function (_ref) {
+  var theme = _ref.theme;
+  return {
+    border: "1px solid ".concat(theme.palette.divider),
+    borderRadius: '8px',
+    padding: '15px',
+    marginBottom: '15px',
+    backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.72 : 0.9)
+  };
+});
 /* harmony default export */ const components_ArgumentContainer = (ArgumentContainer);
 ;// ./src/components/DynamicWidgetLabel.tsx
 
@@ -87723,10 +87747,10 @@ var HistoryVariant = function HistoryVariant(_ref) {
       onChange: handleIncludeAttachmentsChange
     }),
     label: "Include Full Attachment Data"
-  }), (0,external_EmotionReact_.jsx)("div", {
-    style: {
+  }), (0,external_EmotionReact_.jsx)(Box_Box, {
+    sx: {
       fontSize: '0.875rem',
-      color: '#666',
+      color: 'text.secondary',
       marginTop: '4px'
     }
   }, "When enabled, stores complete attachment data (images, files) in Base64 format. When disabled, only stores metadata (filename, size, type) for better performance.")), (0,external_EmotionReact_.jsx)(components_Field, null, (0,external_EmotionReact_.jsx)("label", null, "Retrieval Timeout (seconds)"), (0,external_EmotionReact_.jsx)(TextField_TextField, {
@@ -87741,24 +87765,24 @@ var HistoryVariant = function HistoryVariant(_ref) {
     },
     placeholder: "30",
     helperText: "Set to 0 for no timeout, or specify timeout in seconds for history retrieval operations"
-  })), (0,external_EmotionReact_.jsx)(components_Field, null, (0,external_EmotionReact_.jsx)("div", {
-    style: {
+  })), (0,external_EmotionReact_.jsx)(components_Field, null, (0,external_EmotionReact_.jsx)(Box_Box, {
+    sx: {
       fontSize: '0.875rem',
-      color: '#666',
+      color: 'text.secondary',
       lineHeight: '1.4'
     }
   }, (0,external_EmotionReact_.jsx)("strong", null, "How it works:"), (0,external_EmotionReact_.jsx)("br", null), "\u2022 History variant automatically manages conversation sessions", (0,external_EmotionReact_.jsx)("br", null), "\u2022 Connect to your storage logic (database, files, etc.) between History and Submit variants", (0,external_EmotionReact_.jsx)("br", null), "\u2022 Agent will automatically inject previous conversation history into context", (0,external_EmotionReact_.jsx)("br", null), "\u2022 Use the 'clear' input to start a new conversation session")))));
 };
 /* harmony default export */ const variants_HistoryVariant = (HistoryVariant);
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/CheckboxField.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/CheckboxField.js
 const CheckboxField=e=>{const o=useCallback((o=>{const l=o.target.checked;e.onChange&&e.onChange(l)}),[e.onChange]);return _jsx(HorizontalField,{children:_jsx(FormControlLabel,{css:css`
           margin-left: 0px;
         `,control:_jsx(Checkbox,{style:{paddingRight:8},onChange:o,checked:e.checked,disabled:e.disabled}),label:e.label})})};/* harmony default export */ const components_CheckboxField = ((/* unused pure expression or super */ null && (CheckboxField)));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/FieldWithLabel.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/FieldWithLabel.js
 const FieldWithLabel=({label:e,children:l,mb:s,mt:i})=>_jsxs(Field,{mb:s,mt:i,children:[_jsx("label",{children:e}),l]});/* harmony default export */ const components_FieldWithLabel = ((/* unused pure expression or super */ null && (FieldWithLabel)));
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/index.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/index.js
 
-;// ./node_modules/.pnpm/@kemu-io+hs-react@0.3.5_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/ResizableContainer.js
+;// ./node_modules/.pnpm/@kemu-io+hs-react@0.4.2_@types+react@18.3.26/node_modules/@kemu-io/hs-react/mjs/components/ResizableContainer.js
 const ResizeHandle=styled.div`
   position: absolute;
   width: 20px;
@@ -87791,7 +87815,7 @@ const ResizeHandle=styled.div`
 }), 'DeleteOutline'));
 ;// ./src/components/chat/constants.ts
 var USER_BUBBLE_COLOR = '#5336d8'; // Deep purple/blue from description
-var AGENT_BUBBLE_COLOR = '#ffffff';
+var AGENT_BUBBLE_COLOR = 'background.paper';
 ;// ./src/components/chat/ChatHeader.tsx
 
 
@@ -87812,7 +87836,7 @@ var ChatHeader = function ChatHeader(_ref) {
       p: 2,
       borderBottom: '1px solid',
       borderColor: 'divider',
-      bgcolor: '#fff'
+      bgcolor: 'background.paper'
     }
   }, (0,external_EmotionReact_.jsx)(Box_Box, {
     sx: {
@@ -87828,7 +87852,9 @@ var ChatHeader = function ChatHeader(_ref) {
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: '8px',
-      bgcolor: '#f5f5f5',
+      bgcolor: function bgcolor(theme) {
+        return alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.1);
+      },
       color: USER_BUBBLE_COLOR
     }
   }, (0,external_EmotionReact_.jsx)(SmartToy, null)), (0,external_EmotionReact_.jsx)(Box_Box, null, (0,external_EmotionReact_.jsx)(Box_Box, {
@@ -87843,19 +87869,7 @@ var ChatHeader = function ChatHeader(_ref) {
       fontWeight: 600,
       lineHeight: 1.2
     }
-  }, "AI Agent - Chat Interface"), (0,external_EmotionReact_.jsx)(Chip_Chip, {
-    label: "Experimental",
-    size: "small",
-    color: "error",
-    sx: {
-      height: 16,
-      fontSize: '0.75rem',
-      fontWeight: 700,
-      '& .MuiChip-label': {
-        px: 0.75
-      }
-    }
-  })), (0,external_EmotionReact_.jsx)(Typography_Typography, {
+  }, "AI Agent - Chat Interface")), (0,external_EmotionReact_.jsx)(Typography_Typography, {
     variant: "caption",
     sx: {
       color: serviceOnline ? 'success.main' : 'text.disabled',
@@ -133426,14 +133440,14 @@ function c(hljs) {
   const NUMBERS = {
     className: 'number',
     variants: [
-      { match: /\b(0b[01']+)/ },
-      { match: /(-?)\b([\d']+(\.[\d']*)?|\.[\d']+)((ll|LL|l|L)(u|U)?|(u|U)(ll|LL|l|L)?|f|F|b|B)/ },
-      { match: /(-?)\b(0[xX][a-fA-F0-9]+(?:'[a-fA-F0-9]+)*(?:\.[a-fA-F0-9]*(?:'[a-fA-F0-9]*)*)?(?:[pP][-+]?[0-9]+)?(l|L)?(u|U)?)/ },
-      { match: /(-?)\b\d+(?:'\d+)*(?:\.\d*(?:'\d*)*)?(?:[eE][-+]?\d+)?/ }
+      { match: /\b(0b[01']+)/ },  
+      { match: /(-?)\b([\d']+(\.[\d']*)?|\.[\d']+)((ll|LL|l|L)(u|U)?|(u|U)(ll|LL|l|L)?|f|F|b|B)/ },  
+      { match: /(-?)\b(0[xX][a-fA-F0-9]+(?:'[a-fA-F0-9]+)*(?:\.[a-fA-F0-9]*(?:'[a-fA-F0-9]*)*)?(?:[pP][-+]?[0-9]+)?(l|L)?(u|U)?)/ },  
+      { match: /(-?)\b\d+(?:'\d+)*(?:\.\d*(?:'\d*)*)?(?:[eE][-+]?\d+)?/ }  
   ],
     relevance: 0
-  };
-
+  };  
+  
   const PREPROCESSOR = {
     className: 'meta',
     begin: /#\s*[a-z]+\b/,
@@ -138500,7 +138514,7 @@ function less(hljs) {
       MIXIN_GUARD_MODE,
       IDENT_MODE('keyword', 'all\\b'),
       IDENT_MODE('variable', '@\\{' + IDENT_RE + '\\}'), // otherwise it’s identified as tag
-
+      
       {
         begin: '\\b(' + less_TAGS.join('|') + ')\\b',
         className: 'selector-tag'
@@ -138682,7 +138696,7 @@ function makefile(hljs) {
         + 'word wordlist firstword lastword dir notdir suffix basename '
         + 'addsuffix addprefix join wildcard realpath abspath error warning '
         + 'shell origin flavor foreach if or and call eval file value' },
-    contains: [
+    contains: [ 
       VARIABLE,
       QUOTE_STRING // Added QUOTE_STRING as they can be a part of functions
     ]
@@ -144485,11 +144499,11 @@ function swift(hljs) {
 
   const CLASS_FUNC_DECLARATION = {
     match: [
-      /class\b/,
+      /class\b/,          
       /\s+/,
       /func\b/,
       /\s+/,
-      /\b[A-Za-z_][A-Za-z0-9_]*\b/
+      /\b[A-Za-z_][A-Za-z0-9_]*\b/ 
     ],
     scope: {
       1: "keyword",
@@ -144501,8 +144515,8 @@ function swift(hljs) {
   const CLASS_VAR_DECLARATION = {
     match: [
       /class\b/,
-      /\s+/,
-      /var\b/,
+      /\s+/,          
+      /var\b/, 
     ],
     scope: {
       1: "keyword",
@@ -146090,7 +146104,7 @@ function yaml(hljs) {
         begin: /'[\w*@][\w*@ :()\./-]*':(?=[ \t]|$)/ },
     ]
   };
-
+  
   const TEMPLATE_VARIABLES = {
     className: 'template-variable',
     variants: [
@@ -147060,15 +147074,15 @@ var styleTagTransform_default = /*#__PURE__*/__webpack_require__.n(styleTagTrans
 var github = __webpack_require__(873);
 ;// ./node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/styles/github.css
 
-
-
-
-
-
-
-
-
-
+      
+      
+      
+      
+      
+      
+      
+      
+      
 
 var options = {};
 
@@ -147254,10 +147268,14 @@ var PreWithCopy = function PreWithCopy(_ref) {
       top: 6,
       right: 6,
       opacity: 0.8,
-      bgcolor: 'rgba(255, 255, 255, 0.7)',
+      bgcolor: function bgcolor(theme) {
+        return alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.82 : 0.7);
+      },
       '&:hover': {
         opacity: 1,
-        bgcolor: 'rgba(255, 255, 255, 0.9)'
+        bgcolor: function bgcolor(theme) {
+          return alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.94 : 0.9);
+        }
       }
     },
     "aria-label": "Copy code"
@@ -147407,12 +147425,16 @@ var MarkdownMessage = function MarkdownMessage(_ref3) {
       '& blockquote': {
         margin: 0,
         paddingLeft: 2,
-        borderLeft: '3px solid rgba(0, 0, 0, 0.16)'
+        borderLeft: function borderLeft(theme) {
+          return "3px solid ".concat(alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.32 : 0.16));
+        }
       },
       '& :not(pre) > code': {
         padding: '2px 6px',
         borderRadius: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.06)'
+        backgroundColor: function backgroundColor(theme) {
+          return alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.16 : 0.06);
+        }
       },
       '& pre': {
         margin: 0,
@@ -147420,7 +147442,9 @@ var MarkdownMessage = function MarkdownMessage(_ref3) {
         padding: 1.5,
         borderRadius: 1,
         overflowX: 'auto',
-        backgroundColor: 'rgba(0, 0, 0, 0.04)'
+        backgroundColor: function backgroundColor(theme) {
+          return alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.12 : 0.04);
+        }
       },
       '& code': {
         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
@@ -147435,7 +147459,9 @@ var MarkdownMessage = function MarkdownMessage(_ref3) {
         marginTop: 1
       },
       '& th, & td': {
-        border: '1px solid rgba(0, 0, 0, 0.16)',
+        border: function border(theme) {
+          return "1px solid ".concat(alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.28 : 0.16));
+        },
         padding: '6px 8px',
         verticalAlign: 'top'
       }
@@ -147862,7 +147888,7 @@ var ReasoningBubble = function ReasoningBubble(_ref) {
     variant: "outlined",
     sx: {
       p: 2,
-      bgcolor: '#fff',
+      bgcolor: 'background.paper',
       borderRadius: 2,
       borderStyle: 'dashed',
       borderColor: 'divider'
@@ -147978,7 +148004,7 @@ var ChatMessageItem = function ChatMessageItem(_ref) {
       p: 2,
       borderRadius: isUser ? '20px 20px 0 20px' : '20px 20px 20px 0',
       bgcolor: isUser ? USER_BUBBLE_COLOR : AGENT_BUBBLE_COLOR,
-      color: isUser ? '#fff' : 'text.primary',
+      color: isUser ? 'common.white' : 'text.primary',
       border: isUser ? 'none' : '1px solid',
       borderColor: isUser ? 'none' : 'divider',
       boxShadow: isUser ? 2 : 0
@@ -148036,7 +148062,7 @@ var ChatMessageItem = function ChatMessageItem(_ref) {
   }, (0,external_EmotionReact_.jsx)(Person, {
     sx: {
       fontSize: 20,
-      color: '#fff'
+      color: 'common.white'
     }
   })));
 };
@@ -148115,7 +148141,7 @@ var GeneratedImages = function GeneratedImages(_ref) {
         border: '1px solid',
         borderColor: 'divider',
         cursor: 'pointer',
-        backgroundColor: '#fff'
+        backgroundColor: 'background.paper'
       }
     });
   }))), (0,external_EmotionReact_.jsx)(Dialog_Dialog, {
@@ -148191,7 +148217,7 @@ var ChatMessageList = function ChatMessageList(_ref) {
       flex: 1,
       overflowY: 'auto',
       p: 2,
-      bgcolor: '#fafafa',
+      bgcolor: 'background.default',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -148204,10 +148230,14 @@ var ChatMessageList = function ChatMessageList(_ref) {
         background: 'transparent'
       },
       '&::-webkit-scrollbar-thumb': {
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        backgroundColor: function backgroundColor(theme) {
+          return alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.22 : 0.1);
+        },
         borderRadius: '4px',
         '&:hover': {
-          backgroundColor: 'rgba(0, 0, 0, 0.2)'
+          backgroundColor: function backgroundColor(theme) {
+            return alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.34 : 0.2);
+          }
         }
       },
       opacity: isDisabled ? 0.6 : 1,
@@ -148334,6 +148364,7 @@ function ChatInputArea_unsupportedIterableToArray(r, a) { if (r) { if ("string" 
 function ChatInputArea_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function ChatInputArea_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function ChatInputArea_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
 
 
 
@@ -148497,7 +148528,7 @@ var ChatInputArea = function ChatInputArea(_ref) {
       p: 2,
       borderTop: '1px solid',
       borderColor: isDragging ? 'primary.main' : 'divider',
-      bgcolor: isDragging ? 'action.hover' : '#fff',
+      bgcolor: isDragging ? 'action.hover' : 'background.paper',
       transition: 'all 0.2s ease',
       display: 'flex',
       justifyContent: 'center'
@@ -148617,7 +148648,9 @@ var ChatInputArea = function ChatInputArea(_ref) {
     sx: {
       '& .MuiOutlinedInput-root': {
         borderRadius: 3,
-        bgcolor: disabled ? '#f0f0f0' : '#fafafa'
+        bgcolor: function bgcolor(theme) {
+          return disabled ? theme.palette.action.disabledBackground : alpha(theme.palette.background["default"], theme.palette.mode === 'dark' ? 0.6 : 0.85);
+        }
       }
     }
   }), (0,external_EmotionReact_.jsx)(IconButton_IconButton, {
@@ -148625,11 +148658,11 @@ var ChatInputArea = function ChatInputArea(_ref) {
     disabled: disabled || !isSending && !draft.trim() && attachments.length === 0,
     sx: {
       bgcolor: isSending ? 'error.main' : USER_BUBBLE_COLOR,
-      color: '#fff',
+      color: 'common.white',
       width: 40,
       height: 40,
       '&:hover': {
-        bgcolor: isSending ? 'error.dark' : '#3e2db0'
+        bgcolor: isSending ? 'error.dark' : darken(USER_BUBBLE_COLOR, 0.2)
       },
       '&.Mui-disabled': {
         bgcolor: 'action.disabledBackground',
@@ -148672,6 +148705,7 @@ function ChatInterfaceVariant_arrayWithHoles(r) { if (Array.isArray(r)) return r
 
 
 
+
 // Chat Components
 
 
@@ -148688,6 +148722,7 @@ var ChatInterfaceVariant = function ChatInterfaceVariant(_ref) {
     serviceOnline = _ref.serviceOnline,
     disabled = _ref.disabled,
     callProcessorHandler = _ref.callProcessorHandler;
+  var theme = styles_useTheme_useTheme();
   var _useState = (0,external_React_.useState)(state.draftMessage || ''),
     _useState2 = ChatInterfaceVariant_slicedToArray(_useState, 2),
     draft = _useState2[0],
@@ -149250,10 +149285,11 @@ var ChatInterfaceVariant = function ChatInterfaceVariant(_ref) {
     style: ChatInterfaceVariant_objectSpread({
       display: 'flex',
       flexDirection: 'column',
-      backgroundColor: '#fff',
-      border: isExpanded ? 'none' : '1px solid rgba(0, 0, 0, 0.12)',
+      backgroundColor: theme.palette.background.paper,
+      color: theme.palette.text.primary,
+      border: isExpanded ? 'none' : "1px solid ".concat(theme.palette.divider),
       borderRadius: isExpanded ? 0 : '12px',
-      boxShadow: isExpanded ? 'none' : '0px 4px 20px rgba(0, 0, 0, 0.08)',
+      boxShadow: isExpanded ? 'none' : "0px 4px 20px ".concat(alpha(theme.palette.common.black, theme.palette.mode === 'dark' ? 0.32 : 0.08)),
       overflow: 'hidden'
     }, isExpanded ? {
       position: 'fixed',
@@ -149283,7 +149319,6 @@ function WidgetUI_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 
 
-
 // Import variant components
 
 
@@ -149292,42 +149327,6 @@ function WidgetUI_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 
 
-var customTheme = styles_createTheme_createTheme({
-  palette: {
-    primary: {
-      main: '#4e3eff'
-    }
-  },
-  typography: {
-    fontFamily: 'Nunito, "Segoe UI", arial'
-  },
-  components: {
-    // Override Button component to prevent text transformation
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none' // Prevent automatic uppercasing
-        }
-      }
-    },
-    // Override Tab component to prevent text transformation
-    MuiTab: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none' // Prevent automatic uppercasing
-        }
-      }
-    },
-    // Override Chip component to prevent text transformation
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none' // Prevent automatic uppercasing
-        }
-      }
-    }
-  }
-});
 var WidgetUI = function WidgetUI(props) {
   // Get the appropriate state based on the variant
   var getInitialState = function getInitialState() {
@@ -149397,9 +149396,7 @@ var WidgetUI = function WidgetUI(props) {
         });
     }
   };
-  return (0,external_EmotionReact_.jsx)(styles_ThemeProvider_ThemeProvider, {
-    theme: customTheme
-  }, renderVariant());
+  return renderVariant();
 };
 /* harmony default export */ const src_WidgetUI = (createWidgetUI(WidgetUI, manifest_namespaceObject.UU, manifest_namespaceObject.rE));
 })();

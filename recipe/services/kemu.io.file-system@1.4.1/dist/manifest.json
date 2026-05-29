@@ -1,6 +1,6 @@
 {
   "name": "kemu.io.file-system",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "title": "File System",
   "description": "Allows access to the file system to scan, read and write files and directories",
   "processor": "js",
@@ -195,5 +195,5 @@
     "linux-rhel-arm64"
   ],
   "author": "0f998d5a-a8ce-4bf8-9f84-fa8c481cb40b",
-  "publicationId": "kemu.io.file-system-osx-arm64-1.4.0"
+  "publicationId": "kemu.io.file-system-osx-arm64-1.4.1"
 }

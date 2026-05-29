@@ -6,7 +6,7 @@ import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } f
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { injectReviewerButtons } from '../lib/button-injection.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, sendToSN } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, sendToSN, applyFitScore } from '../lib/dispatch.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
 const router = express.Router();
@@ -229,18 +229,21 @@ router.post('/', async (req, res) => {
       // ── SN interview actions ──────────────────────────────────────────────
       case 'sn_recommended':
         if (state.snState === 'summary') { _reshowSNContinue(); break; }
+        if (!state.snState) break; // assembly already in progress — stale button
         state.snState = 'interviewing';
         await sendToSN('__choice__: recommended');
         break;
 
       case 'sn_keep':
         if (state.snState === 'summary') { _reshowSNContinue(); break; }
+        if (!state.snState) break;
         state.snState = 'interviewing';
         await sendToSN('__choice__: keep_current');
         break;
 
       case 'sn_customise':
         if (state.snState === 'summary') { _reshowSNContinue(); break; }
+        if (!state.snState) break;
         state.snState = 'customise_text';
         broadcastMode('user_turn');
         broadcast({ type: 'agent_message', agent: 'System', text: 'Describe your preference for this style dimension:' });
@@ -248,6 +251,7 @@ router.post('/', async (req, res) => {
 
       case 'sn_confirm':
         if (state.snState === 'summary') { _reshowSNContinue(); break; }
+        if (!state.snState) break;
         state.snState = 'interviewing';
         await sendToSN('__confirm__');
         break;
@@ -358,7 +362,14 @@ router.post('/', async (req, res) => {
         sendToNodeAndWait('reviewer_input', 'Reviewer', trigger)
           .then(async r => {
             const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Reviewer', true);
+            let banner = '';
+            try {
+              const newScore = applyFitScore(join(WORKSPACE_DIR, 'gap_analysis.json'));
+              banner = `**Fit Score: ${newScore}/10**\n\n`;
+            } catch (err) {
+              console.error('[gap_answers_submit] applyFitScore error:', err.message);
+            }
+            broadcastAgentResult(banner + cleanText, 'Reviewer', true);
             if (status !== 'REVIEW_COMPLETE' && status !== 'REVIEW_FAILED') injectReviewerButtons();
             if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
           })

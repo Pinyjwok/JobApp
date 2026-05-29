@@ -55,7 +55,7 @@ router.post('/reset', async (req, res) => {
     try {
       const files = readdirSync(WORKSPACE_DIR);
       for (const f of files) {
-        if (!PRESERVE.has(f)) rmSync(join(WORKSPACE_DIR, f), { force: true });
+        if (!PRESERVE.has(f)) rmSync(join(WORKSPACE_DIR, f), { recursive: true, force: true });
       }
     } catch {}
 
@@ -65,9 +65,18 @@ router.post('/reset', async (req, res) => {
 
     try { rmSync(HISTORY_FILE); } catch {}
 
-    state.analystDone    = false;
-    state.taDone         = false;
-    state.pipelineStatus = null;
+    state.analystDone          = false;
+    state.taDone               = false;
+    state.pipelineStatus       = null;
+    state.analystOutputText    = null;
+    state.reviewerGapState     = null;
+    state.researchPartial      = false;
+    state.pendingTADispatch    = false;
+    state.currentAssemblyPhase = 0;
+    state.snState              = null;
+    state.snPending            = false;
+    state.awaitingRevision     = null;
+    state.recentlyDispatched.clear();
 
     for (const v of ALL_PIPELINE_VARS) {
       try { await state.recipe.globalVariables.setValue(v, null); } catch {}

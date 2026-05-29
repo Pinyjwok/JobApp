@@ -114,6 +114,7 @@ export const WORKSPACE_SCAFFOLD = {
   'gap_analysis.json':      {},
   'style_findings.json':    {},
   'sn_output.json':         {},
+  'sn_working.json':        {},
   'pb_output.json':         {},
   'sc_output.json':         {},
   'hf_output.json':         {},
