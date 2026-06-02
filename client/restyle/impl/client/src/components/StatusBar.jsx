@@ -22,9 +22,9 @@ const STATUS_MAP = {
 };
 
 const FAILED_MAP = {
-  EXTRACTION_FAILED: { phase: 'analyse', substep: "Could not read a file — let's fix that." },
-  RESEARCH_FAILED:   { phase: 'analyse', substep: "Research hit a snag — let's retry." },
-  ANALYSIS_FAILED:   { phase: 'analyse', substep: "Analysis hit a snag — let's retry." },
+  EXTRACTION_FAILED: { phase: 'analyse', substep: 'Could not read a file — let’s fix that.' },
+  RESEARCH_FAILED:   { phase: 'analyse', substep: 'Research hit a snag — let’s retry.' },
+  ANALYSIS_FAILED:   { phase: 'analyse', substep: 'Analysis hit a snag — let’s retry.' },
   REVIEW_FAILED:     { phase: 'analyse', substep: 'A few things to review together.' },
   STYLE_FAILED:      { phase: 'build',   substep: 'A style check needs your input.' },
   INTEGRITY_FAILED:  { phase: 'build',   substep: 'An accuracy check needs your input.' },
