@@ -90,7 +90,9 @@ export async function classifyGapAnswers(items) {
   const body = {
     model: OPENROUTER_MODEL,
     temperature: 0,
-    max_tokens: 1024,
+    // Scale with item count so many answers can't truncate the JSON (→ parse fail → all-INTENT).
+    // Each item is a small object with a ≤200-char reason; ~200 tokens/item is ample. Capped for safety.
+    max_tokens: Math.min(4096, 300 + items.length * 200),
     messages: [
       { role: 'system', content: [{ type: 'text', text: SYSTEM_RUBRIC, cache_control: { type: 'ephemeral' } }] },
       { role: 'user', content: `Classify these items:\n${userPayload}` },

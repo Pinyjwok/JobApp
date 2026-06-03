@@ -405,7 +405,9 @@ router.post('/', async (req, res) => {
           broadcastAgentResult(banner + buildReviewSummary(auditResult.audit), 'Reviewer', true);
           await state.recipe.globalVariables.setValue('pipeline_status', status);
           state.pipelineStatus = status;
-          await handlePipelineStatus(status);
+          // Fire-and-forget: REVIEW_COMPLETE kicks off assembly (SN dispatch) — must not hold the HTTP
+          // response open. The 30s recentlyDispatched guard dedups this against the setValue→onChange call.
+          handlePipelineStatus(status).catch(err => console.error('[gap_answers_submit finalize] route error:', err.message));
         } else {
           // Backable issues exist — hand off to the Reviewer node for interactive Phase 7.5. Its Phase 0
           // re-invocation guard sees the server-written review_audit.json and resumes at issue resolution.

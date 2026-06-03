@@ -147,6 +147,24 @@ const _stringify = v => (typeof v === 'object' && v !== null ? JSON.stringify(v)
 // the mechanical effects — it trusts the provided label and never re-classifies (no regex proxy).
 function _ingestGapAnswers(gapAnalysis, gapAnswers) {
   if (!Array.isArray(gapAnalysis.candidate_backed_strengths)) gapAnalysis.candidate_backed_strengths = [];
+
+  // Idempotency: a resubmit must not stack duplicate backed-strengths or leave a stale
+  // "Met (Candidate Evidence)" when an answer changed. Reset every submitted gap's prior state first.
+  const submittedIds = new Set((gapAnswers || []).map(a => a.gap_id));
+  if (submittedIds.size > 0) {
+    gapAnalysis.candidate_backed_strengths = gapAnalysis.candidate_backed_strengths.filter(s => !submittedIds.has(s.gap_id));
+    for (const gap of (gapAnalysis.gaps || [])) {
+      if (!submittedIds.has(gap.id)) continue;
+      delete gap.candidate_provided_evidence; delete gap.evidence_source;
+      delete gap.evidence_type; delete gap.evidence_classification_reason;
+      const linkedReq = (gapAnalysis.requirements || []).find(r => r.id === gap.requirement_id);
+      if (linkedReq && linkedReq.candidate_status === 'Met (Candidate Evidence)') {
+        linkedReq.candidate_status = 'Gap';
+        delete linkedReq.candidate_evidence_text;
+      }
+    }
+  }
+
   for (const answer of gapAnswers || []) {
     const gap = (gapAnalysis.gaps || []).find(g => g.id === answer.gap_id);
     if (!gap) continue;
@@ -322,7 +340,7 @@ export function buildReviewSummary(audit) {
   }
   lines.push('', '---', '');
   lines.push(audit.overall_verdict === 'APPROVED'
-    ? 'Analysis validated and approved.\n\n**Next:** Assembly Coordinator will begin building your CV.'
+    ? 'Analysis validated and approved.\n\n**Next:** the assembly phase will begin — starting with style negotiation.'
     : 'Quality issues detected. Main Orchestrator will present correction options.');
   return lines.join('\n');
 }
