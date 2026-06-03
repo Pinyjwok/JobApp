@@ -1,120 +1,113 @@
-const ASSEMBLY_AGENTS = [
-  'Style Negotiator', 'Profile Builder', 'Skills Curator', 'History Formatter',
-  'Credentials Formatter', 'CoverLetter Writer', 'Style Reviewer', 'Integrity Checker',
+// Three user-facing phases — internal pipeline stages collapse into these.
+const PHASES = [
+  { key: 'analyse', label: 'Analyse' },
+  { key: 'polish',  label: 'Polish' },
+  { key: 'build',   label: 'Build' },
 ];
 
-const ASSEMBLY_SHORT = {
-  'Style Negotiator': 'Style',
-  'Profile Builder': 'Profile',
-  'Skills Curator': 'Skills',
-  'History Formatter': 'History',
-  'Credentials Formatter': 'Credentials',
-  'CoverLetter Writer': 'Cover Letter',
-  'Style Reviewer': 'Style Review',
-  'Integrity Checker': 'Integrity',
-  'Assembly Coordinator': '',
+// status → { phase, done: [phases completed], substep }
+const STATUS_MAP = {
+  FILES_SAVED:       { phase: 'analyse', done: [],                    substep: 'Reading your CV and the job ad…' },
+  INITIALIZED:       { phase: 'analyse', done: [],                    substep: 'Researching the company…' },
+  RESEARCH_COMPLETE: { phase: 'analyse', done: [],                    substep: 'Reviewing the research with you…' },
+  RESEARCH_CONFIRM:  { phase: 'analyse', done: [],                    substep: 'Sharpening the job description…' },
+  JD_ENHANCED:       { phase: 'analyse', done: [],                    substep: 'Analysing how well you fit…' },
+  PARALLEL_ANALYSIS: { phase: 'analyse', done: [],                    substep: 'Analysing how well you fit…' },
+  ANALYSIS_COMPLETE: { phase: 'analyse', done: [],                    substep: 'Checking the analysis…' },
+  GAP_INTERVIEW:     { phase: 'analyse', done: [],                    substep: 'Reviewing the gaps with you…' },
+  REVIEW_COMPLETE:   { phase: 'polish',  done: ['analyse'],           substep: 'Learning your writing voice…' },
+  STYLE_NEGOTIATING: { phase: 'polish',  done: ['analyse'],           substep: 'Agreeing your style with you…' },
+  TONE_ANALYZED:     { phase: 'build',   done: ['analyse', 'polish'], substep: 'Building your documents…' },
+  CV_BUILDING:       { phase: 'build',   done: ['analyse', 'polish'], substep: 'Building your documents…' },
+  CV_TAILORED:       { phase: 'build',   done: ['analyse', 'polish', 'build'], substep: 'Your documents are ready.' },
 };
 
-const STAGES = [
-  { key: 'setup',    label: 'Setup',    doneAt: ['FILES_SAVED', 'INITIALIZED', 'RESEARCH_COMPLETE', 'JD_ENHANCED', 'ANALYSIS_COMPLETE', 'REVIEW_COMPLETE', 'TONE_ANALYZED', 'CV_BUILDING', 'CV_TAILORED'] },
-  { key: 'extract',  label: 'Extract',  doneAt: ['INITIALIZED', 'RESEARCH_COMPLETE', 'JD_ENHANCED', 'ANALYSIS_COMPLETE', 'REVIEW_COMPLETE', 'TONE_ANALYZED', 'CV_BUILDING', 'CV_TAILORED'] },
-  { key: 'research', label: 'Research', doneAt: ['RESEARCH_COMPLETE', 'JD_ENHANCED', 'ANALYSIS_COMPLETE', 'REVIEW_COMPLETE', 'TONE_ANALYZED', 'CV_BUILDING', 'CV_TAILORED'] },
-  { key: 'enhance',  label: 'Enhance',  doneAt: ['JD_ENHANCED', 'ANALYSIS_COMPLETE', 'REVIEW_COMPLETE', 'TONE_ANALYZED', 'CV_BUILDING', 'CV_TAILORED'] },
-  { key: 'analyse',  label: 'Analyse',  doneAt: ['ANALYSIS_COMPLETE', 'REVIEW_COMPLETE', 'TONE_ANALYZED', 'CV_BUILDING', 'CV_TAILORED'] },
-  { key: 'review',   label: 'Review',   doneAt: ['REVIEW_COMPLETE', 'TONE_ANALYZED', 'CV_BUILDING', 'CV_TAILORED'], failAt: ['REVIEW_FAILED'] },
-  { key: 'tone',     label: 'Tone',     doneAt: ['TONE_ANALYZED', 'CV_BUILDING', 'CV_TAILORED'] },
-  { key: 'assemble', label: 'Assemble', doneAt: ['CV_TAILORED'] },
-  { key: 'done',     label: 'Done',     doneAt: ['CV_TAILORED'] },
-];
-
-const ACTIVE_AT = {
-  FILES_SAVED:       'extract',
-  INITIALIZED:       'research',
-  RESEARCH_COMPLETE: 'enhance',
-  JD_ENHANCED:       'analyse',
-  ANALYSIS_COMPLETE: 'review',
-  REVIEW_COMPLETE:   'tone',
-  TONE_ANALYZED:     'assemble',
-  CV_BUILDING:       'assemble',
-  CV_TAILORED:       'done',
-  REVIEW_FAILED:     'review',
-  EXTRACTION_FAILED: 'extract',
-  RESEARCH_FAILED:   'research',
-  ANALYSIS_FAILED:   'analyse',
+const FAILED_MAP = {
+  EXTRACTION_FAILED: { phase: 'analyse', done: [],                    substep: "Could not read a file — let's fix that." },
+  RESEARCH_FAILED:   { phase: 'analyse', done: [],                    substep: "Research hit a snag — let's retry." },
+  ANALYSIS_FAILED:   { phase: 'analyse', done: [],                    substep: "Analysis hit a snag — let's retry." },
+  REVIEW_FAILED:     { phase: 'analyse', done: [],                    substep: 'A few things to review together.' },
+  STYLE_FAILED:      { phase: 'build',   done: ['analyse', 'polish'], substep: 'A style check needs your input.' },
+  INTEGRITY_FAILED:  { phase: 'build',   done: ['analyse', 'polish'], substep: 'An accuracy check needs your input.' },
 };
 
-const FAILED_STAGES = {
-  REVIEW_FAILED:     'review',
-  EXTRACTION_FAILED: 'extract',
-  RESEARCH_FAILED:   'research',
-  ANALYSIS_FAILED:   'analyse',
+const ASSEMBLY_SUBSTEP = {
+  'Style Negotiator':       'Agreeing your style with you…',
+  'Profile Builder':        'Writing your profile — review & approve.',
+  'Skills Curator':         'Curating your skills — review & approve.',
+  'History Formatter':      'Shaping your work history — review & approve.',
+  'Credentials Formatter':  'Formatting your credentials — review & approve.',
+  'CoverLetter Writer':     'Drafting your cover letter — review & approve.',
+  'Style Reviewer':         'Polishing the wording…',
+  'Integrity Checker':      'Double-checking every claim…',
 };
 
 export function StatusBar({ status, activeAgent }) {
-  const activeKey = ACTIVE_AT[status] ?? null;
-  const failedKey = FAILED_STAGES[status] ?? null;
+  const failed = FAILED_MAP[status];
+  const info = STATUS_MAP[status];
 
-  const assemblyPhase = activeAgent && ASSEMBLY_AGENTS.includes(activeAgent)
-    ? ASSEMBLY_SHORT[activeAgent] ?? activeAgent
-    : null;
+  const activePhase = failed?.phase ?? info?.phase ?? null;
+  const donePhases = new Set(failed?.done ?? info?.done ?? []);
+
+  let substep = failed?.substep ?? info?.substep ?? null;
+  if (info?.phase === 'build' && activeAgent && ASSEMBLY_SUBSTEP[activeAgent]) {
+    substep = ASSEMBLY_SUBSTEP[activeAgent];
+  }
+
+  const isComplete = status === 'CV_TAILORED';
+  const hasFailure = Boolean(failed);
 
   return (
-    <div className="px-5 py-3 bg-slate-900/50 border-b border-slate-800">
-      <div className="flex items-center gap-1">
-        {STAGES.map((stage, i) => {
-          const isDone = stage.doneAt.includes(status);
-          const isActive = stage.key === activeKey && !isDone;
-          const isFailed = stage.key === failedKey;
+    <div className="px-5 py-3 bg-surface border-b border-line">
+      <div className="flex items-center justify-center gap-1 max-w-md mx-auto">
+        {PHASES.map((phase, i) => {
+          const isDone = donePhases.has(phase.key) || isComplete;
+          const isActive = phase.key === activePhase && !isDone;
+          const isFailedHere = hasFailure && phase.key === activePhase;
 
           let dotColor, labelColor, connectorColor;
-          if (isFailed) {
-            dotColor = 'bg-red-500 shadow-red-500/30 shadow-sm';
-            labelColor = 'text-red-400';
-            connectorColor = 'bg-red-900/50';
+          if (isFailedHere) {
+            dotColor = 'bg-danger';
+            labelColor = 'text-danger font-semibold';
+            connectorColor = 'bg-line';
           } else if (isDone) {
-            dotColor = 'bg-emerald-400 shadow-emerald-400/20 shadow-sm';
-            labelColor = 'text-emerald-400';
-            connectorColor = 'bg-emerald-800/40';
+            dotColor = 'bg-success';
+            labelColor = 'text-success';
+            connectorColor = 'bg-success/40';
           } else if (isActive) {
-            dotColor = 'bg-violet-400 shadow-violet-400/30 shadow-sm animate-pulse-soft';
-            labelColor = 'text-violet-300 font-semibold';
-            connectorColor = 'bg-slate-700';
+            dotColor = 'bg-accent animate-pulse-soft';
+            labelColor = 'text-accent font-semibold';
+            connectorColor = 'bg-line';
           } else {
-            dotColor = 'bg-slate-700';
-            labelColor = 'text-slate-600';
-            connectorColor = 'bg-slate-800';
+            dotColor = 'bg-fg-faint';
+            labelColor = 'text-fg-faint';
+            connectorColor = 'bg-line';
           }
 
           return (
-            <div key={stage.key} className="flex items-center">
-              <div className="flex flex-col items-center gap-1 min-w-[44px]">
-                <div className={`w-2 h-2 rounded-full transition-all duration-500 ${dotColor}`} />
-                <span className={`text-[10px] leading-none transition-colors ${labelColor}`}>
-                  {stage.label}
+            <div key={phase.key} className="flex items-center">
+              <div className="flex items-center gap-1.5">
+                <div className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${dotColor}`} />
+                <span className={`text-xs leading-none transition-colors ${labelColor}`}>
+                  {phase.label}
                 </span>
-                {stage.key === 'assemble' && assemblyPhase && (
-                  <span className="text-[9px] text-violet-400/80 font-medium leading-none">
-                    {assemblyPhase}
-                  </span>
-                )}
               </div>
-              {i < STAGES.length - 1 && (
-                <div className={`h-px w-4 flex-shrink-0 transition-colors duration-500 ${isDone ? connectorColor : 'bg-slate-800'}`} />
+              {i < PHASES.length - 1 && (
+                <div className={`h-px w-10 mx-2 flex-shrink-0 transition-colors duration-500 ${isDone ? connectorColor : 'bg-line'}`} />
               )}
             </div>
           );
         })}
-
-        {/* Active agent chip */}
-        <div className="flex-1 flex justify-end">
-          {activeAgent && (
-            <div className="flex items-center gap-1.5 bg-slate-800/60 border border-slate-700/50 rounded-full px-2.5 py-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse-soft" />
-              <span className="text-[10px] text-slate-300 font-medium">{activeAgent}</span>
-            </div>
-          )}
-        </div>
       </div>
+
+      {substep && (
+        <div className="flex items-center justify-center mt-2">
+          <span className={`text-[11px] transition-colors ${hasFailure ? 'text-danger' : isComplete ? 'text-success' : 'text-fg-secondary'}`}>
+            {!isComplete && !hasFailure && <span className="text-accent mr-1">▸</span>}
+            {substep}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

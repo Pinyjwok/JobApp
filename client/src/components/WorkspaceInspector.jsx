@@ -26,7 +26,7 @@ function SnapshotsPanel() {
   const [snapshots, setSnapshots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newName, setNewName] = useState('');
-  const [busy, setBusy] = useState(null); // action in progress
+  const [busy, setBusy] = useState(null);
 
   async function loadSnapshots() {
     setLoading(true);
@@ -79,7 +79,8 @@ function SnapshotsPanel() {
     if (!confirm(`Delete snapshot "${name}"?`)) return;
     setBusy(`delete-${name}`);
     try {
-      await fetch(`/api/snapshot/${name}`, { method: 'DELETE' });
+      const r = await fetch(`/api/snapshot/${encodeURIComponent(name)}`, { method: 'DELETE' });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.error || 'Delete failed'); return; }
       await loadSnapshots();
     } finally {
       setBusy(null);
@@ -95,33 +96,32 @@ function SnapshotsPanel() {
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSave()}
           placeholder="snapshot-name (e.g. after-ta)"
-          className="flex-1 text-xs bg-slate-800 border border-slate-700/50 rounded-lg px-3 py-1.5 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500/50"
+          className="flex-1 text-xs bg-surface-2 border border-line rounded-lg px-3 py-1.5 text-fg placeholder-fg-faint focus:outline-none focus:border-accent/60"
         />
         <button
           onClick={handleSave}
           disabled={!newName.trim() || !!busy}
-          className="text-xs px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium transition-colors"
+          className="text-xs px-3 py-1.5 rounded-lg bg-accent hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed text-accent-fg font-medium transition-all"
         >
           Save
         </button>
       </div>
 
-      {/* List */}
       {loading && (
         <div className="flex items-center gap-2 py-3 justify-center">
-          <div className="w-3 h-3 border-2 border-slate-700 border-t-violet-400 rounded-full animate-spin" />
-          <span className="text-xs text-slate-600">Loading</span>
+          <div className="w-3 h-3 border-2 border-line border-t-accent rounded-full animate-spin" />
+          <span className="text-xs text-fg-muted">Loading</span>
         </div>
       )}
       {!loading && snapshots.length === 0 && (
-        <p className="text-xs text-slate-600 italic text-center py-3">No snapshots yet</p>
+        <p className="text-xs text-fg-muted italic text-center py-3">No snapshots yet</p>
       )}
       {!loading && snapshots.map(snap => (
-        <div key={snap.name} className="flex items-center gap-2 bg-slate-800/50 border border-slate-700/30 rounded-lg px-3 py-2">
+        <div key={snap.name} className="flex items-center gap-2 bg-surface-2 border border-line rounded-lg px-3 py-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-slate-200 truncate">{snap.name}</p>
-            <p className="text-[10px] text-slate-600 mt-0.5">
-              {snap.status && <span className="text-violet-400 mr-2">{snap.status}</span>}
+            <p className="text-xs font-medium text-fg truncate">{snap.name}</p>
+            <p className="text-[10px] text-fg-faint mt-0.5">
+              {snap.status && <span className="text-accent mr-2">{snap.status}</span>}
               {snap.savedAt ? new Date(snap.savedAt).toLocaleString() : ''}
               {snap.files ? ` · ${snap.files} files` : ''}
             </p>
@@ -129,14 +129,14 @@ function SnapshotsPanel() {
           <button
             onClick={() => handleRestore(snap.name)}
             disabled={!!busy}
-            className="text-[11px] px-2.5 py-1 rounded bg-emerald-700/40 hover:bg-emerald-700/60 text-emerald-300 disabled:opacity-40 transition-colors"
+            className="text-[11px] px-2.5 py-1 rounded bg-success/15 hover:bg-success/25 text-success disabled:opacity-40 transition-colors"
           >
             {busy === `restore-${snap.name}` ? '…' : 'Restore'}
           </button>
           <button
             onClick={() => handleDelete(snap.name)}
             disabled={!!busy}
-            className="text-[11px] px-2 py-1 rounded bg-red-900/30 hover:bg-red-900/50 text-red-400 disabled:opacity-40 transition-colors"
+            className="text-[11px] px-2 py-1 rounded bg-danger/10 hover:bg-danger/20 text-danger disabled:opacity-40 transition-colors"
           >
             {busy === `delete-${snap.name}` ? '…' : '✕'}
           </button>
@@ -152,7 +152,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
   const [loading, setLoading] = useState(false);
 
   async function load(file) {
-    if (file === SNAP_TAB || file === KEMU_TAB) return;
+    if (file === SNAP_TAB) return;  // snapshots tab manages its own data
     setLoading(true);
     try {
       if (file === KEMU_TAB) {
@@ -172,24 +172,24 @@ export function WorkspaceInspector({ refresh, onClose }) {
   useEffect(() => { load(activeFile); }, [activeFile, refresh]);
 
   return (
-    <div className="animate-fade-in-up absolute bottom-20 right-4 z-50 w-[580px] max-h-[60vh] flex flex-col overflow-hidden bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-2xl shadow-black/40">
+    <div className="animate-fade-in-up absolute bottom-20 right-4 z-50 w-[580px] max-h-[60vh] flex flex-col overflow-hidden bg-surface border border-line-strong rounded-xl shadow-[var(--shadow-float)]">
       {/* Header */}
-      <div className="shrink-0 flex items-center gap-2 px-4 py-2.5 border-b border-slate-800">
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="shrink-0 flex items-center gap-2 px-4 py-2.5 border-b border-line">
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-fg-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
         </svg>
-        <span className="text-xs font-medium text-slate-300 flex-1">Workspace</span>
-        {activeFile !== SNAP_TAB && activeFile !== KEMU_TAB && (
+        <span className="text-xs font-medium text-fg-secondary flex-1">Workspace</span>
+        {activeFile !== SNAP_TAB && (
           <button
             onClick={() => load(activeFile)}
-            className="text-[10px] text-slate-600 hover:text-slate-300 transition-colors px-1.5 py-0.5 rounded hover:bg-slate-800"
+            className="text-[10px] text-fg-faint hover:text-fg-secondary transition-colors px-1.5 py-0.5 rounded hover:bg-chat"
           >
             Refresh
           </button>
         )}
         <button
           onClick={onClose}
-          className="text-slate-600 hover:text-slate-300 transition-colors p-0.5 rounded hover:bg-slate-800"
+          className="text-fg-muted hover:text-fg transition-colors p-0.5 rounded hover:bg-chat"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -198,15 +198,15 @@ export function WorkspaceInspector({ refresh, onClose }) {
       </div>
 
       {/* Tabs */}
-      <div className="shrink-0 flex gap-0.5 px-3 pt-2 pb-0 overflow-x-auto">
+      <div className="shrink-0 flex gap-0.5 px-3 pt-2 pb-0 overflow-x-auto border-b border-line">
         {FILES.map((f) => (
           <button
             key={f}
             onClick={() => setActiveFile(f)}
-            className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all ${
+            className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
               activeFile === f
-                ? 'bg-slate-800/80 text-slate-200 font-medium border-t border-x border-slate-700/50'
-                : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/30'
+                ? 'bg-surface-2 text-fg font-medium border-t border-x border-line'
+                : 'text-fg-muted hover:text-fg-secondary hover:bg-chat'
             }`}
           >
             {f.replace('.json', '')}
@@ -214,20 +214,20 @@ export function WorkspaceInspector({ refresh, onClose }) {
         ))}
         <button
           onClick={() => setActiveFile(KEMU_TAB)}
-          className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all ${
+          className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
             activeFile === KEMU_TAB
-              ? 'bg-amber-900/40 text-amber-300 font-medium border-t border-x border-amber-700/40'
-              : 'text-amber-700 hover:text-amber-500 hover:bg-slate-800/30'
+              ? 'bg-warn/10 text-warn font-medium border-t border-x border-warn/30'
+              : 'text-warn/70 hover:text-warn hover:bg-chat'
           }`}
         >
           KEMU vars
         </button>
         <button
           onClick={() => setActiveFile(SNAP_TAB)}
-          className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all ${
+          className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
             activeFile === SNAP_TAB
-              ? 'bg-emerald-900/40 text-emerald-300 font-medium border-t border-x border-emerald-700/40'
-              : 'text-emerald-700 hover:text-emerald-500 hover:bg-slate-800/30'
+              ? 'bg-success/10 text-success font-medium border-t border-x border-success/30'
+              : 'text-success/70 hover:text-success hover:bg-chat'
           }`}
         >
           Snapshots
@@ -235,22 +235,22 @@ export function WorkspaceInspector({ refresh, onClose }) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 border-t border-slate-800/50">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 bg-chat">
         {activeFile === SNAP_TAB ? (
           <SnapshotsPanel />
         ) : (
           <>
             {loading && (
               <div className="flex items-center gap-2 py-4 justify-center">
-                <div className="w-3 h-3 border-2 border-slate-700 border-t-violet-400 rounded-full animate-spin" />
-                <span className="text-xs text-slate-600">Loading</span>
+                <div className="w-3 h-3 border-2 border-line border-t-accent rounded-full animate-spin" />
+                <span className="text-xs text-fg-muted">Loading</span>
               </div>
             )}
             {!loading && data === null && (
-              <p className="text-xs text-slate-600 italic text-center py-4">File not found or empty</p>
+              <p className="text-xs text-fg-muted italic text-center py-4">File not found or empty</p>
             )}
             {!loading && data !== null && (
-              <pre className="text-[11px] text-slate-400 font-mono whitespace-pre-wrap break-all leading-relaxed">
+              <pre className="text-[11px] text-fg-secondary font-mono whitespace-pre-wrap break-all leading-relaxed">
                 {JSON.stringify(data, null, 2)}
               </pre>
             )}
