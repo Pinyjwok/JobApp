@@ -22,6 +22,7 @@ const PIPELINE_STATUSES = [
   { value: 'ANALYSIS_COMPLETE', group: 'pipeline' },
   { value: 'GAP_INTERVIEW',     group: 'pipeline' },
   { value: 'REVIEW_COMPLETE',   group: 'pipeline' },
+  { value: 'STYLE_NEGOTIATING', group: 'pipeline' },
   { value: 'TONE_ANALYZED',     group: 'pipeline' },
   { value: 'CV_BUILDING',       group: 'pipeline' },
   { value: 'CV_TAILORED',       group: 'pipeline' },
@@ -30,6 +31,8 @@ const PIPELINE_STATUSES = [
   { value: 'RESEARCH_FAILED',   group: 'exception' },
   { value: 'ANALYSIS_FAILED',   group: 'exception' },
   { value: 'REVIEW_FAILED',     group: 'exception' },
+  { value: 'STYLE_FAILED',      group: 'exception' },
+  { value: 'INTEGRITY_FAILED',  group: 'exception' },
 ];
 
 function ThemeToggle({ theme, onToggle }) {
@@ -37,6 +40,8 @@ function ThemeToggle({ theme, onToggle }) {
     <button
       onClick={onToggle}
       title="Toggle theme"
+      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-pressed={theme === 'dark'}
       className="grid place-items-center w-[34px] h-[30px] rounded-lg border border-line text-fg-secondary hover:text-fg hover:border-line-strong transition-all"
     >
       {theme === 'dark' ? (

@@ -79,7 +79,8 @@ function SnapshotsPanel() {
     if (!confirm(`Delete snapshot "${name}"?`)) return;
     setBusy(`delete-${name}`);
     try {
-      await fetch(`/api/snapshot/${encodeURIComponent(name)}`, { method: 'DELETE' });
+      const r = await fetch(`/api/snapshot/${encodeURIComponent(name)}`, { method: 'DELETE' });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.error || 'Delete failed'); return; }
       await loadSnapshots();
     } finally {
       setBusy(null);
