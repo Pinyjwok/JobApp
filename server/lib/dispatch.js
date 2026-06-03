@@ -16,6 +16,8 @@ export function fireTAAndAnalyst() {
   state.analystDone = false;
   state.taDone      = false;
   state.analystOutputText = null;
+  // BUG-126: JD Enhancer just finished — stamp the real enhancement time before consumers read it.
+  stampTimestamp('enhanced_jd.json', 'metadata.enhanced_at');
   broadcastMode('auto_running', 'Analysis');
   state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
   state.pipelineStatus = 'PARALLEL_ANALYSIS';
@@ -52,11 +54,18 @@ const STRICTNESS_WEIGHTS = {
   FLEXIBLE: { baseline: 5.0, differentiator: 5.0 },
 };
 
+// Plan-B (v2.19): key_responsibilities are duties/context, never scored — excluded by SOURCE here even
+// if an agent mislabels their tier. Mandatory statutory credentials, when unmet, cap the score.
+const GATE_CEILING = 5.0;
+const STATUTORY_CERT = /first aid|\bcpr\b|asthma|anaphylaxis|HLTAID\d+|working with children|wwcc|police check|immunisation|vaccination|right to work/i;
+const isResponsibility = r => String(r.source ?? '').includes('key_responsibilities');
+
 function calculateFitScore(gapAnalysis) {
   const reqs = gapAnalysis.requirements ?? [];
   const isMet = r => r.candidate_status === 'Met' || r.candidate_status === 'Met (Candidate Evidence)';
-  const baseline = reqs.filter(r => r.tier === 'Baseline');
-  const differentiator = reqs.filter(r => r.tier === 'Differentiator');
+  // Scored set = genuine requirements only (tier filter + source guard against responsibility mislabeling).
+  const baseline = reqs.filter(r => r.tier === 'Baseline' && !isResponsibility(r));
+  const differentiator = reqs.filter(r => r.tier === 'Differentiator' && !isResponsibility(r));
   const baselineMet = baseline.filter(isMet).length;
   const differentiatorMet = differentiator.filter(isMet).length;
 
@@ -68,21 +77,291 @@ function calculateFitScore(gapAnalysis) {
 
   const baselineScore = baseline.length > 0 ? (baselineMet / baseline.length) * weights.baseline : 0;
   const differentiatorScore = differentiator.length > 0 ? (differentiatorMet / differentiator.length) * weights.differentiator : 0;
-  const total = Math.round((baselineScore + differentiatorScore) * 10) / 10;
+  let total = Math.round((baselineScore + differentiatorScore) * 10) / 10;
 
-  console.log(`[fit_score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} total=${total}`);
-  return total;
+  // Mandatory-cert gate: an unmet statutory "condition of employment" caps the score. Flag-driven,
+  // with a keyword fallback so it fires even if the Analyst omits mandatory_gate.
+  const gateApplied = reqs.some(r =>
+    !isResponsibility(r) && !isMet(r) &&
+    (r.mandatory_gate === true || STATUTORY_CERT.test(String(r.requirement_text ?? ''))));
+  if (gateApplied && total > GATE_CEILING) total = GATE_CEILING;
+
+  console.log(`[fit_score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} gated=${gateApplied} total=${total}`);
+  return { score: total, gateApplied };
 }
 
 export function applyFitScore(gapAnalysisPath) {
   const gapAnalysis = JSON.parse(readFileSync(gapAnalysisPath, 'utf8'));
-  const score = calculateFitScore(gapAnalysis);
-  const qualitative = String(gapAnalysis.fit_rationale ?? '').replace(/^Fit Score: \d+(\.\d+)?\/10\s*—\s*/, '').trim();
+  const { score, gateApplied } = calculateFitScore(gapAnalysis);
+  // Idempotent: strip any prior "Fit Score: X/10 — " prefix and trailing gate marker before reapplying.
+  const qualitative = String(gapAnalysis.fit_rationale ?? '')
+    .replace(/^Fit Score: \d+(\.\d+)?\/10\s*—\s*/, '')
+    .replace(/\s*\(capped — unmet mandatory credential\)\s*$/, '')
+    .trim();
+  const marker = gateApplied ? ' (capped — unmet mandatory credential)' : '';
   gapAnalysis.overall_fit_score = score;
-  gapAnalysis.fit_rationale = qualitative ? `Fit Score: ${score}/10 — ${qualitative}` : `Fit Score: ${score}/10`;
+  gapAnalysis.fit_rationale = (qualitative ? `Fit Score: ${score}/10 — ${qualitative}` : `Fit Score: ${score}/10`) + marker;
   gapAnalysis.fit_score_source = 'server';
+  // BUG-126: server owns the timestamp — LLMs cannot reliably read "today".
+  gapAnalysis.metadata = gapAnalysis.metadata || {};
+  gapAnalysis.metadata.analyzed_at = new Date().toISOString();
   writeFileSync(gapAnalysisPath, JSON.stringify(gapAnalysis, null, 2), 'utf8');
   return score;
+}
+
+// ── Server-owned Reviewer audit ──────────────────────────────────────────────
+// The forensic audit (gap-answer ingest + strength/gap/requirement/ATS checks + verdict) is pure
+// deterministic logic over gap_analysis.json + enhanced_jd.json + candidate_profile.json + jd_raw.txt.
+// It was previously run by the LLM Reviewer node "executing" JS pseudocode, which produced a class of
+// bugs (version-literal leak, brittle text matching, [object Object] stringify, silent item drops).
+// Moving it here makes it exact and removes those failure modes. The LLM Reviewer node is retained
+// ONLY for the user-facing Phase 7.5 issue resolution, dispatched when backable issues remain.
+// EXCEPTION — the one genuinely semantic step, classifying a gap answer EVIDENCE vs INTENT, is NOT
+// done here: it's an LLM call (evidence-classifier.js) made upstream in gap_answers_submit; the result
+// arrives as `evidence_type` on each answer and _ingestGapAnswers trusts it (no regex proxy).
+
+export const REVIEW_AUDIT_VERSION = 'server-1.0';
+const BACKABLE_ISSUE_TYPES = ['A - Evidence Mismatch', 'B - Seniority Inflation', 'D - Missing Context'];
+
+// Resolve a dotted/bracketed path (e.g. "candidate_profile.education[0]" or
+// "enhanced_jd.requirements.required_qualifications[2]") against a root object. Strips the leading
+// root prefix. Returns undefined if any segment is missing.
+function resolvePath(root, path, rootPrefix) {
+  if (!path || typeof path !== 'string') return undefined;
+  const stripped = rootPrefix ? path.replace(new RegExp('^' + rootPrefix + '\\.'), '') : path;
+  const parts = stripped.split(/[.\[\]]/).filter(Boolean);
+  let cur = root;
+  for (const part of parts) {
+    const key = Array.isArray(cur) ? Number(part) : part;
+    if (cur != null && cur[key] !== undefined) cur = cur[key];
+    else return undefined;
+  }
+  return cur;
+}
+
+const _stringify = v => (typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v));
+
+// Ingest the gap answers collected by the client modal (Phase 1). Mutates gapAnalysis in place.
+// EVIDENCE/INTENT classification is a semantic judgment done by the LLM classifier upstream
+// (see evidence-classifier.js) and arrives on each answer as `evidence_type`. This function does ONLY
+// the mechanical effects — it trusts the provided label and never re-classifies (no regex proxy).
+function _ingestGapAnswers(gapAnalysis, gapAnswers) {
+  if (!Array.isArray(gapAnalysis.candidate_backed_strengths)) gapAnalysis.candidate_backed_strengths = [];
+
+  // Idempotency: a resubmit must not stack duplicate backed-strengths or leave a stale
+  // "Met (Candidate Evidence)" when an answer changed. Reset every submitted gap's prior state first.
+  const submittedIds = new Set((gapAnswers || []).map(a => a.gap_id));
+  if (submittedIds.size > 0) {
+    gapAnalysis.candidate_backed_strengths = gapAnalysis.candidate_backed_strengths.filter(s => !submittedIds.has(s.gap_id));
+    for (const gap of (gapAnalysis.gaps || [])) {
+      if (!submittedIds.has(gap.id)) continue;
+      delete gap.candidate_provided_evidence; delete gap.evidence_source;
+      delete gap.evidence_type; delete gap.evidence_classification_reason;
+      const linkedReq = (gapAnalysis.requirements || []).find(r => r.id === gap.requirement_id);
+      if (linkedReq && linkedReq.candidate_status === 'Met (Candidate Evidence)') {
+        linkedReq.candidate_status = 'Gap';
+        delete linkedReq.candidate_evidence_text;
+      }
+    }
+  }
+
+  for (const answer of gapAnswers || []) {
+    const gap = (gapAnalysis.gaps || []).find(g => g.id === answer.gap_id);
+    if (!gap) continue;
+    if (answer.skipped || !answer.user_answer?.trim()) {
+      gap.candidate_provided_evidence = '__skipped__';
+      gap.evidence_source = 'skipped';
+      gap.evidence_type = 'SKIPPED';
+      continue;
+    }
+    const response = answer.user_answer.trim();
+    const evidenceType = answer.evidence_type === 'EVIDENCE' ? 'EVIDENCE' : 'INTENT'; // LLM-classified upstream; INTENT is the safe default
+    gap.candidate_provided_evidence = response;
+    gap.evidence_source = 'user_provided';
+    gap.evidence_type = evidenceType;
+    if (answer.evidence_reason) gap.evidence_classification_reason = answer.evidence_reason; // kept for debugging
+    if (evidenceType === 'EVIDENCE') {
+      const linkedReq = (gapAnalysis.requirements || []).find(r => r.id === gap.requirement_id);
+      if (linkedReq) { linkedReq.candidate_status = 'Met (Candidate Evidence)'; linkedReq.candidate_evidence_text = response; }
+      gapAnalysis.candidate_backed_strengths.push({ gap_id: answer.gap_id, gap_text: answer.gap_text, evidence: response, tier: answer.tier });
+    }
+  }
+}
+
+// Run the full forensic audit and write review_audit.json. Returns { audit, backableIssues }.
+export function runReviewAudit(gapAnswers = []) {
+  const gapAnalysis      = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
+  const enhancedJD       = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'enhanced_jd.json'), 'utf8'));
+  const candidateProfile = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'candidate_profile.json'), 'utf8'));
+  let jdContent = '';
+  try { jdContent = readFileSync(join(WORKSPACE_DIR, 'jd_raw.txt'), 'utf8'); } catch {}
+
+  // Phase 1 — ingest gap answers, then persist gap_analysis (downstream agents read the mutations).
+  _ingestGapAnswers(gapAnalysis, gapAnswers);
+  writeFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), JSON.stringify(gapAnalysis, null, 2), 'utf8');
+
+  const audit = { strengths: [], gaps: [], requirements: [], ats_keywords: [] };
+
+  // Phase 2 — strengths: evidence_source must resolve in candidate_profile.
+  const validStrengthIds = (gapAnalysis.strengths || []).map(s => s.id);
+  for (const s of (gapAnalysis.strengths || [])) {
+    const actual = resolvePath(candidateProfile, s.evidence_source, 'candidate_profile');
+    const exists = actual !== undefined && actual !== null;
+    let confidence_level, issue_type = null, severity = null;
+    if (!exists) {
+      confidence_level = 1; issue_type = 'A - Evidence Mismatch'; severity = 'Critical';
+    } else {
+      const ev = _stringify(actual).toLowerCase();
+      const claim = String(s.strength_text || '').toLowerCase();
+      if (ev.includes(claim.substring(0, 20)) || claim.includes(ev.substring(0, 20))) confidence_level = 5;
+      else if (ev.split(/\s+/).some(w => w.length > 4 && claim.includes(w))) confidence_level = 4;
+      else confidence_level = 3;
+    }
+    audit.strengths.push({
+      strength_id: s.id, confidence_level, evidence_status: exists ? 'Found' : 'Not Found',
+      issue_type, severity,
+      notes: exists ? `Evidence verified: ${_stringify(actual).substring(0, 100)}` : `Evidence path not found: ${s.evidence_source}`,
+    });
+  }
+
+  // Phase 3 — gaps: a gap asserts the candidate LACKS a requirement (no evidence claim to mismatch).
+  // Verify only that the cited requirement_source resolves in enhanced_jd.
+  for (const g of (gapAnalysis.gaps || [])) {
+    const actual = resolvePath(enhancedJD, g.requirement_source, 'enhanced_jd');
+    const exists = actual !== undefined && actual !== null;
+    let confidence_level, issue_type = null, severity = null;
+    if (!exists) { confidence_level = 1; issue_type = 'D - Missing Context'; severity = 'High'; }
+    else confidence_level = 5;
+    audit.gaps.push({
+      gap_id: g.id, confidence_level, requirement_status: exists ? 'Found' : 'Not Found',
+      issue_type, severity,
+      notes: exists ? `Requirement verified: ${_stringify(actual).substring(0, 100)}` : `Gap cites a requirement not present in enhanced_jd: ${g.requirement_source}`,
+    });
+  }
+
+  // Phase 4 — requirement tier classification.
+  for (const r of (gapAnalysis.requirements || [])) {
+    const reqText = String(r.requirement_text || '').toLowerCase();
+    const src = String(r.source || '');
+    const isResp = src.includes('key_responsibilities');
+    const isBaseline = !isResp && (reqText.includes('required') || reqText.includes('must') || reqText.includes('essential') || src.includes('required_qualifications'));
+    const isDiff = reqText.includes('preferred') || reqText.includes('nice to have') || reqText.includes('bonus') || src.includes('preferred_qualifications');
+    let tier_correct, confidence_level, issue_type = null, severity = null;
+    if (r.tier === 'Responsibility' && isResp) { tier_correct = 'correct'; confidence_level = 5; }
+    else if (r.tier === 'Baseline' && isBaseline) { tier_correct = 'correct'; confidence_level = 5; }
+    else if (r.tier === 'Differentiator' && isDiff) { tier_correct = 'correct'; confidence_level = 5; }
+    else if (r.tier === 'Baseline' && !isDiff && !isResp) { tier_correct = 'questionable'; confidence_level = 3; }
+    else { tier_correct = 'incorrect'; confidence_level = 1; issue_type = 'C - Requirement Misclassification'; severity = 'High'; }
+    audit.requirements.push({ requirement_id: r.id, confidence_level, tier_correct, issue_type, severity });
+  }
+
+  // Phase 5 — ATS keywords must appear in raw OR enhanced JD.
+  const enhancedStr = JSON.stringify(enhancedJD).toLowerCase();
+  const rawLower = jdContent.toLowerCase();
+  for (const keyword of (gapAnalysis.ats_keywords || [])) {
+    const k = String(keyword).toLowerCase();
+    const inJD = rawLower.includes(k) || enhancedStr.includes(k);
+    audit.ats_keywords.push({ keyword, confidence_level: inJD ? 5 : 1, found_in_jd: inJD, issue_type: inJD ? null : 'A - Evidence Mismatch', severity: inJD ? null : 'Medium' });
+  }
+
+  // Phase 7 — bucket every item into exactly one of {issues_found, approved_items}. A flagged issue
+  // (confidence < 4 AND an issue_type) → issues_found; everything else → approved_items.
+  const issuesFound = [], approvedItems = [];
+  const bucket = (item, category, id, extra = {}) => {
+    if (item.confidence_level < 4 && item.issue_type) {
+      issuesFound.push({ category, item_id: id, issue_type: item.issue_type, severity: item.severity, confidence_level: item.confidence_level, ...extra });
+    } else {
+      approvedItems.push({ category, item_id: id, confidence_level: item.confidence_level });
+    }
+  };
+  for (const s of audit.strengths) { if (validStrengthIds.includes(s.strength_id)) bucket(s, 'Strength', s.strength_id, { notes: s.notes }); }
+  for (const g of audit.gaps) bucket(g, 'Gap', g.gap_id, { notes: g.notes });
+  for (const r of audit.requirements) bucket(r, 'Requirement', r.requirement_id);
+  // ATS keywords are only ever flagged, never "approved".
+  for (const k of audit.ats_keywords) { if (k.confidence_level < 4 && k.issue_type) issuesFound.push({ category: 'ATS Keyword', item_id: k.keyword, issue_type: k.issue_type, severity: k.severity, confidence_level: k.confidence_level }); }
+
+  const sevCount = sv => issuesFound.filter(i => i.severity === sv).length;
+  const critical = sevCount('Critical'), high = sevCount('High'), medium = sevCount('Medium'), low = sevCount('Low');
+  let overall_verdict, rejection_reason = null;
+  if (critical > 0) { overall_verdict = 'REJECTED'; rejection_reason = `${critical} critical issue(s) found (seniority inflation, fabricated evidence, or major calculation errors)`; }
+  else if (high > 2) { overall_verdict = 'REJECTED'; rejection_reason = `${high} high-severity issues found (significant misrepresentations)`; }
+  else if (high > 0 || medium > 5) { overall_verdict = 'REJECTED'; rejection_reason = `Quality concerns: ${high} high + ${medium} medium severity issues`; }
+  else overall_verdict = 'APPROVED';
+
+  const reviewAudit = {
+    metadata: {
+      reviewed_at: new Date().toISOString(),
+      reviewer_version: REVIEW_AUDIT_VERSION,
+      analyst_version: gapAnalysis.metadata?.analyst_version || 'unknown',
+      candidate_backed_gaps: gapAnalysis.candidate_backed_strengths?.length ?? 0,
+    },
+    overall_verdict, rejection_reason,
+    issues_found: issuesFound,
+    approved_items: approvedItems,
+    summary: {
+      total_items_audited: audit.strengths.length + audit.gaps.length + audit.requirements.length + audit.ats_keywords.length,
+      total_issues: issuesFound.length,
+      critical_issues: critical, high_issues: high, medium_issues: medium, low_issues: low,
+      approved_items: approvedItems.length,
+      unresolved_issues: issuesFound.length,
+      user_backed_items: 0,
+    },
+  };
+  writeFileSync(join(WORKSPACE_DIR, 'review_audit.json'), JSON.stringify(reviewAudit, null, 2), 'utf8');
+
+  const backableIssues = issuesFound.filter(i => BACKABLE_ISSUE_TYPES.includes(i.issue_type));
+  console.log(`[runReviewAudit] verdict=${overall_verdict} issues=${issuesFound.length} backable=${backableIssues.length} approved=${approvedItems.length}`);
+  return { audit: reviewAudit, backableIssues };
+}
+
+// Build the user-facing review summary (Phase 10) from a finalized review_audit object.
+export function buildReviewSummary(audit) {
+  const s = audit.summary || {};
+  const top = (audit.issues_found || []).filter(i => (i.severity === 'Critical' || i.severity === 'High') && !i.user_backed);
+  const lines = [
+    '# ✓ Quality Review Complete',
+    '',
+    `**Overall Verdict:** ${audit.overall_verdict}`,
+  ];
+  if (audit.overall_verdict === 'REJECTED' && audit.rejection_reason) lines.push(`**Reason:** ${audit.rejection_reason}`);
+  lines.push('', '---', '', '## Audit Summary', '',
+    `**Items Audited:** ${s.total_items_audited ?? 0}`,
+    `**Approved Items:** ${s.approved_items ?? 0}`,
+    `**Issues Found:** ${s.total_issues ?? 0}`);
+  if ((audit.metadata?.candidate_backed_gaps ?? 0) > 0) lines.push('', `**Gap Evidence Provided:** ${audit.metadata.candidate_backed_gaps} gap(s) resolved via candidate evidence`);
+  lines.push('', '**Issues by Severity:**',
+    `- Critical: ${s.critical_issues ?? 0}`,
+    `- High: ${s.high_issues ?? 0}`,
+    `- Medium: ${s.medium_issues ?? 0}`,
+    `- Low: ${s.low_issues ?? 0}`);
+  if (top.length > 0) {
+    lines.push('', '**Critical & High Issues:**');
+    for (const i of top) lines.push(`- [${i.severity}] ${i.category} ${i.item_id}: ${i.notes || i.issue_type}`);
+  }
+  lines.push('', '---', '');
+  lines.push(audit.overall_verdict === 'APPROVED'
+    ? 'Analysis validated and approved.\n\n**Next:** the assembly phase will begin — starting with style negotiation.'
+    : 'Quality issues detected. Main Orchestrator will present correction options.');
+  return lines.join('\n');
+}
+
+// BUG-126: deterministically stamp a server-owned timestamp onto a workspace file, overwriting
+// whatever (possibly stale/hardcoded) value the agent wrote. dotPath supports nested keys.
+export function stampTimestamp(filename, dotPath) {
+  try {
+    const p = join(WORKSPACE_DIR, filename);
+    const obj = JSON.parse(readFileSync(p, 'utf8'));
+    const parts = dotPath.split('.');
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (typeof cur[parts[i]] !== 'object' || cur[parts[i]] === null) cur[parts[i]] = {};
+      cur = cur[parts[i]];
+    }
+    cur[parts[parts.length - 1]] = new Date().toISOString();
+    writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
+  } catch (e) {
+    console.warn(`[stamp] ${filename} ${dotPath}: ${e.message}`);
+  }
 }
 
 // Strip any reasoning/preamble the Analyst leaks before its completion message.
