@@ -51,7 +51,6 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
 
   const targetLabel = UPLOAD_TARGETS.find((t) => t.value === uploadTarget)?.label ?? 'Auto';
 
-  // Placeholder text depends on pipeline state
   const placeholder = injectMode
     ? 'Inject agent message...'
     : isAutoRunning
@@ -63,7 +62,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-end gap-2 px-5 py-3 border-t border-slate-800 bg-slate-900/50 backdrop-blur-sm"
+      className="flex items-end gap-2 px-5 py-3 border-t border-line bg-surface"
     >
       <input
         ref={fileRef}
@@ -77,11 +76,11 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
       {/* Upload */}
       <div className="relative">
         {showTargetMenu && (
-          <div className="absolute bottom-full mb-2 left-0 z-50 bg-slate-800 border border-slate-700/50 rounded-xl shadow-2xl shadow-black/40 overflow-hidden min-w-max animate-fade-in-up">
+          <div className="absolute bottom-full mb-2 left-0 z-50 bg-surface border border-line rounded-xl shadow-[var(--shadow-float)] overflow-hidden min-w-max animate-fade-in-up">
             <button
               type="button"
               onClick={() => pickTarget(null)}
-              className="w-full text-left px-4 py-2.5 text-xs text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 transition-colors"
+              className="w-full text-left px-4 py-2.5 text-xs text-fg-secondary hover:bg-chat hover:text-fg transition-colors"
             >
               Auto-detect
             </button>
@@ -90,7 +89,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
                 key={t.value}
                 type="button"
                 onClick={() => pickTarget(t.value)}
-                className="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
+                className="w-full text-left px-4 py-2.5 text-xs text-fg-secondary hover:bg-chat hover:text-fg transition-colors"
               >
                 {t.label}
               </button>
@@ -103,8 +102,8 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
           disabled={disabled}
           className={`flex items-center gap-1.5 rounded-xl text-sm px-3 py-2.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
             uploadTarget
-              ? 'bg-violet-900/40 border border-violet-600/50 text-violet-300'
-              : 'bg-slate-800/60 border border-slate-700/50 text-slate-500 hover:text-violet-400 hover:border-violet-500/50'
+              ? 'bg-accent/10 border border-accent/40 text-accent'
+              : 'bg-surface-2 border border-line text-fg-muted hover:text-accent hover:border-accent/50'
           }`}
           title={`Upload as: ${targetLabel}`}
         >
@@ -118,10 +117,10 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
       {/* Input area */}
       <div className="relative flex-1">
         <textarea
-          className={`w-full resize-none rounded-xl bg-slate-800/40 border text-sm text-slate-100 px-4 py-2.5 focus:outline-none transition-all ${
+          className={`w-full resize-none rounded-xl bg-surface-2 border text-sm text-fg px-4 py-2.5 focus:outline-none transition-all ${
             effectivelyDisabled
-              ? 'border-slate-700/20 text-slate-600 placeholder-slate-700 cursor-not-allowed'
-              : 'border-slate-700/40 placeholder-slate-600 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20'
+              ? 'border-line text-fg-faint placeholder-fg-faint cursor-not-allowed'
+              : 'border-line-strong placeholder-fg-faint focus:border-accent/60 focus:ring-1 focus:ring-accent/20'
           }`}
           rows={1}
           value={text}
@@ -130,12 +129,11 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
           placeholder={placeholder}
           disabled={effectivelyDisabled}
         />
-        {/* Pulse dot when auto_running */}
         {isAutoRunning && !injectMode && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse [animation-delay:0.2s]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse [animation-delay:0.4s]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse [animation-delay:0.2s]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse [animation-delay:0.4s]" />
           </span>
         )}
       </div>
@@ -145,7 +143,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
         <button
           type="button"
           onClick={() => onSend(lastUserMessage)}
-          className="rounded-xl bg-slate-800/40 border border-slate-700/40 hover:border-violet-500/50 text-slate-500 hover:text-violet-400 text-xs px-2.5 py-2.5 transition-all"
+          className="rounded-xl bg-surface-2 border border-line hover:border-accent/50 text-fg-muted hover:text-accent text-xs px-2.5 py-2.5 transition-all"
           title={`Resend: "${lastUserMessage.slice(0, 30)}"`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -160,8 +158,8 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
         onClick={() => setInjectMode((v) => !v)}
         className={`rounded-xl border text-[10px] px-2.5 py-2.5 transition-all font-medium tracking-wide uppercase ${
           injectMode
-            ? 'bg-amber-900/30 border-amber-600/50 text-amber-400'
-            : 'bg-slate-800/40 border-slate-700/40 text-slate-600 hover:text-slate-400'
+            ? 'bg-warn/10 border-warn/40 text-warn'
+            : 'bg-surface-2 border-line text-fg-muted hover:text-fg-secondary'
         }`}
         title="Toggle inject mode (bypass KEMU)"
       >
@@ -172,7 +170,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
       <button
         type="submit"
         disabled={effectivelyDisabled || !text.trim()}
-        className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 transition-all active:scale-95 shadow-lg shadow-violet-600/10 hover:shadow-violet-500/20"
+        className="rounded-xl bg-accent hover:brightness-110 disabled:opacity-30 disabled:cursor-not-allowed text-accent-fg text-sm font-medium px-4 py-2.5 transition-all active:scale-95"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

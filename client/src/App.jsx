@@ -7,10 +7,54 @@ import { WorkspaceInspector } from './components/WorkspaceInspector';
 import { StartModal } from './components/StartModal';
 import { GapInterviewModal } from './components/GapInterviewModal';
 import { useStream } from './hooks/useStream';
+import { useTheme } from './theme';
 import './index.css';
 
+// Pipeline statuses the dev "Status" override can jump to.
+// Happy-path order first, then exception/failure states.
+const PIPELINE_STATUSES = [
+  { value: 'FILES_SAVED',       group: 'pipeline' },
+  { value: 'INITIALIZED',       group: 'pipeline' },
+  { value: 'RESEARCH_COMPLETE', group: 'pipeline' },
+  { value: 'RESEARCH_CONFIRM',  group: 'pipeline' },
+  { value: 'JD_ENHANCED',       group: 'pipeline' },
+  { value: 'PARALLEL_ANALYSIS', group: 'pipeline' },
+  { value: 'ANALYSIS_COMPLETE', group: 'pipeline' },
+  { value: 'GAP_INTERVIEW',     group: 'pipeline' },
+  { value: 'REVIEW_COMPLETE',   group: 'pipeline' },
+  { value: 'TONE_ANALYZED',     group: 'pipeline' },
+  { value: 'CV_BUILDING',       group: 'pipeline' },
+  { value: 'CV_TAILORED',       group: 'pipeline' },
+  { value: 'RESEARCH_PARTIAL',  group: 'exception' },
+  { value: 'EXTRACTION_FAILED', group: 'exception' },
+  { value: 'RESEARCH_FAILED',   group: 'exception' },
+  { value: 'ANALYSIS_FAILED',   group: 'exception' },
+  { value: 'REVIEW_FAILED',     group: 'exception' },
+];
+
+function ThemeToggle({ theme, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      title="Toggle theme"
+      className="grid place-items-center w-[34px] h-[30px] rounded-lg border border-line text-fg-secondary hover:text-fg hover:border-line-strong transition-all"
+    >
+      {theme === 'dark' ? (
+        <svg className="w-[15px] h-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+        </svg>
+      ) : (
+        <svg className="w-[15px] h-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" />
+        </svg>
+      )}
+    </button>
+  );
+}
 
 export default function App() {
+  const { theme, toggle } = useTheme();
   const [messages, setMessages] = useState([]);
   const [activeAgent, setActiveAgent] = useState(null);
   const [status, setStatus] = useState(null);
@@ -30,6 +74,8 @@ export default function App() {
   const [runningAgent, setRunningAgent] = useState(null);
   const [gapQuestions, setGapQuestions] = useState([]);
   const [showGapModal, setShowGapModal] = useState(false);
+  const [gapMinimized, setGapMinimized] = useState(false);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
 
   const pendingReasoningRef = useRef('');
   const lastActivityRef = useRef(Date.now());
@@ -57,24 +103,7 @@ export default function App() {
   const WELCOME_MESSAGE = {
     role: 'agent',
     agent: 'JobApp',
-    text: `# Welcome to Your Job Application Assistant
-
-I'll help you create tailored application materials in 3 steps:
-
-**1. Analysis** (automated)
-   - Extract data from your CV and job description
-   - Research the company deeply
-   - Analyse your fit with detailed gap analysis
-
-**2. Style Optimisation** (discussion)
-   - Understand your writing preferences and ideal tone
-
-**3. CV Assembly** (interactive)
-   - Build each CV section with your approval
-   - Write tailored cover letter
-   - Verify accuracy and consistency
-
-Setting up your analysis — this takes about a minute.`,
+    text: `Got your documents — thanks. I'm starting on the analysis now, which takes about a minute. I'll walk you through each step and check in with you along the way.`,
   };
 
   async function handleModalStart(cvFile, jdFile, clFile = null) {
@@ -121,7 +150,6 @@ Setting up your analysis — this takes about a minute.`,
   }
 
   async function handleAction(id) {
-    // Mark the action message as used
     setMessages(prev => prev.map(m =>
       m.role === 'actions' && !m.used ? { ...m, used: true } : m
     ));
@@ -138,6 +166,7 @@ Setting up your analysis — this takes about a minute.`,
 
   async function handleGapSubmit(answers) {
     setShowGapModal(false);
+    setGapMinimized(false);
     try {
       await fetch('/api/action', {
         method: 'POST',
@@ -214,6 +243,7 @@ Setting up your analysis — this takes about a minute.`,
       } else if (data.type === 'gap_interview_start') {
         setGapQuestions(data.gaps ?? []);
         setShowGapModal(true);
+        setGapMinimized(false);
       } else if (data.type === 'status_changed') {
         setStatus(data.status);
       } else if (data.type === 'stream_done') {
@@ -333,9 +363,9 @@ Setting up your analysis — this takes about a minute.`,
     setModalState('pending');
   }
 
-  async function handleSetStatus() {
-    const s = prompt('Enter new pipeline status:');
+  async function handleSetStatus(s) {
     if (!s) return;
+    setShowStatusMenu(false);
     await fetch('/api/dev/status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -344,10 +374,10 @@ Setting up your analysis — this takes about a minute.`,
     setStatus(s);
   }
 
-  const inputDisabled = pipelineMode !== 'user_turn' || sending;
+  const inputDisabled = pipelineMode !== 'user_turn' || sending || showGapModal;
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#0a0c10] text-base">
+    <div className="flex flex-col h-screen w-screen bg-app text-base">
       {modalState === 'pending' && (
         <StartModal
           hasHistory={historyForModal.length > 0}
@@ -357,45 +387,89 @@ Setting up your analysis — this takes about a minute.`,
         />
       )}
       {showGapModal && (
-        <GapInterviewModal gaps={gapQuestions} onSubmit={handleGapSubmit} />
+        <GapInterviewModal
+          gaps={gapQuestions}
+          onSubmit={handleGapSubmit}
+          onHide={() => setGapMinimized(true)}
+          minimized={gapMinimized}
+        />
+      )}
+      {showGapModal && gapMinimized && (
+        <button
+          onClick={() => setGapMinimized(false)}
+          className="animate-fade-in-up fixed bottom-24 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
+          Continue gap interview
+        </button>
       )}
 
       {/* Header */}
-      <div className="px-5 py-3 border-b border-slate-800 flex items-center gap-3 bg-slate-900/40 backdrop-blur-sm">
-        <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/30 animate-pulse" />
-        <h1 className="text-sm font-semibold text-slate-200 flex-1 tracking-tight">JobApp</h1>
+      <div className="px-5 py-3 border-b border-line flex items-center gap-3 bg-surface">
+        <div className="w-2 h-2 rounded-full bg-success" />
+        <h1 className="text-sm font-bold text-fg flex-1 tracking-tight">JobApp</h1>
 
-        <div className="flex items-center gap-1 bg-slate-800/40 rounded-lg p-0.5 border border-slate-700/30">
+        <div className="flex items-center gap-1 bg-chat rounded-lg p-0.5 border border-line">
           <button
             onClick={() => setShowInspector((v) => !v)}
-            className={`text-[10px] rounded-md px-2.5 py-1 transition-all ${showInspector ? 'bg-slate-700/60 text-slate-200' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`text-xs rounded-md px-2.5 py-1 transition-all ${showInspector ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
           >
             Files
           </button>
           <button
             onClick={() => setShowTimeline((v) => !v)}
-            className={`text-[10px] rounded-md px-2.5 py-1 transition-all ${showTimeline ? 'bg-slate-700/60 text-slate-200' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`text-xs rounded-md px-2.5 py-1 transition-all ${showTimeline ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
           >
             Timeline
           </button>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleSetStatus}
-            className="text-[10px] text-slate-500 hover:text-slate-300 border border-slate-700/30 hover:border-slate-600 rounded-lg px-2.5 py-1.5 transition-all"
-          >
-            Status
-          </button>
+          <ThemeToggle theme={theme} onToggle={toggle} />
+          <div className="relative">
+            <button
+              onClick={() => setShowStatusMenu((v) => !v)}
+              className={`text-xs border rounded-lg px-2.5 py-1.5 transition-all ${showStatusMenu ? 'text-fg border-line-strong bg-surface-2' : 'text-fg-secondary hover:text-fg border-line hover:border-line-strong'}`}
+            >
+              Status
+            </button>
+            {showStatusMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowStatusMenu(false)} />
+                <div className="absolute right-0 mt-1.5 z-50 w-56 max-h-[70vh] overflow-y-auto rounded-lg border border-line-strong bg-surface shadow-lg py-1">
+                  <div className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">Pipeline</div>
+                  {PIPELINE_STATUSES.filter((s) => s.group === 'pipeline').map((s) => (
+                    <button
+                      key={s.value}
+                      onClick={() => handleSetStatus(s.value)}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors hover:bg-surface-2 ${status === s.value ? 'text-accent font-semibold' : 'text-fg-secondary'}`}
+                    >
+                      {status === s.value ? '● ' : '   '}{s.value}
+                    </button>
+                  ))}
+                  <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint border-t border-line mt-1">Exception</div>
+                  {PIPELINE_STATUSES.filter((s) => s.group === 'exception').map((s) => (
+                    <button
+                      key={s.value}
+                      onClick={() => handleSetStatus(s.value)}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors hover:bg-surface-2 ${status === s.value ? 'text-danger font-semibold' : 'text-fg-secondary'}`}
+                    >
+                      {status === s.value ? '● ' : '   '}{s.value}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           <button
             onClick={handleAbort}
-            className="text-[10px] text-red-400/70 hover:text-red-300 border border-red-900/30 hover:border-red-700/50 rounded-lg px-2.5 py-1.5 transition-all"
+            className="text-xs text-danger hover:brightness-110 border border-danger/40 hover:border-danger/70 rounded-lg px-2.5 py-1.5 transition-all"
           >
             Abort
           </button>
           <button
             onClick={handleReset}
-            className="text-[10px] text-slate-500 hover:text-slate-300 border border-slate-700/30 hover:border-slate-600 rounded-lg px-2.5 py-1.5 transition-all"
+            className="text-xs text-fg-secondary hover:text-fg border border-line hover:border-line-strong rounded-lg px-2.5 py-1.5 transition-all"
           >
             New
           </button>

@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function GapInterviewModal({ gaps, onSubmit }) {
+export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false }) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [visited, setVisited] = useState(new Set());
 
-  const gap = gaps[index];
+  // A fresh interview (new gaps) must not inherit the prior run's index/answers/visited —
+  // a stale index can exceed the new length and crash on gaps[index].
+  useEffect(() => {
+    setIndex(0);
+    setAnswers({});
+    setVisited(new Set());
+  }, [gaps]);
+
   const total = gaps.length;
+  // Clamp: the reset effect runs after render, so on the render where gaps shrank, a stale index
+  // could otherwise index past the array.
+  const gap = gaps[Math.min(index, Math.max(0, total - 1))];
   const allVisited = gaps.every(g => visited.has(g.id));
 
   function markVisited(id) {
@@ -39,81 +49,90 @@ export function GapInterviewModal({ gaps, onSubmit }) {
 
   if (!gap) return null;
 
-  const answered = !!answers[gap.id]?.trim();
   const isLast = index === total - 1;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
-      <div className="animate-fade-in-up bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl p-8 w-full max-w-lg shadow-2xl shadow-violet-950/20 flex flex-col gap-6">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md ${minimized ? 'hidden' : ''}`}>
+      <div className="animate-fade-in-up bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center shadow-[var(--shadow-panel)]">
+              <svg className="w-4 h-4 text-accent-fg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white tracking-tight">Gap Interview</h2>
-              <p className="text-xs text-slate-400">Your answers strengthen the CV tailoring</p>
+              <h2 className="text-sm font-semibold text-fg tracking-tight">Gap Interview</h2>
+              <p className="text-xs text-fg-muted">Your answers strengthen the CV tailoring</p>
             </div>
           </div>
-          <span className="text-xs text-slate-500 bg-slate-800/60 border border-slate-700/40 rounded-lg px-2.5 py-1">
-            {index + 1} / {total}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-fg-muted bg-surface-2 border border-line rounded-lg px-2.5 py-1 whitespace-nowrap font-mono">
+              {index + 1} / {total}
+            </span>
+            {onHide && (
+              <button
+                onClick={onHide}
+                title="Hide — finish later to continue"
+                className="text-xs text-fg-secondary hover:text-fg bg-surface-2 border border-line hover:border-line-strong rounded-lg px-2.5 py-1 transition-all flex items-center gap-1"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+                Hide
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full h-1 bg-slate-700/50 rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-line rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-300"
+            className="h-full bg-accent transition-all duration-300"
             style={{ width: `${((index + 1) / total) * 100}%` }}
           />
         </div>
 
         {/* Card */}
         <div className="flex flex-col gap-4">
-          {/* Tier badge + question */}
           <div className="flex items-start gap-2">
-            <span className={`mt-0.5 shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+            <span className={`mt-0.5 shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
               gap.tier === 'Baseline'
-                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
-                : 'bg-slate-700/50 text-slate-400 border border-slate-600/30'
+                ? 'bg-warn/10 text-warn border-warn/30'
+                : 'bg-surface-2 text-fg-muted border-line'
             }`}>
               {gap.tier}
             </span>
-            <p className="text-sm font-medium text-slate-200 leading-relaxed">{gap.gap_text}</p>
+            <p className="text-sm font-medium text-fg leading-relaxed">{gap.gap_text}</p>
           </div>
 
-          {/* Hint */}
           {gap.mitigation_strategy && (
-            <p className="text-xs text-slate-500 leading-relaxed border-l-2 border-slate-700 pl-3">
+            <p className="text-xs text-fg-muted leading-relaxed border-l-2 border-line pl-3">
               {gap.mitigation_strategy}
             </p>
           )}
 
-          {/* Textarea */}
           <textarea
             value={answers[gap.id] ?? ''}
             onChange={e => handleAnswer(e.target.value)}
             onFocus={() => markVisited(gap.id)}
             placeholder="Describe any relevant experience, training, or context…"
             rows={4}
-            className="w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 resize-none transition-all"
+            className="w-full bg-surface-2 border border-line-strong rounded-xl px-4 py-3 text-sm text-fg placeholder-fg-faint focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 resize-none transition-all"
           />
 
-          {/* Skip warning */}
           <div className="flex items-center justify-between">
             <button
               onClick={handleSkip}
-              className="text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1.5 group"
+              className="text-xs text-fg-muted hover:text-fg-secondary transition-colors flex items-center gap-1.5 group"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Skip
-              <span className="text-slate-600 group-hover:text-slate-500 transition-colors">— may reduce tailoring quality for this requirement</span>
+              <span className="text-fg-faint group-hover:text-fg-muted transition-colors">— may reduce tailoring quality for this requirement</span>
             </button>
           </div>
         </div>
@@ -123,7 +142,7 @@ export function GapInterviewModal({ gaps, onSubmit }) {
           <button
             onClick={handleBack}
             disabled={index === 0}
-            className="px-4 py-2 rounded-xl text-sm font-medium border border-slate-700/50 text-slate-400 hover:text-slate-200 hover:border-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="px-4 py-2 rounded-xl text-sm font-medium border border-line text-fg-secondary hover:text-fg hover:border-line-strong disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             Back
           </button>
@@ -136,8 +155,8 @@ export function GapInterviewModal({ gaps, onSubmit }) {
               disabled={!allVisited}
               className={`px-5 py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${
                 allVisited
-                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-600/20'
-                  : 'bg-slate-700/40 text-slate-500 cursor-not-allowed'
+                  ? 'bg-accent hover:brightness-110 text-accent-fg shadow-[var(--shadow-panel)]'
+                  : 'bg-surface-2 border border-line text-fg-faint cursor-not-allowed'
               }`}
             >
               Submit answers
@@ -145,16 +164,15 @@ export function GapInterviewModal({ gaps, onSubmit }) {
           ) : (
             <button
               onClick={handleNext}
-              className="px-5 py-2 rounded-xl text-sm font-medium bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600/40 transition-all active:scale-[0.98]"
+              className="px-5 py-2 rounded-xl text-sm font-medium bg-surface-2 hover:brightness-105 text-fg-secondary border border-line-strong transition-all active:scale-[0.98]"
             >
               Next →
             </button>
           )}
         </div>
 
-        {/* Submit hint when on last card but not all visited */}
         {isLast && !allVisited && (
-          <p className="text-xs text-slate-600 text-center -mt-3">
+          <p className="text-xs text-fg-faint text-center -mt-3">
             Review all gaps before submitting ({gaps.filter(g => !visited.has(g.id)).length} remaining)
           </p>
         )}
