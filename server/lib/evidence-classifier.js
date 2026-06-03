@@ -99,35 +99,48 @@ export async function classifyGapAnswers(items) {
     ],
   };
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const resp = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    if (!resp.ok) {
-      const errText = await resp.text().catch(() => '');
-      return fallback(`classifier_http_${resp.status}: ${errText.slice(0, 120)}`);
-    }
-    const data = await resp.json();
-    const content = data?.choices?.[0]?.message?.content ?? '';
-    const parsed = extractJsonArray(typeof content === 'string' ? content : JSON.stringify(content));
-    if (!Array.isArray(parsed)) return fallback('classifier_parse_failed');
+  // Retry once on transient failures (429 / 5xx / network / timeout) so a blip doesn't silently
+  // downgrade real EVIDENCE to INTENT. Non-retryable errors (4xx other than 429, parse failures)
+  // fall back immediately — retrying won't help.
+  const MAX_ATTEMPTS = 2;
+  let lastReason = 'classifier_unknown';
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const resp = await fetch(OPENROUTER_URL, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      if (!resp.ok) {
+        const errText = await resp.text().catch(() => '');
+        lastReason = `classifier_http_${resp.status}: ${errText.slice(0, 120)}`;
+        const retryable = resp.status === 429 || resp.status >= 500;
+        if (retryable && attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 400 * attempt)); continue; }
+        return fallback(lastReason);
+      }
+      const data = await resp.json();
+      const content = data?.choices?.[0]?.message?.content ?? '';
+      const parsed = extractJsonArray(typeof content === 'string' ? content : JSON.stringify(content));
+      if (!Array.isArray(parsed)) return fallback('classifier_parse_failed');
 
-    // Map by gap_id; coerce labels; default any missing/odd item to INTENT.
-    const byId = new Map();
-    for (const p of parsed) {
-      if (!p || !p.gap_id) continue;
-      const label = String(p.label).toUpperCase() === 'EVIDENCE' ? 'EVIDENCE' : 'INTENT';
-      byId.set(p.gap_id, { gap_id: p.gap_id, label, reason: String(p.reason ?? '').slice(0, 200) });
+      // Map by gap_id; coerce labels; default any missing/odd item to INTENT.
+      const byId = new Map();
+      for (const p of parsed) {
+        if (!p || !p.gap_id) continue;
+        const label = String(p.label).toUpperCase() === 'EVIDENCE' ? 'EVIDENCE' : 'INTENT';
+        byId.set(p.gap_id, { gap_id: p.gap_id, label, reason: String(p.reason ?? '').slice(0, 200) });
+      }
+      return items.map(i => byId.get(i.gap_id) ?? { gap_id: i.gap_id, label: 'INTENT', reason: 'classifier_missing_item_fallback' });
+    } catch (err) {
+      lastReason = err.name === 'AbortError' ? 'classifier_timeout' : `classifier_error: ${err.message}`;
+      if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 400 * attempt)); continue; }
+      return fallback(lastReason);
+    } finally {
+      clearTimeout(timer);
     }
-    return items.map(i => byId.get(i.gap_id) ?? { gap_id: i.gap_id, label: 'INTENT', reason: 'classifier_missing_item_fallback' });
-  } catch (err) {
-    return fallback(err.name === 'AbortError' ? 'classifier_timeout' : `classifier_error: ${err.message}`);
-  } finally {
-    clearTimeout(timer);
   }
+  return fallback(lastReason);
 }

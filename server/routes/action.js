@@ -387,8 +387,14 @@ router.post('/', async (req, res) => {
         try {
           auditResult = runReviewAudit(gapAnswers);
         } catch (err) {
+          // Missing/corrupt workspace inputs (gap_analysis/enhanced_jd/candidate_profile). Don't dead-end
+          // on a bare 500 — surface it and route to the Main Orchestrator recovery gate (redo analyst, etc.).
           console.error('[gap_answers_submit] runReviewAudit error:', err.message);
-          return res.status(500).json({ error: 'review audit failed: ' + err.message });
+          broadcast({ type: 'agent_message', agent: 'System', text: `Could not run the quality review: ${err.message}. Opening recovery options.` });
+          await state.recipe.globalVariables.setValue('pipeline_status', 'REVIEW_FAILED');
+          state.pipelineStatus = 'REVIEW_FAILED';
+          handlePipelineStatus('REVIEW_FAILED').catch(e => console.error('[gap_answers_submit recovery] route error:', e.message));
+          return res.json({ ok: false, error: err.message });
         }
 
         let banner = '';
