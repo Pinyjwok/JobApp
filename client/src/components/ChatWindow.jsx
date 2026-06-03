@@ -106,9 +106,15 @@ function ActionBubble({ msg, onAction, onUpload }) {
   function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file || !uploadPending) return;
-    onUpload(uploadPending, file);
+    const target = uploadPending;
     e.target.value = '';
     setUploadPending(null);
+    // onUpload may be async — swallow/surface rejection so a failed upload doesn't become an
+    // unhandled promise rejection.
+    Promise.resolve(onUpload(target, file)).catch(err => {
+      console.error('[upload] failed:', err);
+      alert('Upload failed. Please try again.');
+    });
   }
 
   return (

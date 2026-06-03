@@ -79,7 +79,7 @@ function SnapshotsPanel() {
     if (!confirm(`Delete snapshot "${name}"?`)) return;
     setBusy(`delete-${name}`);
     try {
-      await fetch(`/api/snapshot/${name}`, { method: 'DELETE' });
+      await fetch(`/api/snapshot/${encodeURIComponent(name)}`, { method: 'DELETE' });
       await loadSnapshots();
     } finally {
       setBusy(null);
@@ -151,7 +151,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
   const [loading, setLoading] = useState(false);
 
   async function load(file) {
-    if (file === SNAP_TAB || file === KEMU_TAB) return;
+    if (file === SNAP_TAB) return;  // snapshots tab manages its own data
     setLoading(true);
     try {
       if (file === KEMU_TAB) {
@@ -178,7 +178,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
         </svg>
         <span className="text-xs font-medium text-fg-secondary flex-1">Workspace</span>
-        {activeFile !== SNAP_TAB && activeFile !== KEMU_TAB && (
+        {activeFile !== SNAP_TAB && (
           <button
             onClick={() => load(activeFile)}
             className="text-[10px] text-fg-faint hover:text-fg-secondary transition-colors px-1.5 py-0.5 rounded hover:bg-chat"

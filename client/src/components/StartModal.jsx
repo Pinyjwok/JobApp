@@ -11,7 +11,16 @@ function FileDropZone({ label, hint, file, onFile }) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${label}. ${hint}`}
       onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          inputRef.current?.click();
+        }
+      }}
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
       className={`relative cursor-pointer rounded-xl border-2 border-dashed p-5 text-center transition-all ${

@@ -12,6 +12,7 @@ const STATUS_MAP = {
   RESEARCH_COMPLETE: { phase: 'analyse', done: [],                    substep: 'Reviewing the research with you…' },
   RESEARCH_CONFIRM:  { phase: 'analyse', done: [],                    substep: 'Sharpening the job description…' },
   JD_ENHANCED:       { phase: 'analyse', done: [],                    substep: 'Analysing how well you fit…' },
+  PARALLEL_ANALYSIS: { phase: 'analyse', done: [],                    substep: 'Analysing how well you fit…' },
   ANALYSIS_COMPLETE: { phase: 'analyse', done: [],                    substep: 'Checking the analysis…' },
   GAP_INTERVIEW:     { phase: 'analyse', done: [],                    substep: 'Reviewing the gaps with you…' },
   REVIEW_COMPLETE:   { phase: 'polish',  done: ['analyse'],           substep: 'Learning your writing voice…' },
@@ -22,12 +23,12 @@ const STATUS_MAP = {
 };
 
 const FAILED_MAP = {
-  EXTRACTION_FAILED: { phase: 'analyse', substep: "Could not read a file — let's fix that." },
-  RESEARCH_FAILED:   { phase: 'analyse', substep: "Research hit a snag — let's retry." },
-  ANALYSIS_FAILED:   { phase: 'analyse', substep: "Analysis hit a snag — let's retry." },
-  REVIEW_FAILED:     { phase: 'analyse', substep: 'A few things to review together.' },
-  STYLE_FAILED:      { phase: 'build',   substep: 'A style check needs your input.' },
-  INTEGRITY_FAILED:  { phase: 'build',   substep: 'An accuracy check needs your input.' },
+  EXTRACTION_FAILED: { phase: 'analyse', done: [],                    substep: "Could not read a file — let's fix that." },
+  RESEARCH_FAILED:   { phase: 'analyse', done: [],                    substep: "Research hit a snag — let's retry." },
+  ANALYSIS_FAILED:   { phase: 'analyse', done: [],                    substep: "Analysis hit a snag — let's retry." },
+  REVIEW_FAILED:     { phase: 'analyse', done: [],                    substep: 'A few things to review together.' },
+  STYLE_FAILED:      { phase: 'build',   done: ['analyse', 'polish'], substep: 'A style check needs your input.' },
+  INTEGRITY_FAILED:  { phase: 'build',   done: ['analyse', 'polish'], substep: 'An accuracy check needs your input.' },
 };
 
 const ASSEMBLY_SUBSTEP = {
@@ -46,7 +47,7 @@ export function StatusBar({ status, activeAgent }) {
   const info = STATUS_MAP[status];
 
   const activePhase = failed?.phase ?? info?.phase ?? null;
-  const donePhases = new Set(info?.done ?? (failed ? [] : []));
+  const donePhases = new Set(failed?.done ?? info?.done ?? []);
 
   let substep = failed?.substep ?? info?.substep ?? null;
   if (info?.phase === 'build' && activeAgent && ASSEMBLY_SUBSTEP[activeAgent]) {
@@ -60,7 +61,7 @@ export function StatusBar({ status, activeAgent }) {
     <div className="px-5 py-3 bg-surface border-b border-line">
       <div className="flex items-center justify-center gap-1 max-w-md mx-auto">
         {PHASES.map((phase, i) => {
-          const isDone = donePhases.has(phase.key) || (isComplete && true);
+          const isDone = donePhases.has(phase.key) || isComplete;
           const isActive = phase.key === activePhase && !isDone;
           const isFailedHere = hasFailure && phase.key === activePhase;
 

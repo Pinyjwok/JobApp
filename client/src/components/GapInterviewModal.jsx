@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false }) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [visited, setVisited] = useState(new Set());
 
-  const gap = gaps[index];
+  // A fresh interview (new gaps) must not inherit the prior run's index/answers/visited —
+  // a stale index can exceed the new length and crash on gaps[index].
+  useEffect(() => {
+    setIndex(0);
+    setAnswers({});
+    setVisited(new Set());
+  }, [gaps]);
+
   const total = gaps.length;
+  // Clamp: the reset effect runs after render, so on the render where gaps shrank, a stale index
+  // could otherwise index past the array.
+  const gap = gaps[Math.min(index, Math.max(0, total - 1))];
   const allVisited = gaps.every(g => visited.has(g.id));
 
   function markVisited(id) {
