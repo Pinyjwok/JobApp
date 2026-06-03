@@ -38,3 +38,13 @@ chat_history.json
 
 #other docs
 docs/
+
+# KEMU service runtime logs (generated per run)
+**/service-*.log
+**/.service-log-audit.json
+
+# Frontend restyle reference tree (local design reference, not built/shipped)
+client/restyle/
+
+# Claude Code local settings
+.claude/settings.local.json
