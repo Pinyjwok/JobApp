@@ -10,6 +10,28 @@ import { useStream } from './hooks/useStream';
 import { useTheme } from './theme';
 import './index.css';
 
+// Pipeline statuses the dev "Status" override can jump to.
+// Happy-path order first, then exception/failure states.
+const PIPELINE_STATUSES = [
+  { value: 'FILES_SAVED',       group: 'pipeline' },
+  { value: 'INITIALIZED',       group: 'pipeline' },
+  { value: 'RESEARCH_COMPLETE', group: 'pipeline' },
+  { value: 'RESEARCH_CONFIRM',  group: 'pipeline' },
+  { value: 'JD_ENHANCED',       group: 'pipeline' },
+  { value: 'PARALLEL_ANALYSIS', group: 'pipeline' },
+  { value: 'ANALYSIS_COMPLETE', group: 'pipeline' },
+  { value: 'GAP_INTERVIEW',     group: 'pipeline' },
+  { value: 'REVIEW_COMPLETE',   group: 'pipeline' },
+  { value: 'TONE_ANALYZED',     group: 'pipeline' },
+  { value: 'CV_BUILDING',       group: 'pipeline' },
+  { value: 'CV_TAILORED',       group: 'pipeline' },
+  { value: 'RESEARCH_PARTIAL',  group: 'exception' },
+  { value: 'EXTRACTION_FAILED', group: 'exception' },
+  { value: 'RESEARCH_FAILED',   group: 'exception' },
+  { value: 'ANALYSIS_FAILED',   group: 'exception' },
+  { value: 'REVIEW_FAILED',     group: 'exception' },
+];
+
 function ThemeToggle({ theme, onToggle }) {
   return (
     <button
@@ -53,6 +75,7 @@ export default function App() {
   const [gapQuestions, setGapQuestions] = useState([]);
   const [showGapModal, setShowGapModal] = useState(false);
   const [gapMinimized, setGapMinimized] = useState(false);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
 
   const pendingReasoningRef = useRef('');
   const lastActivityRef = useRef(Date.now());
@@ -340,9 +363,9 @@ export default function App() {
     setModalState('pending');
   }
 
-  async function handleSetStatus() {
-    const s = prompt('Enter new pipeline status:');
+  async function handleSetStatus(s) {
     if (!s) return;
+    setShowStatusMenu(false);
     await fetch('/api/dev/status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -403,12 +426,41 @@ export default function App() {
 
         <div className="flex items-center gap-1.5">
           <ThemeToggle theme={theme} onToggle={toggle} />
-          <button
-            onClick={handleSetStatus}
-            className="text-xs text-fg-secondary hover:text-fg border border-line hover:border-line-strong rounded-lg px-2.5 py-1.5 transition-all"
-          >
-            Status
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowStatusMenu((v) => !v)}
+              className={`text-xs border rounded-lg px-2.5 py-1.5 transition-all ${showStatusMenu ? 'text-fg border-line-strong bg-surface-2' : 'text-fg-secondary hover:text-fg border-line hover:border-line-strong'}`}
+            >
+              Status
+            </button>
+            {showStatusMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowStatusMenu(false)} />
+                <div className="absolute right-0 mt-1.5 z-50 w-56 max-h-[70vh] overflow-y-auto rounded-lg border border-line-strong bg-surface shadow-lg py-1">
+                  <div className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">Pipeline</div>
+                  {PIPELINE_STATUSES.filter((s) => s.group === 'pipeline').map((s) => (
+                    <button
+                      key={s.value}
+                      onClick={() => handleSetStatus(s.value)}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors hover:bg-surface-2 ${status === s.value ? 'text-accent font-semibold' : 'text-fg-secondary'}`}
+                    >
+                      {status === s.value ? '● ' : '   '}{s.value}
+                    </button>
+                  ))}
+                  <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint border-t border-line mt-1">Exception</div>
+                  {PIPELINE_STATUSES.filter((s) => s.group === 'exception').map((s) => (
+                    <button
+                      key={s.value}
+                      onClick={() => handleSetStatus(s.value)}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors hover:bg-surface-2 ${status === s.value ? 'text-danger font-semibold' : 'text-fg-secondary'}`}
+                    >
+                      {status === s.value ? '● ' : '   '}{s.value}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
           <button
             onClick={handleAbort}
             className="text-xs text-danger hover:brightness-110 border border-danger/40 hover:border-danger/70 rounded-lg px-2.5 py-1.5 transition-all"
