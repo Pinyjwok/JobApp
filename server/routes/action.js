@@ -6,7 +6,8 @@ import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } f
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { injectReviewerButtons } from '../lib/button-injection.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, sendToSN, applyFitScore } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, sendToSN, applyFitScore, runReviewAudit, buildReviewSummary } from '../lib/dispatch.js';
+import { classifyGapAnswers } from '../lib/evidence-classifier.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
 const router = express.Router();
@@ -355,25 +356,71 @@ router.post('/', async (req, res) => {
           user_answer: rawAnswers[g.id] || null,
           skipped: !rawAnswers[g.id],
         }));
-        const trigger = JSON.stringify({ gap_answers: gapAnswers });
         broadcastMode('auto_running', 'Reviewer');
         await state.recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
         state.pipelineStatus = 'GAP_INTERVIEW';
-        sendToNodeAndWait('reviewer_input', 'Reviewer', trigger)
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            let banner = '';
-            try {
-              const newScore = applyFitScore(join(WORKSPACE_DIR, 'gap_analysis.json'));
-              banner = `**Fit Score: ${newScore}/10**\n\n`;
-            } catch (err) {
-              console.error('[gap_answers_submit] applyFitScore error:', err.message);
+
+        // EVIDENCE/INTENT classification is the one semantic step — delegate non-skipped answers to the
+        // LLM classifier (Haiku via OpenRouter). SKIPPED answers never hit the LLM. On any failure the
+        // classifier returns INTENT for all, so the audit still runs (conservative, never inflates).
+        const toClassify = gapAnswers
+          .filter(a => !a.skipped && a.user_answer?.trim())
+          .map(a => ({ gap_id: a.gap_id, requirement: a.gap_text, answer: a.user_answer.trim() }));
+        if (toClassify.length > 0) {
+          try {
+            const labels = await classifyGapAnswers(toClassify);
+            const byId = new Map(labels.map(l => [l.gap_id, l]));
+            for (const a of gapAnswers) {
+              const l = byId.get(a.gap_id);
+              if (l) { a.evidence_type = l.label; a.evidence_reason = l.reason; }
             }
-            broadcastAgentResult(banner + cleanText, 'Reviewer', true);
-            if (status !== 'REVIEW_COMPLETE' && status !== 'REVIEW_FAILED') injectReviewerButtons();
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-          })
-          .catch(err => console.error('[Reviewer gap_answers_submit] error:', err));
+            console.log(`[gap_answers_submit] classified ${toClassify.length} answer(s):`);
+            for (const l of labels) console.log(`  ${l.gap_id}=${l.label} — ${l.reason}`);
+          } catch (err) {
+            console.error('[gap_answers_submit] classifier error (defaulting INTENT):', err.message);
+          }
+        }
+
+        // Server-owned forensic audit (mechanical: ingest classified answers + Phases 2-5 + verdict).
+        // The LLM Reviewer node is only needed when backable issues remain (Phase 7.5).
+        let auditResult;
+        try {
+          auditResult = runReviewAudit(gapAnswers);
+        } catch (err) {
+          console.error('[gap_answers_submit] runReviewAudit error:', err.message);
+          return res.status(500).json({ error: 'review audit failed: ' + err.message });
+        }
+
+        let banner = '';
+        try {
+          const newScore = applyFitScore(join(WORKSPACE_DIR, 'gap_analysis.json'));
+          banner = `**Fit Score: ${newScore}/10**\n\n`;
+        } catch (err) {
+          console.error('[gap_answers_submit] applyFitScore error:', err.message);
+        }
+
+        if (auditResult.backableIssues.length === 0) {
+          // No user-resolvable issues — finalize entirely server-side, no LLM call.
+          const status = auditResult.audit.overall_verdict === 'APPROVED' ? 'REVIEW_COMPLETE' : 'REVIEW_FAILED';
+          broadcastAgentResult(banner + buildReviewSummary(auditResult.audit), 'Reviewer', true);
+          await state.recipe.globalVariables.setValue('pipeline_status', status);
+          state.pipelineStatus = status;
+          await handlePipelineStatus(status);
+        } else {
+          // Backable issues exist — hand off to the Reviewer node for interactive Phase 7.5. Its Phase 0
+          // re-invocation guard sees the server-written review_audit.json and resumes at issue resolution.
+          console.log(`[gap_answers_submit] ${auditResult.backableIssues.length} backable issue(s) → Reviewer node for Phase 7.5`);
+          sendToNodeAndWait('reviewer_input', 'Reviewer', '__resolve__')
+            .then(async r => {
+              const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+              let banner2 = '';
+              try { banner2 = `**Fit Score: ${applyFitScore(join(WORKSPACE_DIR, 'gap_analysis.json'))}/10**\n\n`; } catch {}
+              broadcastAgentResult(banner2 + cleanText, 'Reviewer', true);
+              if (status !== 'REVIEW_COMPLETE' && status !== 'REVIEW_FAILED') injectReviewerButtons();
+              if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
+            })
+            .catch(err => console.error('[Reviewer Phase 7.5] error:', err));
+        }
         break;
       }
 
