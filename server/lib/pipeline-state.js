@@ -8,7 +8,7 @@ import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
 import { injectReviewerButtons } from './button-injection.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, fireTAAndAnalyst } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, fireTAAndAnalyst, stampTimestamp } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -69,6 +69,8 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'RESEARCH_COMPLETE') {
+    // BUG-126: Researcher just finished — stamp the real completion time before the gate displays it.
+    stampTimestamp('research_output.json', 'completed_at');
     broadcast({ type: 'action_required', context: 'research_pre_confirm', prompt: '', actions: [
       { id: 'research_pre_confirm', label: 'Yes — continue', variant: 'primary' },
       { id: 'research_pre_redo',   label: 'Redo research',   variant: 'ghost'   },

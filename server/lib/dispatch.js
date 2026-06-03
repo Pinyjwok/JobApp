@@ -16,6 +16,8 @@ export function fireTAAndAnalyst() {
   state.analystDone = false;
   state.taDone      = false;
   state.analystOutputText = null;
+  // BUG-126: JD Enhancer just finished — stamp the real enhancement time before consumers read it.
+  stampTimestamp('enhanced_jd.json', 'metadata.enhanced_at');
   broadcastMode('auto_running', 'Analysis');
   state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
   state.pipelineStatus = 'PARALLEL_ANALYSIS';
@@ -52,11 +54,18 @@ const STRICTNESS_WEIGHTS = {
   FLEXIBLE: { baseline: 5.0, differentiator: 5.0 },
 };
 
+// Plan-B (v2.19): key_responsibilities are duties/context, never scored — excluded by SOURCE here even
+// if an agent mislabels their tier. Mandatory statutory credentials, when unmet, cap the score.
+const GATE_CEILING = 5.0;
+const STATUTORY_CERT = /first aid|\bcpr\b|asthma|anaphylaxis|HLTAID\d+|working with children|wwcc|police check|immunisation|vaccination|right to work/i;
+const isResponsibility = r => String(r.source ?? '').includes('key_responsibilities');
+
 function calculateFitScore(gapAnalysis) {
   const reqs = gapAnalysis.requirements ?? [];
   const isMet = r => r.candidate_status === 'Met' || r.candidate_status === 'Met (Candidate Evidence)';
-  const baseline = reqs.filter(r => r.tier === 'Baseline');
-  const differentiator = reqs.filter(r => r.tier === 'Differentiator');
+  // Scored set = genuine requirements only (tier filter + source guard against responsibility mislabeling).
+  const baseline = reqs.filter(r => r.tier === 'Baseline' && !isResponsibility(r));
+  const differentiator = reqs.filter(r => r.tier === 'Differentiator' && !isResponsibility(r));
   const baselineMet = baseline.filter(isMet).length;
   const differentiatorMet = differentiator.filter(isMet).length;
 
@@ -68,21 +77,55 @@ function calculateFitScore(gapAnalysis) {
 
   const baselineScore = baseline.length > 0 ? (baselineMet / baseline.length) * weights.baseline : 0;
   const differentiatorScore = differentiator.length > 0 ? (differentiatorMet / differentiator.length) * weights.differentiator : 0;
-  const total = Math.round((baselineScore + differentiatorScore) * 10) / 10;
+  let total = Math.round((baselineScore + differentiatorScore) * 10) / 10;
 
-  console.log(`[fit_score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} total=${total}`);
-  return total;
+  // Mandatory-cert gate: an unmet statutory "condition of employment" caps the score. Flag-driven,
+  // with a keyword fallback so it fires even if the Analyst omits mandatory_gate.
+  const gateApplied = reqs.some(r =>
+    !isResponsibility(r) && !isMet(r) &&
+    (r.mandatory_gate === true || STATUTORY_CERT.test(String(r.requirement_text ?? ''))));
+  if (gateApplied && total > GATE_CEILING) total = GATE_CEILING;
+
+  console.log(`[fit_score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} gated=${gateApplied} total=${total}`);
+  return { score: total, gateApplied };
 }
 
 export function applyFitScore(gapAnalysisPath) {
   const gapAnalysis = JSON.parse(readFileSync(gapAnalysisPath, 'utf8'));
-  const score = calculateFitScore(gapAnalysis);
-  const qualitative = String(gapAnalysis.fit_rationale ?? '').replace(/^Fit Score: \d+(\.\d+)?\/10\s*—\s*/, '').trim();
+  const { score, gateApplied } = calculateFitScore(gapAnalysis);
+  // Idempotent: strip any prior "Fit Score: X/10 — " prefix and trailing gate marker before reapplying.
+  const qualitative = String(gapAnalysis.fit_rationale ?? '')
+    .replace(/^Fit Score: \d+(\.\d+)?\/10\s*—\s*/, '')
+    .replace(/\s*\(capped — unmet mandatory credential\)\s*$/, '')
+    .trim();
+  const marker = gateApplied ? ' (capped — unmet mandatory credential)' : '';
   gapAnalysis.overall_fit_score = score;
-  gapAnalysis.fit_rationale = qualitative ? `Fit Score: ${score}/10 — ${qualitative}` : `Fit Score: ${score}/10`;
+  gapAnalysis.fit_rationale = (qualitative ? `Fit Score: ${score}/10 — ${qualitative}` : `Fit Score: ${score}/10`) + marker;
   gapAnalysis.fit_score_source = 'server';
+  // BUG-126: server owns the timestamp — LLMs cannot reliably read "today".
+  gapAnalysis.metadata = gapAnalysis.metadata || {};
+  gapAnalysis.metadata.analyzed_at = new Date().toISOString();
   writeFileSync(gapAnalysisPath, JSON.stringify(gapAnalysis, null, 2), 'utf8');
   return score;
+}
+
+// BUG-126: deterministically stamp a server-owned timestamp onto a workspace file, overwriting
+// whatever (possibly stale/hardcoded) value the agent wrote. dotPath supports nested keys.
+export function stampTimestamp(filename, dotPath) {
+  try {
+    const p = join(WORKSPACE_DIR, filename);
+    const obj = JSON.parse(readFileSync(p, 'utf8'));
+    const parts = dotPath.split('.');
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (typeof cur[parts[i]] !== 'object' || cur[parts[i]] === null) cur[parts[i]] = {};
+      cur = cur[parts[i]];
+    }
+    cur[parts[parts.length - 1]] = new Date().toISOString();
+    writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
+  } catch (e) {
+    console.warn(`[stamp] ${filename} ${dotPath}: ${e.message}`);
+  }
 }
 
 // Strip any reasoning/preamble the Analyst leaks before its completion message.

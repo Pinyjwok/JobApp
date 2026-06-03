@@ -6,24 +6,14 @@
     "auditLog": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/.service-log-audit.json",
     "files": [
         {
-            "date": 1779693157461,
-            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-05-25.log",
-            "hash": "ba71c770e72980bc6ff5ba7ab2c0170c3c3f2be563470e9fbf8fda5b05e64d9a"
+            "date": 1780379278651,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-06-02.log",
+            "hash": "e5682035b69f17b43be99c587be7a1ebdc20004441195db16f67787d3f54896f"
         },
         {
-            "date": 1779720404465,
-            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-05-26.log",
-            "hash": "d6b26708ae6b96d2296987d58f39b87cef2a644773a1a86bdd8b7d87b6e07dbd"
-        },
-        {
-            "date": 1779842566533,
-            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-05-27.log",
-            "hash": "ccc9625e0e2fcff173fe2cbfa1aae726ec0878950008aaac9b6bce192d371401"
-        },
-        {
-            "date": 1779921225390,
-            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-05-28.log",
-            "hash": "a612c0b45cdf1263b554c3013b155b3fe2e4d139ec9fe7ffe3cd779411df66b7"
+            "date": 1780408893607,
+            "name": "/Applications/Kemu Hub.app/Contents/Resources/node_modules/@kemu-io/kemu-hub/build/defaultServices/http/service-2026-06-03.log",
+            "hash": "81dfbe444f1b55f61dfe698b02ec621ac8a2c57b2813cd495deb9cd64eff83b9"
         }
     ],
     "hashType": "sha256"
