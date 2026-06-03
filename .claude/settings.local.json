@@ -46,7 +46,8 @@
       "Bash(railway service *)",
       "Read(//Users/piny/.claude/plugins/cache/**)",
       "Read(//Users/piny/.claude/plugins/cache/caveman/caveman/63e797cd753b/**)",
-      "Bash(chmod +x *)"
+      "Bash(chmod +x *)",
+      "Bash(git check-ignore *)"
     ]
   }
 }
