@@ -114,7 +114,9 @@ export default function App() {
   async function handleModalStart(cvFile, jdFile, clFile = null) {
     setModalUploading(true);
 
-    await fetch('/api/reset', { method: 'POST' }).catch(() => {});
+    // Full clear: a new session must not inherit ANY prior files — including a stale
+    // cover_letter_sample.txt, which would otherwise survive and bleed into the run.
+    await fetch('/api/reset?full=1', { method: 'POST' }).catch(() => {});
 
     const uploadFile = async (file, target) => {
       const body = await file.arrayBuffer();

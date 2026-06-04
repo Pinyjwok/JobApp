@@ -8,7 +8,7 @@ import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
 import { injectReviewerButtons } from './button-injection.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, fireTAAndAnalyst, stampTimestamp } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, fireTAAndAnalyst, stampTimestamp, resolveExtractorStatus, clearExtractorFailure, writeMODispatch } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -89,6 +89,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
 
   if (EXCEPTION_STATUSES.has(status)) {
     broadcastMode('user_turn', 'Main Orchestrator');
+    writeMODispatch(status);  // authoritative status → MO reads mo_dispatch.json, not the global
     sendToNodeAndWait(' Message', 'Main Orchestrator')
       .then(async r => {
         const { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
@@ -177,9 +178,13 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     if (!node) return;
     broadcastMode('auto_running', agent);
     console.log(`[pipeline_status] auto-fire ${status} → ${node}`);
+    if (agent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
     sendToNodeAndWait(node, agent)
       .then(async r => {
-        const { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+        let { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+        // Deterministic failure gate: if the Extractor wrote a failure_reason but dropped
+        // the EXTRACTION_FAILED tag, force it — don't retain a stale prior status.
+        if (agent === 'Extractor') newStatus = resolveExtractorStatus(newStatus);
         broadcastAgentResult(cleanText, agent, AGENT_FOREGROUND.has(agent));
         if (status === 'INITIALIZED' && state.researchPartial) {
           state.researchPartial = false;

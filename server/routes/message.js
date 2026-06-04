@@ -4,7 +4,7 @@ import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } f
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { injectReviewerButtons } from '../lib/button-injection.js';
 import { HAPPY_PATH, EXCEPTION_STATUSES, INPUT_NODE_MAP, AGENT_FOREGROUND } from '../config/constants.js';
-import { sendToSN, reShowSectionReview } from '../lib/dispatch.js';
+import { sendToSN, reShowSectionReview, resolveExtractorStatus, clearExtractorFailure, writeMODispatch } from '../lib/dispatch.js';
 
 const router = express.Router();
 export default router;
@@ -109,10 +109,15 @@ router.post('/', async (req, res) => {
 
   res.json({ ok: true });
   const foreground = AGENT_FOREGROUND.has(nextAgent);
+  if (nextAgent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
+  if (nextAgent === 'Main Orchestrator') writeMODispatch(status);  // authoritative status → mo_dispatch.json
   sendToNodeAndWait(node, nextAgent, message, sessionId)
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
-      const { status, cleanText } = parseAndStripStatus(raw);
+      let { status, cleanText } = parseAndStripStatus(raw);
+      // Deterministic failure gate: Extractor wrote failure_reason but may have dropped
+      // the EXTRACTION_FAILED tag — force it rather than retaining a stale prior status.
+      if (nextAgent === 'Extractor') status = resolveExtractorStatus(status);
 
       if (nextAgent === 'Reviewer') {
         broadcastAgentResult(cleanText, 'Reviewer', true);

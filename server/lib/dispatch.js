@@ -364,6 +364,68 @@ export function stampTimestamp(filename, dotPath) {
   }
 }
 
+// Deterministic Extractor-failure gate. The Extractor signals a hard failure by
+// writing `failure_reason` to project_meta.json (a reliable WriteFile) AND by
+// emitting a trailing `pipeline_status: EXTRACTION_FAILED` text tag (unreliable —
+// the LLM drops it on the failure branch). When the tag is dropped, the server
+// would otherwise retain the prior status (e.g. a stale CV_TAILORED from an earlier
+// run) and mis-route into the completion menu. So: trust the file, not the prose —
+// if project_meta.failure_reason is set, force EXTRACTION_FAILED regardless of the tag.
+// Returns the corrected status to apply to the global.
+export function resolveExtractorStatus(parsedStatus) {
+  try {
+    const meta = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
+    if (meta && meta.failure_reason) {
+      if (parsedStatus !== 'EXTRACTION_FAILED') {
+        console.warn(`[extractor-gate] project_meta.failure_reason="${meta.failure_reason}" but tag was "${parsedStatus ?? 'missing'}" — forcing EXTRACTION_FAILED`);
+      }
+      return 'EXTRACTION_FAILED';
+    }
+  } catch (e) {
+    console.warn(`[extractor-gate] could not read project_meta.json: ${e.message}`);
+  }
+  return parsedStatus;
+}
+
+// Clear the Extractor's failure markers BEFORE each Extractor (re)dispatch, deterministically.
+// `failure_reason`/`alternate_name_detected` are normally deleted by the Extractor on success
+// (extractor instructions:462) — but that delete is LLM-executed and may be skipped, which would
+// leave the post-return gate forcing EXTRACTION_FAILED on a successful re-run (deadlock). Clearing
+// server-side at dispatch makes each attempt start clean. `pending_name_resolution` is intentionally
+// preserved — MO writes it for the Extractor to consume during name-mismatch recovery.
+export function clearExtractorFailure() {
+  try {
+    const p = join(WORKSPACE_DIR, 'project_meta.json');
+    const meta = JSON.parse(readFileSync(p, 'utf8'));
+    if (meta.failure_reason == null && meta.alternate_name_detected == null) return;
+    delete meta.failure_reason;
+    delete meta.alternate_name_detected;
+    writeFileSync(p, JSON.stringify(meta, null, 2), 'utf8');
+    console.log('[extractor-gate] cleared stale failure markers before Extractor dispatch');
+  } catch (e) {
+    console.warn(`[extractor-gate] could not clear failure markers: ${e.message}`);
+  }
+}
+
+// Hand the authoritative pipeline status to the Main Orchestrator. The MO node is a KEMU
+// agent — it can only read globals or files, not the server's in-memory `state.pipelineStatus`.
+// Routing now lives in the backend, so MO must NOT source its phase from the (stale-prone)
+// `context.pipeline_status` global. Instead the server writes the current status to
+// mo_dispatch.json immediately before every MO invocation; MO reads it as its single source
+// of truth. Always fresh at read time (synchronous write before the node call), so a prior
+// run's status can never leak into a new session.
+export function writeMODispatch(status) {
+  try {
+    writeFileSync(
+      join(WORKSPACE_DIR, 'mo_dispatch.json'),
+      JSON.stringify({ pipeline_status: status ?? null, dispatched_at: new Date().toISOString() }, null, 2),
+      'utf8',
+    );
+  } catch (e) {
+    console.warn(`[mo-dispatch] could not write mo_dispatch.json: ${e.message}`);
+  }
+}
+
 // Strip any reasoning/preamble the Analyst leaks before its completion message.
 // The completion block always starts with a "✓ Analyst Complete" header; keep from
 // there onward and ensure the header begins on its own line so markdown renders it.

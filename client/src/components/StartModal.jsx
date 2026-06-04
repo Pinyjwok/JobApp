@@ -83,7 +83,7 @@ export function StartModal({ hasHistory, onStart, onResume, uploading = false })
           <div>
             <h1 className="text-2xl font-bold text-fg tracking-tight">JobApp</h1>
             <p className="text-base text-fg-secondary mt-2 max-w-md">
-              Land the interview. We tailor your CV and cover letter to the job — in about a minute.
+              Get noticed. We customize your CV and cover letter to match the job perfectly
             </p>
           </div>
         </div>
