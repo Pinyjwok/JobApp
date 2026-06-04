@@ -25,6 +25,18 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { status, cleanText } = parseAndStripStatus(raw);
+      // Tone validator — middleman between TA and Style Negotiator. Runs for its file-level effects:
+      // a REJECT (fabricated quote / bad register) clears style_findings.json and re-runs TA; non-blocking
+      // "unsubstantiated" notes ride in tone_validator_verdict.json, which SN reads. TA is silent by design,
+      // so we discard the validator's returned text and keep broadcasting TA's own completion bubble.
+      await _runValidator(cleanText, 'tone_analyst', {
+        node:         'tone_validator_input',
+        verdictFile:  'tone_validator_verdict.json',
+        retryNode:    'tone_analyst_input',
+        retryMessage: '__tone_analysis__',
+        retryLabel:   'Tone Analyst',
+      });
+      stampTimestamp('style_findings.json', 'analyzed_at'); // BUG-126 class — TA hallucinates this; server owns it
       broadcastAgentResult(cleanText, 'Tone Analyst', false);
       if (status) {
         state.taDone = true;
@@ -38,7 +50,12 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { cleanText } = parseAndStripStatus(raw);
-      state.analystOutputText = await _runValidator(cleanText, 'analyst', 'gap_analysis.json');
+      state.analystOutputText = await _runValidator(cleanText, 'analyst', {
+        node:         'analyst_validator_input',
+        verdictFile:  'analyst_validator_verdict.json',
+        retryNode:    'analyst_background_input',
+        retryMessage: '__analyze__',
+      });
       state.analystDone = true;
       syncTADone();
       await checkJoin();
@@ -438,10 +455,23 @@ function stripAnalystNarration(text) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function _runValidator(callerText, agent, outputFile) {
+// Server-orchestrated validator gate, parameterized per caller. Analyst and Tone Analyst run in
+// PARALLEL (fireTAAndAnalyst), so each MUST hit its own node + verdict file — a shared node can't
+// process concurrent invocations, and a shared verdict file would have one agent clobber the other.
+// opts.node / opts.verdictFile namespace both; opts.retryNode/retryMessage/retryLabel drive the
+// one-shot REJECT re-run of the calling agent.
+async function _runValidator(callerText, agent, opts = {}) {
+  const {
+    node         = 'validator_input',
+    verdictFile  = 'validator_verdict.json',
+    retryNode    = 'analyst_background_input',
+    retryMessage = '__analyze__',
+    retryLabel   = null,
+  } = opts;
+  const readVerdict = () => JSON.parse(readFileSync(join(WORKSPACE_DIR, verdictFile), 'utf8'));
   try {
-    await sendToNodeAndWait('validator_input', 'Validator', agent);
-    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'validator_verdict.json'), 'utf8'));
+    await sendToNodeAndWait(node, 'Validator', agent);
+    const verdict = readVerdict();
     console.log(`[Validator] verdict=${verdict.verdict} for ${agent} (${verdict.issues?.length ?? 0} issue(s))`);
 
     if (verdict.verdict === 'APPROVE') return callerText;
@@ -453,13 +483,13 @@ async function _runValidator(callerText, agent, outputFile) {
 
     if (verdict.verdict === 'REJECT') {
       console.log(`[Validator] REJECT for ${agent} — retrying once`);
-      const retryResult = await sendToNodeAndWait('analyst_background_input', null, '__analyze__');
+      const retryResult = await sendToNodeAndWait(retryNode, retryLabel, retryMessage);
       const { cleanText: retryText } = parseAndStripStatus(
         typeof retryResult === 'string' ? retryResult : JSON.stringify(retryResult ?? '')
       );
-      await sendToNodeAndWait('validator_input', 'Validator', agent);
+      await sendToNodeAndWait(node, 'Validator', agent);
       try {
-        const retryVerdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'validator_verdict.json'), 'utf8'));
+        const retryVerdict = readVerdict();
         console.log(`[Validator] retry verdict=${retryVerdict.verdict} for ${agent}`);
         if (retryVerdict.verdict === 'FLAG') {
           const warnings = (retryVerdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
@@ -572,6 +602,34 @@ export async function checkResearchRedoJoin() {
 
 // ── Sequential assembly dispatch ──────────────────────────────────────────────
 
+// Assembly section agent → assembly-validator module key. Agents with no module (Skills Curator,
+// Credentials Formatter, Style Reviewer, Integrity Checker) are intentionally absent → skipped.
+const ASSEMBLY_VALIDATOR_AGENT = {
+  'Style Negotiator':    'style_negotiator',
+  'Profile Builder':     'profile_builder',
+  'History Formatter':   'history_formatter',
+  'Cover Letter Writer': 'coverletter_writer',
+};
+
+// Advisory assembly validator — fires after a section is produced/merged, BEFORE the human Approve/Revise.
+// APPROVE/FLAG only: it never re-runs an agent (the human owns the gate), so it does NOT go through
+// _runValidator's REJECT/retry path. Returns FLAG notes to thread into the review bubble, or '' otherwise.
+async function _runAssemblyValidator(phaseAgent) {
+  const agentKey = ASSEMBLY_VALIDATOR_AGENT[phaseAgent];
+  if (!agentKey) return '';
+  try {
+    await sendToNodeAndWait('assembly_validator_input', 'Validator', agentKey);
+    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), 'utf8'));
+    console.log(`[Validator] verdict=${verdict.verdict} for ${agentKey} (${verdict.issues?.length ?? 0} issue(s))`);
+    if (verdict.verdict === 'FLAG' && (verdict.issues || []).length) {
+      return (verdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
+    }
+  } catch (err) {
+    console.error('[Validator] assembly error:', err.message);
+  }
+  return '';
+}
+
 export async function dispatchAssemblyPhase(phaseNumber) {
   if (phaseNumber === 1) {
     await _startSNInterview();
@@ -605,7 +663,8 @@ export async function dispatchAssemblyPhase(phaseNumber) {
 
   if (phaseNumber <= 6 || phaseNumber === 9) {
     await mergePhaseOutput(phaseNumber);
-    _showApproveRevise(phase.agent);
+    const notes = await _runAssemblyValidator(phase.agent);
+    _showApproveRevise(phase.agent, notes);
     return;
   }
 
@@ -645,8 +704,9 @@ export async function sendToSN(message) {
 
   if (snDone) {
     await mergePhaseOutput(1);
+    const notes = await _runAssemblyValidator('Style Negotiator');
     state.snState = 'summary';
-    _showSNContinue();
+    _showSNContinue(notes);
   } else if (state.snState === 'customise_confirm') {
     _showSNConfirmButtons();
   } else {
@@ -763,7 +823,11 @@ async function _handleGate(phaseNumber) {
   }
 }
 
-function _showApproveRevise(agentName) {
+function _showApproveRevise(agentName, notes = '') {
+  if (notes) {
+    broadcast({ type: 'agent_message', agent: 'System', background: true,
+      text: `⚠ Validator notes on this ${agentName} section (review before approving):\n${notes}` });
+  }
   broadcast({
     type: 'action_required',
     context: 'assembly_section_review',
@@ -801,7 +865,11 @@ function _showSNConfirmButtons() {
   broadcastMode('action_required');
 }
 
-function _showSNContinue() {
+function _showSNContinue(notes = '') {
+  if (notes) {
+    broadcast({ type: 'agent_message', agent: 'System', background: true,
+      text: `⚠ Validator notes on the style negotiation (review before continuing):\n${notes}` });
+  }
   broadcast({
     type: 'action_required',
     context: 'sn_summary',

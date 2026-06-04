@@ -27,7 +27,7 @@ const WORKSPACE_ALLOWED = [
   'project_meta.json', 'candidate_profile.json',
   'research_output.json', 'enhanced_jd.json', 'gap_analysis.json',
   'review_audit.json', 'tailored_cv.json',
-  'style_findings.json', 'cv_assembly_state.json', 'sn_output.json', 'sn_working.json',
+  'style_findings.json', 'tone_validator_verdict.json', 'cv_assembly_state.json', 'sn_output.json', 'sn_working.json',
   'pb_output.json', 'sc_output.json', 'hf_output.json', 'cf_output.json', 'clw_output.json', 'df_output.json',
 ];
 
