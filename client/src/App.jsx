@@ -112,7 +112,7 @@ export default function App() {
   const WELCOME_MESSAGE = {
     role: 'agent',
     agent: 'JobApp',
-    text: `Got your documents — thanks. I'm starting on the analysis now, which takes about a minute. I'll walk you through each step and check in with you along the way.`,
+    text: `Got your documents — thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way.`,
   };
 
   async function handleModalStart(cvFile, jdFile, clFile = null) {
