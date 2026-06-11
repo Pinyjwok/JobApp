@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ResearchBubble } from './ResearchBubble';
 
 const mdComponents = {
   h1: ({ children }) => <h1 className="text-lg font-bold text-fg mt-4 mb-2 first:mt-0">{children}</h1>,
@@ -29,6 +30,17 @@ const mdComponents = {
 };
 
 const ERROR_RE = /\bFAILED\b|✗\s|\bError:/;
+
+/** True for the Researcher's completion message — rendered as ResearchBubble instead of AgentBubble */
+function isResearchComplete(msg) {
+  return (
+    msg.agent === 'Researcher' &&
+    !msg.background &&
+    typeof msg.text === 'string' &&
+    msg.text.includes('Researcher Complete') &&
+    /RESEARCH_(COMPLETE|PARTIAL|FAILED)/.test(msg.text)
+  );
+}
 
 // One semantic vocabulary, not 19 per-agent colors:
 //   neutral  → the assistant is talking          (border-l-line-strong)
@@ -214,6 +226,8 @@ export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
             <ActionBubble msg={msg} onAction={onAction} onUpload={onUpload} />
           ) : msg.agent === 'System' && !msg.background ? (
             <SystemNotice msg={msg} />
+          ) : isResearchComplete(msg) ? (
+            <ResearchBubble msg={msg} />
           ) : (
             <AgentBubble msg={msg} />
           )}
