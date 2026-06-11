@@ -152,6 +152,91 @@ function resolvePath(root, path, rootPrefix) {
 
 const _stringify = v => (typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v));
 
+// Strip the two ways the Analyst commonly mangles an otherwise-valid dot-bracket path and return every
+// clean candidate, in order, to try resolving:
+//   "a.b.c (descriptive note)"  → ["a.b.c"]              (trailing parenthetical)
+//   "a.b and x.y"               → ["a.b", "x.y"]         ("and"-joined multi-path — any may be the live one)
+function _normalizeEvidencePath(path) {
+  if (!path || typeof path !== 'string') return [];
+  return path
+    .split(/\s+and\s+/i)
+    .map(seg => seg.replace(/\s*\(.*$/s, '').replace(/[\s,;]+$/, '').trim())
+    .filter(Boolean);
+}
+
+// First normalized candidate of a malformed path that actually resolves against root, or null. Returns
+// null when the path was already clean (nothing to repair) so callers only act on a genuine fix.
+function _repairPath(root, rawPath, prefix) {
+  for (const cand of _normalizeEvidencePath(rawPath)) {
+    if (cand !== rawPath && resolvePath(root, cand, prefix) != null) return cand;
+  }
+  return null;
+}
+
+// Canonical tier for a requirement from its text + source, or null if genuinely ambiguous. Mirrors the
+// Phase 4 audit signals so a repaired tier reads back as 'correct'. Order: Responsibility > Differentiator
+// > Baseline (a "preferred" item is a Differentiator even if it also reads as required).
+function _computeTier(r) {
+  const reqText = String(r.requirement_text || '').toLowerCase();
+  const src = String(r.source || '');
+  const isResp = src.includes('key_responsibilities');
+  const isDiff = reqText.includes('preferred') || reqText.includes('nice to have') || reqText.includes('bonus') || src.includes('preferred_qualifications');
+  const isBaseline = reqText.includes('required') || reqText.includes('must') || reqText.includes('essential') || src.includes('required_qualifications');
+  if (isResp) return 'Responsibility';
+  if (isDiff) return 'Differentiator';
+  if (isBaseline) return 'Baseline';
+  return null;
+}
+
+// Layers 1+2 — deterministic pre-audit repair, run before the verdict phases. The Analyst can ship
+// gap_analysis.json with malformed evidence_source paths (descriptive text appended, "and"-joined) even
+// after a validator REJECT, because its retry loop is capped ("proceed regardless of the second verdict").
+// Those non-resolving paths would otherwise surface as Critical 'A - Evidence Mismatch' → REVIEW_FAILED →
+// a blunt redo-everything menu that re-runs the same nondeterministic node and reproduces the defect.
+// Fix them here where the server owns the truth: normalize+re-resolve (repair), drop the strength if it's
+// still unverifiable (never ship an unbackable claim into the CV), overwrite a provably-wrong requirement
+// tier with the computed-correct one, and drop unbacked orphan gaps whose requirement_source isn't in the
+// JD. Mutates gapAnalysis in place; returns a repair record for the audit + summary.
+function _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD) {
+  const repairs = { paths_normalized: [], strengths_dropped: [], requirements_retiered: [], gaps_dropped: [] };
+
+  const keptStrengths = [];
+  for (const s of (gapAnalysis.strengths || [])) {
+    if (resolvePath(candidateProfile, s.evidence_source, 'candidate_profile') != null) { keptStrengths.push(s); continue; }
+    const fixed = _repairPath(candidateProfile, s.evidence_source, 'candidate_profile');
+    if (fixed) {
+      repairs.paths_normalized.push({ id: s.id, from: s.evidence_source, to: fixed });
+      s.evidence_source = fixed; keptStrengths.push(s); continue;
+    }
+    repairs.strengths_dropped.push({ id: s.id, evidence_source: s.evidence_source, strength_text: s.strength_text });
+  }
+  gapAnalysis.strengths = keptStrengths;
+
+  for (const r of (gapAnalysis.requirements || [])) {
+    const correct = _computeTier(r);
+    if (correct && r.tier !== correct) {
+      repairs.requirements_retiered.push({ id: r.id, from: r.tier, to: correct });
+      r.tier = correct;
+    }
+  }
+
+  const keptGaps = [];
+  for (const g of (gapAnalysis.gaps || [])) {
+    if (resolvePath(enhancedJD, g.requirement_source, 'enhanced_jd') != null) { keptGaps.push(g); continue; }
+    const fixed = _repairPath(enhancedJD, g.requirement_source, 'enhanced_jd');
+    if (fixed) {
+      repairs.paths_normalized.push({ id: g.id, from: g.requirement_source, to: fixed });
+      g.requirement_source = fixed; keptGaps.push(g); continue;
+    }
+    // Keep a candidate-backed gap even if its source is orphaned — its evidence stands on its own.
+    if (g.evidence_type === 'EVIDENCE' && g.candidate_provided_evidence) { keptGaps.push(g); continue; }
+    repairs.gaps_dropped.push({ id: g.id, requirement_source: g.requirement_source, gap_text: g.gap_text });
+  }
+  gapAnalysis.gaps = keptGaps;
+
+  return repairs;
+}
+
 // Ingest the gap answers collected by the client modal (Phase 1). Mutates gapAnalysis in place.
 // EVIDENCE/INTENT classification is a semantic judgment done by the LLM classifier upstream
 // (see evidence-classifier.js) and arrives on each answer as `evidence_type`. This function does ONLY
@@ -207,8 +292,13 @@ export function runReviewAudit(gapAnswers = []) {
   let jdContent = '';
   try { jdContent = readFileSync(join(WORKSPACE_DIR, 'jd_raw.txt'), 'utf8'); } catch {}
 
-  // Phase 1 — ingest gap answers, then persist gap_analysis (downstream agents read the mutations).
+  // Phase 1 — ingest gap answers, then deterministically repair Analyst output defects (Layers 1+2)
+  // BEFORE the verdict phases see the data, then persist (downstream agents read the cleaned file).
   _ingestGapAnswers(gapAnalysis, gapAnswers);
+  const repairs = _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD);
+  const repairCount = repairs.paths_normalized.length + repairs.strengths_dropped.length
+                    + repairs.requirements_retiered.length + repairs.gaps_dropped.length;
+  if (repairCount > 0) console.log(`[runReviewAudit] pre-audit repair: ${repairs.paths_normalized.length} path(s) normalized, ${repairs.strengths_dropped.length} strength(s) dropped, ${repairs.requirements_retiered.length} re-tiered, ${repairs.gaps_dropped.length} orphan gap(s) dropped`);
   writeFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), JSON.stringify(gapAnalysis, null, 2), 'utf8');
 
   const audit = { strengths: [], gaps: [], requirements: [], ats_keywords: [] };
@@ -306,6 +396,7 @@ export function runReviewAudit(gapAnswers = []) {
       analyst_version: gapAnalysis.metadata?.analyst_version || 'unknown',
       candidate_backed_gaps: gapAnalysis.candidate_backed_strengths?.length ?? 0,
     },
+    repairs,
     overall_verdict, rejection_reason,
     issues_found: issuesFound,
     approved_items: approvedItems,
@@ -340,6 +431,15 @@ export function buildReviewSummary(audit) {
     `**Approved Items:** ${s.approved_items ?? 0}`,
     `**Issues Found:** ${s.total_issues ?? 0}`);
   if ((audit.metadata?.candidate_backed_gaps ?? 0) > 0) lines.push('', `**Gap Evidence Provided:** ${audit.metadata.candidate_backed_gaps} gap(s) resolved via candidate evidence`);
+  const rp = audit.repairs || {};
+  const rpCount = (rp.paths_normalized?.length ?? 0) + (rp.strengths_dropped?.length ?? 0) + (rp.requirements_retiered?.length ?? 0) + (rp.gaps_dropped?.length ?? 0);
+  if (rpCount > 0) {
+    lines.push('', '**Auto-Repairs Applied:**');
+    if (rp.paths_normalized?.length)     lines.push(`- Normalized ${rp.paths_normalized.length} malformed evidence path(s)`);
+    if (rp.strengths_dropped?.length)    lines.push(`- Dropped ${rp.strengths_dropped.length} unverifiable strength(s)`);
+    if (rp.requirements_retiered?.length) lines.push(`- Re-tiered ${rp.requirements_retiered.length} misclassified requirement(s)`);
+    if (rp.gaps_dropped?.length)         lines.push(`- Dropped ${rp.gaps_dropped.length} ungrounded gap(s)`);
+  }
   lines.push('', '**Issues by Severity:**',
     `- Critical: ${s.critical_issues ?? 0}`,
     `- High: ${s.high_issues ?? 0}`,
