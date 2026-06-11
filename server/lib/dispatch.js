@@ -672,46 +672,209 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   await _handleGate(phaseNumber);
 }
 
+// SN is now a single-fire stylist (same offload pattern as fit-score / reviewer-audit / tone-validation).
+// It fires ONCE, authoring sn_groups.json (tailored finding/recommendation/insight + override directives
+// per style dimension). The server enforces the mandatory-dimension floor, stamps the seniority factual
+// anchor (LLM can't mint the number), drives a client modal, and merges the user's choices — no multi-turn
+// loop, no LLM-executed pseudocode.
 async function _startSNInterview() {
   state.currentAssemblyPhase = 1;
-  state.snState = 'interviewing';
-  await sendToSN('__interview_start__');
-}
-
-export async function sendToSN(message) {
-  if (state.snPending) {
-    console.log('[sendToSN] already awaiting KEMU — drop duplicate call');
-    return;
-  }
-  state.snPending = true;
+  state.snState = null;
   broadcastMode('auto_running', 'Style Negotiator');
-  let result;
-  try {
-    result = await sendToNodeAndWait(' Message', 'Style Negotiator', message);
-  } finally {
-    state.snPending = false;
-  }
-  const { cleanText } = parseAndStripStatus(typeof result === 'string' ? result : JSON.stringify(result ?? ''));
-  broadcastAgentResult(cleanText, 'Style Negotiator', true);
 
+  // Fire SN once — it writes sn_groups.json. SN is silent (like TA / the gap interview): the modal
+  // carries all the content, so we discard its text output.
+  try {
+    await sendToNodeAndWait(' Message', 'Style Negotiator', '__style_analyze__');
+  } catch (e) {
+    console.error('[SN] node error:', e.message);
+  }
   await new Promise(r => setTimeout(r, 1000));
 
-  let snDone = false;
+  let groups = [];
   try {
-    const snOut = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_output.json'), 'utf8'));
-    snDone = snOut?.status === 'COMPLETE';
-  } catch {}
+    groups = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_groups.json'), 'utf8'));
+    if (!Array.isArray(groups)) groups = [];
+  } catch { groups = []; }
 
-  if (snDone) {
-    await mergePhaseOutput(1);
-    const notes = await _runAssemblyValidator('Style Negotiator');
-    state.snState = 'summary';
-    _showSNContinue(notes);
-  } else if (state.snState === 'customise_confirm') {
-    _showSNConfirmButtons();
-  } else {
-    _showSNInterviewButtons();
+  let meta = {}, findings = {};
+  try { meta     = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'),   'utf8')); } catch {}
+  try { findings = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'style_findings.json'), 'utf8')); } catch {}
+
+  // Server owns the mandatory floor + the seniority factual anchor.
+  groups = enforceSNFloor(groups, meta, findings);
+  stampSeniorityOverride(groups, findings);
+
+  if (groups.length === 0) {
+    // Degenerate fallback — no LLM output and no findings to floor from. Auto-approve, skip the modal.
+    await _autoApproveSN(findings);
+    return;
   }
+
+  // Persist the full groups (override directives stay server-side); the client gets display fields only,
+  // re-read on submit — same trust model as gap_answers_submit re-reading gap_analysis.json.
+  writeFileSync(join(WORKSPACE_DIR, 'sn_working.json'), JSON.stringify({ groups, decisions: {} }, null, 2));
+  state.snState = 'modal';
+  broadcast({
+    type: 'style_interview_start',
+    groups: groups.map(g => ({
+      id: g.id, title: g.title, finding: g.finding,
+      examples: g.examples ?? [], recommendation: g.recommendation, insight: g.insight ?? '',
+    })),
+  });
+  broadcastMode('action_required');
+}
+
+// Mandatory-dimension floor: Seniority is always raised (controls tone everywhere); Key Achievements is
+// required for senior roles. These are safety-net injections — the LLM normally supplies them with richer
+// prose. Returns the patched array (does not mutate the input).
+export function enforceSNFloor(groups, meta = {}, findings = {}) {
+  const out = Array.isArray(groups) ? [...groups] : [];
+  const has = id => out.some(g => g && g.id === id);
+
+  if (!has('seniority') && findings.seniority) {
+    const s = findings.seniority;
+    const level = s.level || 'Mid-Level';
+    out.unshift({
+      id: 'seniority',
+      title: 'Seniority & Career Level',
+      finding: `Inferred level: ${level}. ${s.evidence || 'Based on work-history dates.'}`,
+      examples: [],
+      recommendation: `Confirm as ${level} — this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
+      insight: 'Seniority framing is the single biggest lever on how a recruiter reads every bullet.',
+      recommended_overrides: { seniority_level: `${level} (confirmed by user)` },
+    });
+  }
+
+  const roleName = meta.position_title || '';
+  const isSeniorRole = /grade\s*[456789]|band\s*[456789]|cns|clinical nurse specialist|senior\s+nurse|specialist|manager|director|lead|principal|head\s+of/i.test(roleName);
+  if (isSeniorRole && !has('key_achievements')) {
+    out.push({
+      id: 'key_achievements',
+      title: 'Key Achievements Section',
+      finding: `Senior role detected (${roleName || 'this role'}) — a Key Achievements section is standard at this level.`,
+      examples: [],
+      recommendation: 'Add a Key Achievements section (2–3 bolded, quantified bullets) immediately after the profile paragraph.',
+      insight: 'Senior-role screens run under 30 seconds — this section is the primary attention anchor.',
+      recommended_overrides: { key_achievements_section: 'Include Key Achievements section — 2–3 bullet points with bold metrics immediately after profile paragraph' },
+    });
+  }
+  return out;
+}
+
+// The seniority card's user-facing number is server-owned, not LLM-minted (anti-hallucination). Overwrite
+// recommended_overrides.seniority_level with the string built verbatim from style_findings.seniority.
+export function stampSeniorityOverride(groups, findings = {}) {
+  const g = (groups || []).find(x => x && x.id === 'seniority');
+  if (!g) return groups;
+  const s = findings.seniority || {};
+  const level  = s.level || 'Mid-Level';
+  const relStr = s.relevant_years_experience != null ? `${s.relevant_years_experience} relevant` : null;
+  const totStr = s.years_experience          != null ? `${s.years_experience} total` : null;
+  const yearsStr = [relStr, totStr].filter(Boolean).join(' / ') || 'experience unspecified';
+  g.recommended_overrides = g.recommended_overrides || {};
+  g.recommended_overrides.seniority_level = `${level} (${yearsStr} yrs — confirmed by user)`;
+  return groups;
+}
+
+// Deterministic port of the old SN Phase 7 merge. Reads sn_working.json, applies the user's per-group
+// choice, folds in the optional severity-tagged note, writes the phase-1 sn_output.json. Idempotent.
+const SN_SEVERITY_PREFIX = { high: 'MUST', medium: 'PREFER', low: 'OPTIONAL' };
+
+export function buildSNOutput(answers = {}) {
+  const working = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_working.json'), 'utf8'));
+  const groups = working.groups || [];
+
+  const agreed = {};
+  let recCount = 0, keepCount = 0, customCount = 0;
+  for (const g of groups) {
+    const a = answers[g.id] || { choice: 'recommended' };
+    if (a.choice === 'recommended') {
+      Object.assign(agreed, g.recommended_overrides || {});
+      recCount++;
+    } else if (a.choice === 'customise' && a.custom_text?.trim()) {
+      agreed[`${g.id}_custom`] = a.custom_text.trim();
+      customCount++;
+    } else {
+      keepCount++; // keep_current, or customise with empty text → treated as keep
+    }
+  }
+
+  // Optional free-text note with a user-chosen severity → a priority-prefixed directive the downstream
+  // assembly agents naturally weight (no schema change — agreed_overrides is already directive strings).
+  const note = answers.__note__;
+  if (note && note.text?.trim()) {
+    const prefix = SN_SEVERITY_PREFIX[note.severity] || 'PREFER';
+    agreed.user_note = `[${prefix}] ${note.text.trim()}`;
+  }
+
+  let findings = {};
+  try { findings = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'style_findings.json'), 'utf8')); } catch {}
+  const p = findings.style_patterns || {};
+  const originalStyle = {
+    tense: p.tense, voice: p.voice, bullet_format: p.bullet_format,
+    uses_pronouns_i: p.uses_pronouns_i, uses_full_sentences: p.uses_full_sentences,
+    formality_level: p.formality_level,
+    seniority_inferred: findings.seniority?.level,
+    years_experience: findings.seniority?.years_experience,
+  };
+
+  const overrideCount = Object.keys(agreed).length;
+  const outcome = overrideCount > 0 ? 'OVERRIDES_APPLIED' : 'NO_CHANGES';
+  const summary = `${overrideCount} override(s) applied across ${groups.length} style dimension(s). ` +
+    `${recCount} recommended, ${keepCount} kept as-is, ${customCount} customised.` +
+    (note?.text?.trim() ? ` User note added (${note.severity || 'medium'}).` : '') +
+    ` Outcome: ${outcome}.`;
+
+  const output = {
+    phase_number: 1,
+    phase_name:   'Style Negotiation',
+    agent:        'Style Negotiator',
+    status:       'COMPLETE',
+    completed_at: new Date().toISOString(),
+    data: {
+      agreed_overrides:    agreed,
+      negotiation_outcome: outcome,
+      negotiation_summary: summary,
+      original_style:      originalStyle,
+      user_confirmed:      true,
+    },
+  };
+  writeFileSync(join(WORKSPACE_DIR, 'sn_output.json'), JSON.stringify(output, null, 2));
+  return output;
+}
+
+// Called by the style_answers_submit action — finalize the phase entirely server-side (no LLM call).
+export async function submitSNAnswers(answers) {
+  buildSNOutput(answers);
+  await mergePhaseOutput(1);
+  const notes = await _runAssemblyValidator('Style Negotiator');
+  state.snState = 'summary';
+  _showSNContinue(notes);
+}
+
+async function _autoApproveSN(findings = {}) {
+  const p = findings.style_patterns || {};
+  const output = {
+    phase_number: 1, phase_name: 'Style Negotiation', agent: 'Style Negotiator',
+    status: 'COMPLETE', completed_at: new Date().toISOString(),
+    data: {
+      agreed_overrides: {
+        bold_achievements:   'Bold numeric metrics and key results in work history bullets',
+        improve_conciseness: 'Keep bullets concise — under 18 words where possible',
+      },
+      negotiation_outcome: 'NO_ISSUES_FOUND',
+      negotiation_summary: 'No style findings available — default professional overrides applied.',
+      original_style: { tense: p.tense, voice: p.voice, bullet_format: p.bullet_format },
+      user_confirmed: true,
+    },
+  };
+  writeFileSync(join(WORKSPACE_DIR, 'sn_output.json'), JSON.stringify(output, null, 2));
+  await mergePhaseOutput(1);
+  const notes = await _runAssemblyValidator('Style Negotiator');
+  state.snState = 'summary';
+  broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found — default professional enhancements applied.' });
+  _showSNContinue(notes);
 }
 
 export async function mergePhaseOutput(phaseNumber) {
@@ -835,31 +998,6 @@ function _showApproveRevise(agentName, notes = '') {
     actions: [
       { id: 'assembly_approve', label: 'Approve',  variant: 'primary' },
       { id: 'assembly_revise',  label: 'Revise…',  variant: 'ghost'   },
-    ],
-  });
-  broadcastMode('action_required');
-}
-
-function _showSNInterviewButtons() {
-  broadcast({
-    type: 'action_required',
-    context: 'sn_interview',
-    actions: [
-      { id: 'sn_recommended', label: 'Use recommended',    variant: 'primary'   },
-      { id: 'sn_keep',        label: 'Keep current style', variant: 'secondary' },
-      { id: 'sn_customise',   label: 'Customise',          variant: 'ghost'     },
-    ],
-  });
-  broadcastMode('action_required');
-}
-
-function _showSNConfirmButtons() {
-  broadcast({
-    type: 'action_required',
-    context: 'sn_customise_confirm',
-    actions: [
-      { id: 'sn_confirm',  label: 'Confirm',  variant: 'primary' },
-      { id: 'sn_rephrase', label: 'Rephrase', variant: 'ghost'   },
     ],
   });
   broadcastMode('action_required');

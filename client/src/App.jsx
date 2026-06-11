@@ -6,6 +6,7 @@ import { AgentTimeline } from './components/AgentTimeline';
 import { WorkspaceInspector } from './components/WorkspaceInspector';
 import { StartModal } from './components/StartModal';
 import { GapInterviewModal } from './components/GapInterviewModal';
+import { StyleInterviewModal } from './components/StyleInterviewModal';
 import { useStream } from './hooks/useStream';
 import { useTheme } from './theme';
 import './index.css';
@@ -80,6 +81,9 @@ export default function App() {
   const [gapQuestions, setGapQuestions] = useState([]);
   const [showGapModal, setShowGapModal] = useState(false);
   const [gapMinimized, setGapMinimized] = useState(false);
+  const [styleGroups, setStyleGroups] = useState([]);
+  const [showStyleModal, setShowStyleModal] = useState(false);
+  const [styleMinimized, setStyleMinimized] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
   const pendingReasoningRef = useRef('');
@@ -185,6 +189,20 @@ export default function App() {
     }
   }
 
+  async function handleStyleSubmit(answers) {
+    setShowStyleModal(false);
+    setStyleMinimized(false);
+    try {
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'style_answers_submit', answers }),
+      });
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Style submit failed: ${err.message}` }]);
+    }
+  }
+
   useStream(
     useCallback((data) => {
       lastActivityRef.current = Date.now();
@@ -251,6 +269,10 @@ export default function App() {
         setGapQuestions(data.gaps ?? []);
         setShowGapModal(true);
         setGapMinimized(false);
+      } else if (data.type === 'style_interview_start') {
+        setStyleGroups(data.groups ?? []);
+        setShowStyleModal(true);
+        setStyleMinimized(false);
       } else if (data.type === 'status_changed') {
         setStatus(data.status);
       } else if (data.type === 'stream_done') {
@@ -381,7 +403,7 @@ export default function App() {
     setStatus(s);
   }
 
-  const inputDisabled = pipelineMode !== 'user_turn' || sending || showGapModal;
+  const inputDisabled = pipelineMode !== 'user_turn' || sending || showGapModal || showStyleModal;
 
   return (
     <div className="flex flex-col h-screen w-screen bg-app text-base">
@@ -408,6 +430,23 @@ export default function App() {
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
           Continue gap interview
+        </button>
+      )}
+      {showStyleModal && (
+        <StyleInterviewModal
+          groups={styleGroups}
+          onSubmit={handleStyleSubmit}
+          onHide={() => setStyleMinimized(true)}
+          minimized={styleMinimized}
+        />
+      )}
+      {showStyleModal && styleMinimized && (
+        <button
+          onClick={() => setStyleMinimized(false)}
+          className="animate-fade-in-up fixed bottom-24 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
+          Continue style interview
         </button>
       )}
 

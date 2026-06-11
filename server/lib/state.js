@@ -15,7 +15,6 @@ export const state = {
   pendingTADispatch:    false,
   // assembly sequential state
   currentAssemblyPhase: 0,
-  snState:              null, // 'interviewing' | 'customise_text' | 'customise_confirm' | 'summary' | null
-  snPending:            false, // true while sendToSN is awaiting KEMU response
+  snState:              null, // 'modal' | 'summary' | null — single-fire SN modal interview
   awaitingRevision:     null,
 };

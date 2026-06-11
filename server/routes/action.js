@@ -6,19 +6,12 @@ import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } f
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { injectReviewerButtons } from '../lib/button-injection.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, sendToSN, applyFitScore, runReviewAudit, buildReviewSummary } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary } from '../lib/dispatch.js';
 import { classifyGapAnswers } from '../lib/evidence-classifier.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
 const router = express.Router();
 export default router;
-
-function _reshowSNContinue() {
-  broadcast({ type: 'action_required', context: 'sn_summary', actions: [
-    { id: 'sn_continue', label: 'Continue → Build CV', variant: 'primary' },
-  ]});
-  broadcastMode('action_required');
-}
 
 router.post('/', async (req, res) => {
   const { id } = req.body;
@@ -227,41 +220,13 @@ router.post('/', async (req, res) => {
           .catch(err => console.error('[AC redo action] error:', err));
         break;
 
-      // ── SN interview actions ──────────────────────────────────────────────
-      case 'sn_recommended':
-        if (state.snState === 'summary') { _reshowSNContinue(); break; }
-        if (!state.snState) break; // assembly already in progress — stale button
-        state.snState = 'interviewing';
-        await sendToSN('__choice__: recommended');
+      // ── SN style interview (single-fire modal) ────────────────────────────
+      case 'style_answers_submit': {
+        if (state.snState !== 'modal') break; // stale submit — interview already finalized
+        const answers = req.body.answers ?? {};
+        await submitSNAnswers(answers);
         break;
-
-      case 'sn_keep':
-        if (state.snState === 'summary') { _reshowSNContinue(); break; }
-        if (!state.snState) break;
-        state.snState = 'interviewing';
-        await sendToSN('__choice__: keep_current');
-        break;
-
-      case 'sn_customise':
-        if (state.snState === 'summary') { _reshowSNContinue(); break; }
-        if (!state.snState) break;
-        state.snState = 'customise_text';
-        broadcastMode('user_turn');
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Describe your preference for this style dimension:' });
-        break;
-
-      case 'sn_confirm':
-        if (state.snState === 'summary') { _reshowSNContinue(); break; }
-        if (!state.snState) break;
-        state.snState = 'interviewing';
-        await sendToSN('__confirm__');
-        break;
-
-      case 'sn_rephrase':
-        state.snState = 'customise_text';
-        broadcastMode('user_turn');
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Please rephrase your preference:' });
-        break;
+      }
 
       case 'sn_continue':
         state.snState = null;

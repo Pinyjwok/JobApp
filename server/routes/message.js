@@ -4,7 +4,7 @@ import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } f
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { injectReviewerButtons } from '../lib/button-injection.js';
 import { HAPPY_PATH, EXCEPTION_STATUSES, INPUT_NODE_MAP, AGENT_FOREGROUND } from '../config/constants.js';
-import { sendToSN, reShowSectionReview, resolveExtractorStatus, clearExtractorFailure, writeMODispatch } from '../lib/dispatch.js';
+import { reShowSectionReview, resolveExtractorStatus, clearExtractorFailure, writeMODispatch } from '../lib/dispatch.js';
 
 const router = express.Router();
 export default router;
@@ -35,25 +35,12 @@ router.post('/', async (req, res) => {
     return;
   }
 
-  // SN interview active — all text input goes to SN, not AC
-  if (state.snState === 'interviewing') {
+  // SN style interview is modal-driven now (single-fire stylist + StyleInterviewModal). Stray chat text
+  // while the modal ('modal') or summary ('summary') is active has nowhere to go — drop it with a hint.
+  // Per-dimension preferences and any extra note (with severity) are collected inside the modal.
+  if (state.snState) {
     res.json({ ok: true });
-    await sendToSN(message);
-    return;
-  }
-
-  // SN customise text input
-  if (state.snState === 'customise_text') {
-    state.snState = 'customise_confirm';
-    res.json({ ok: true });
-    await sendToSN(`__customise__: ${message}`);
-    return;
-  }
-
-  // SN summary correction
-  if (state.snState === 'summary') {
-    res.json({ ok: true });
-    await sendToSN(`__correction__: ${message}`);
+    broadcast({ type: 'agent_message', agent: 'System', text: 'Use the style interview cards and buttons to continue.' });
     return;
   }
 
