@@ -8,7 +8,7 @@ export const SNAPSHOTS_DIR = join(PROJECT_DIR, 'workspace-snapshots');
 export const HISTORY_FILE  = join(PROJECT_DIR, 'chat_history.json');
 
 export const AGENT_FOREGROUND = new Set([
-  'Main Orchestrator', 'ProjectSetup', 'Researcher', 'Reviewer',
+  'Main Orchestrator', 'ProjectSetup', 'Researcher',
   'Assembly Coordinator', 'Style Negotiator',
   'Profile Builder', 'Skills Curator', 'History Formatter',
   'Credentials Formatter', 'Cover Letter Writer',
@@ -35,7 +35,6 @@ export const INPUT_NODE_MAP = {
   'RESEARCH_COMPLETE':  'jd_enhancer_input',
   'JD_ENHANCED':        'analyst_background_input',
   'PARALLEL_ANALYSIS':  ' Message',
-  'GAP_INTERVIEW':      'reviewer_input',
   'CV_BUILDING':        ' Message',
 };
 
@@ -46,7 +45,6 @@ export const HAPPY_PATH = {
   'RESEARCH_PARTIAL':   'Main Orchestrator',
   'JD_ENHANCED':        'Analyst',
   'PARALLEL_ANALYSIS':  'Tone Analyst',
-  'GAP_INTERVIEW':      'Reviewer',
   'CV_BUILDING':        'Main Orchestrator',
   'STYLE_NEGOTIATING':  'Style Negotiator',
 };

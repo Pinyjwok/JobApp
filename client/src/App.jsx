@@ -86,7 +86,7 @@ export default function App() {
   const [styleMinimized, setStyleMinimized] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
-  const pendingReasoningRef = useRef('');
+  const pendingReasoningRef = useRef({});  // { [agent]: text }
   const lastActivityRef = useRef(Date.now());
   const isWaitingRef = useRef(false);
 
@@ -208,12 +208,13 @@ export default function App() {
       lastActivityRef.current = Date.now();
       if (data.type === 'agent_message') {
         setIsWaiting(false);
-        const reasoning = pendingReasoningRef.current;
-        pendingReasoningRef.current = '';
+        const agentName = data.agent ?? activeAgent;
+        const reasoning = pendingReasoningRef.current[agentName] ?? '';
+        delete pendingReasoningRef.current[agentName];
         setMessages((prev) => {
           const next = [...prev, {
             role: 'agent',
-            agent: data.agent ?? activeAgent,
+            agent: agentName,
             text: data.text,
             reasoning,
             background: data.background ?? false,
@@ -227,7 +228,19 @@ export default function App() {
           .then((d) => setStatus(d.status))
           .catch(() => {});
       } else if (data.type === 'reasoning') {
-        pendingReasoningRef.current = data.text;
+        pendingReasoningRef.current[data.agent] = data.text;
+        // Late-arrival: if the agent_message already landed, patch it in-place
+        setMessages((prev) => {
+          const idx = [...prev].reverse().findIndex(
+            (m) => m.role === 'agent' && m.agent === data.agent && !m.reasoning?.trim()
+          );
+          if (idx === -1) return prev;
+          const realIdx = prev.length - 1 - idx;
+          delete pendingReasoningRef.current[data.agent];
+          const updated = [...prev];
+          updated[realIdx] = { ...updated[realIdx], reasoning: data.text };
+          return updated;
+        });
       } else if (data.type === 'action_required') {
         setMessages((prev) => {
           const next = [...prev, {

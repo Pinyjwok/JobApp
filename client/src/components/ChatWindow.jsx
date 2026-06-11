@@ -22,6 +22,7 @@ const mdComponents = {
   pre: ({ children }) => <>{children}</>,
   blockquote: ({ children }) => <blockquote className="border-l-2 border-accent/50 pl-3 text-fg-muted my-2 italic">{children}</blockquote>,
   hr: () => <hr className="border-line my-3" />,
+  a: ({ href, children }) => <a href={href} target="_blank" rel="noreferrer" className="text-accent underline underline-offset-2 hover:opacity-80">{children}</a>,
   table: ({ children }) => <div className="overflow-x-auto my-2"><table className="text-xs border-collapse w-full">{children}</table></div>,
   th: ({ children }) => <th className="border border-line px-2.5 py-1.5 bg-surface-2 text-fg font-medium text-left">{children}</th>,
   td: ({ children }) => <td className="border border-line px-2.5 py-1.5 text-fg-secondary">{children}</td>,

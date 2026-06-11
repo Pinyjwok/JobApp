@@ -4,7 +4,6 @@ import { WORKSPACE_DIR, ASSEMBLY_PHASES } from '../config/constants.js';
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { injectReviewerButtons } from './button-injection.js';
 
 // ── TA / Analyst / Reviewer join ──────────────────────────────────────────────
 
@@ -50,12 +49,7 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { cleanText } = parseAndStripStatus(raw);
-      state.analystOutputText = await _runValidator(cleanText, 'analyst', {
-        node:         'analyst_validator_input',
-        verdictFile:  'analyst_validator_verdict.json',
-        retryNode:    'analyst_background_input',
-        retryMessage: '__analyze__',
-      });
+      state.analystOutputText = cleanText; // validator is now called as a tool by the Analyst itself
       state.analystDone = true;
       syncTADone();
       await checkJoin();

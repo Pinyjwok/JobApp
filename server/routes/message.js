@@ -2,7 +2,6 @@ import express from 'express';
 import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
-import { injectReviewerButtons } from '../lib/button-injection.js';
 import { HAPPY_PATH, EXCEPTION_STATUSES, INPUT_NODE_MAP, AGENT_FOREGROUND } from '../config/constants.js';
 import { reShowSectionReview, resolveExtractorStatus, clearExtractorFailure, writeMODispatch } from '../lib/dispatch.js';
 
@@ -15,7 +14,6 @@ const RERUN_MAP = [
   { pattern: /researcher|research/i, resetStatus: 'INITIALIZED',       agent: 'Researcher'  },
   { pattern: /jd.?enhancer|jd/i,     resetStatus: 'RESEARCH_COMPLETE', agent: 'JD Enhancer' },
   { pattern: /analyst/i,             resetStatus: 'JD_ENHANCED',       agent: 'Analyst'     },
-  { pattern: /reviewer|review/i,     resetStatus: 'ANALYSIS_COMPLETE', agent: 'Reviewer'    },
 ];
 
 router.post('/', async (req, res) => {
@@ -106,10 +104,7 @@ router.post('/', async (req, res) => {
       // the EXTRACTION_FAILED tag — force it rather than retaining a stale prior status.
       if (nextAgent === 'Extractor') status = resolveExtractorStatus(status);
 
-      if (nextAgent === 'Reviewer') {
-        broadcastAgentResult(cleanText, 'Reviewer', true);
-        if (status !== 'REVIEW_COMPLETE' && status !== 'REVIEW_FAILED') injectReviewerButtons();
-      } else if (nextAgent === 'ProjectSetup') {
+      if (nextAgent === 'ProjectSetup') {
         const validationMatch = raw.match(/VALIDATION_FAILED:(\S+)/);
         if (validationMatch) {
           const errType = validationMatch[1];

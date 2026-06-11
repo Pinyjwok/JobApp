@@ -4,7 +4,6 @@ import { join } from 'path';
 import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
-import { injectReviewerButtons } from '../lib/button-injection.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
 import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary } from '../lib/dispatch.js';
 import { classifyGapAnswers } from '../lib/evidence-classifier.js';
@@ -321,7 +320,7 @@ router.post('/', async (req, res) => {
           user_answer: rawAnswers[g.id] || null,
           skipped: !rawAnswers[g.id],
         }));
-        broadcastMode('auto_running', 'Reviewer');
+        broadcastMode('auto_running', 'Analysis');
         await state.recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
         state.pipelineStatus = 'GAP_INTERVIEW';
 
@@ -370,45 +369,15 @@ router.post('/', async (req, res) => {
           console.error('[gap_answers_submit] applyFitScore error:', err.message);
         }
 
-        if (auditResult.backableIssues.length === 0) {
-          // No user-resolvable issues — finalize entirely server-side, no LLM call.
-          const status = auditResult.audit.overall_verdict === 'APPROVED' ? 'REVIEW_COMPLETE' : 'REVIEW_FAILED';
-          broadcastAgentResult(banner + buildReviewSummary(auditResult.audit), 'Reviewer', true);
-          await state.recipe.globalVariables.setValue('pipeline_status', status);
-          state.pipelineStatus = status;
-          // Fire-and-forget: REVIEW_COMPLETE kicks off assembly (SN dispatch) — must not hold the HTTP
-          // response open. The 30s recentlyDispatched guard dedups this against the setValue→onChange call.
-          handlePipelineStatus(status).catch(err => console.error('[gap_answers_submit finalize] route error:', err.message));
-        } else {
-          // Backable issues exist — hand off to the Reviewer node for interactive Phase 7.5. Its Phase 0
-          // re-invocation guard sees the server-written review_audit.json and resumes at issue resolution.
-          console.log(`[gap_answers_submit] ${auditResult.backableIssues.length} backable issue(s) → Reviewer node for Phase 7.5`);
-          sendToNodeAndWait('reviewer_input', 'Reviewer', '__resolve__')
-            .then(async r => {
-              const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-              let banner2 = '';
-              try { banner2 = `**Fit Score: ${applyFitScore(join(WORKSPACE_DIR, 'gap_analysis.json'))}/10**\n\n`; } catch {}
-              broadcastAgentResult(banner2 + cleanText, 'Reviewer', true);
-              if (status !== 'REVIEW_COMPLETE' && status !== 'REVIEW_FAILED') injectReviewerButtons();
-              if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            })
-            .catch(err => console.error('[Reviewer Phase 7.5] error:', err));
-        }
+        const status = auditResult.audit.overall_verdict === 'APPROVED' ? 'REVIEW_COMPLETE' : 'REVIEW_FAILED';
+        broadcastAgentResult(banner + buildReviewSummary(auditResult.audit), 'Analysis', true);
+        await state.recipe.globalVariables.setValue('pipeline_status', status);
+        state.pipelineStatus = status;
+        // Fire-and-forget: REVIEW_COMPLETE kicks off assembly (SN dispatch) — must not hold the HTTP
+        // response open. The 30s recentlyDispatched guard dedups this against the setValue→onChange call.
+        handlePipelineStatus(status).catch(err => console.error('[gap_answers_submit finalize] route error:', err.message));
         break;
       }
-
-      case 'reviewer_skip':
-        // Phase 7.5 issue resolution skip — "Skip — leave flagged"
-        broadcastMode('auto_running', 'Reviewer');
-        sendToNodeAndWait('reviewer_input', 'Reviewer', 'skip')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Reviewer', true);
-            injectReviewerButtons();
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-          })
-          .catch(err => console.error('[Reviewer skip action] error:', err));
-        break;
 
       case 'cl_skip':
       case 'ta_upload_cover':
