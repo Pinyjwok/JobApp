@@ -5,7 +5,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall } from '../lib/dispatch.js';
 import { classifyGapAnswers } from '../lib/evidence-classifier.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
@@ -30,13 +30,14 @@ router.post('/', async (req, res) => {
         await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
         state.pipelineStatus = 'PARALLEL_ANALYSIS';
         state.analystDone = false;
+        state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
         sendToNodeAndWait('analyst_background_input', null, '__analyze__')
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
             state.analystDone = true; syncTADone(); await checkJoin();
           })
-          .catch(err => console.error('[Analyst confirm] error:', err));
+          .catch(err => surfaceStall('Analyst', err));
         break;
 
       case 'research_redo':
@@ -52,79 +53,49 @@ router.post('/', async (req, res) => {
             else console.warn('[Researcher redo] missing pipeline_status tag');
             checkResearchRedoJoin();
           })
-          .catch(err => console.error('[Researcher redo action] error:', err));
+          .catch(err => surfaceStall('Researcher', err));
         break;
 
       case 'redo_analyst': {
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running gap analysis…' });
         broadcastMode('auto_running', 'Analyst');
+        clearStaleAnalysis();  // else the Analyst's re-invocation guard sees the old file and bails
         state.pipelineStatus = 'JD_ENHANCED';
         state.analystDone = false;
         syncTADone();
+        state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
         sendToNodeAndWait('analyst_background_input', null, '__analyze__')
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
             state.analystDone = true; syncTADone(); await checkJoin();
           })
-          .catch(err => console.error('[Analyst redo action] error:', err));
+          .catch(err => surfaceStall('Analyst', err));
         break;
       }
 
       case 'redo_researcher':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research…' });
-        broadcastMode('auto_running', 'Researcher');
         state.pipelineStatus = 'INITIALIZED';
-        sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Researcher', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[Researcher redo_researcher] missing pipeline_status tag');
-          })
-          .catch(err => console.error('[Researcher redo action] error:', err));
+        runLinearDispatch({ node: 'researcher_input', agent: 'Researcher', query: '__redo__' });
         break;
 
       case 'redo_jd_enhancer':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running JD enhancement…' });
-        broadcastMode('auto_running', 'JD Enhancer');
         state.pipelineStatus = 'RESEARCH_COMPLETE';
-        sendToNodeAndWait('jd_enhancer_input', 'JD Enhancer')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'JD Enhancer', false);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[JD Enhancer] missing pipeline_status tag');
-          })
-          .catch(err => console.error('[JD Enhancer redo action] error:', err));
+        runLinearDispatch({ node: 'jd_enhancer_input', agent: 'JD Enhancer' });
         break;
 
       case 'research_pre_confirm':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed — running JD enhancement…' });
-        broadcastMode('auto_running', 'JD Enhancer');
         state.pipelineStatus = 'RESEARCH_COMPLETE';
-        sendToNodeAndWait('jd_enhancer_input', 'JD Enhancer')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'JD Enhancer', false);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[JD Enhancer] missing pipeline_status tag');
-          })
-          .catch(err => console.error('[JD Enhancer pre-confirm] error:', err));
+        runLinearDispatch({ node: 'jd_enhancer_input', agent: 'JD Enhancer' });
         break;
 
       case 'research_pre_redo':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research…' });
-        broadcastMode('auto_running', 'Researcher');
         state.pipelineStatus = 'INITIALIZED';
-        sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Researcher', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[Researcher pre-redo] missing pipeline_status tag');
-          })
-          .catch(err => console.error('[Researcher pre-redo] error:', err));
+        runLinearDispatch({ node: 'researcher_input', agent: 'Researcher', query: '__redo__' });
         break;
 
       case 'research_partial_proceed':
@@ -145,21 +116,13 @@ router.post('/', async (req, res) => {
             broadcastAgentResult(cleanText, 'Main Orchestrator', true);
             if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
           })
-          .catch(err => console.error('[MO details action] error:', err));
+          .catch(err => surfaceStall('Main Orchestrator', err));
         break;
 
       case 'research_retry':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Retrying research…' });
-        broadcastMode('auto_running', 'Researcher');
         state.pipelineStatus = 'INITIALIZED';
-        sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Researcher', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[Researcher retry] missing pipeline_status tag');
-          })
-          .catch(err => console.error('[Researcher retry action] error:', err));
+        runLinearDispatch({ node: 'researcher_input', agent: 'Researcher', query: '__redo__' });
         break;
 
       case 'research_skip':
@@ -170,31 +133,25 @@ router.post('/', async (req, res) => {
       case 'analysis_retry': {
         broadcast({ type: 'agent_message', agent: 'System', text: 'Retrying gap analysis…' });
         broadcastMode('auto_running', 'Analyst');
+        clearStaleAnalysis();  // else the Analyst's re-invocation guard sees the old file and bails
         state.pipelineStatus = 'JD_ENHANCED';
         state.analystDone = false;
         syncTADone();
+        state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
         sendToNodeAndWait('analyst_background_input', null, '__analyze__')
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
             state.analystDone = true; syncTADone(); await checkJoin();
           })
-          .catch(err => console.error('[Analyst retry action] error:', err));
+          .catch(err => surfaceStall('Analyst', err));
         break;
       }
 
       case 'analysis_redo_researcher':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research before retrying analysis…' });
-        broadcastMode('auto_running', 'Researcher');
         state.pipelineStatus = 'INITIALIZED';
-        sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Researcher', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[Researcher analysis_redo] missing pipeline_status tag');
-          })
-          .catch(err => console.error('[Researcher for analysis action] error:', err));
+        runLinearDispatch({ node: 'researcher_input', agent: 'Researcher', query: '__redo__' });
         break;
 
       case 'ac_proceed':
@@ -205,7 +162,7 @@ router.post('/', async (req, res) => {
             broadcastAgentResult(cleanText, 'Assembly Coordinator', true);
             if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
           })
-          .catch(err => console.error('[AC proceed action] error:', err));
+          .catch(err => surfaceStall('Assembly Coordinator', err));
         break;
 
       case 'ac_redo':
@@ -216,7 +173,7 @@ router.post('/', async (req, res) => {
             broadcastAgentResult(cleanText, 'Main Orchestrator', true);
             if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
           })
-          .catch(err => console.error('[AC redo action] error:', err));
+          .catch(err => surfaceStall('Main Orchestrator', err));
         break;
 
       // ── SN style interview (single-fire modal) ────────────────────────────
@@ -227,9 +184,14 @@ router.post('/', async (req, res) => {
         break;
       }
 
-      case 'sn_continue':
-        state.snState = null;
-        await dispatchAssemblyPhase(2);
+      // ── Stall recovery (#2) ───────────────────────────────────────────────
+      case 'retry_last_dispatch':
+        if (typeof state.retryThunk === 'function') {
+          broadcast({ type: 'agent_message', agent: 'System', text: 'Retrying…' });
+          Promise.resolve(state.retryThunk()).catch(err => surfaceStall('Retry', err));
+        } else {
+          broadcast({ type: 'agent_message', agent: 'System', text: 'Nothing to retry.' });
+        }
         break;
 
       // ── Assembly section review actions ───────────────────────────────────
@@ -286,7 +248,7 @@ router.post('/', async (req, res) => {
         // Re-dispatch History Formatter (phase 4) with correction
         broadcastMode('auto_running', 'History Formatter');
         broadcast({ type: 'agent_message', agent: 'System', text: `Re-running History Formatter to correct ${dateClaims.length} date issue(s)…` });
-        const hfResult = await sendToNodeAndWait(' Message', 'History Formatter', reviseMsg);
+        const hfResult = await sendToNodeAndWait(ASSEMBLY_PHASES[4].inputNode, 'History Formatter', reviseMsg);
         const { cleanText: hfText } = parseAndStripStatus(typeof hfResult === 'string' ? hfResult : JSON.stringify(hfResult ?? ''));
         broadcastAgentResult(hfText, 'History Formatter', true);
         await new Promise(r => setTimeout(r, 1000));

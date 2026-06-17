@@ -1,14 +1,82 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, rmSync } from 'fs';
 import { join } from 'path';
-import { WORKSPACE_DIR, ASSEMBLY_PHASES } from '../config/constants.js';
+import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND } from '../config/constants.js';
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
+
+// ── Status-tag fallback + stall recovery (#1 / #2) ────────────────────────────
+
+// #1: when an agent finishes but drops its `pipeline_status:` tag, infer the expected
+// next status for the deterministic linear agents (EXPECTED_STATUS) and advance anyway.
+// Returns the resolved status, or null if there's no inference rule (caller should stall).
+export function resolveAgentStatus(agentName, parsedStatus) {
+  if (parsedStatus) return parsedStatus;
+  const inferred = EXPECTED_STATUS[agentName];
+  if (inferred) {
+    console.warn(`[${agentName}] missing pipeline_status tag — inferring ${inferred}`);
+    return inferred;
+  }
+  return null;
+}
+
+// Single recovery affordance for #1 (no inference rule) and #2 (timeout/throw): surface a
+// visible error bubble + a Retry gate that re-fires state.retryThunk.
+export function surfaceStall(agentName, err) {
+  console.error(`[stall] ${agentName}: ${err?.message ?? 'no status tag and no inference rule'}`);
+  const timedOut = err?.message?.startsWith('STALL:');
+  broadcast({
+    type: 'agent_message', agent: 'System',
+    text: `⚠ **${agentName}** didn't return a result${timedOut ? ' (timed out)' : ''}. You can retry this step.`,
+  });
+  broadcast({
+    type: 'action_required', context: 'dispatch_stall',
+    actions: [{ id: 'retry_last_dispatch', label: `Retry ${agentName}`, variant: 'primary' }],
+  });
+  broadcastMode('action_required');
+}
+
+// Consolidated fire → parse → advance for the linear happy-path agents. Registers a retry
+// thunk, applies the Extractor failure gate then the status-tag fallback, and either advances
+// (setValue → onChange drives the next step) or surfaces a stall.
+export async function runLinearDispatch({ node, agent, query = '__auto__', foreground }) {
+  state.retryThunk = () => runLinearDispatch({ node, agent, query, foreground });
+  const fg = foreground ?? AGENT_FOREGROUND.has(agent);
+  broadcastMode('auto_running', agent);
+  try {
+    const r = await sendToNodeAndWait(node, agent, query);
+    let { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
+    if (agent === 'Extractor') status = resolveExtractorStatus(status);
+    status = resolveAgentStatus(agent, status);
+    broadcastAgentResult(cleanText, agent, fg);
+    if (status) {
+      await state.recipe.globalVariables.setValue('pipeline_status', status);
+      state.pipelineStatus = status;
+    } else {
+      surfaceStall(agent, new Error('no status tag and no inference rule'));
+    }
+  } catch (err) {
+    surfaceStall(agent, err);
+  }
+}
 
 // ── TA / Analyst / Reviewer join ──────────────────────────────────────────────
 
 export function syncTADone() {
   try { readFileSync(join(WORKSPACE_DIR, 'style_findings.json')); state.taDone = true; } catch {}
+}
+
+// On a re-run of the Analyst, delete the stale gap_analysis.json before re-firing the node.
+// The Analyst's Phase 1 re-invocation guard bails (SwitchAgent → MO) whenever gap_analysis.json
+// already has a `requirements` array, so a redo that leaves the old file on disk would no-op.
+// Clearing it makes "file present" mean "genuinely complete" — the guard then only trips on a
+// true KEMU double-fire, not on an intentional redo.
+export function clearStaleAnalysis() {
+  try {
+    rmSync(join(WORKSPACE_DIR, 'gap_analysis.json'), { force: true });
+  } catch (err) {
+    console.error('[clearStaleAnalysis] could not remove gap_analysis.json:', err);
+  }
 }
 
 export function fireTAAndAnalyst() {
@@ -24,17 +92,10 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { status, cleanText } = parseAndStripStatus(raw);
-      // Tone validator — middleman between TA and Style Negotiator. Runs for its file-level effects:
-      // a REJECT (fabricated quote / bad register) clears style_findings.json and re-runs TA; non-blocking
-      // "unsubstantiated" notes ride in tone_validator_verdict.json, which SN reads. TA is silent by design,
-      // so we discard the validator's returned text and keep broadcasting TA's own completion bubble.
-      await _runValidator(cleanText, 'tone_analyst', {
-        node:         'tone_validator_input',
-        verdictFile:  'tone_validator_verdict.json',
-        retryNode:    'tone_analyst_input',
-        retryMessage: '__tone_analysis__',
-        retryLabel:   'Tone Analyst',
-      });
+      // Tone validator is now called as a tool by the Tone Analyst itself (mirrors the Analyst path) —
+      // the server no longer fires tone_validator_input. The inline tone_validator sub-agent still writes
+      // tone_validator_verdict.json (the Style Negotiator reads findings_for_sn from it) and TA owns its own
+      // REJECT/retry loop. We just broadcast TA's completion bubble and join.
       stampTimestamp('style_findings.json', 'analyzed_at'); // BUG-126 class — TA hallucinates this; server owns it
       broadcastAgentResult(cleanText, 'Tone Analyst', false);
       if (status) {
@@ -449,54 +510,9 @@ function stripAnalystNarration(text) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Server-orchestrated validator gate, parameterized per caller. Analyst and Tone Analyst run in
-// PARALLEL (fireTAAndAnalyst), so each MUST hit its own node + verdict file — a shared node can't
-// process concurrent invocations, and a shared verdict file would have one agent clobber the other.
-// opts.node / opts.verdictFile namespace both; opts.retryNode/retryMessage/retryLabel drive the
-// one-shot REJECT re-run of the calling agent.
-async function _runValidator(callerText, agent, opts = {}) {
-  const {
-    node         = 'validator_input',
-    verdictFile  = 'validator_verdict.json',
-    retryNode    = 'analyst_background_input',
-    retryMessage = '__analyze__',
-    retryLabel   = null,
-  } = opts;
-  const readVerdict = () => JSON.parse(readFileSync(join(WORKSPACE_DIR, verdictFile), 'utf8'));
-  try {
-    await sendToNodeAndWait(node, 'Validator', agent);
-    const verdict = readVerdict();
-    console.log(`[Validator] verdict=${verdict.verdict} for ${agent} (${verdict.issues?.length ?? 0} issue(s))`);
-
-    if (verdict.verdict === 'APPROVE') return callerText;
-
-    if (verdict.verdict === 'FLAG') {
-      const warnings = (verdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
-      return callerText + '\n\n⚠ Quality notes:\n' + warnings;
-    }
-
-    if (verdict.verdict === 'REJECT') {
-      console.log(`[Validator] REJECT for ${agent} — retrying once`);
-      const retryResult = await sendToNodeAndWait(retryNode, retryLabel, retryMessage);
-      const { cleanText: retryText } = parseAndStripStatus(
-        typeof retryResult === 'string' ? retryResult : JSON.stringify(retryResult ?? '')
-      );
-      await sendToNodeAndWait(node, 'Validator', agent);
-      try {
-        const retryVerdict = readVerdict();
-        console.log(`[Validator] retry verdict=${retryVerdict.verdict} for ${agent}`);
-        if (retryVerdict.verdict === 'FLAG') {
-          const warnings = (retryVerdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
-          return retryText + '\n\n⚠ Quality notes:\n' + warnings;
-        }
-      } catch {}
-      return retryText;
-    }
-  } catch (err) {
-    console.error('[Validator] error:', err.message);
-  }
-  return callerText; // fallback: show original on any Validator failure
-}
+// NOTE: the old server-orchestrated `_runValidator` gate was removed (2026-06-16). Both the Analyst and the
+// Tone Analyst now call their validators (analyst_validator / tone_validator) inline as tools and own their
+// own one-shot REJECT/retry loops. Assembly validation still runs server-side via `_runAssemblyValidator`.
 
 export async function checkJoin() {
   if (!state.recipe) return;
@@ -606,8 +622,8 @@ const ASSEMBLY_VALIDATOR_AGENT = {
 };
 
 // Advisory assembly validator — fires after a section is produced/merged, BEFORE the human Approve/Revise.
-// APPROVE/FLAG only: it never re-runs an agent (the human owns the gate), so it does NOT go through
-// _runValidator's REJECT/retry path. Returns FLAG notes to thread into the review bubble, or '' otherwise.
+// APPROVE/FLAG only: it never re-runs an agent (the human owns the gate), so there is no REJECT/retry path.
+// Returns FLAG notes to thread into the review bubble, or '' otherwise.
 async function _runAssemblyValidator(phaseAgent) {
   const agentKey = ASSEMBLY_VALIDATOR_AGENT[phaseAgent];
   if (!agentKey) return '';
@@ -649,7 +665,7 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   } catch {}
 
   broadcastMode('auto_running', phase.agent);
-  const result = await sendToNodeAndWait(' Message', phase.agent, `__build__${ctx}`);
+  const result = await sendToNodeAndWait(phase.inputNode, phase.agent, `__build__${ctx}`);
   const { cleanText } = parseAndStripStatus(typeof result === 'string' ? result : JSON.stringify(result ?? ''));
   broadcastAgentResult(cleanText, phase.agent, true);
 
@@ -679,7 +695,7 @@ async function _startSNInterview() {
   // Fire SN once — it writes sn_groups.json. SN is silent (like TA / the gap interview): the modal
   // carries all the content, so we discard its text output.
   try {
-    await sendToNodeAndWait(' Message', 'Style Negotiator', '__style_analyze__');
+    await sendToNodeAndWait('style_negotiator_input', 'Style Negotiator', '__style_analyze__');
   } catch (e) {
     console.error('[SN] node error:', e.message);
   }
@@ -843,8 +859,7 @@ export async function submitSNAnswers(answers) {
   buildSNOutput(answers);
   await mergePhaseOutput(1);
   const notes = await _runAssemblyValidator('Style Negotiator');
-  state.snState = 'summary';
-  _showSNContinue(notes);
+  await _advanceFromSN(notes);
 }
 
 async function _autoApproveSN(findings = {}) {
@@ -866,9 +881,8 @@ async function _autoApproveSN(findings = {}) {
   writeFileSync(join(WORKSPACE_DIR, 'sn_output.json'), JSON.stringify(output, null, 2));
   await mergePhaseOutput(1);
   const notes = await _runAssemblyValidator('Style Negotiator');
-  state.snState = 'summary';
   broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found — default professional enhancements applied.' });
-  _showSNContinue(notes);
+  await _advanceFromSN(notes);
 }
 
 export async function mergePhaseOutput(phaseNumber) {
@@ -997,17 +1011,19 @@ function _showApproveRevise(agentName, notes = '') {
   broadcastMode('action_required');
 }
 
-function _showSNContinue(notes = '') {
+// SN done → straight into Profile Builder. No "Continue → Build CV" button.
+// PB is dispatched DETACHED on a fresh tick: the SN-submit request already spent
+// one KEMU round-trip on the assembly validator, and KEMU hangs if a second
+// sendToInputWidgetAndWaitForOutput is chained in the same request. Firing PB
+// after the request settles restores the old two-request (button) shape.
+function _advanceFromSN(notes = '') {
   if (notes) {
     broadcast({ type: 'agent_message', agent: 'System', background: true,
-      text: `⚠ Validator notes on the style negotiation (review before continuing):\n${notes}` });
+      text: `⚠ Validator notes on the style negotiation:\n${notes}` });
   }
-  broadcast({
-    type: 'action_required',
-    context: 'sn_summary',
-    actions: [
-      { id: 'sn_continue', label: 'Continue → Build CV', variant: 'primary' },
-    ],
-  });
-  broadcastMode('action_required');
+  state.snState = null;
+  setTimeout(() => {
+    dispatchAssemblyPhase(2).catch(err =>
+      console.error('[advanceFromSN] Profile Builder dispatch failed:', err.message));
+  }, 500);
 }

@@ -7,7 +7,7 @@ import {
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, fireTAAndAnalyst, stampTimestamp, resolveExtractorStatus, clearExtractorFailure, writeMODispatch } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, fireTAAndAnalyst, stampTimestamp, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -178,12 +178,14 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     broadcastMode('auto_running', agent);
     console.log(`[pipeline_status] auto-fire ${status} → ${node}`);
     if (agent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
+    state.retryThunk = () => { state.recentlyDispatched.delete(status); return handlePipelineStatus(status); };
     sendToNodeAndWait(node, agent)
       .then(async r => {
         let { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
         // Deterministic failure gate: if the Extractor wrote a failure_reason but dropped
         // the EXTRACTION_FAILED tag, force it — don't retain a stale prior status.
         if (agent === 'Extractor') newStatus = resolveExtractorStatus(newStatus);
+        newStatus = resolveAgentStatus(agent, newStatus);  // #1: infer expected status on dropped tag
         broadcastAgentResult(cleanText, agent, AGENT_FOREGROUND.has(agent));
         if (status === 'INITIALIZED' && state.researchPartial) {
           state.researchPartial = false;
@@ -202,9 +204,9 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
           await state.recipe.globalVariables.setValue('pipeline_status', newStatus);
           state.pipelineStatus = newStatus;
         } else {
-          console.warn(`[${agent}] missing pipeline_status tag`);
+          surfaceStall(agent, new Error('no status tag and no inference rule'));
         }
       })
-      .catch(err => console.error(`[${agent}] error:`, err));
+      .catch(err => surfaceStall(agent, err));
   }
 }

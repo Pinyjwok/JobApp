@@ -3,7 +3,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { HAPPY_PATH, EXCEPTION_STATUSES, INPUT_NODE_MAP, AGENT_FOREGROUND } from '../config/constants.js';
-import { reShowSectionReview, resolveExtractorStatus, clearExtractorFailure, writeMODispatch } from '../lib/dispatch.js';
+import { reShowSectionReview, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch, clearStaleAnalysis } from '../lib/dispatch.js';
 
 const router = express.Router();
 export default router;
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
   }
 
   // SN style interview is modal-driven now (single-fire stylist + StyleInterviewModal). Stray chat text
-  // while the modal ('modal') or summary ('summary') is active has nowhere to go — drop it with a hint.
+  // while the modal ('modal') is active has nowhere to go — drop it with a hint.
   // Per-dimension preferences and any extra note (with severity) are collected inside the modal.
   if (state.snState) {
     res.json({ ok: true });
@@ -48,14 +48,15 @@ router.post('/', async (req, res) => {
     state.awaitingRevision = null;
     res.json({ ok: true });
     broadcastMode('auto_running', section.agent);
-    sendToNodeAndWait(section.inputNode, section.agent, `__revise__: ${message}`)
+    state.retryThunk = () => sendToNodeAndWait(section.inputNode, section.agent, `__revise__: ${message}`)
       .then(async r => {
         const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
         broadcastAgentResult(cleanText, section.agent, true);
         await new Promise(resolve => setTimeout(resolve, 1000));
         await reShowSectionReview(section.phaseNumber);
       })
-      .catch(err => console.error(`[${section.agent} revise] error:`, err));
+      .catch(err => surfaceStall(section.agent, err));
+    state.retryThunk();
     return;
   }
 
@@ -71,6 +72,8 @@ router.post('/', async (req, res) => {
         await state.recipe.globalVariables.setValue('pipeline_status', match.resetStatus);
         state.pipelineStatus = match.resetStatus;
       } catch {}
+      // Analyst rerun: clear the old gap_analysis.json so its re-invocation guard doesn't bail.
+      if (match.agent === 'Analyst') clearStaleAnalysis();
       nextAgent = match.agent;
       node = INPUT_NODE_MAP[match.resetStatus] ?? ' Message';
       console.log(`[route] rerun "${match.agent}" — status reset to ${match.resetStatus}`);
@@ -96,6 +99,13 @@ router.post('/', async (req, res) => {
   const foreground = AGENT_FOREGROUND.has(nextAgent);
   if (nextAgent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
   if (nextAgent === 'Main Orchestrator') writeMODispatch(status);  // authoritative status → mo_dispatch.json
+  state.retryThunk = () => fireUserMessage(node, nextAgent, message, sessionId, foreground);
+  fireUserMessage(node, nextAgent, message, sessionId, foreground);
+});
+
+// Fire a user-message dispatch and run the generic completion (parse → advance / stall).
+// Extracted so the stall Retry button (state.retryThunk) can re-fire the exact same call.
+function fireUserMessage(node, nextAgent, message, sessionId, foreground) {
   sendToNodeAndWait(node, nextAgent, message, sessionId)
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
@@ -128,12 +138,14 @@ router.post('/', async (req, res) => {
         broadcastAgentResult(cleanText, nextAgent, foreground);
       }
 
+      status = resolveAgentStatus(nextAgent, status);  // #1: infer expected status on dropped tag
       if (status) {
         await state.recipe.globalVariables.setValue('pipeline_status', status);
         state.pipelineStatus = status;
       } else {
+        // Non-linear agent (e.g. Main Orchestrator conversational reply) — no status change expected. Benign.
         console.warn(`[${nextAgent}] missing pipeline_status tag`);
       }
     })
-    .catch(err => console.error(`[${nextAgent}] message error:`, err));
-});
+    .catch(err => surfaceStall(nextAgent, err));
+}
