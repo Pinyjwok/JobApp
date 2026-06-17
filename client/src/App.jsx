@@ -6,6 +6,7 @@ import { AgentTimeline } from './components/AgentTimeline';
 import { WorkspaceInspector } from './components/WorkspaceInspector';
 import { StartModal } from './components/StartModal';
 import { GapInterviewModal } from './components/GapInterviewModal';
+import { StyleInterviewModal } from './components/StyleInterviewModal';
 import { useStream } from './hooks/useStream';
 import { useTheme } from './theme';
 import './index.css';
@@ -80,9 +81,12 @@ export default function App() {
   const [gapQuestions, setGapQuestions] = useState([]);
   const [showGapModal, setShowGapModal] = useState(false);
   const [gapMinimized, setGapMinimized] = useState(false);
+  const [styleGroups, setStyleGroups] = useState([]);
+  const [showStyleModal, setShowStyleModal] = useState(false);
+  const [styleMinimized, setStyleMinimized] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
-  const pendingReasoningRef = useRef('');
+  const pendingReasoningRef = useRef({});  // { [agent]: text }
   const lastActivityRef = useRef(Date.now());
   const isWaitingRef = useRef(false);
 
@@ -108,13 +112,15 @@ export default function App() {
   const WELCOME_MESSAGE = {
     role: 'agent',
     agent: 'JobApp',
-    text: `Got your documents — thanks. I'm starting on the analysis now, which takes about a minute. I'll walk you through each step and check in with you along the way.`,
+    text: `Got your documents — thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way.`,
   };
 
   async function handleModalStart(cvFile, jdFile, clFile = null) {
     setModalUploading(true);
 
-    await fetch('/api/reset', { method: 'POST' }).catch(() => {});
+    // Full clear: a new session must not inherit ANY prior files — including a stale
+    // cover_letter_sample.txt, which would otherwise survive and bleed into the run.
+    await fetch('/api/reset?full=1', { method: 'POST' }).catch(() => {});
 
     const uploadFile = async (file, target) => {
       const body = await file.arrayBuffer();
@@ -183,17 +189,33 @@ export default function App() {
     }
   }
 
+  async function handleStyleSubmit(answers) {
+    try {
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'style_answers_submit', answers }),
+      });
+      // Only dismiss once the submit lands — keep the modal (and answers) on failure.
+      setShowStyleModal(false);
+      setStyleMinimized(false);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Style submit failed: ${err.message}` }]);
+    }
+  }
+
   useStream(
     useCallback((data) => {
       lastActivityRef.current = Date.now();
       if (data.type === 'agent_message') {
         setIsWaiting(false);
-        const reasoning = pendingReasoningRef.current;
-        pendingReasoningRef.current = '';
+        const agentName = data.agent ?? activeAgent;
+        const reasoning = pendingReasoningRef.current[agentName] ?? '';
+        delete pendingReasoningRef.current[agentName];
         setMessages((prev) => {
           const next = [...prev, {
             role: 'agent',
-            agent: data.agent ?? activeAgent,
+            agent: agentName,
             text: data.text,
             reasoning,
             background: data.background ?? false,
@@ -207,7 +229,19 @@ export default function App() {
           .then((d) => setStatus(d.status))
           .catch(() => {});
       } else if (data.type === 'reasoning') {
-        pendingReasoningRef.current = data.text;
+        pendingReasoningRef.current[data.agent] = data.text;
+        // Late-arrival: if the agent_message already landed, patch it in-place
+        setMessages((prev) => {
+          const idx = [...prev].reverse().findIndex(
+            (m) => m.role === 'agent' && m.agent === data.agent && !m.reasoning?.trim()
+          );
+          if (idx === -1) return prev;
+          const realIdx = prev.length - 1 - idx;
+          delete pendingReasoningRef.current[data.agent];
+          const updated = [...prev];
+          updated[realIdx] = { ...updated[realIdx], reasoning: data.text };
+          return updated;
+        });
       } else if (data.type === 'action_required') {
         setMessages((prev) => {
           const next = [...prev, {
@@ -249,6 +283,10 @@ export default function App() {
         setGapQuestions(data.gaps ?? []);
         setShowGapModal(true);
         setGapMinimized(false);
+      } else if (data.type === 'style_interview_start') {
+        setStyleGroups(data.groups ?? []);
+        setShowStyleModal(true);
+        setStyleMinimized(false);
       } else if (data.type === 'status_changed') {
         setStatus(data.status);
       } else if (data.type === 'stream_done') {
@@ -379,7 +417,7 @@ export default function App() {
     setStatus(s);
   }
 
-  const inputDisabled = pipelineMode !== 'user_turn' || sending || showGapModal;
+  const inputDisabled = pipelineMode !== 'user_turn' || sending || showGapModal || showStyleModal;
 
   return (
     <div className="flex flex-col h-screen w-screen bg-app text-base">
@@ -406,6 +444,23 @@ export default function App() {
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
           Continue gap interview
+        </button>
+      )}
+      {showStyleModal && (
+        <StyleInterviewModal
+          groups={styleGroups}
+          onSubmit={handleStyleSubmit}
+          onHide={() => setStyleMinimized(true)}
+          minimized={styleMinimized}
+        />
+      )}
+      {showStyleModal && styleMinimized && (
+        <button
+          onClick={() => setStyleMinimized(false)}
+          className="animate-fade-in-up fixed bottom-40 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
+          Continue style interview
         </button>
       )}
 

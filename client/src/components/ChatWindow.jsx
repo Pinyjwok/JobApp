@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ResearchBubble } from './ResearchBubble';
+import { AnalystBubble }  from './AnalystBubble';
+import { ReviewBubble }   from './ReviewBubble';
 
 const mdComponents = {
   h1: ({ children }) => <h1 className="text-lg font-bold text-fg mt-4 mb-2 first:mt-0">{children}</h1>,
@@ -22,6 +25,7 @@ const mdComponents = {
   pre: ({ children }) => <>{children}</>,
   blockquote: ({ children }) => <blockquote className="border-l-2 border-accent/50 pl-3 text-fg-muted my-2 italic">{children}</blockquote>,
   hr: () => <hr className="border-line my-3" />,
+  a: ({ href, children }) => <a href={href} target="_blank" rel="noreferrer" className="text-accent underline underline-offset-2 hover:opacity-80">{children}</a>,
   table: ({ children }) => <div className="overflow-x-auto my-2"><table className="text-xs border-collapse w-full">{children}</table></div>,
   th: ({ children }) => <th className="border border-line px-2.5 py-1.5 bg-surface-2 text-fg font-medium text-left">{children}</th>,
   td: ({ children }) => <td className="border border-line px-2.5 py-1.5 text-fg-secondary">{children}</td>,
@@ -29,36 +33,117 @@ const mdComponents = {
 
 const ERROR_RE = /\bFAILED\b|✗\s|\bError:/;
 
-// One semantic vocabulary, not 19 per-agent colors:
-//   neutral  → the assistant is talking          (border-l-line-strong)
-//   accent   → something needs the user          (handled by ActionBubble)
-//   success  → a background step completed
-//   danger   → an error surfaced                 (ring-danger)
+// ── Message type detectors ─────────────────────────────────────────────────────
+
+/** Researcher completion → ResearchBubble */
+function isResearchComplete(msg) {
+  return (
+    msg.agent === 'Researcher' &&
+    !msg.background &&
+    typeof msg.text === 'string' &&
+    msg.text.includes('Researcher Complete') &&
+    /RESEARCH_(COMPLETE|PARTIAL|FAILED)/.test(msg.text)
+  );
+}
+
+/** Analyst completion → AnalystBubble */
+function isAnalystComplete(msg) {
+  return (
+    msg.agent === 'Analyst' &&
+    !msg.background &&
+    typeof msg.text === 'string' &&
+    msg.text.includes('Analyst Complete')
+  );
+}
+
+/** Quality review verdict → ReviewBubble */
+function isQualityReview(msg) {
+  return (
+    msg.agent === 'Analysis' &&
+    !msg.background &&
+    typeof msg.text === 'string' &&
+    msg.text.includes('Quality Review Complete')
+  );
+}
+
+/** ProjectSetup completion → compact tick (full bubble is overkill) */
+function isProjectSetup(msg) {
+  return (
+    msg.agent === 'ProjectSetup' &&
+    !msg.background &&
+    typeof msg.text === 'string' &&
+    msg.text.includes('ProjectSetup Complete')
+  );
+}
+
+/** MO quality-review warning notice → compact warning chip */
+function isQualityReviewNotice(msg) {
+  return (
+    msg.agent === 'Main Orchestrator' &&
+    !msg.background &&
+    typeof msg.text === 'string' &&
+    msg.text.startsWith('⚠ Quality Review Found Issues')
+  );
+}
+
+// ── Compact renders (no separate file needed) ─────────────────────────────────
+
+function CheckIcon() {
+  return (
+    <svg className="w-3 h-3 shrink-0 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+/** ProjectSetup Complete — same visual weight as background ticks */
+function ProjectSetupTick() {
+  return (
+    <div className="animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-2 border border-line text-xs text-fg-muted max-w-[85%]">
+      <CheckIcon />
+      <span className="text-fg-muted">Project initialised — CV and JD saved</span>
+    </div>
+  );
+}
+
+/** ⚠ Quality Review Found Issues — compact warning chip before action buttons */
+function QualityReviewNotice({ msg }) {
+  // Extract severity counts from the text: "Critical: 1 • High: 0 • Medium: 1 • Low: 0"
+  const counts = (msg.text.match(/Issues found:([^\n]+)/) ?? [])[1]?.trim() ?? '';
+  const hasCritical = /Critical:\s*[1-9]/.test(msg.text);
+  const hasHigh     = /High:\s*[1-9]/.test(msg.text);
+  return (
+    <div className={`animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-2 border text-xs max-w-[85%] ${
+      hasCritical || hasHigh ? 'border-danger/25' : 'border-warn/25'
+    }`}>
+      <span className={hasCritical || hasHigh ? 'text-danger' : 'text-warn'}>⚠</span>
+      <span className="text-fg-secondary font-medium">Quality review found issues</span>
+      {counts && <span className="text-fg-faint ml-1">{counts}</span>}
+    </div>
+  );
+}
+
+// ── Standard AgentBubble (unchanged) ─────────────────────────────────────────
+
 function AgentBubble({ msg }) {
   const [showReasoning, setShowReasoning] = useState(false);
   const hasError = ERROR_RE.test(msg.text);
   const hasReasoning = msg.reasoning?.trim().length > 0;
 
-  // Compact success tick for PS validation success
   if (msg.compact && msg.text === 'SETUP_COMPLETE') {
     return (
       <div className="animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 border-l-line-strong bg-surface-2 border border-line text-xs text-fg-muted max-w-[85%]">
         <span className="font-medium text-fg-secondary">{msg.agent}</span>
-        <svg className="w-3 h-3 shrink-0 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
+        <CheckIcon />
         <span className="text-fg-muted">Files validated</span>
       </div>
     );
   }
 
-  // Background steps — dimmer, single-line
   if (msg.background) {
     return (
       <div className="animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-2 border border-line text-xs text-fg-muted max-w-[85%]">
-        <svg className="w-3 h-3 shrink-0 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
+        <CheckIcon />
         <span className="text-fg-muted truncate">{msg.text?.split('\n')[0]?.replace(/^#+\s*/, '') ?? 'Complete'}</span>
       </div>
     );
@@ -98,7 +183,8 @@ function AgentBubble({ msg }) {
   );
 }
 
-// Inline action buttons — rendered when server sends action_required event
+// ── ActionBubble ──────────────────────────────────────────────────────────────
+
 function ActionBubble({ msg, onAction, onUpload }) {
   const fileInputRef = useRef(null);
   const [uploadPending, setUploadPending] = useState(null);
@@ -109,8 +195,6 @@ function ActionBubble({ msg, onAction, onUpload }) {
     const target = uploadPending;
     e.target.value = '';
     setUploadPending(null);
-    // onUpload may be async — swallow/surface rejection so a failed upload doesn't become an
-    // unhandled promise rejection.
     Promise.resolve(onUpload(target, file)).catch(err => {
       console.error('[upload] failed:', err);
       alert('Upload failed. Please try again.');
@@ -165,7 +249,8 @@ function ActionBubble({ msg, onAction, onUpload }) {
   );
 }
 
-// System notices — terse, centered status lines
+// ── SystemNotice ──────────────────────────────────────────────────────────────
+
 function SystemNotice({ msg }) {
   return (
     <div className="animate-fade-in-up flex items-center gap-2 mx-auto max-w-[80%] text-xs text-fg-muted">
@@ -175,6 +260,8 @@ function SystemNotice({ msg }) {
     </div>
   );
 }
+
+// ── ThinkingIndicator ─────────────────────────────────────────────────────────
 
 function ThinkingIndicator() {
   return (
@@ -190,6 +277,8 @@ function ThinkingIndicator() {
     </div>
   );
 }
+
+// ── ChatWindow ────────────────────────────────────────────────────────────────
 
 export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
   const bottomRef = useRef(null);
@@ -213,6 +302,16 @@ export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
             <ActionBubble msg={msg} onAction={onAction} onUpload={onUpload} />
           ) : msg.agent === 'System' && !msg.background ? (
             <SystemNotice msg={msg} />
+          ) : isResearchComplete(msg) ? (
+            <ResearchBubble msg={msg} />
+          ) : isAnalystComplete(msg) ? (
+            <AnalystBubble msg={msg} />
+          ) : isQualityReview(msg) ? (
+            <ReviewBubble msg={msg} />
+          ) : isProjectSetup(msg) ? (
+            <ProjectSetupTick />
+          ) : isQualityReviewNotice(msg) ? (
+            <QualityReviewNotice msg={msg} />
           ) : (
             <AgentBubble msg={msg} />
           )}

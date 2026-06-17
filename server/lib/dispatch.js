@@ -1,15 +1,82 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, rmSync } from 'fs';
 import { join } from 'path';
-import { WORKSPACE_DIR, ASSEMBLY_PHASES } from '../config/constants.js';
+import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND } from '../config/constants.js';
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { injectReviewerButtons } from './button-injection.js';
+
+// ── Status-tag fallback + stall recovery (#1 / #2) ────────────────────────────
+
+// #1: when an agent finishes but drops its `pipeline_status:` tag, infer the expected
+// next status for the deterministic linear agents (EXPECTED_STATUS) and advance anyway.
+// Returns the resolved status, or null if there's no inference rule (caller should stall).
+export function resolveAgentStatus(agentName, parsedStatus) {
+  if (parsedStatus) return parsedStatus;
+  const inferred = EXPECTED_STATUS[agentName];
+  if (inferred) {
+    console.warn(`[${agentName}] missing pipeline_status tag — inferring ${inferred}`);
+    return inferred;
+  }
+  return null;
+}
+
+// Single recovery affordance for #1 (no inference rule) and #2 (timeout/throw): surface a
+// visible error bubble + a Retry gate that re-fires state.retryThunk.
+export function surfaceStall(agentName, err) {
+  console.error(`[stall] ${agentName}: ${err?.message ?? 'no status tag and no inference rule'}`);
+  const timedOut = err?.message?.startsWith('STALL:');
+  broadcast({
+    type: 'agent_message', agent: 'System',
+    text: `⚠ **${agentName}** didn't return a result${timedOut ? ' (timed out)' : ''}. You can retry this step.`,
+  });
+  broadcast({
+    type: 'action_required', context: 'dispatch_stall',
+    actions: [{ id: 'retry_last_dispatch', label: `Retry ${agentName}`, variant: 'primary' }],
+  });
+  broadcastMode('action_required');
+}
+
+// Consolidated fire → parse → advance for the linear happy-path agents. Registers a retry
+// thunk, applies the Extractor failure gate then the status-tag fallback, and either advances
+// (setValue → onChange drives the next step) or surfaces a stall.
+export async function runLinearDispatch({ node, agent, query = '__auto__', foreground }) {
+  state.retryThunk = () => runLinearDispatch({ node, agent, query, foreground });
+  const fg = foreground ?? AGENT_FOREGROUND.has(agent);
+  broadcastMode('auto_running', agent);
+  try {
+    const r = await sendToNodeAndWait(node, agent, query);
+    let { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
+    if (agent === 'Extractor') status = resolveExtractorStatus(status);
+    status = resolveAgentStatus(agent, status);
+    broadcastAgentResult(cleanText, agent, fg);
+    if (status) {
+      await state.recipe.globalVariables.setValue('pipeline_status', status);
+      state.pipelineStatus = status;
+    } else {
+      surfaceStall(agent, new Error('no status tag and no inference rule'));
+    }
+  } catch (err) {
+    surfaceStall(agent, err);
+  }
+}
 
 // ── TA / Analyst / Reviewer join ──────────────────────────────────────────────
 
 export function syncTADone() {
   try { readFileSync(join(WORKSPACE_DIR, 'style_findings.json')); state.taDone = true; } catch {}
+}
+
+// On a re-run of the Analyst, delete the stale gap_analysis.json before re-firing the node.
+// The Analyst's Phase 1 re-invocation guard bails (SwitchAgent → MO) whenever gap_analysis.json
+// already has a `requirements` array, so a redo that leaves the old file on disk would no-op.
+// Clearing it makes "file present" mean "genuinely complete" — the guard then only trips on a
+// true KEMU double-fire, not on an intentional redo.
+export function clearStaleAnalysis() {
+  try {
+    rmSync(join(WORKSPACE_DIR, 'gap_analysis.json'), { force: true });
+  } catch (err) {
+    console.error('[clearStaleAnalysis] could not remove gap_analysis.json:', err);
+  }
 }
 
 export function fireTAAndAnalyst() {
@@ -25,6 +92,11 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { status, cleanText } = parseAndStripStatus(raw);
+      // Tone validator is now called as a tool by the Tone Analyst itself (mirrors the Analyst path) —
+      // the server no longer fires tone_validator_input. The inline tone_validator sub-agent still writes
+      // tone_validator_verdict.json (the Style Negotiator reads findings_for_sn from it) and TA owns its own
+      // REJECT/retry loop. We just broadcast TA's completion bubble and join.
+      stampTimestamp('style_findings.json', 'analyzed_at'); // BUG-126 class — TA hallucinates this; server owns it
       broadcastAgentResult(cleanText, 'Tone Analyst', false);
       if (status) {
         state.taDone = true;
@@ -38,7 +110,7 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { cleanText } = parseAndStripStatus(raw);
-      state.analystOutputText = await _runValidator(cleanText, 'analyst', 'gap_analysis.json');
+      state.analystOutputText = cleanText; // validator is now called as a tool by the Analyst itself
       state.analystDone = true;
       syncTADone();
       await checkJoin();
@@ -364,6 +436,68 @@ export function stampTimestamp(filename, dotPath) {
   }
 }
 
+// Deterministic Extractor-failure gate. The Extractor signals a hard failure by
+// writing `failure_reason` to project_meta.json (a reliable WriteFile) AND by
+// emitting a trailing `pipeline_status: EXTRACTION_FAILED` text tag (unreliable —
+// the LLM drops it on the failure branch). When the tag is dropped, the server
+// would otherwise retain the prior status (e.g. a stale CV_TAILORED from an earlier
+// run) and mis-route into the completion menu. So: trust the file, not the prose —
+// if project_meta.failure_reason is set, force EXTRACTION_FAILED regardless of the tag.
+// Returns the corrected status to apply to the global.
+export function resolveExtractorStatus(parsedStatus) {
+  try {
+    const meta = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
+    if (meta && meta.failure_reason) {
+      if (parsedStatus !== 'EXTRACTION_FAILED') {
+        console.warn(`[extractor-gate] project_meta.failure_reason="${meta.failure_reason}" but tag was "${parsedStatus ?? 'missing'}" — forcing EXTRACTION_FAILED`);
+      }
+      return 'EXTRACTION_FAILED';
+    }
+  } catch (e) {
+    console.warn(`[extractor-gate] could not read project_meta.json: ${e.message}`);
+  }
+  return parsedStatus;
+}
+
+// Clear the Extractor's failure markers BEFORE each Extractor (re)dispatch, deterministically.
+// `failure_reason`/`alternate_name_detected` are normally deleted by the Extractor on success
+// (extractor instructions:462) — but that delete is LLM-executed and may be skipped, which would
+// leave the post-return gate forcing EXTRACTION_FAILED on a successful re-run (deadlock). Clearing
+// server-side at dispatch makes each attempt start clean. `pending_name_resolution` is intentionally
+// preserved — MO writes it for the Extractor to consume during name-mismatch recovery.
+export function clearExtractorFailure() {
+  try {
+    const p = join(WORKSPACE_DIR, 'project_meta.json');
+    const meta = JSON.parse(readFileSync(p, 'utf8'));
+    if (meta.failure_reason == null && meta.alternate_name_detected == null) return;
+    delete meta.failure_reason;
+    delete meta.alternate_name_detected;
+    writeFileSync(p, JSON.stringify(meta, null, 2), 'utf8');
+    console.log('[extractor-gate] cleared stale failure markers before Extractor dispatch');
+  } catch (e) {
+    console.warn(`[extractor-gate] could not clear failure markers: ${e.message}`);
+  }
+}
+
+// Hand the authoritative pipeline status to the Main Orchestrator. The MO node is a KEMU
+// agent — it can only read globals or files, not the server's in-memory `state.pipelineStatus`.
+// Routing now lives in the backend, so MO must NOT source its phase from the (stale-prone)
+// `context.pipeline_status` global. Instead the server writes the current status to
+// mo_dispatch.json immediately before every MO invocation; MO reads it as its single source
+// of truth. Always fresh at read time (synchronous write before the node call), so a prior
+// run's status can never leak into a new session.
+export function writeMODispatch(status) {
+  try {
+    writeFileSync(
+      join(WORKSPACE_DIR, 'mo_dispatch.json'),
+      JSON.stringify({ pipeline_status: status ?? null, dispatched_at: new Date().toISOString() }, null, 2),
+      'utf8',
+    );
+  } catch (e) {
+    console.warn(`[mo-dispatch] could not write mo_dispatch.json: ${e.message}`);
+  }
+}
+
 // Strip any reasoning/preamble the Analyst leaks before its completion message.
 // The completion block always starts with a "✓ Analyst Complete" header; keep from
 // there onward and ensure the header begins on its own line so markdown renders it.
@@ -376,41 +510,9 @@ function stripAnalystNarration(text) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function _runValidator(callerText, agent, outputFile) {
-  try {
-    await sendToNodeAndWait('validator_input', 'Validator', agent);
-    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'validator_verdict.json'), 'utf8'));
-    console.log(`[Validator] verdict=${verdict.verdict} for ${agent} (${verdict.issues?.length ?? 0} issue(s))`);
-
-    if (verdict.verdict === 'APPROVE') return callerText;
-
-    if (verdict.verdict === 'FLAG') {
-      const warnings = (verdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
-      return callerText + '\n\n⚠ Quality notes:\n' + warnings;
-    }
-
-    if (verdict.verdict === 'REJECT') {
-      console.log(`[Validator] REJECT for ${agent} — retrying once`);
-      const retryResult = await sendToNodeAndWait('analyst_background_input', null, '__analyze__');
-      const { cleanText: retryText } = parseAndStripStatus(
-        typeof retryResult === 'string' ? retryResult : JSON.stringify(retryResult ?? '')
-      );
-      await sendToNodeAndWait('validator_input', 'Validator', agent);
-      try {
-        const retryVerdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'validator_verdict.json'), 'utf8'));
-        console.log(`[Validator] retry verdict=${retryVerdict.verdict} for ${agent}`);
-        if (retryVerdict.verdict === 'FLAG') {
-          const warnings = (retryVerdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
-          return retryText + '\n\n⚠ Quality notes:\n' + warnings;
-        }
-      } catch {}
-      return retryText;
-    }
-  } catch (err) {
-    console.error('[Validator] error:', err.message);
-  }
-  return callerText; // fallback: show original on any Validator failure
-}
+// NOTE: the old server-orchestrated `_runValidator` gate was removed (2026-06-16). Both the Analyst and the
+// Tone Analyst now call their validators (analyst_validator / tone_validator) inline as tools and own their
+// own one-shot REJECT/retry loops. Assembly validation still runs server-side via `_runAssemblyValidator`.
 
 export async function checkJoin() {
   if (!state.recipe) return;
@@ -510,6 +612,34 @@ export async function checkResearchRedoJoin() {
 
 // ── Sequential assembly dispatch ──────────────────────────────────────────────
 
+// Assembly section agent → assembly-validator module key. Agents with no module (Skills Curator,
+// Credentials Formatter, Style Reviewer, Integrity Checker) are intentionally absent → skipped.
+const ASSEMBLY_VALIDATOR_AGENT = {
+  'Style Negotiator':    'style_negotiator',
+  'Profile Builder':     'profile_builder',
+  'History Formatter':   'history_formatter',
+  'Cover Letter Writer': 'coverletter_writer',
+};
+
+// Advisory assembly validator — fires after a section is produced/merged, BEFORE the human Approve/Revise.
+// APPROVE/FLAG only: it never re-runs an agent (the human owns the gate), so there is no REJECT/retry path.
+// Returns FLAG notes to thread into the review bubble, or '' otherwise.
+async function _runAssemblyValidator(phaseAgent) {
+  const agentKey = ASSEMBLY_VALIDATOR_AGENT[phaseAgent];
+  if (!agentKey) return '';
+  try {
+    await sendToNodeAndWait('assembly_validator_input', 'Validator', agentKey);
+    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), 'utf8'));
+    console.log(`[Validator] verdict=${verdict.verdict} for ${agentKey} (${verdict.issues?.length ?? 0} issue(s))`);
+    if (verdict.verdict === 'FLAG' && (verdict.issues || []).length) {
+      return (verdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
+    }
+  } catch (err) {
+    console.error('[Validator] assembly error:', err.message);
+  }
+  return '';
+}
+
 export async function dispatchAssemblyPhase(phaseNumber) {
   if (phaseNumber === 1) {
     await _startSNInterview();
@@ -535,7 +665,7 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   } catch {}
 
   broadcastMode('auto_running', phase.agent);
-  const result = await sendToNodeAndWait(' Message', phase.agent, `__build__${ctx}`);
+  const result = await sendToNodeAndWait(phase.inputNode, phase.agent, `__build__${ctx}`);
   const { cleanText } = parseAndStripStatus(typeof result === 'string' ? result : JSON.stringify(result ?? ''));
   broadcastAgentResult(cleanText, phase.agent, true);
 
@@ -543,7 +673,8 @@ export async function dispatchAssemblyPhase(phaseNumber) {
 
   if (phaseNumber <= 6 || phaseNumber === 9) {
     await mergePhaseOutput(phaseNumber);
-    _showApproveRevise(phase.agent);
+    const notes = await _runAssemblyValidator(phase.agent);
+    _showApproveRevise(phase.agent, notes);
     return;
   }
 
@@ -551,45 +682,207 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   await _handleGate(phaseNumber);
 }
 
+// SN is now a single-fire stylist (same offload pattern as fit-score / reviewer-audit / tone-validation).
+// It fires ONCE, authoring sn_groups.json (tailored finding/recommendation/insight + override directives
+// per style dimension). The server enforces the mandatory-dimension floor, stamps the seniority factual
+// anchor (LLM can't mint the number), drives a client modal, and merges the user's choices — no multi-turn
+// loop, no LLM-executed pseudocode.
 async function _startSNInterview() {
   state.currentAssemblyPhase = 1;
-  state.snState = 'interviewing';
-  await sendToSN('__interview_start__');
-}
-
-export async function sendToSN(message) {
-  if (state.snPending) {
-    console.log('[sendToSN] already awaiting KEMU — drop duplicate call');
-    return;
-  }
-  state.snPending = true;
+  state.snState = null;
   broadcastMode('auto_running', 'Style Negotiator');
-  let result;
-  try {
-    result = await sendToNodeAndWait(' Message', 'Style Negotiator', message);
-  } finally {
-    state.snPending = false;
-  }
-  const { cleanText } = parseAndStripStatus(typeof result === 'string' ? result : JSON.stringify(result ?? ''));
-  broadcastAgentResult(cleanText, 'Style Negotiator', true);
 
+  // Fire SN once — it writes sn_groups.json. SN is silent (like TA / the gap interview): the modal
+  // carries all the content, so we discard its text output.
+  try {
+    await sendToNodeAndWait('style_negotiator_input', 'Style Negotiator', '__style_analyze__');
+  } catch (e) {
+    console.error('[SN] node error:', e.message);
+  }
   await new Promise(r => setTimeout(r, 1000));
 
-  let snDone = false;
+  let groups = [];
   try {
-    const snOut = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_output.json'), 'utf8'));
-    snDone = snOut?.status === 'COMPLETE';
-  } catch {}
+    groups = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_groups.json'), 'utf8'));
+    if (!Array.isArray(groups)) groups = [];
+  } catch { groups = []; }
 
-  if (snDone) {
-    await mergePhaseOutput(1);
-    state.snState = 'summary';
-    _showSNContinue();
-  } else if (state.snState === 'customise_confirm') {
-    _showSNConfirmButtons();
-  } else {
-    _showSNInterviewButtons();
+  let meta = {}, findings = {};
+  try { meta     = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'),   'utf8')); } catch {}
+  try { findings = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'style_findings.json'), 'utf8')); } catch {}
+
+  // Server owns the mandatory floor + the seniority factual anchor.
+  groups = enforceSNFloor(groups, meta, findings);
+  stampSeniorityOverride(groups, findings);
+
+  if (groups.length === 0) {
+    // Degenerate fallback — no LLM output and no findings to floor from. Auto-approve, skip the modal.
+    await _autoApproveSN(findings);
+    return;
   }
+
+  // Persist the full groups (override directives stay server-side); the client gets display fields only,
+  // re-read on submit — same trust model as gap_answers_submit re-reading gap_analysis.json.
+  writeFileSync(join(WORKSPACE_DIR, 'sn_working.json'), JSON.stringify({ groups, decisions: {} }, null, 2));
+  state.snState = 'modal';
+  broadcast({
+    type: 'style_interview_start',
+    groups: groups.map(g => ({
+      id: g.id, title: g.title, finding: g.finding,
+      examples: g.examples ?? [], recommendation: g.recommendation, insight: g.insight ?? '',
+    })),
+  });
+  broadcastMode('action_required');
+}
+
+// Mandatory-dimension floor: Seniority is always raised (controls tone everywhere); Key Achievements is
+// required for senior roles. These are safety-net injections — the LLM normally supplies them with richer
+// prose. Returns the patched array (does not mutate the input).
+export function enforceSNFloor(groups, meta = {}, findings = {}) {
+  const out = Array.isArray(groups) ? [...groups] : [];
+  const has = id => out.some(g => g && g.id === id);
+
+  if (!has('seniority') && findings.seniority) {
+    const s = findings.seniority;
+    const level = s.level || 'Mid-Level';
+    out.unshift({
+      id: 'seniority',
+      title: 'Seniority & Career Level',
+      finding: `Inferred level: ${level}. ${s.evidence || 'Based on work-history dates.'}`,
+      examples: [],
+      recommendation: `Confirm as ${level} — this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
+      insight: 'Seniority framing is the single biggest lever on how a recruiter reads every bullet.',
+      recommended_overrides: { seniority_level: `${level} (confirmed by user)` },
+    });
+  }
+
+  const roleName = meta.position_title || '';
+  const isSeniorRole = /grade\s*[456789]|band\s*[456789]|cns|clinical nurse specialist|senior\s+nurse|specialist|manager|director|lead|principal|head\s+of/i.test(roleName);
+  if (isSeniorRole && !has('key_achievements')) {
+    out.push({
+      id: 'key_achievements',
+      title: 'Key Achievements Section',
+      finding: `Senior role detected (${roleName || 'this role'}) — a Key Achievements section is standard at this level.`,
+      examples: [],
+      recommendation: 'Add a Key Achievements section (2–3 bolded, quantified bullets) immediately after the profile paragraph.',
+      insight: 'Senior-role screens run under 30 seconds — this section is the primary attention anchor.',
+      recommended_overrides: { key_achievements_section: 'Include Key Achievements section — 2–3 bullet points with bold metrics immediately after profile paragraph' },
+    });
+  }
+  return out;
+}
+
+// The seniority card's user-facing number is server-owned, not LLM-minted (anti-hallucination). Overwrite
+// recommended_overrides.seniority_level with the string built verbatim from style_findings.seniority.
+export function stampSeniorityOverride(groups, findings = {}) {
+  const g = (groups || []).find(x => x && x.id === 'seniority');
+  if (!g) return groups;
+  const s = findings.seniority || {};
+  const level  = s.level || 'Mid-Level';
+  const relStr = s.relevant_years_experience != null ? `${s.relevant_years_experience} relevant` : null;
+  const totStr = s.years_experience          != null ? `${s.years_experience} total` : null;
+  const yearsStr = [relStr, totStr].filter(Boolean).join(' / ') || 'experience unspecified';
+  g.recommended_overrides = g.recommended_overrides || {};
+  g.recommended_overrides.seniority_level = `${level} (${yearsStr} yrs — confirmed by user)`;
+  return groups;
+}
+
+// Deterministic port of the old SN Phase 7 merge. Reads sn_working.json, applies the user's per-group
+// choice, folds in the optional severity-tagged note, writes the phase-1 sn_output.json. Idempotent.
+const SN_SEVERITY_PREFIX = { high: 'MUST', medium: 'PREFER', low: 'OPTIONAL' };
+
+export function buildSNOutput(answers = {}) {
+  const working = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_working.json'), 'utf8'));
+  const groups = working.groups || [];
+
+  const agreed = {};
+  let recCount = 0, keepCount = 0, customCount = 0;
+  for (const g of groups) {
+    const a = answers[g.id] || { choice: 'recommended' };
+    if (a.choice === 'recommended') {
+      Object.assign(agreed, g.recommended_overrides || {});
+      recCount++;
+    } else if (a.choice === 'customise' && a.custom_text?.trim()) {
+      agreed[`${g.id}_custom`] = a.custom_text.trim();
+      customCount++;
+    } else {
+      keepCount++; // keep_current, or customise with empty text → treated as keep
+    }
+  }
+
+  // Optional free-text note with a user-chosen severity → a priority-prefixed directive the downstream
+  // assembly agents naturally weight (no schema change — agreed_overrides is already directive strings).
+  const note = answers.__note__;
+  if (note && note.text?.trim()) {
+    const prefix = SN_SEVERITY_PREFIX[note.severity] || 'PREFER';
+    agreed.user_note = `[${prefix}] ${note.text.trim()}`;
+  }
+
+  let findings = {};
+  try { findings = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'style_findings.json'), 'utf8')); } catch {}
+  const p = findings.style_patterns || {};
+  const originalStyle = {
+    tense: p.tense, voice: p.voice, bullet_format: p.bullet_format,
+    uses_pronouns_i: p.uses_pronouns_i, uses_full_sentences: p.uses_full_sentences,
+    formality_level: p.formality_level,
+    seniority_inferred: findings.seniority?.level,
+    years_experience: findings.seniority?.years_experience,
+  };
+
+  const overrideCount = Object.keys(agreed).length;
+  const outcome = overrideCount > 0 ? 'OVERRIDES_APPLIED' : 'NO_CHANGES';
+  const summary = `${overrideCount} override(s) applied across ${groups.length} style dimension(s). ` +
+    `${recCount} recommended, ${keepCount} kept as-is, ${customCount} customised.` +
+    (note?.text?.trim() ? ` User note added (${note.severity || 'medium'}).` : '') +
+    ` Outcome: ${outcome}.`;
+
+  const output = {
+    phase_number: 1,
+    phase_name:   'Style Negotiation',
+    agent:        'Style Negotiator',
+    status:       'COMPLETE',
+    completed_at: new Date().toISOString(),
+    data: {
+      agreed_overrides:    agreed,
+      negotiation_outcome: outcome,
+      negotiation_summary: summary,
+      original_style:      originalStyle,
+      user_confirmed:      true,
+    },
+  };
+  writeFileSync(join(WORKSPACE_DIR, 'sn_output.json'), JSON.stringify(output, null, 2));
+  return output;
+}
+
+// Called by the style_answers_submit action — finalize the phase entirely server-side (no LLM call).
+export async function submitSNAnswers(answers) {
+  buildSNOutput(answers);
+  await mergePhaseOutput(1);
+  const notes = await _runAssemblyValidator('Style Negotiator');
+  await _advanceFromSN(notes);
+}
+
+async function _autoApproveSN(findings = {}) {
+  const p = findings.style_patterns || {};
+  const output = {
+    phase_number: 1, phase_name: 'Style Negotiation', agent: 'Style Negotiator',
+    status: 'COMPLETE', completed_at: new Date().toISOString(),
+    data: {
+      agreed_overrides: {
+        bold_achievements:   'Bold numeric metrics and key results in work history bullets',
+        improve_conciseness: 'Keep bullets concise — under 18 words where possible',
+      },
+      negotiation_outcome: 'NO_ISSUES_FOUND',
+      negotiation_summary: 'No style findings available — default professional overrides applied.',
+      original_style: { tense: p.tense, voice: p.voice, bullet_format: p.bullet_format },
+      user_confirmed: true,
+    },
+  };
+  writeFileSync(join(WORKSPACE_DIR, 'sn_output.json'), JSON.stringify(output, null, 2));
+  await mergePhaseOutput(1);
+  const notes = await _runAssemblyValidator('Style Negotiator');
+  broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found — default professional enhancements applied.' });
+  await _advanceFromSN(notes);
 }
 
 export async function mergePhaseOutput(phaseNumber) {
@@ -701,7 +994,11 @@ async function _handleGate(phaseNumber) {
   }
 }
 
-function _showApproveRevise(agentName) {
+function _showApproveRevise(agentName, notes = '') {
+  if (notes) {
+    broadcast({ type: 'agent_message', agent: 'System', background: true,
+      text: `⚠ Validator notes on this ${agentName} section (review before approving):\n${notes}` });
+  }
   broadcast({
     type: 'action_required',
     context: 'assembly_section_review',
@@ -714,38 +1011,19 @@ function _showApproveRevise(agentName) {
   broadcastMode('action_required');
 }
 
-function _showSNInterviewButtons() {
-  broadcast({
-    type: 'action_required',
-    context: 'sn_interview',
-    actions: [
-      { id: 'sn_recommended', label: 'Use recommended',    variant: 'primary'   },
-      { id: 'sn_keep',        label: 'Keep current style', variant: 'secondary' },
-      { id: 'sn_customise',   label: 'Customise',          variant: 'ghost'     },
-    ],
-  });
-  broadcastMode('action_required');
-}
-
-function _showSNConfirmButtons() {
-  broadcast({
-    type: 'action_required',
-    context: 'sn_customise_confirm',
-    actions: [
-      { id: 'sn_confirm',  label: 'Confirm',  variant: 'primary' },
-      { id: 'sn_rephrase', label: 'Rephrase', variant: 'ghost'   },
-    ],
-  });
-  broadcastMode('action_required');
-}
-
-function _showSNContinue() {
-  broadcast({
-    type: 'action_required',
-    context: 'sn_summary',
-    actions: [
-      { id: 'sn_continue', label: 'Continue → Build CV', variant: 'primary' },
-    ],
-  });
-  broadcastMode('action_required');
+// SN done → straight into Profile Builder. No "Continue → Build CV" button.
+// PB is dispatched DETACHED on a fresh tick: the SN-submit request already spent
+// one KEMU round-trip on the assembly validator, and KEMU hangs if a second
+// sendToInputWidgetAndWaitForOutput is chained in the same request. Firing PB
+// after the request settles restores the old two-request (button) shape.
+function _advanceFromSN(notes = '') {
+  if (notes) {
+    broadcast({ type: 'agent_message', agent: 'System', background: true,
+      text: `⚠ Validator notes on the style negotiation:\n${notes}` });
+  }
+  state.snState = null;
+  setTimeout(() => {
+    dispatchAssemblyPhase(2).catch(err =>
+      console.error('[advanceFromSN] Profile Builder dispatch failed:', err.message));
+  }, 500);
 }
