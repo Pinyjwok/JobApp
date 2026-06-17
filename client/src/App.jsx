@@ -190,14 +190,15 @@ export default function App() {
   }
 
   async function handleStyleSubmit(answers) {
-    setShowStyleModal(false);
-    setStyleMinimized(false);
     try {
       await fetch('/api/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: 'style_answers_submit', answers }),
       });
+      // Only dismiss once the submit lands — keep the modal (and answers) on failure.
+      setShowStyleModal(false);
+      setStyleMinimized(false);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Style submit failed: ${err.message}` }]);
     }
@@ -456,7 +457,7 @@ export default function App() {
       {showStyleModal && styleMinimized && (
         <button
           onClick={() => setStyleMinimized(false)}
-          className="animate-fade-in-up fixed bottom-24 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
+          className="animate-fade-in-up fixed bottom-40 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
           Continue style interview
