@@ -27,7 +27,8 @@ const WORKSPACE_ALLOWED = [
   'project_meta.json', 'candidate_profile.json',
   'research_output.json', 'enhanced_jd.json', 'gap_analysis.json',
   'review_audit.json', 'tailored_cv.json',
-  'style_findings.json', 'tone_validator_verdict.json', 'cv_assembly_state.json', 'sn_groups.json', 'sn_output.json', 'sn_working.json',
+  'style_findings.json', 'tone_validator_verdict.json', 'assembly_validator_verdict.json',
+  'cv_assembly_state.json', 'sn_groups.json', 'sn_output.json', 'sn_working.json',
   'pb_output.json', 'sc_output.json', 'hf_output.json', 'cf_output.json', 'clw_output.json', 'df_output.json',
 ];
 
@@ -75,6 +76,8 @@ router.post('/reset', async (req, res) => {
     state.currentAssemblyPhase = 0;
     state.snState              = null;
     state.awaitingRevision     = null;
+    state.retryThunk           = null;
+    state.lastDispatch         = null;
     state.recentlyDispatched.clear();
 
     for (const v of ALL_PIPELINE_VARS) {
@@ -205,6 +208,8 @@ router.post('/restore', async (req, res) => {
     state.snState              = null;
     state.currentAssemblyPhase = 0;
     state.awaitingRevision     = null;
+    state.retryThunk           = null;
+    state.lastDispatch         = null;
     state.pipelineStatus       = status;
 
     if (status) {

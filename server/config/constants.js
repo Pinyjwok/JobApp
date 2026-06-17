@@ -7,6 +7,26 @@ export const WORKSPACE_DIR = join(PROJECT_DIR, 'workspace');
 export const SNAPSHOTS_DIR = join(PROJECT_DIR, 'workspace-snapshots');
 export const HISTORY_FILE  = join(PROJECT_DIR, 'chat_history.json');
 
+// Watchdog: max wait for a single KEMU node round-trip before declaring a stall (#2).
+export const DISPATCH_TIMEOUT_MS = 180_000;
+
+// Per-node timeout overrides. Heavy LLM nodes (deep analysis) legitimately run well past the
+// 180s default — a too-short watchdog turns a slow-but-fine run into a false STALL. Keep the
+// default tight for the fast linear agents; give the slow ones a generous budget.
+export const NODE_TIMEOUT_MS = {
+  analyst_background_input: 600_000, // Analyst full gap analysis — routinely minutes
+};
+
+// Status-tag fallback (#1): linear agents whose resulting pipeline_status is deterministic.
+// On a dropped `pipeline_status:` tag, the server infers the expected status and advances.
+// Analyst/Tone Analyst finish via checkJoin() → GAP_INTERVIEW (no direct tag) — intentionally absent.
+export const EXPECTED_STATUS = {
+  ProjectSetup:  'FILES_SAVED',
+  Extractor:     'INITIALIZED',
+  Researcher:    'RESEARCH_COMPLETE',
+  'JD Enhancer': 'JD_ENHANCED',
+};
+
 export const AGENT_FOREGROUND = new Set([
   'Main Orchestrator', 'ProjectSetup', 'Researcher',
   'Assembly Coordinator', 'Style Negotiator',
@@ -111,6 +131,14 @@ export const WORKSPACE_SCAFFOLD = {
   'candidate_profile.json': {},
   'gap_analysis.json':      {},
   'style_findings.json':    {},
+  // Validator verdict files — pre-created so the validator agents OVERWRITE an existing file.
+  // KEMU's WriteFile creates a nested dir (<name>/<name>) when the target doesn't already exist,
+  // which then breaks the server's readFileSync (EISDIR). Scaffolding them avoids the create path.
+  // analyst_validator_verdict.json retired 2026-06-16 — analyst validator is inline; its verdict
+  // returns via the tool-call response only, no file. Tone + assembly verdicts are still file-backed
+  // (SN reads tone findings_for_sn from disk; assembly verdict is server-written).
+  'tone_validator_verdict.json':     {},
+  'assembly_validator_verdict.json': {},
   'sn_output.json':         {},
   'sn_working.json':        {},
   'pb_output.json':         {},

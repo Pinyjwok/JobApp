@@ -56,14 +56,15 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
     const a = answers[c.id];
     return !!(a && a.choice && (a.choice !== 'customise' || a.custom_text?.trim()));
   }
-  const allReady = cards.every(c => visited.has(c.id) && cardComplete(c));
-  const remaining = cards.filter(c => !(visited.has(c.id) && cardComplete(c))).length;
+  // The note card is optional — never require visiting it (otherwise an untouched text box blocks submit).
+  const allReady = cards.every(c => c.isNote || (visited.has(c.id) && cardComplete(c)));
+  const remaining = cards.filter(c => !c.isNote && !(visited.has(c.id) && cardComplete(c))).length;
 
   function handleNext() { markVisited(card.id); setIndex(index + 1); }
   function handleBack() { setIndex(index - 1); }
-  function handleSubmit() {
+  function handleSubmit({ skipNote = false } = {}) {
     const payload = { ...answers };
-    if (note.text.trim()) payload[NOTE_ID] = { text: note.text.trim(), severity: note.severity };
+    if (!skipNote && note.text.trim()) payload[NOTE_ID] = { text: note.text.trim(), severity: note.severity };
     onSubmit(payload);
   }
 
@@ -218,17 +219,28 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
           <div className="flex-1" />
 
           {isLast ? (
-            <button
-              onClick={handleSubmit}
-              disabled={!allReady}
-              className={`px-5 py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${
-                allReady
-                  ? 'bg-accent hover:brightness-110 text-accent-fg shadow-[var(--shadow-panel)]'
-                  : 'bg-surface-2 border border-line text-fg-faint cursor-not-allowed'
-              }`}
-            >
-              Apply &amp; continue
-            </button>
+            <div className="flex items-center gap-2">
+              {card.isNote && !note.text.trim() && (
+                <button
+                  onClick={() => handleSubmit({ skipNote: true })}
+                  disabled={!allReady}
+                  className="px-4 py-2 rounded-xl text-sm font-medium border border-line text-fg-secondary hover:text-fg hover:border-line-strong disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  Skip
+                </button>
+              )}
+              <button
+                onClick={() => handleSubmit()}
+                disabled={!allReady}
+                className={`px-5 py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${
+                  allReady
+                    ? 'bg-accent hover:brightness-110 text-accent-fg shadow-[var(--shadow-panel)]'
+                    : 'bg-surface-2 border border-line text-fg-faint cursor-not-allowed'
+                }`}
+              >
+                Apply &amp; continue
+              </button>
+            </div>
           ) : (
             <button
               onClick={handleNext}
