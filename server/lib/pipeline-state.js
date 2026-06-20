@@ -7,7 +7,7 @@ import {
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, fireTAAndAnalyst, stampTimestamp, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, stampTimestamp, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -56,10 +56,10 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
             .catch(err => console.error('[Analyst resume] error:', err));
         }
       }
-    } else if (status === 'SN_START' || status === 'STYLE_NEGOTIATING' || status === 'CV_BUILDING') {
-      console.log('[resume] re-firing SN interview from start');
-      state.snState = null;
-      await dispatchAssemblyPhase(1);
+    } else if (status === 'SN_START' || status === 'STYLE_NEGOTIATING' || status === 'CV_BUILDING'
+               || status === 'REVIEW_COMPLETE' || status === 'TONE_ANALYZED') {
+      console.log('[resume] phase-aware assembly resume');
+      await resumeAssembly();
     } else if (status === 'RESEARCH_CONFIRM') {
       console.log('[resume] RESEARCH_CONFIRM — re-displaying research summary');
       await handlePipelineStatus('RESEARCH_COMPLETE');
@@ -71,8 +71,8 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     // BUG-126: Researcher just finished — stamp the real completion time before the gate displays it.
     stampTimestamp('research_output.json', 'completed_at');
     broadcast({ type: 'action_required', context: 'research_pre_confirm', prompt: '', actions: [
-      { id: 'research_pre_confirm', label: 'Yes — continue', variant: 'primary' },
-      { id: 'research_pre_redo',   label: 'Redo research',   variant: 'ghost'   },
+      { id: 'research_pre_confirm', label: 'Yes — continue',  variant: 'primary' },
+      { id: 'research_pre_redo',   label: 'Research again',  variant: 'ghost'   },
     ]});
     await state.recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
     state.pipelineStatus = 'RESEARCH_CONFIRM';
@@ -107,10 +107,10 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
       broadcast({
         type: 'action_required',
         context: 'cl_upload_prompt',
-        prompt: '**Cover Letter (optional)**\n\nUploading a cover letter sample lets the Tone Analyst match your writing style across both documents.\n\nYou can upload one now or skip — analysis will proceed with your CV only.',
+        prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not — we\'ll work from your CV alone.',
         actions: [
-          { id: 'ta_upload_cover', label: 'Upload cover letter', type: 'upload', variant: 'primary' },
-          { id: 'cl_skip',         label: 'Skip — CV only',     variant: 'ghost' },
+          { id: 'ta_upload_cover', label: 'Add a cover letter', type: 'upload', variant: 'primary' },
+          { id: 'cl_skip',         label: 'Skip — use my CV only', variant: 'ghost' },
         ],
       });
       broadcastMode('action_required');
@@ -195,8 +195,8 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
             context: 'research_partial',
             prompt: '',
             actions: [
-              { id: 'research_partial_proceed', label: 'Proceed with partial research', variant: 'primary' },
-              { id: 'research_retry',           label: 'Retry research',                variant: 'ghost'   },
+              { id: 'research_partial_proceed', label: 'Continue with what we found', variant: 'primary' },
+              { id: 'research_retry',           label: 'Try the research again',      variant: 'ghost'   },
             ],
           });
         }

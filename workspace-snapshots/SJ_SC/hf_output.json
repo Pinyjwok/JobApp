@@ -1,0 +1,47 @@
+{
+  "phase_number": 4,
+  "phase_name": "History Formatting",
+  "agent": "History Formatter",
+  "status": "COMPLETE",
+  "completed_at": "__DATE_TODAY__T00:00:00Z",
+  "data": {
+    "work_history": [
+      {
+        "employer": "Bunnings Warehouse",
+        "position": "Team Member",
+        "employment_type": "Not specified",
+        "duration": "Mar 2024 – Present",
+        "duration_years": 2.0,
+        "bullets": [
+          "Assisted customers across the garden and hardware sections in locating appropriate products, applying clear and professional verbal communication to resolve inquiries and ensure a positive service experience.",
+          "Operated the point-of-sale register for cash and EFTPOS transactions, maintaining accuracy and efficiency during peak weekend and public holiday trading periods.",
+          "Replenished and organised product stock across the garden department as the primary section of responsibility, verifying correct labelling and placement before shelving and providing cross-section support as directed."
+        ]
+      },
+      {
+        "employer": "Coles Supermarket",
+        "position": "Checkout Operator",
+        "employment_type": "Not specified",
+        "duration": "Jan 2020 – Feb 2024",
+        "duration_years": 4.1,
+        "bullets": [
+          "Processed high volumes of grocery transactions at the checkout over **four years**, maintaining consistent scan accuracy and register efficiency during busy trading periods.",
+          "Managed cash-handling responsibilities with precision, balancing registers and identifying transaction discrepancies under the time pressure of high-volume customer traffic.",
+          "Covered the deli section as required by management, collaborating with department staff and adapting quickly to varied operational tasks at short notice."
+        ]
+      }
+    ],
+    "total_entries": 2,
+    "total_bullets": 6,
+    "style_overrides_applied": [
+      "bullet_style",
+      "register_control",
+      "content_completeness",
+      "transferable_framing",
+      "evidence_density",
+      "achievement_signal",
+      "profile_voice"
+    ],
+    "user_confirmed": true
+  }
+}

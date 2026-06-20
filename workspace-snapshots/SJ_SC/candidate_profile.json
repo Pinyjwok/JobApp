@@ -1,0 +1,83 @@
+{
+  "personal_info": {
+    "name": "Sarah Jenkins",
+    "contact": {
+      "email": "sarahj_2001@hotmail.com",
+      "phone": "0422 111 333",
+      "location": "5 Station Street, Eltham VIC 3095",
+      "linkedin": "",
+      "portfolio": "",
+      "github": ""
+    }
+  },
+  "professional_summary": "",
+  "work_history": [
+    {
+      "employer": "Bunnings Warehouse",
+      "position": "Team Member",
+      "employment_type": "Not specified",
+      "start_date": "2024-03-01",
+      "end_date": "Present",
+      "duration_years": 2.0,
+      "responsibilities": [
+        "Helping customers find products",
+        "Working on the register",
+        "Putting stock away on shelves",
+        "Garden section mostly"
+      ],
+      "achievements": []
+    },
+    {
+      "employer": "Coles Supermarket",
+      "position": "Checkout Operator",
+      "employment_type": "Not specified",
+      "start_date": "2020-01-01",
+      "end_date": "2024-02-28",
+      "duration_years": 4.1,
+      "responsibilities": [
+        "Scanning groceries",
+        "Cash handling",
+        "sometimes worked in the deli when they needed people"
+      ],
+      "achievements": []
+    }
+  ],
+  "skills": {
+    "core_competencies": [
+      "Good at following instructions",
+      "Team player",
+      "Reliable"
+    ],
+    "technical_skills": [
+      "Microsoft Word"
+    ],
+    "soft_skills": [],
+    "certifications": [
+      "First Aid Certificate (expired 2022)"
+    ],
+    "languages": []
+  },
+  "education": [
+    {
+      "institution": "La Trobe University",
+      "qualification": "Bachelor of Biomedical Science",
+      "field_of_study": "Biomedical Science",
+      "completion_date": "2023-12-31",
+      "grade": ""
+    },
+    {
+      "institution": "Eltham High School",
+      "qualification": "VCE",
+      "field_of_study": "Secondary Education",
+      "completion_date": "2019-12-31",
+      "grade": "ATAR: 74.10"
+    }
+  ],
+  "publications": [],
+  "grants": [],
+  "awards": [],
+  "additional_information": {
+    "memberships": [],
+    "volunteer": []
+  }
+}

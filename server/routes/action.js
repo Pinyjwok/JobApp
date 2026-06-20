@@ -5,8 +5,8 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall } from '../lib/dispatch.js';
-import { classifyGapAnswers } from '../lib/evidence-classifier.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation } from '../lib/dispatch.js';
+import { adjudicateGapAnswers } from '../lib/adjudicator.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
 const router = express.Router();
@@ -199,27 +199,75 @@ router.post('/', async (req, res) => {
         await dispatchAssemblyPhase(state.currentAssemblyPhase + 1);
         break;
 
+      case 'resume_section_review':
+        // F5/reconnect safety net: re-emit the current section content + Approve/Revise from state.
+        await resumeAssembly();
+        break;
+
       case 'assembly_revise': {
         const phase = ASSEMBLY_PHASES[state.currentAssemblyPhase];
         if (!phase) break;
+        state.awaitingSectionReview = null;
         state.awaitingRevision = {
           agent:       phase.agent,
           inputNode:   phase.inputNode,
           outputFile:  phase.outputFile,
           phaseNumber: state.currentAssemblyPhase,
         };
-        broadcastMode('user_turn');
-        broadcast({ type: 'agent_message', agent: 'System',
-          text: `What would you like changed in the **${phase.agent}** section?` });
+        // Modal-driven: signal the client to open the revision popup. We stay in action_required
+        // (chat stays disabled) so the revise instruction comes through the modal, consistent with
+        // the gap/style interviews rather than free text in the chat box.
+        broadcast({ type: 'assembly_revise_start', agent: phase.agent });
         break;
       }
 
+      case 'assembly_revise_submit': {
+        const section = state.awaitingRevision;
+        if (!section) break;
+        const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
+        if (!text) break;
+        state.awaitingRevision = null;
+        res.json({ ok: true });
+        broadcastMode('auto_running', section.agent);
+        state.retryThunk = () => sendToNodeAndWait(section.inputNode, section.agent, `__revise__: ${text}`)
+          .then(async r => {
+            const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
+            broadcastAssemblySectionResult(cleanText, section.agent);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await reShowSectionReview(section.phaseNumber);
+          })
+          .catch(err => surfaceStall(section.agent, err));
+        state.retryThunk();
+        return;
+      }
+
+      case 'assembly_revise_cancel':
+        // The client keeps the original Approve/Revise bubble live (it was never greyed on the
+        // Revise click), so cancelling just drops the parked revision context — no re-broadcast,
+        // which previously produced a duplicate review bubble.
+        state.awaitingRevision = null;
+        break;
+
       case 'gate_continue':
+        state.icReview = null;
+        state.icRemediationRound = 0;
         state.pipelineStatus = 'CV_BUILDING';
         try { await state.recipe.globalVariables.setValue('pipeline_status', 'CV_BUILDING'); } catch {}
         broadcast({ type: 'status_changed', status: 'CV_BUILDING' });
         await dispatchAssemblyPhase(state.currentAssemblyPhase + 1);
         break;
+
+      case 'ic_remediation_submit': {
+        // The integrity-review modal returns per-claim decisions. Trust server state for the claims
+        // themselves (state.icReview), the client only sends the chosen action + any evidence text.
+        if (!state.icReview?.claims?.length) {
+          return res.json({ ok: false, error: 'no pending integrity review' });
+        }
+        res.json({ ok: true }); // ack before the (possibly long) re-validation runs
+        runIcRemediation(req.body.decisions ?? {}).catch(err =>
+          console.error('[ic_remediation_submit] route error:', err.message));
+        return;
+      }
 
       case 'ic_fix_corrections': {
         // Auto-correct DATES_UNVERIFIED items by re-running History Formatter with corrections
@@ -267,6 +315,7 @@ router.post('/', async (req, res) => {
         break;
 
       case 'gap_answers_submit': {
+        const GAP_ROUND_CAP = 2;
         const rawAnswers = req.body.answers ?? {};
         let gapData;
         try {
@@ -274,44 +323,84 @@ router.post('/', async (req, res) => {
         } catch (e) {
           return res.status(500).json({ error: 'gap_analysis.json not readable' });
         }
-        const highGaps = (gapData.gaps ?? []).filter(g => g.severity === 'High');
-        const gapAnswers = highGaps.map(g => ({
-          gap_id: g.id,
-          gap_text: g.gap_text,
-          tier: g.tier,
-          user_answer: rawAnswers[g.id] || null,
-          skipped: !rawAnswers[g.id],
-        }));
-        broadcastMode('auto_running', 'Analysis');
+
+        const round = state.gapRound ?? 1;
+        if (round === 1) { state.gapAnswersAccum = {}; } // first pass — start clean
+        const accum = state.gapAnswersAccum ?? (state.gapAnswersAccum = {});
+
+        // Which gaps were asked THIS round? Round 1 = all High gaps; round ≥2 = only the pending cards.
+        const askedGaps = round === 1
+          ? (gapData.gaps ?? []).filter(g => g.severity === 'High').map(g => ({ id: g.id, gap_text: g.gap_text, tier: g.tier }))
+          : (state.gapPending ?? []).map(g => ({ id: g.id, gap_text: g.gap_text, tier: g.tier }));
+
+        broadcastMode('auto_running', 'Analysis'); // "Adjudicating…" banner while the LLM runs
         await state.recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
         state.pipelineStatus = 'GAP_INTERVIEW';
 
-        // EVIDENCE/INTENT classification is the one semantic step — delegate non-skipped answers to the
-        // LLM classifier (Haiku via OpenRouter). SKIPPED answers never hit the LLM. On any failure the
-        // classifier returns INTENT for all, so the audit still runs (conservative, never inflates).
-        const toClassify = gapAnswers
-          .filter(a => !a.skipped && a.user_answer?.trim())
-          .map(a => ({ gap_id: a.gap_id, requirement: a.gap_text, answer: a.user_answer.trim() }));
-        if (toClassify.length > 0) {
+        // Adjudicate this round's non-skipped answers in one batched LLM call. SKIPPED answers never hit
+        // the LLM and are terminal (the gap stays open — keep skip semantics, no re-ask). On any failure
+        // the adjudicator returns NOT_EVIDENCE for all (fail-closed — never inflates a gap to Met).
+        const toJudge = askedGaps
+          .filter(g => rawAnswers[g.id]?.trim())
+          .map(g => ({ gap_id: g.id, requirement: g.gap_text, answer: rawAnswers[g.id].trim(), tier: g.tier }));
+        let verdictsById = new Map();
+        if (toJudge.length > 0) {
           try {
-            const labels = await classifyGapAnswers(toClassify);
-            const byId = new Map(labels.map(l => [l.gap_id, l]));
-            for (const a of gapAnswers) {
-              const l = byId.get(a.gap_id);
-              if (l) { a.evidence_type = l.label; a.evidence_reason = l.reason; }
-            }
-            console.log(`[gap_answers_submit] classified ${toClassify.length} answer(s):`);
-            for (const l of labels) console.log(`  ${l.gap_id}=${l.label} — ${l.reason}`);
+            const verdicts = await adjudicateGapAnswers(toJudge);
+            verdictsById = new Map(verdicts.map(v => [v.gap_id, v]));
+            console.log(`[gap_answers_submit round ${round}] adjudicated ${toJudge.length} answer(s):`);
+            for (const v of verdicts) console.log(`  ${v.gap_id}=${v.verdict} — ${v.reason}`);
           } catch (err) {
-            console.error('[gap_answers_submit] classifier error (defaulting INTENT):', err.message);
+            console.error('[gap_answers_submit] adjudicator error (defaulting NOT_EVIDENCE):', err.message);
           }
         }
 
-        // Server-owned forensic audit (mechanical: ingest classified answers + Phases 2-5 + verdict).
-        // The LLM Reviewer node is only needed when backable issues remain (Phase 7.5).
+        // Merge this round's outcomes into the accumulator (keyed by gap_id, survives across rounds).
+        for (const g of askedGaps) {
+          const answer = rawAnswers[g.id]?.trim();
+          if (!answer) {
+            accum[g.id] = { gap_id: g.id, gap_text: g.gap_text, tier: g.tier, skipped: true, verdict: 'SKIPPED' };
+            continue;
+          }
+          const v = verdictsById.get(g.id) ?? { verdict: 'NOT_EVIDENCE', reason: 'adjudicator_missing', anchor_prompt: '' };
+          accum[g.id] = {
+            gap_id: g.id, gap_text: g.gap_text, tier: g.tier, skipped: false,
+            user_answer: answer, verdict: v.verdict, reason: v.reason, anchor_prompt: v.anchor_prompt,
+          };
+        }
+
+        // Pending = answered but not accepted (skipped is terminal, never re-asked).
+        const pending = Object.values(accum).filter(a => !a.skipped && a.verdict !== 'ACCEPTED');
+        const accepted = Object.values(accum).filter(a => a.verdict === 'ACCEPTED');
+
+        // More to try AND under the round cap → re-ask only the non-accepted, with an ack strip for accepted.
+        if (round < GAP_ROUND_CAP && pending.length > 0) {
+          state.gapRound = round + 1;
+          state.gapAccepted = accepted.map(a => ({ gap_text: a.gap_text, evidence: a.user_answer }));
+          state.gapPending = pending.map(a => ({
+            id: a.gap_id, gap_text: a.gap_text, tier: a.tier,
+            adjudication: a.verdict,
+            // What the user sees as the ask: the anchor question if any, else the rejection reason.
+            mitigation_strategy: a.anchor_prompt || a.reason || 'Please provide more specific evidence for this requirement.',
+          }));
+          console.log(`[gap_answers_submit] round ${round} done — re-asking ${pending.length}, accepted ${accepted.length}`);
+          broadcast({ type: 'gap_interview_start', round: state.gapRound, accepted: state.gapAccepted, gaps: state.gapPending });
+          broadcastMode('action_required');
+          return res.json({ ok: true, round: state.gapRound, pending: pending.length, accepted: accepted.length });
+        }
+
+        // Finalize: ingest the full accumulated set (accepted grant credit, the rest stay gaps), then
+        // run the server-owned forensic audit + fit score. The LLM Reviewer node is only needed when
+        // backable issues remain (Phase 7.5).
+        const finalAnswers = Object.values(accum).map(a => ({
+          gap_id: a.gap_id, gap_text: a.gap_text, tier: a.tier,
+          user_answer: a.user_answer ?? null, skipped: !!a.skipped,
+          verdict: a.verdict, adjudication_reason: a.reason, anchor_prompt: a.anchor_prompt,
+        }));
+
         let auditResult;
         try {
-          auditResult = runReviewAudit(gapAnswers);
+          auditResult = runReviewAudit(finalAnswers);
         } catch (err) {
           // Missing/corrupt workspace inputs (gap_analysis/enhanced_jd/candidate_profile). Don't dead-end
           // on a bare 500 — surface it and route to the Main Orchestrator recovery gate (redo analyst, etc.).

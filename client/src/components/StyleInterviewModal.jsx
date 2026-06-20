@@ -49,12 +49,13 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
     markVisited(id);
   }
 
-  // A dimension card is complete once it has a choice (and non-empty text if customising). The note card
-  // is optional — always complete.
+  // A dimension card is complete once it carries any choice. Customise-with-empty-text is allowed: the
+  // server (buildSNOutput) already folds that case into keep_current, so blocking submit on it here only
+  // dead-locks Skip/Apply for no reason. Note card is optional — always complete.
   function cardComplete(c) {
     if (c.isNote) return true;
     const a = answers[c.id];
-    return !!(a && a.choice && (a.choice !== 'customise' || a.custom_text?.trim()));
+    return !!(a && a.choice);
   }
   // The note card is optional — never require visiting it (otherwise an untouched text box blocks submit).
   const allReady = cards.every(c => c.isNote || (visited.has(c.id) && cardComplete(c)));
@@ -85,7 +86,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-fg tracking-tight">Style Interview</h2>
+              <h2 className="text-sm font-semibold text-fg tracking-tight">Your writing style</h2>
               <p className="text-xs text-fg-muted">Set how your CV should read and sound</p>
             </div>
           </div>

@@ -1,0 +1,12 @@
+{
+  "verdict": "FLAG",
+  "agent": "profile_builder",
+  "issues": [
+    {
+      "field": "data.profile_paragraph",
+      "problem": "Paragraph claims 'Over six years in high-volume retail roles' but candidate_profile.json shows actual tenure: Bunnings Team Member (2024-03-01 to Present) ≈ 0.83 years; Coles Checkout Operator (2020-01-01 to 2024-02-28) ≈ 4.1 years. Total ≈ 4.93 years. Numeric claim is inflated by approximately 1.1 years.",
+      "severity": "blocking"
+    }
+  ],
+  "summary": "1 blocking issue detected. Numeric claim in profile paragraph does not match source work_history data."
+}

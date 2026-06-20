@@ -1,0 +1,87 @@
+{
+  "groups": [
+    {
+      "id": "seniority",
+      "title": "Seniority & Career Level",
+      "finding": "Your profile currently reads as entry-level for Laboratory Technician: you have 6.4 years of work history, but it is in retail (Bunnings/Coles), with no direct clinical lab experience yet. Your degree is relevant (Bachelor of Biomedical Science, 2023), but your own cover-letter line \"I don't have any lab experience outside of uni\" reinforces a junior positioning.",
+      "examples": [
+        "\"I don't have any lab experience outside of uni\"",
+        "Retail-only employment history across Bunnings and Coles"
+      ],
+      "recommendation": "Confirm a Junior/Graduate framing, then position your application around readiness, trainability, procedural accuracy, and transferable reliability rather than trying to imply experience you do not yet have.",
+      "insight": "Clear, honest level-setting builds recruiter trust faster than inflated positioning—especially in regulated healthcare hiring.",
+      "recommended_overrides": {
+        "seniority_level": "Junior (0 relevant / 6.4 total yrs — confirmed by user)",
+        "seniority_tone": "Use graduate-ready, evidence-backed language that emphasizes capability to learn quickly in supervised lab environments.",
+        "experience_framing": "Translate retail experience into transferable strengths (accuracy, consistency, shift reliability, customer communication) without overstating lab exposure."
+      }
+    },
+    {
+      "id": "formatting_bullets",
+      "title": "Formatting & Bullet Style",
+      "finding": "The CV uses telegraphic fragments and gerund-led bullets (e.g., \"Helping customers find products\", \"Garden section mostly\") instead of standard action-result bullet construction. Tone findings also flag mixed tense and informal phrasing.",
+      "examples": [
+        "\"Helping customers find products\"",
+        "\"Garden section mostly\"",
+        "\"sometimes worked in the deli when they needed people\""
+      ],
+      "recommendation": "Rewrite bullets in past-tense action-verb format with specific task context (and outcomes where possible), and remove conversational phrasing.",
+      "insight": "Hiring teams infer professionalism from bullet mechanics before they evaluate potential.",
+      "recommended_overrides": {
+        "bullet_style": "Use concise, past-tense action-led bullets (Verb + task + context/outcome).",
+        "tense_consistency": "Keep all prior roles in consistent past tense; avoid gerund-led fragments.",
+        "first_person": "Do not use conversational or diary-style phrasing in CV bullets."
+      }
+    },
+    {
+      "id": "linguistic_strength",
+      "title": "Linguistic Strength",
+      "finding": "Several statements are flagged as weak or non-credible professional language (e.g., \"Good at following instructions\", \"Team player\", \"Reliable\"). These read as unsubstantiated clichés and dilute stronger evidence you do have.",
+      "examples": [
+        "\"Good at following instructions\"",
+        "\"Team player\"",
+        "\"Reliable\""
+      ],
+      "recommendation": "Replace generic traits with evidence-backed claims tied to real responsibilities (accuracy, handling busy shifts, cross-department support, tenure consistency).",
+      "insight": "Specific evidence is persuasive; generic adjectives are usually ignored by recruiters and ATS screeners.",
+      "recommended_overrides": {
+        "language_precision": "Remove clichés and replace with concrete, verifiable capability statements.",
+        "evidence_density": "Every key strength should be tied to an example, duration, scope, or measurable context.",
+        "professional_register": "Use formal, healthcare-appropriate wording across all sections."
+      }
+    },
+    {
+      "id": "cover_letter_style",
+      "title": "Cover Letter Style",
+      "finding": "The cover letter includes self-undermining and overly casual lines that can pre-empt rejection in a clinical application (e.g., \"I know I probably don't have as much experience...\", \"I never call in sick unless I actually am\").",
+      "examples": [
+        "\"I know I probably don't have as much experience as other people applying but I am a quick learner...\"",
+        "\"I never call in sick unless I actually am\""
+      ],
+      "recommendation": "Shift to a confident, evidence-led graduate narrative: relevant degree foundation, lab practical exposure from university, reliability from sustained shift work, and motivation to train into clinical workflows.",
+      "insight": "Cover-letter tone sets first-impression credibility—especially when direct experience is limited.",
+      "recommended_overrides": {
+        "cover_letter_voice": "Use confident, non-defensive language that highlights readiness and professionalism.",
+        "hedging_removal": "Remove apologetic or comparative statements that position the candidate as less suitable.",
+        "value_proposition": "Lead with degree relevance, lab fundamentals, and transferable reliability rather than personal reassurance statements."
+      }
+    },
+    {
+      "id": "professional_credibility",
+      "title": "Professional Credibility Signals",
+      "finding": "A few presentation details weaken professional perception before skills are reviewed (e.g., personal-style email handle and listing an expired First Aid certificate).",
+      "examples": [
+        "\"sarahj_2001@hotmail.com\"",
+        "\"First Aid Certificate (expired 2022)\""
+      ],
+      "recommendation": "Use a professional email format and remove lapsed credentials until renewed.",
+      "insight": "Small admin signals can materially affect perceived polish in high-compliance sectors like healthcare.",
+      "recommended_overrides": {
+        "contact_professionalism": "Use a clean professional email address format (first.last domain).",
+        "credential_hygiene": "Do not list expired certifications; re-add only once current.",
+        "document_polish": "Apply a compliance-oriented presentation standard across contact and credentials sections."
+      }
+    }
+  ],
+  "decisions": {}
+}

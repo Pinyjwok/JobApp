@@ -4,6 +4,7 @@ import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND } fro
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
+import { adjudicateGapAnswers } from './adjudicator.js';
 
 // ── Status-tag fallback + stall recovery (#1 / #2) ────────────────────────────
 
@@ -31,7 +32,7 @@ export function surfaceStall(agentName, err) {
   });
   broadcast({
     type: 'action_required', context: 'dispatch_stall',
-    actions: [{ id: 'retry_last_dispatch', label: `Retry ${agentName}`, variant: 'primary' }],
+    actions: [{ id: 'retry_last_dispatch', label: 'Try that step again', variant: 'primary' }],
   });
   broadcastMode('action_required');
 }
@@ -111,11 +112,34 @@ export function fireTAAndAnalyst() {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { cleanText } = parseAndStripStatus(raw);
       state.analystOutputText = cleanText; // validator is now called as a tool by the Analyst itself
+      // The inline analyst_validator writes analyst_validator_verdict.json as the source of truth.
+      // Read it here so checkJoin can surface a compact verdict bubble to the user (the validator
+      // is otherwise invisible — it runs inside the LLM node, the server never fires it).
+      state.analystValidatorSummary = buildAnalystValidatorSummary();
       state.analystDone = true;
       syncTADone();
       await checkJoin();
     })
     .catch(err => console.error('[Analyst] error:', err));
+}
+
+// Read the analyst validator's verdict file and render a compact one-liner for the UI.
+// Returns null if the file is missing/unreadable/empty (e.g. validator never ran).
+function buildAnalystValidatorSummary() {
+  try {
+    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'analyst_validator_verdict.json'), 'utf8'));
+    if (!verdict || !verdict.verdict) return null;
+    const issues = verdict.issues ?? verdict.notes ?? [];
+    const count = issues.length;
+    let text = `🔍 **Validator: ${verdict.verdict}** — ${count} issue${count === 1 ? '' : 's'}`;
+    if ((verdict.verdict === 'FLAG' || verdict.verdict === 'REJECT') && count) {
+      text += '\n' + issues.map(i => `• ${i.field}: ${i.problem ?? i.note}`).join('\n');
+    }
+    return text;
+  } catch (err) {
+    console.error('[Validator] analyst verdict read error:', err.message);
+    return null;
+  }
 }
 
 // ── Server-owned fit score calculation ───────────────────────────────────────
@@ -135,9 +159,14 @@ const isResponsibility = r => String(r.source ?? '').includes('key_responsibilit
 function calculateFitScore(gapAnalysis) {
   const reqs = gapAnalysis.requirements ?? [];
   const isMet = r => r.candidate_status === 'Met' || r.candidate_status === 'Met (Candidate Evidence)';
+  // "Pending" = procedural statutory item the candidate can acquire at hire (WWCC, police check, visa).
+  // It is neither a met capability nor a true gap, so it must leave the scored set entirely — excluded
+  // from the baseline/differentiator denominator AND from the mandatory-cert gate below. The semantic
+  // decision of *what* is Pending lives in the Analyst; the server only does the deterministic math.
+  const isPending = r => r.candidate_status === 'Pending';
   // Scored set = genuine requirements only (tier filter + source guard against responsibility mislabeling).
-  const baseline = reqs.filter(r => r.tier === 'Baseline' && !isResponsibility(r));
-  const differentiator = reqs.filter(r => r.tier === 'Differentiator' && !isResponsibility(r));
+  const baseline = reqs.filter(r => r.tier === 'Baseline' && !isResponsibility(r) && !isPending(r));
+  const differentiator = reqs.filter(r => r.tier === 'Differentiator' && !isResponsibility(r) && !isPending(r));
   const baselineMet = baseline.filter(isMet).length;
   const differentiatorMet = differentiator.filter(isMet).length;
 
@@ -153,8 +182,11 @@ function calculateFitScore(gapAnalysis) {
 
   // Mandatory-cert gate: an unmet statutory "condition of employment" caps the score. Flag-driven,
   // with a keyword fallback so it fires even if the Analyst omits mandatory_gate.
+  // Gate only on Baseline (required) items — a statutory mention under preferred qualifications is a
+  // nice-to-have and must not cap the score. _computeTier guards against an Analyst tier mislabel here,
+  // since this runs before the _repairGapAnalysis retier pass.
   const gateApplied = reqs.some(r =>
-    !isResponsibility(r) && !isMet(r) &&
+    !isResponsibility(r) && !isPending(r) && !isMet(r) && (_computeTier(r) ?? r.tier) === 'Baseline' &&
     (r.mandatory_gate === true || STATUTORY_CERT.test(String(r.requirement_text ?? ''))));
   if (gateApplied && total > GATE_CEILING) total = GATE_CEILING;
 
@@ -188,9 +220,10 @@ export function applyFitScore(gapAnalysisPath) {
 // bugs (version-literal leak, brittle text matching, [object Object] stringify, silent item drops).
 // Moving it here makes it exact and removes those failure modes. The LLM Reviewer node is retained
 // ONLY for the user-facing Phase 7.5 issue resolution, dispatched when backable issues remain.
-// EXCEPTION — the one genuinely semantic step, classifying a gap answer EVIDENCE vs INTENT, is NOT
-// done here: it's an LLM call (evidence-classifier.js) made upstream in gap_answers_submit; the result
-// arrives as `evidence_type` on each answer and _ingestGapAnswers trusts it (no regex proxy).
+// EXCEPTION — the one genuinely semantic step, the Adjudicator judging each gap answer (ACCEPTED /
+// REQUIRES_ANCHOR / REJECTED / NOT_EVIDENCE), is NOT done here: it's an LLM call (adjudicator.js) made
+// upstream across the gap_answers_submit loop; the verdict arrives on each answer and _ingestGapAnswers
+// trusts it (no regex proxy). Only ACCEPTED grants credit.
 
 export const REVIEW_AUDIT_VERSION = 'server-1.0';
 const BACKABLE_ISSUE_TYPES = ['A - Evidence Mismatch', 'B - Seniority Inflation', 'D - Missing Context'];
@@ -259,7 +292,7 @@ function _computeTier(r) {
 // tier with the computed-correct one, and drop unbacked orphan gaps whose requirement_source isn't in the
 // JD. Mutates gapAnalysis in place; returns a repair record for the audit + summary.
 function _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD) {
-  const repairs = { paths_normalized: [], strengths_dropped: [], requirements_retiered: [], gaps_dropped: [] };
+  const repairs = { paths_normalized: [], strengths_dropped: [], requirements_retiered: [], gaps_dropped: [], gates_demoted: [] };
 
   const keptStrengths = [];
   for (const s of (gapAnalysis.strengths || [])) {
@@ -279,6 +312,13 @@ function _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD) {
       repairs.requirements_retiered.push({ id: r.id, from: r.tier, to: correct });
       r.tier = correct;
     }
+    // A mandatory_gate only makes sense on a Baseline (required) item — a preferred/Differentiator
+    // statutory mention is a nice-to-have, not a hard condition of employment. Capping the fit score on
+    // an unmet *preferred* item over-penalises the candidate, so demote the flag deterministically.
+    if (r.mandatory_gate === true && r.tier !== 'Baseline') {
+      repairs.gates_demoted.push({ id: r.id, tier: r.tier });
+      r.mandatory_gate = false;
+    }
   }
 
   const keptGaps = [];
@@ -289,8 +329,8 @@ function _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD) {
       repairs.paths_normalized.push({ id: g.id, from: g.requirement_source, to: fixed });
       g.requirement_source = fixed; keptGaps.push(g); continue;
     }
-    // Keep a candidate-backed gap even if its source is orphaned — its evidence stands on its own.
-    if (g.evidence_type === 'EVIDENCE' && g.candidate_provided_evidence) { keptGaps.push(g); continue; }
+    // Keep a candidate-backed gap even if its source is orphaned — its accepted evidence stands on its own.
+    if (g.adjudication === 'ACCEPTED' && g.candidate_provided_evidence) { keptGaps.push(g); continue; }
     repairs.gaps_dropped.push({ id: g.id, requirement_source: g.requirement_source, gap_text: g.gap_text });
   }
   gapAnalysis.gaps = keptGaps;
@@ -298,10 +338,10 @@ function _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD) {
   return repairs;
 }
 
-// Ingest the gap answers collected by the client modal (Phase 1). Mutates gapAnalysis in place.
-// EVIDENCE/INTENT classification is a semantic judgment done by the LLM classifier upstream
-// (see evidence-classifier.js) and arrives on each answer as `evidence_type`. This function does ONLY
-// the mechanical effects — it trusts the provided label and never re-classifies (no regex proxy).
+// Ingest the gap answers collected by the client modal. Mutates gapAnalysis in place.
+// Each answer carries an Adjudicator `verdict` (see adjudicator.js) decided upstream over the whole
+// 2-round interview loop. This function does ONLY the mechanical effects — it trusts the verdict and
+// never re-judges. Only ACCEPTED grants credit; every other verdict leaves the gap open.
 function _ingestGapAnswers(gapAnalysis, gapAnswers) {
   if (!Array.isArray(gapAnalysis.candidate_backed_strengths)) gapAnalysis.candidate_backed_strengths = [];
 
@@ -313,7 +353,7 @@ function _ingestGapAnswers(gapAnalysis, gapAnswers) {
     for (const gap of (gapAnalysis.gaps || [])) {
       if (!submittedIds.has(gap.id)) continue;
       delete gap.candidate_provided_evidence; delete gap.evidence_source;
-      delete gap.evidence_type; delete gap.evidence_classification_reason;
+      delete gap.adjudication; delete gap.adjudication_reason; delete gap.anchor_prompt;
       const linkedReq = (gapAnalysis.requirements || []).find(r => r.id === gap.requirement_id);
       if (linkedReq && linkedReq.candidate_status === 'Met (Candidate Evidence)') {
         linkedReq.candidate_status = 'Gap';
@@ -328,21 +368,39 @@ function _ingestGapAnswers(gapAnalysis, gapAnswers) {
     if (answer.skipped || !answer.user_answer?.trim()) {
       gap.candidate_provided_evidence = '__skipped__';
       gap.evidence_source = 'skipped';
-      gap.evidence_type = 'SKIPPED';
+      gap.adjudication = 'SKIPPED';
       continue;
     }
     const response = answer.user_answer.trim();
-    const evidenceType = answer.evidence_type === 'EVIDENCE' ? 'EVIDENCE' : 'INTENT'; // LLM-classified upstream; INTENT is the safe default
+    const verdict = answer.verdict || 'NOT_EVIDENCE'; // adjudicated upstream; fail-closed default
     gap.candidate_provided_evidence = response;
     gap.evidence_source = 'user_provided';
-    gap.evidence_type = evidenceType;
-    if (answer.evidence_reason) gap.evidence_classification_reason = answer.evidence_reason; // kept for debugging
-    if (evidenceType === 'EVIDENCE') {
+    gap.adjudication = verdict;
+    if (answer.adjudication_reason) gap.adjudication_reason = answer.adjudication_reason;
+    if (verdict === 'REQUIRES_ANCHOR' && answer.anchor_prompt) gap.anchor_prompt = answer.anchor_prompt;
+    if (verdict === 'ACCEPTED') {
       const linkedReq = (gapAnalysis.requirements || []).find(r => r.id === gap.requirement_id);
       if (linkedReq) { linkedReq.candidate_status = 'Met (Candidate Evidence)'; linkedReq.candidate_evidence_text = response; }
       gapAnalysis.candidate_backed_strengths.push({ gap_id: answer.gap_id, gap_text: answer.gap_text, evidence: response, tier: answer.tier });
     }
+    // REQUIRES_ANCHOR / REJECTED / NOT_EVIDENCE: gap stays open; verdict + reason retained for the summary.
   }
+
+  // Canonical contract: a top-level candidate_provided_evidence[] array (Analyst inits it as [], the
+  // Integrity Checker reads it as an array, specs require it). The per-gap string above is internal
+  // working state for the keep-rule + requirement linking; this array is the public shape. Rebuilt from
+  // current gap state every ingest, so it stays consistent across resubmits.
+  gapAnalysis.candidate_provided_evidence = (gapAnalysis.gaps || [])
+    .filter(g => g.evidence_source === 'user_provided'
+              && g.candidate_provided_evidence
+              && g.candidate_provided_evidence !== '__skipped__')
+    .map(g => ({
+      gap_id: g.id,
+      gap_text: g.gap_text,
+      tier: g.tier,
+      candidate_provided_evidence: g.candidate_provided_evidence,
+      adjudication: g.adjudication,
+    }));
 }
 
 // Run the full forensic audit and write review_audit.json. Returns { audit, backableIssues }.
@@ -358,8 +416,8 @@ export function runReviewAudit(gapAnswers = []) {
   _ingestGapAnswers(gapAnalysis, gapAnswers);
   const repairs = _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD);
   const repairCount = repairs.paths_normalized.length + repairs.strengths_dropped.length
-                    + repairs.requirements_retiered.length + repairs.gaps_dropped.length;
-  if (repairCount > 0) console.log(`[runReviewAudit] pre-audit repair: ${repairs.paths_normalized.length} path(s) normalized, ${repairs.strengths_dropped.length} strength(s) dropped, ${repairs.requirements_retiered.length} re-tiered, ${repairs.gaps_dropped.length} orphan gap(s) dropped`);
+                    + repairs.requirements_retiered.length + repairs.gaps_dropped.length + repairs.gates_demoted.length;
+  if (repairCount > 0) console.log(`[runReviewAudit] pre-audit repair: ${repairs.paths_normalized.length} path(s) normalized, ${repairs.strengths_dropped.length} strength(s) dropped, ${repairs.requirements_retiered.length} re-tiered, ${repairs.gaps_dropped.length} orphan gap(s) dropped, ${repairs.gates_demoted.length} gate(s) demoted`);
   writeFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), JSON.stringify(gapAnalysis, null, 2), 'utf8');
 
   const audit = { strengths: [], gaps: [], requirements: [], ats_keywords: [] };
@@ -650,13 +708,40 @@ export async function checkJoin() {
     console.error('[join] applyFitScore error:', err.message);
   }
 
+  // Authoritative strength/gap lists for the UI come from gap_analysis.json (server owns the source
+  // of truth) — NOT from parsing the Analyst's free text, which only ever named one "top strength"
+  // + one "key gap", so the bubble could show only one of each. Attach the full structured lists so
+  // AnalystBubble renders every strength and gap, gaps sorted critical→low.
+  let analystData = null;
+  try {
+    const ga = JSON.parse(readFileSync(gapAnalysisPath, 'utf8'));
+    const sevRank = { critical: 0, high: 1, medium: 2, low: 3 };
+    const gaps = (ga.gaps ?? [])
+      .map(g => ({ text: g.gap_text, severity: g.severity ?? null }))
+      .filter(g => g.text)
+      .sort((a, b) => (sevRank[String(a.severity).toLowerCase()] ?? 9) - (sevRank[String(b.severity).toLowerCase()] ?? 9));
+    analystData = {
+      score: ga.overall_fit_score ?? computedScore,
+      strengths: (ga.strengths ?? []).map(s => ({ text: s.strength_text })).filter(s => s.text),
+      gaps,
+    };
+  } catch (err) {
+    console.error('[checkJoin] could not build analystData for bubble:', err.message);
+  }
+
   if (state.analystOutputText) {
     const banner = computedScore !== null ? `**Fit Score: ${computedScore}/10**\n\n` : '';
-    broadcast({ type: 'agent_message', agent: 'Analyst', text: banner + stripAnalystNarration(state.analystOutputText), background: false });
+    broadcast({ type: 'agent_message', agent: 'Analyst', text: banner + stripAnalystNarration(state.analystOutputText), background: false, analystData });
     broadcast({ type: 'stream_done' });
     state.analystOutputText = null;
     await new Promise(r => setTimeout(r, 300));
   }
+
+  // The Analyst validator runs inline (the Analyst calls it as a tool) and writes
+  // analyst_validator_verdict.json for server-side logic, but its verdict is deliberately NOT shown
+  // to the user: a visible "Validator: REJECT" bubble breaks trust when validation doesn't pass, and
+  // the validator is an internal QA step. Discard the summary unread.
+  state.analystValidatorSummary = null;
 
   await state.recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
   state.pipelineStatus = 'GAP_INTERVIEW';
@@ -668,8 +753,13 @@ export async function checkJoin() {
   } catch (e) {
     console.error('[checkJoin] failed to read high gaps for modal:', e.message);
   }
-  console.log(`[checkJoin] broadcasting gap_interview_start with ${highGaps.length} high gaps`);
-  broadcast({ type: 'gap_interview_start', gaps: highGaps });
+  // Fresh interview: reset the 2-round adjudication loop state.
+  state.gapRound = 1;
+  state.gapAnswersAccum = {};
+  state.gapAccepted = [];
+  state.gapPending = [];
+  console.log(`[checkJoin] broadcasting gap_interview_start (round 1) with ${highGaps.length} high gaps`);
+  broadcast({ type: 'gap_interview_start', round: 1, accepted: [], gaps: highGaps });
   broadcastMode('action_required');
 }
 
@@ -693,10 +783,10 @@ export async function checkResearchRedoJoin() {
       broadcast({
         type: 'action_required',
         context: 'research_confirm',
-        prompt: researchSummary + '\n\nConfirm to proceed with gap analysis, or run research again.',
+        prompt: researchSummary + '\n\nHappy with this? We\'ll use it to see how well you fit the role.',
         actions: [
-          { id: 'research_confirm', label: 'Confirm — proceed with analysis', variant: 'primary' },
-          { id: 'research_redo',    label: 'Run research again',               variant: 'ghost'   },
+          { id: 'research_confirm', label: 'Looks good — keep going', variant: 'primary' },
+          { id: 'research_redo',    label: 'Research again',          variant: 'ghost'   },
         ],
       });
       broadcastMode('action_required');
@@ -756,18 +846,40 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   }
 
   state.currentAssemblyPhase = phaseNumber;
+  state.awaitingSectionReview = null;  // a fresh dispatch supersedes any pending section review
+  // Stall recovery: a STALL/throw from the node send would otherwise bubble to the route's
+  // generic 500 handler with the UI left in auto_running and no Retry affordance (silent hang).
+  // Register a retry thunk and surface the stall here, mirroring runLinearDispatch.
+  state.retryThunk = () => dispatchAssemblyPhase(phaseNumber);
 
   let ctx = '';
   try {
     const meta = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
-    const today = new Date().toISOString().substring(0, 10);
-    ctx = ` role="${meta.position_title}" company="${meta.company_name}" today="${today}"`;
+    // No today= injection: agents write the literal __DATE_TODAY__ token and the
+    // server substitutes the real AU date at display time (see broadcast.js).
+    ctx = ` role="${meta.position_title}" company="${meta.company_name}"`;
   } catch {}
 
   broadcastMode('auto_running', phase.agent);
-  const result = await sendToNodeAndWait(phase.inputNode, phase.agent, `__build__${ctx}`);
+  const dispatchStart = Date.now();
+  let result;
+  try {
+    result = await sendToNodeAndWait(phase.inputNode, phase.agent, `__build__${ctx}`);
+  } catch (err) {
+    // The Integrity Checker is a forensic full-document check — designed to run long. The watchdog
+    // can fire while the node is still healthily working; because Promise.race doesn't cancel the
+    // underlying call, IC keeps going and *does* write its verdict to disk shortly after. Don't burn a
+    // 20-min re-run discarding that result: poll for a fresh verdict before declaring a dead stall.
+    if (phaseNumber === 8 && await _salvageIntegrityVerdict(dispatchStart)) {
+      console.log('[assembly] IC watchdog fired but a fresh verdict landed — salvaging, running gate');
+      await _handleGate(8);
+      return;
+    }
+    surfaceStall(phase.agent, err);
+    return;
+  }
   const { cleanText } = parseAndStripStatus(typeof result === 'string' ? result : JSON.stringify(result ?? ''));
-  broadcastAgentResult(cleanText, phase.agent, true);
+  broadcastAssemblySectionResult(cleanText, phase.agent);
 
   await new Promise(r => setTimeout(r, 1000));
 
@@ -778,8 +890,33 @@ export async function dispatchAssemblyPhase(phaseNumber) {
     return;
   }
 
-  // SR (7) and IC (8) — gate check (they write cv_assembly_state.json themselves)
-  await _handleGate(phaseNumber);
+  // IC (8) is a real gate (integrity is the hard blocker). SR (7) is advisory only — its findings
+  // are informational, so we surface them and auto-advance rather than stopping the run.
+  if (phaseNumber === 7) {
+    await _advisoryStyleReview();
+  } else {
+    await _handleGate(phaseNumber);
+  }
+}
+
+// Style Reviewer is advisory: the agent's own output bubble already lists any findings, so we just add
+// a short "advisory — continuing" notice and move straight on to the Integrity Checker. No STYLE_FAILED
+// status, no Continue-anyway gate.
+async function _advisoryStyleReview() {
+  let issueCount = 0;
+  try {
+    const cvState = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'));
+    issueCount = (cvState.phases[6]?.data?.issues_found ?? []).length;
+  } catch (e) {
+    console.error('[assembly] advisory style review read failed:', e.message);
+  }
+  broadcast({
+    type: 'agent_message', agent: 'System',
+    text: issueCount > 0
+      ? `Style review is advisory — ${issueCount} note(s) above for reference. Continuing to the integrity check.`
+      : 'Style review passed — continuing to the integrity check.',
+  });
+  await dispatchAssemblyPhase(8);
 }
 
 // SN is now a single-fire stylist (same offload pattern as fit-score / reviewer-audit / tone-validation).
@@ -853,6 +990,24 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
       recommendation: `Confirm as ${level} — this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
       insight: 'Seniority framing is the single biggest lever on how a recruiter reads every bullet.',
       recommended_overrides: { seniority_level: `${level} (confirmed by user)` },
+    });
+  }
+
+  // Profile voice is a universal style choice — always offer it. Default (recommended) = first person;
+  // a user who prefers third person picks "Customise" and types "third person". PB/SR read the resulting
+  // directive from agreed_overrides and write accordingly (default first person if absent).
+  if (!has('profile_voice')) {
+    out.push({
+      id: 'profile_voice',
+      title: 'Professional Summary — Voice',
+      finding: 'Your professional summary can be written in first person (you speaking as yourself) or third person (written about you).',
+      examples: [
+        'First person: "Biomedical Science graduate with hands-on laboratory training…"',
+        'Third person: "Sarah is a Biomedical Science graduate with hands-on laboratory training…"',
+      ],
+      recommendation: 'Use first person — it reads as direct and modern and is the most common choice today. Prefer third person? Pick "Customise" and type "third person".',
+      insight: 'First person (or implied first person, with no "I") is standard for most professional summaries; third person can suit very senior or academic profiles.',
+      recommended_overrides: { profile_voice: 'first person — the summary speaks as the candidate (implied first person, no name and no third-person pronouns)' },
     });
   }
 
@@ -985,6 +1140,91 @@ async function _autoApproveSN(findings = {}) {
   await _advanceFromSN(notes);
 }
 
+// ── Structured assembly section bubbles ──────────────────────────────────────
+// Every assembly section agent used to emit a jargon build-log ("Candidate: …", "word count: 52/90",
+// "Entries formatted: N"). The user wants the actual *content* instead — their profile paragraph,
+// their skills, their work history, etc. The structured data already lives in each agent's output
+// file, so the server builds a typed `sectionData` payload from it and the client renders a real
+// section preview. Each builder reads the agent's fresh output file and returns a payload tagged with
+// a `kind` discriminator, or null on any failure (caller falls back to the agent's own text).
+const arr = v => (Array.isArray(v) ? v.filter(Boolean) : []);
+
+function readSectionOutput(file) {
+  return JSON.parse(readFileSync(join(WORKSPACE_DIR, file), 'utf8'))?.data ?? {};
+}
+
+const SECTION_BUILDERS = {
+  'Profile Builder': () => {
+    const d = readSectionOutput('pb_output.json');
+    const paragraph = d.profile_paragraph?.formatted_text ?? d.profile_statement ?? '';
+    if (!paragraph) return null;
+    return {
+      kind: 'profile',
+      paragraph,
+      contact: d.contact_details?.formatted_text ?? '',
+      highlights: arr(d.profile_paragraph?.strengths_highlighted),
+      suggestions: arr(d.advisory_warnings)
+        .filter(w => w.suggestion || w.issue)
+        .map(w => ({ field: w.field ?? '', issue: w.issue ?? '', suggestion: w.suggestion ?? '' })),
+    };
+  },
+  'Skills Curator': () => {
+    const d = readSectionOutput('sc_output.json');
+    const technical = arr(d.technical_skills), soft = arr(d.soft_skills), certifications = arr(d.certifications);
+    if (!technical.length && !soft.length && !certifications.length) return null;
+    return { kind: 'skills', technical, soft, certifications, note: d.tailoring_notes ?? '' };
+  },
+  'History Formatter': () => {
+    const d = readSectionOutput('hf_output.json');
+    const roles = arr(d.work_history).map(r => ({
+      employer: r.employer ?? '',
+      position: r.position ?? '',
+      duration: r.duration ?? '',
+      bullets: arr(r.bullets),
+    }));
+    if (!roles.length) return null;
+    return { kind: 'history', roles };
+  },
+  'Credentials Formatter': () => {
+    const d = readSectionOutput('cf_output.json');
+    const education = arr(d.education).map(e =>
+      e.formatted_text || [e.qualification, e.institution, e.year].filter(Boolean).join(', '));
+    const certifications = arr(d.certifications);
+    if (!education.length && !certifications.length) return null;
+    return { kind: 'credentials', education, certifications };
+  },
+  'Cover Letter Writer': () => {
+    const d = readSectionOutput('clw_output.json');
+    const letter = d.cover_letter?.full_letter ?? '';
+    if (!letter) return null;
+    return { kind: 'coverletter', letter, register: d.register_used ?? '', highlights: arr(d.strengths_used) };
+  },
+};
+
+function buildSectionData(agent) {
+  const builder = SECTION_BUILDERS[agent];
+  if (!builder) return null;
+  try {
+    return builder();
+  } catch (e) {
+    console.error(`[assembly] buildSectionData(${agent}) failed:`, e.message);
+    return null;
+  }
+}
+
+// Emit an assembly section result. Sections with a structured builder get a server-built bubble
+// (sectionData) instead of their jargon summary; anything else keeps the plain agent-authored bubble.
+// Used by both the initial dispatch and the revise path so they stay in sync.
+export function broadcastAssemblySectionResult(cleanText, agent) {
+  const sectionData = buildSectionData(agent);
+  if (sectionData) {
+    broadcast({ type: 'agent_message', agent, text: `${agent} Complete`, background: false, sectionData });
+    return;
+  }
+  // No structured data — fall through to the plain text so the user still sees something.
+  broadcastAgentResult(cleanText, agent, true);
+}
+
 export async function mergePhaseOutput(phaseNumber) {
   const phase = ASSEMBLY_PHASES[phaseNumber];
   if (!phase?.outputFile) return; // SR/IC write cv_assembly_state.json themselves
@@ -1028,6 +1268,320 @@ export async function reShowSectionReview(phaseNumber) {
   _showApproveRevise(ASSEMBLY_PHASES[phaseNumber].agent);
 }
 
+// Which agent a phase-aware resume will land on (for the restore route's "next agent" notice). Mirrors
+// the branch logic in resumeAssembly without dispatching.
+export function assemblyResumeAgent() {
+  let phases = [];
+  try {
+    phases = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'))?.phases ?? [];
+  } catch { /* no state → SN */ }
+  let resumePhase = 1;
+  while (resumePhase <= 9 && phases[resumePhase - 1]?.status === 'COMPLETE') resumePhase++;
+  if (resumePhase <= 2) return ASSEMBLY_PHASES[resumePhase].agent;  // SN interview or Profile Builder
+  if (resumePhase > 9) return ASSEMBLY_PHASES[9].agent;            // all done
+  return ASSEMBLY_PHASES[Math.min(resumePhase - 1, 6)].agent;     // last content section under review
+}
+
+// Phase-aware resume. pipeline_status is coarse (every assembly phase shares CV_BUILDING), so the
+// actual progress lives in cv_assembly_state.json. Land the user at the phase they reached instead of
+// restarting the Style Negotiator: re-show the last completed *content* section's content + Approve/
+// Revise so a single approve advances to the next agent. Used by restore, cold-start resume, and the
+// F5 section-review safety net.
+export async function resumeAssembly() {
+  let phases = [];
+  try {
+    phases = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'))?.phases ?? [];
+  } catch (e) {
+    console.error('[resume] cv_assembly_state unreadable — restarting SN:', e.message);
+  }
+  const isComplete = n => phases[n - 1]?.status === 'COMPLETE';
+
+  // Lowest phase 1..9 not yet COMPLETE = the next phase to run.
+  let resumePhase = 1;
+  while (resumePhase <= 9 && isComplete(resumePhase)) resumePhase++;
+
+  if (resumePhase > 9) {                       // everything done → finished state
+    console.log('[resume] all assembly phases complete → CV_TAILORED');
+    await dispatchAssemblyPhase(10);           // no-phase branch sets CV_TAILORED + idle
+    return;
+  }
+  if (resumePhase === 1) {                      // SN not done → run the interview
+    console.log('[resume] SN not complete → style negotiation');
+    state.snState = null;
+    await dispatchAssemblyPhase(1);
+    return;
+  }
+  if (resumePhase === 2) {                      // only SN done; SN has no review bubble → run PB
+    console.log('[resume] SN complete, Profile Builder next');
+    state.currentAssemblyPhase = 1;
+    await dispatchAssemblyPhase(2);
+    return;
+  }
+
+  // resumePhase 3..9 → re-show the last completed content section (phases 2–6; gates 7/8 + DF 9 auto).
+  const lastContent = Math.min(resumePhase - 1, 6);
+  const agent = ASSEMBLY_PHASES[lastContent].agent;
+  console.log(`[resume] landing on phase ${lastContent} (${agent}) review`);
+  state.currentAssemblyPhase = lastContent;
+  state.fallbackAgent = agent;
+  broadcast({ type: 'agent_switch', agent });
+  await mergePhaseOutput(lastContent);
+  broadcastAssemblySectionResult('', agent);   // re-emit the section content from its output file
+  await new Promise(r => setTimeout(r, 300));
+  _showApproveRevise(agent);
+}
+
+// ── Integrity-check reject remediation ────────────────────────────────────────
+// On an IC FAIL, every flagged claim must have a real path other than "ship it": remove it (mechanical,
+// server-side for list sections; via the Style Reviewer re-flow for prose) or back it with evidence
+// (adjudicated, then ingested into gap_analysis so IC sees it). See plan: the-integrity-cxhcker-was-zippy-tiger.
+
+const IC_REMEDIATION_CAP = 2; // attempts before the gate falls back to "Use it as-is"
+
+// List sections hold an array of claim strings → a removal is a clean splice (no LLM). Prose sections
+// embed the claim mid-sentence → removal needs the Style Reviewer to re-flow.
+const IC_LIST_SECTIONS  = new Set(['skills', 'additional_information']);
+const IC_PROSE_SECTIONS = new Set(['profile', 'cover_letter']);
+const IC_SECTION_LABEL  = {
+  profile: 'your summary', skills: 'your skills', career_history: 'your work history',
+  cover_letter: 'your cover letter', additional_information: 'your extra details',
+};
+
+// Tokenise for fuzzy claim↔gap linking — lowercase, strip punctuation, drop short noise words.
+function _icTokens(s) {
+  return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+}
+
+// Link a flagged claim back to the gap it came from (so we can read that gap's adjudication for the
+// skip-framing and target it for the evidence path). Conservative: only returns a match when a strong
+// majority of the gap's tokens appear in the claim. No match → claim is treated as un-linked (Remove-only).
+function _matchClaimToGap(claimText, gaps) {
+  const ct = new Set(_icTokens(claimText));
+  if (!ct.size) return null;
+  let best = null, bestScore = 0;
+  for (const g of gaps || []) {
+    const gt = _icTokens(g.gap_text);
+    if (!gt.length) continue;
+    const score = gt.filter(w => ct.has(w)).length / gt.length;
+    if (score > bestScore) { bestScore = score; best = g; }
+  }
+  return bestScore >= 0.5 ? best : null;
+}
+
+// Enrich IC's bare unsupported_claims_detail[] into the per-claim records the modal + submit handler use.
+function buildIntegrityReviewClaims(phaseData) {
+  const detail = phaseData?.unsupported_claims_detail ?? [];
+  let gaps = [];
+  try { gaps = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8')).gaps ?? []; } catch {}
+
+  return detail.map((c, i) => {
+    const section = c.section ?? 'profile';
+    const status  = c.evidence_status ?? 'NOT_FOUND';
+    // GAP_SKILL_FABRICATED provably maps to a gap; for the rest, try a fuzzy link so skip-framing +
+    // the evidence path can still apply when the claim text overlaps a known gap.
+    const gap = _matchClaimToGap(c.claim, gaps);
+    const fromSkippedGap = !!gap && gap.adjudication === 'SKIPPED';
+    const defaultAction =
+      status === 'DATES_UNVERIFIED'  ? 'fix_dates' :
+      status === 'UNVERIFIED_DETAIL' ? 'none'      : // ambiguous — no pre-selection
+      'remove';
+    return {
+      id: `ic_${i}`,
+      claim: c.claim,
+      section,
+      sectionType: IC_LIST_SECTIONS.has(section) ? 'list' : IC_PROSE_SECTIONS.has(section) ? 'prose' : 'other',
+      sectionLabel: IC_SECTION_LABEL[section] ?? section,
+      evidence_status: status,
+      remediation: c.remediation ?? null,
+      gap_id: gap?.id ?? null,
+      gap_text: gap?.gap_text ?? null,
+      from_skipped_gap: fromSkippedGap,
+      canProvideEvidence: !!gap?.id,
+      defaultAction,
+      group: fromSkippedGap ? 'skipped' : 'other',
+    };
+  });
+}
+
+// Strip the display-only / server-trust fields the client doesn't need (it re-reads everything from
+// state.icReview on submit — same trust model as gap_answers_submit re-reading gap_analysis.json).
+export function toIcClientClaim(c) {
+  return {
+    id: c.id, claim: c.claim, section: c.section, sectionLabel: c.sectionLabel,
+    evidence_status: c.evidence_status, from_skipped_gap: c.from_skipped_gap,
+    canProvideEvidence: c.canProvideEvidence, defaultAction: c.defaultAction, group: c.group,
+  };
+}
+
+// Poll cv_assembly_state.json for an IC verdict that landed AFTER the watchdog fired (a slow-but-healthy
+// run). Returns true if a fresh verdict appears within the grace window.
+async function _salvageIntegrityVerdict(dispatchStart) {
+  const path = join(WORKSPACE_DIR, 'cv_assembly_state.json');
+  for (let i = 0; i < 30; i++) { // ~90s grace, polled every 3s
+    try {
+      const cv = JSON.parse(readFileSync(path, 'utf8'));
+      const ph = cv.phases?.[7];
+      const completedAt = ph?.completed_at ? new Date(ph.completed_at).getTime() : 0;
+      if (ph?.data?.integrity_status && completedAt >= dispatchStart) return true;
+    } catch {}
+    await new Promise(r => setTimeout(r, 3000));
+  }
+  return false;
+}
+
+// Remove exact claim strings from the list-section arrays in cv_assembly_state.json (skills) and, best
+// effort, from the publications/awards source (additional_information). Returns the count removed.
+function _stripListClaims(listClaims) {
+  if (!listClaims.length) return 0;
+  let removed = 0;
+  const norm = s => _icTokens(s).join(' ');
+  const wanted = new Map(listClaims.map(c => [norm(c.claim), c]));
+
+  const cvPath = join(WORKSPACE_DIR, 'cv_assembly_state.json');
+  try {
+    const cv = JSON.parse(readFileSync(cvPath, 'utf8'));
+    const skills = cv.phases?.[2]?.data;
+    if (skills) {
+      for (const field of ['technical_skills', 'soft_skills', 'certifications']) {
+        if (!Array.isArray(skills[field])) continue;
+        const before = skills[field].length;
+        skills[field] = skills[field].filter(s => !wanted.has(norm(typeof s === 'string' ? s : s?.name ?? '')));
+        removed += before - skills[field].length;
+      }
+      if (typeof skills.total_skills === 'number') {
+        skills.total_skills = (skills.technical_skills?.length ?? 0) + (skills.soft_skills?.length ?? 0);
+      }
+      cv.metadata && (cv.metadata.last_updated = new Date().toISOString());
+      writeFileSync(cvPath, JSON.stringify(cv, null, 2));
+    }
+  } catch (e) { console.error('[ic-remediation] skills strip failed:', e.message); }
+
+  // additional_information lives in candidate_profile.json (publications/awards) — best effort.
+  const addl = listClaims.filter(c => c.section === 'additional_information');
+  if (addl.length) {
+    const cpPath = join(WORKSPACE_DIR, 'candidate_profile.json');
+    try {
+      const cp = JSON.parse(readFileSync(cpPath, 'utf8'));
+      for (const field of ['publications', 'awards', 'grants']) {
+        if (!Array.isArray(cp[field])) continue;
+        cp[field] = cp[field].filter(item => {
+          const text = typeof item === 'string' ? item : (item?.title ?? item?.name ?? JSON.stringify(item));
+          return !addl.some(c => norm(c.claim) === norm(text) || norm(text).includes(norm(c.claim)));
+        });
+      }
+      writeFileSync(cpPath, JSON.stringify(cp, null, 2));
+    } catch (e) { console.error('[ic-remediation] additional_information strip failed:', e.message); }
+  }
+  return removed;
+}
+
+// Apply the user's per-claim integrity decisions, then re-run IC. Decisions: { [claimId]: { action, evidence } }.
+// action ∈ 'remove' | 'evidence' | 'keep' | 'fix_dates'. Called by the ic_remediation_submit route.
+export async function runIcRemediation(decisions = {}) {
+  const claims = state.icReview?.claims ?? [];
+  if (!claims.length) { await dispatchAssemblyPhase(8); return; }
+  state.icRemediationRound += 1;
+
+  const byId = new Map(claims.map(c => [c.id, c]));
+  const evidenceItems = [];   // adjudicate → ingest if ACCEPTED
+  let   removeList    = [];   // claims to drop (incl. failed-evidence fallthrough)
+  const dateClaims    = [];   // DATES_UNVERIFIED → existing HF revise path
+
+  for (const [id, d] of Object.entries(decisions)) {
+    const c = byId.get(id);
+    if (!c) continue;
+    const action = d?.action ?? c.defaultAction;
+    if (action === 'keep') continue;
+    if (action === 'fix_dates' || (c.evidence_status === 'DATES_UNVERIFIED' && action !== 'remove')) {
+      dateClaims.push(c); continue;
+    }
+    if (action === 'evidence' && c.gap_id && d?.evidence?.trim()) {
+      evidenceItems.push({ claim: c, gap_id: c.gap_id, gap_text: c.gap_text, answer: d.evidence.trim() });
+      continue;
+    }
+    removeList.push(c); // 'remove', or evidence with no gap/text
+  }
+
+  // 1) Evidence → adjudicate; ACCEPTED ingests into gap_analysis.json (IC then sees it). Rejected
+  //    evidence is not real backing → the claim falls through to removal.
+  if (evidenceItems.length) {
+    let verdicts = [];
+    try {
+      verdicts = await adjudicateGapAnswers(evidenceItems.map(e => ({
+        gap_id: e.gap_id, requirement: e.gap_text, answer: e.answer,
+      })));
+    } catch (e) { console.error('[ic-remediation] adjudicator error:', e.message); }
+    const vById = new Map(verdicts.map(v => [v.gap_id, v]));
+    const accepted = [];
+    for (const e of evidenceItems) {
+      const v = vById.get(e.gap_id);
+      if (v?.verdict === 'ACCEPTED') {
+        accepted.push({ gap_id: e.gap_id, gap_text: e.gap_text, user_answer: e.answer, verdict: 'ACCEPTED', adjudication_reason: v.reason });
+      } else {
+        removeList.push(e.claim); // weak evidence → remove the claim
+      }
+    }
+    if (accepted.length) {
+      try {
+        const gaPath = join(WORKSPACE_DIR, 'gap_analysis.json');
+        const ga = JSON.parse(readFileSync(gaPath, 'utf8'));
+        _ingestGapAnswers(ga, accepted);
+        writeFileSync(gaPath, JSON.stringify(ga, null, 2));
+        broadcast({ type: 'agent_message', agent: 'System', text: `Backed up ${accepted.length} claim${accepted.length === 1 ? '' : 's'} with your evidence.` });
+      } catch (e) { console.error('[ic-remediation] gap ingest failed:', e.message); }
+      // A gap that's now ACCEPTED backs *every* claim tracing to it — so don't also strip/re-flow a
+      // sibling claim the user happened to mark "remove". The accepted evidence wins; IC will pass it.
+      const acceptedGapIds = new Set(accepted.map(a => a.gap_id));
+      removeList = removeList.filter(c => !c.gap_id || !acceptedGapIds.has(c.gap_id));
+    }
+  }
+
+  // 2) Removals — split by section type.
+  const listRemovals  = removeList.filter(c => c.sectionType === 'list');
+  const proseRemovals = removeList.filter(c => c.sectionType === 'prose');
+  const otherRemovals = removeList.filter(c => c.sectionType === 'other'); // fold into list-strip best-effort
+  const strippedCount = _stripListClaims([...listRemovals, ...otherRemovals]);
+  if (strippedCount) console.log(`[ic-remediation] stripped ${strippedCount} list-section claim(s) server-side`);
+
+  // 3) Date corrections — re-run History Formatter (existing pattern).
+  if (dateClaims.length) {
+    const corrections = dateClaims.map(c => `• ${c.claim} → ${c.remediation || 'verify dates'}`).join('\n');
+    broadcastMode('auto_running', 'History Formatter');
+    broadcast({ type: 'agent_message', agent: 'System', text: `Fixing ${dateClaims.length} date issue(s)…` });
+    try {
+      const r = await sendToNodeAndWait(ASSEMBLY_PHASES[4].inputNode, 'History Formatter',
+        `__revise__: Correct date errors identified by the accuracy check:\n${corrections}`);
+      const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r ?? ''));
+      broadcastAgentResult(cleanText, 'History Formatter', true);
+      await new Promise(res => setTimeout(res, 800));
+      await mergePhaseOutput(4);
+    } catch (e) { surfaceStall('History Formatter', e); return; }
+  }
+
+  // 4) Prose removals — the Style Reviewer applies the removal list and re-flows in one pass (it owns
+  //    the merged doc + the final voice). Removed claims must not be re-introduced; everything else stays.
+  //    SR runs SILENT here (like the Style Negotiator): the "Tidying up…" notice is the only user-facing
+  //    line, and we discard SR's own text so a stray narration ("You are now talking to…") can't leak —
+  //    model-proof regardless of whether SR v3.1's output-discipline block is uploaded yet.
+  if (proseRemovals.length) {
+    broadcastMode('auto_running', 'Style Reviewer');
+    broadcast({ type: 'agent_message', agent: 'System', text: `Tidying up your summary and cover letter…` });
+    const payload = JSON.stringify({
+      remove: proseRemovals.map(c => ({ section: c.section, claim: c.claim })),
+    });
+    try {
+      await sendToNodeAndWait(ASSEMBLY_PHASES[7].inputNode, 'Style Reviewer', `__remediate__ ${payload}`);
+      await new Promise(res => setTimeout(res, 800));
+    } catch (e) { surfaceStall('Style Reviewer', e); return; }
+  }
+
+  // 5) Re-validate.
+  state.icReview = null;
+  state.currentAssemblyPhase = 8;
+  state.retryThunk = () => dispatchAssemblyPhase(8);
+  await dispatchAssemblyPhase(8);
+}
+
 async function _handleGate(phaseNumber) {
   const phase = ASSEMBLY_PHASES[phaseNumber];
   try {
@@ -1043,6 +1597,9 @@ async function _handleGate(phaseNumber) {
     }
 
     if (passed) {
+      // A clean pass clears any remediation history for the next genuine run.
+      state.icReview = null;
+      state.icRemediationRound = 0;
       await dispatchAssemblyPhase(phaseNumber + 1);
     } else {
       const failStatus = phaseNumber === 7 ? 'STYLE_FAILED' : 'INTEGRITY_FAILED';
@@ -1050,51 +1607,72 @@ async function _handleGate(phaseNumber) {
       try { await state.recipe.globalVariables.setValue('pipeline_status', failStatus); } catch {}
       broadcast({ type: 'status_changed', status: failStatus });
 
+      // IC (phase 8): drive the integrity-review modal so every flagged claim has a real fix
+      // (remove / back-with-evidence) — not just "ship it". Falls back to a plain gate at the round cap.
+      if (phaseNumber === 8) {
+        const claims = buildIntegrityReviewClaims(phaseData);
+        if (claims.length && state.icRemediationRound < IC_REMEDIATION_CAP) {
+          state.icReview = { claims };
+          const fixable = claims.filter(c => c.defaultAction !== 'keep').length;
+          broadcast({
+            type: 'agent_message', agent: 'System',
+            text: `The accuracy check found ${claims.length} thing${claims.length === 1 ? '' : 's'} we couldn't back up. Let's sort ${fixable === 1 ? 'it' : 'them'} out.`,
+          });
+          broadcast({ type: 'integrity_review_start', claims: claims.map(toIcClientClaim) });
+          broadcastMode('action_required');
+          return;
+        }
+        // No actionable claims, or the cap is hit — offer the plain escape hatch.
+        state.icReview = null;
+        const capped = state.icRemediationRound >= IC_REMEDIATION_CAP;
+        broadcast({
+          type: 'action_required', context: 'gate_failed', agent: phase.agent,
+          prompt: capped
+            ? `We've had a couple of goes and a few things still couldn't be backed up. You can use the CV as it is, or stop here.`
+            : `The accuracy check flagged some content but there was nothing we could automatically fix.`,
+          actions: [{ id: 'gate_continue', label: 'Use it as-is', variant: 'ghost' }],
+        });
+        broadcastMode('action_required');
+        return;
+      }
+
+      // SR (phase 7) keeps the legacy advisory gate (it should never reach here — it's advisory — but
+      // the branch is retained for safety).
       let prompt = '';
-      if (phaseNumber === 8) {
-        const claims = phaseData?.unsupported_claims_detail ?? [];
-        if (claims.length) {
-          prompt = `**${claims.length} unsupported claim(s) found:**\n\n` +
-            claims.map(c => `• [${c.section}] ${c.claim} — ${c.verdict}`).join('\n');
-        }
-      } else if (phaseNumber === 7) {
-        const issues = phaseData?.issues_found ?? [];
-        if (issues.length) {
-          prompt = `**${issues.length} style issue(s) found:**\n\n` +
-            issues.map(i => `• ${i.description ?? i.issue ?? JSON.stringify(i)}`).join('\n');
-        }
+      const issues = phaseData?.issues_found ?? [];
+      if (issues.length) {
+        prompt = `**${issues.length} style issue(s) found:**\n\n` +
+          issues.map(i => `• ${i.description ?? i.issue ?? JSON.stringify(i)}`).join('\n');
       }
-
-      // Build action buttons based on which phase failed and what kinds of issues exist
-      const gateActions = [];
-      if (phaseNumber === 8) {
-        // IC failure — check if there are DATES_UNVERIFIED items that can be auto-corrected
-        try {
-          const cvStateForGate = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'));
-          const dateClaims = (cvStateForGate.phases[7]?.data?.unsupported_claims_detail || [])
-            .filter(c => c.evidence_status === 'DATES_UNVERIFIED');
-          if (dateClaims.length > 0) {
-            gateActions.push({ id: 'ic_fix_corrections', label: `Apply date corrections (${dateClaims.length})`, variant: 'primary' });
-          }
-        } catch {}
-      }
-      gateActions.push({ id: 'gate_continue', label: 'Continue anyway', variant: 'ghost' });
-
       broadcast({
-        type: 'action_required',
-        context: 'gate_failed',
-        agent: phase.agent,
-        prompt,
-        actions: gateActions,
+        type: 'action_required', context: 'gate_failed', agent: phase.agent, prompt,
+        actions: [{ id: 'gate_continue', label: 'Use it as-is', variant: 'ghost' }],
       });
       broadcastMode('action_required');
     }
   } catch (e) {
     console.error(`[assembly] gate check phase ${phaseNumber} failed:`, e.message);
+    // Never strand the pipeline on a gate-read error. Previously this swallowed the error and left
+    // the run stuck in auto_running (the user only saw the 45s "pipeline is active" stall banner,
+    // never a button). Always surface a continuation so the user can proceed or re-run.
+    const failStatus = phaseNumber === 7 ? 'STYLE_FAILED' : 'INTEGRITY_FAILED';
+    state.pipelineStatus = failStatus;
+    try { await state.recipe.globalVariables.setValue('pipeline_status', failStatus); } catch {}
+    broadcast({ type: 'status_changed', status: failStatus });
+    broadcast({
+      type: 'action_required',
+      context: 'gate_failed',
+      agent: phase.agent,
+      prompt: `Something went wrong reading the last check (${e.message}). You can use this section as-is, or re-run it.`,
+      actions: [{ id: 'gate_continue', label: 'Use it as-is', variant: 'ghost' }],
+    });
+    broadcastMode('action_required');
   }
 }
 
 function _showApproveRevise(agentName, notes = '') {
+  // Mark the section review pending so a reload/restart can re-derive it (see /api/pending-interview).
+  state.awaitingSectionReview = { phaseNumber: state.currentAssemblyPhase, agent: agentName };
   if (notes) {
     broadcast({ type: 'agent_message', agent: 'System', background: true,
       text: `⚠ Validator notes on this ${agentName} section (review before approving):\n${notes}` });
@@ -1104,8 +1682,8 @@ function _showApproveRevise(agentName, notes = '') {
     context: 'assembly_section_review',
     agent: agentName,
     actions: [
-      { id: 'assembly_approve', label: 'Approve',  variant: 'primary' },
-      { id: 'assembly_revise',  label: 'Revise…',  variant: 'ghost'   },
+      { id: 'assembly_approve', label: 'Looks good',     variant: 'primary' },
+      { id: 'assembly_revise',  label: 'Make a change…', variant: 'ghost'   },
     ],
   });
   broadcastMode('action_required');

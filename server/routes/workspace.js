@@ -6,8 +6,9 @@ import {
   WORKSPACE_SCAFFOLD, HAPPY_PATH,
 } from '../config/constants.js';
 import { state } from '../lib/state.js';
-import { broadcast, broadcastMode } from '../lib/broadcast.js';
+import { broadcast, broadcastMode, substituteDate } from '../lib/broadcast.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
+import { assemblyResumeAgent, toIcClientClaim } from '../lib/dispatch.js';
 
 const router = express.Router();
 export default router;
@@ -20,6 +21,48 @@ router.get('/status', (_req, res) => {
     currentPhase = cvState?.current_phase ?? null;
   } catch {}
   res.json({ status: state.pipelineStatus, phase: currentPhase });
+});
+
+// GET /api/pending-interview — re-derives any interview the pipeline is currently blocked on,
+// so a page reload can reopen the right modal (the gap_/style_interview_start SSE events only fire
+// once and won't replay on reconnect). Payloads mirror the broadcasts in dispatch.js exactly.
+router.get('/pending-interview', (_req, res) => {
+  if (state.pipelineStatus === 'GAP_INTERVIEW') {
+    // Round 2 (re-ask): the pending cards + accepted ack strip live on state, not on disk —
+    // reconstruct from there so a reload mid-loop reopens the right (smaller) interview.
+    if (state.gapRound >= 2) {
+      return res.json({ type: 'gap', round: state.gapRound, accepted: state.gapAccepted ?? [], gaps: state.gapPending ?? [] });
+    }
+    let gaps = [];
+    try {
+      const gapData = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
+      gaps = (gapData.gaps ?? []).filter(g => g.severity === 'High');
+    } catch {}
+    return res.json({ type: 'gap', round: 1, accepted: [], gaps });
+  }
+  if (state.icReview?.claims?.length) {
+    return res.json({ type: 'integrity', claims: state.icReview.claims.map(toIcClientClaim) });
+  }
+  if (state.awaitingRevision) {
+    return res.json({ type: 'revise', agent: state.awaitingRevision.agent });
+  }
+  if (state.awaitingSectionReview) {
+    return res.json({ type: 'section_review', ...state.awaitingSectionReview });
+  }
+  if (state.snState === 'modal') {
+    let groups = [];
+    try {
+      groups = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_working.json'), 'utf8'))?.groups ?? [];
+    } catch {}
+    return res.json({
+      type: 'style',
+      groups: groups.map(g => ({
+        id: g.id, title: g.title, finding: g.finding,
+        examples: g.examples ?? [], recommendation: g.recommendation, insight: g.insight ?? '',
+      })),
+    });
+  }
+  res.json({ type: null });
 });
 
 // GET /api/workspace
@@ -38,7 +81,7 @@ router.get('/workspace', (req, res) => {
     return res.status(400).json({ error: 'not allowed' });
   }
   try {
-    res.json(JSON.parse(readFileSync(join(WORKSPACE_DIR, file), 'utf8')));
+    res.json(JSON.parse(substituteDate(readFileSync(join(WORKSPACE_DIR, file), 'utf8'))));
   } catch {
     res.json(null);
   }
@@ -116,7 +159,7 @@ router.post('/abort', async (_req, res) => {
 // GET /api/history
 router.get('/history', (_req, res) => {
   try {
-    res.json(JSON.parse(readFileSync(HISTORY_FILE, 'utf8')));
+    res.json(JSON.parse(substituteDate(readFileSync(HISTORY_FILE, 'utf8'))));
   } catch {
     res.json([]);
   }
@@ -165,11 +208,22 @@ router.post('/snapshot', (req, res) => {
     for (const f of files) {
       try { cpSync(join(WORKSPACE_DIR, f), join(dest, f)); } catch {}
     }
+    // Chat history lives outside WORKSPACE_DIR (PROJECT_DIR/chat_history.json), so the loop above
+    // misses it. Copy it in under an underscore name (excluded from the workspace on restore) so a
+    // snapshot also captures the conversation — useful for reproducing a run in testing.
+    let chatMessages = 0;
+    try {
+      if (existsSync(HISTORY_FILE)) {
+        cpSync(HISTORY_FILE, join(dest, '_chat_history.json'));
+        try { chatMessages = JSON.parse(readFileSync(HISTORY_FILE, 'utf8')).length; } catch {}
+      }
+    } catch {}
     const status = state.pipelineStatus;
     writeFileSync(join(dest, '_snapshot.json'), JSON.stringify({
       savedAt: new Date().toISOString(),
       status,
       files,
+      chatMessages,
     }, null, 2));
     console.log(`[snapshot] saved → ${name} (status: ${status}, ${files.length} files)`);
     res.json({ ok: true, name, status, files: files.length });
@@ -191,10 +245,18 @@ router.post('/restore', async (req, res) => {
     for (const f of existing) {
       try { rmSync(join(WORKSPACE_DIR, f), { force: true, recursive: true }); } catch {}
     }
-    const files = readdirSync(src).filter(f => f !== '_snapshot.json');
+    const files = readdirSync(src).filter(f => f !== '_snapshot.json' && f !== '_chat_history.json');
     for (const f of files) {
       try { cpSync(join(src, f), join(WORKSPACE_DIR, f)); } catch {}
     }
+    // Restore the captured chat history (or start empty if the snapshot has none, so a stale
+    // conversation doesn't bleed through). The client reloads it via the history_reload event below.
+    let restoredHistory = [];
+    try {
+      const histSrc = join(src, '_chat_history.json');
+      if (existsSync(histSrc)) restoredHistory = JSON.parse(readFileSync(histSrc, 'utf8'));
+    } catch {}
+    if (!Array.isArray(restoredHistory)) restoredHistory = [];
     let status = null;
     try {
       const snapMeta = JSON.parse(readFileSync(join(src, '_snapshot.json'), 'utf8'));
@@ -215,12 +277,27 @@ router.post('/restore', async (req, res) => {
     if (status) {
       try { await state.recipe.globalVariables.setValue('pipeline_status', status); } catch {}
     }
-    const nextAgent = HAPPY_PATH[status] ?? 'Main Orchestrator';
+    // Assembly-entry statuses aren't in HAPPY_PATH (the server resumes them via handlePipelineStatus
+    // below → resumeAssembly, which lands at the phase actually reached, bypassing the deleted Assembly
+    // Coordinator). Derive the real resume agent from cv_assembly_state.json so the "next agent" notice
+    // matches where the user actually lands — not a hardcoded Style Negotiator.
+    const ASSEMBLY_RESUME = new Set(['REVIEW_COMPLETE', 'TONE_ANALYZED', 'STYLE_NEGOTIATING', 'CV_BUILDING']);
+    const nextAgent = ASSEMBLY_RESUME.has(status)
+      ? assemblyResumeAgent()
+      : (HAPPY_PATH[status] ?? 'Main Orchestrator');
     try { await state.recipe.globalVariables.setValue('AgentSelector', nextAgent); } catch {}
     state.fallbackAgent = nextAgent;
+    // Land the restore notice inside the persisted history so the reload below renders it too — the
+    // client overwrites its messages from /api/history, so a separate broadcast would be clobbered.
+    restoredHistory.push({
+      role: 'agent',
+      agent: 'System',
+      text: `Snapshot **${name}** restored. Status: \`${status}\` → next agent: **${nextAgent}**`,
+    });
+    try { writeFileSync(HISTORY_FILE, JSON.stringify(restoredHistory, null, 2)); } catch {}
     broadcast({ type: 'agent_switch',   agent: nextAgent });
     broadcast({ type: 'status_changed', status });
-    broadcast({ type: 'agent_message',  agent: 'System', text: `Snapshot **${name}** restored. Status: \`${status}\` → next agent: **${nextAgent}**` });
+    broadcast({ type: 'history_reload' });
     console.log(`[restore] ${name} → workspace (status: ${status}, next: ${nextAgent})`);
     res.json({ ok: true, name, status, nextAgent });
     // Resume pipeline logic for auto-start statuses (e.g. CV_BUILDING → SN interview)

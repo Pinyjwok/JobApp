@@ -3,7 +3,32 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ResearchBubble } from './ResearchBubble';
 import { AnalystBubble }  from './AnalystBubble';
+import { SectionBubble }  from './SectionBubble';
 import { ReviewBubble }   from './ReviewBubble';
+import { agentLabel }     from '../agentLabels';
+
+// Background "tick" bubbles show only the first line of an agent's text, next to a green check icon.
+// Agent first-lines arrive with inconsistent decoration ("✓ Extractor Complete", "**✓ Data loaded.**",
+// "## Title") — strip all of it so every tick renders uniformly: one check + clean text, no double
+// ticks, no leaked markdown.
+function cleanTickLabel(text) {
+  const first = (text ?? '').split('\n')[0];
+  const cleaned = first
+    .replace(/[*_`]/g, '')              // markdown emphasis / code
+    .replace(/^#+\s*/, '')              // heading hashes
+    .replace(/^[\s✓✔✅✗❌•]+/, '')        // leading status glyphs / bullets
+    .trim();
+  return cleaned || 'Done';
+}
+
+// Completion lines ("<Agent> Complete") differ per agent ("Extractor Complete", "Tone Analyst
+// Complete") — for a consistent "✓ <step>" style, show the friendly step name instead. Informational
+// lines ("Project initialised — CV and JD saved", "Analysis still running…") keep their wording.
+function tickLabel(msg) {
+  const cleaned = cleanTickLabel(msg.text);
+  if (/\bcomplete\b/i.test(cleaned) && msg.agent) return agentLabel(msg.agent);
+  return cleaned;
+}
 
 const mdComponents = {
   h1: ({ children }) => <h1 className="text-lg font-bold text-fg mt-4 mb-2 first:mt-0">{children}</h1>,
@@ -54,6 +79,11 @@ function isAnalystComplete(msg) {
     typeof msg.text === 'string' &&
     msg.text.includes('Analyst Complete')
   );
+}
+
+/** Assembly section completion (profile/skills/history/credentials/cover letter) → SectionBubble */
+function isAssemblySection(msg) {
+  return !msg.background && msg.sectionData != null && typeof msg.sectionData.kind === 'string';
 }
 
 /** Quality review verdict → ReviewBubble */
@@ -117,7 +147,7 @@ function QualityReviewNotice({ msg }) {
       hasCritical || hasHigh ? 'border-danger/25' : 'border-warn/25'
     }`}>
       <span className={hasCritical || hasHigh ? 'text-danger' : 'text-warn'}>⚠</span>
-      <span className="text-fg-secondary font-medium">Quality review found issues</span>
+      <span className="text-fg-secondary font-medium">A few things to review together</span>
       {counts && <span className="text-fg-faint ml-1">{counts}</span>}
     </div>
   );
@@ -133,9 +163,9 @@ function AgentBubble({ msg }) {
   if (msg.compact && msg.text === 'SETUP_COMPLETE') {
     return (
       <div className="animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-2 border-l-line-strong bg-surface-2 border border-line text-xs text-fg-muted max-w-[85%]">
-        <span className="font-medium text-fg-secondary">{msg.agent}</span>
+        <span className="font-medium text-fg-secondary">{agentLabel(msg.agent)}</span>
         <CheckIcon />
-        <span className="text-fg-muted">Files validated</span>
+        <span className="text-fg-muted">Files checked</span>
       </div>
     );
   }
@@ -144,7 +174,7 @@ function AgentBubble({ msg }) {
     return (
       <div className="animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-2 border border-line text-xs text-fg-muted max-w-[85%]">
         <CheckIcon />
-        <span className="text-fg-muted truncate">{msg.text?.split('\n')[0]?.replace(/^#+\s*/, '') ?? 'Complete'}</span>
+        <span className="text-fg-muted truncate">{tickLabel(msg)}</span>
       </div>
     );
   }
@@ -153,7 +183,7 @@ function AgentBubble({ msg }) {
     <div className={`animate-fade-in-up relative w-full max-w-[85%] rounded-xl border border-line border-l-[3px] border-l-line-strong bg-surface-2 px-4 py-3 text-sm text-fg shadow-[var(--shadow-panel)] ${hasError ? 'ring-1 ring-danger/40' : ''}`}>
       <div className="flex items-center gap-2 mb-2">
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
-        <span className="text-xs text-fg-secondary font-semibold">{msg.agent ?? 'Agent'}</span>
+        <span className="text-xs text-fg-secondary font-semibold">{agentLabel(msg.agent ?? 'Agent')}</span>
         {msg.cost != null && (
           <span className="text-[10px] text-fg-faint font-mono">${msg.cost.toFixed(4)}</span>
         )}
@@ -306,6 +336,8 @@ export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
             <ResearchBubble msg={msg} />
           ) : isAnalystComplete(msg) ? (
             <AnalystBubble msg={msg} />
+          ) : isAssemblySection(msg) ? (
+            <SectionBubble msg={msg} />
           ) : isQualityReview(msg) ? (
             <ReviewBubble msg={msg} />
           ) : isProjectSetup(msg) ? (

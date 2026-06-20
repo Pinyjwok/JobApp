@@ -1,3 +1,5 @@
+import { agentLabel } from '../agentLabels';
+
 export function AgentTimeline({ turns }) {
   return (
     <div className="w-56 shrink-0 border-l border-line bg-surface flex flex-col overflow-hidden">
@@ -25,7 +27,7 @@ export function AgentTimeline({ turns }) {
               {/* Content */}
               <div className="pb-3 min-w-0">
                 <span className={`text-xs font-medium truncate block ${isLast ? 'text-fg' : 'text-fg-secondary'}`}>
-                  {turn.agent}
+                  {agentLabel(turn.agent)}
                 </span>
                 <div className="flex gap-2 text-[10px] text-fg-faint mt-0.5">
                   {elapsed && <span>+{elapsed}</span>}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false }) {
+export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minimized = false }) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [visited, setVisited] = useState(new Set());
@@ -50,10 +50,11 @@ export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false })
   if (!gap) return null;
 
   const isLast = index === total - 1;
+  const isReask = accepted.length > 0; // round ≥2: some claims already accepted, these need a better answer
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md ${minimized ? 'hidden' : ''}`}>
-      <div className="animate-fade-in-up bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-6">
+    <div className={`animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md ${minimized ? 'hidden' : ''}`}>
+      <div className="animate-modal-in bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -64,8 +65,10 @@ export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false })
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-fg tracking-tight">Gap Interview</h2>
-              <p className="text-xs text-fg-muted">Your answers strengthen the CV tailoring</p>
+              <h2 className="text-sm font-semibold text-fg tracking-tight">A few quick questions</h2>
+              <p className="text-xs text-fg-muted">
+                {isReask ? 'A couple of answers need a bit more detail' : 'Your answers help us tailor your CV to this role'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -95,6 +98,23 @@ export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false })
           />
         </div>
 
+        {/* Accepted ack strip (round ≥2) — claims already counted, shown read-only */}
+        {accepted.length > 0 && (
+          <div className="flex flex-col gap-1.5 rounded-xl border border-success/30 bg-success/10 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-success">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              {accepted.length} {accepted.length === 1 ? 'answer counted' : 'answers counted'}
+            </div>
+            <ul className="flex flex-col gap-1">
+              {accepted.map((a, i) => (
+                <li key={i} className="text-xs text-fg-secondary leading-relaxed pl-5">{a.gap_text}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Card */}
         <div className="flex flex-col gap-4">
           <div className="flex items-start gap-2">
@@ -103,13 +123,16 @@ export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false })
                 ? 'bg-warn/10 text-warn border-warn/30'
                 : 'bg-surface-2 text-fg-muted border-line'
             }`}>
-              {gap.tier}
+              {gap.tier === 'Baseline' ? 'Important' : 'Nice to have'}
             </span>
             <p className="text-sm font-medium text-fg leading-relaxed">{gap.gap_text}</p>
           </div>
 
           {gap.mitigation_strategy && (
-            <p className="text-xs text-fg-muted leading-relaxed border-l-2 border-line pl-3">
+            <p className={`text-xs leading-relaxed border-l-2 pl-3 ${
+              isReask ? 'text-warn border-warn/40' : 'text-fg-muted border-line'
+            }`}>
+              {isReask && <span className="font-semibold">Needs more detail: </span>}
               {gap.mitigation_strategy}
             </p>
           )}
@@ -132,7 +155,7 @@ export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false })
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Skip
-              <span className="text-fg-faint group-hover:text-fg-muted transition-colors">— may reduce tailoring quality for this requirement</span>
+              <span className="text-fg-faint group-hover:text-fg-muted transition-colors">— we'll leave this one out</span>
             </button>
           </div>
         </div>
@@ -159,7 +182,7 @@ export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false })
                   : 'bg-surface-2 border border-line text-fg-faint cursor-not-allowed'
               }`}
             >
-              Submit answers
+              Done
             </button>
           ) : (
             <button
@@ -173,7 +196,7 @@ export function GapInterviewModal({ gaps, onSubmit, onHide, minimized = false })
 
         {isLast && !allVisited && (
           <p className="text-xs text-fg-faint text-center -mt-3">
-            Review all gaps before submitting ({gaps.filter(g => !visited.has(g.id)).length} remaining)
+            Have a look at each question first ({gaps.filter(g => !visited.has(g.id)).length} to go)
           </p>
         )}
       </div>

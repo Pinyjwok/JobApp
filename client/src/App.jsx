@@ -7,6 +7,8 @@ import { WorkspaceInspector } from './components/WorkspaceInspector';
 import { StartModal } from './components/StartModal';
 import { GapInterviewModal } from './components/GapInterviewModal';
 import { StyleInterviewModal } from './components/StyleInterviewModal';
+import { RevisionModal } from './components/RevisionModal';
+import { IntegrityReviewModal } from './components/IntegrityReviewModal';
 import { useStream } from './hooks/useStream';
 import { useTheme } from './theme';
 import './index.css';
@@ -79,11 +81,16 @@ export default function App() {
   const [pipelineMode, setPipelineMode] = useState('user_turn');
   const [runningAgent, setRunningAgent] = useState(null);
   const [gapQuestions, setGapQuestions] = useState([]);
+  const [gapAccepted, setGapAccepted] = useState([]); // accepted-claim ack strip (round ≥2)
   const [showGapModal, setShowGapModal] = useState(false);
   const [gapMinimized, setGapMinimized] = useState(false);
   const [styleGroups, setStyleGroups] = useState([]);
   const [showStyleModal, setShowStyleModal] = useState(false);
   const [styleMinimized, setStyleMinimized] = useState(false);
+  const [reviseAgent, setReviseAgent] = useState(null); // assembly section being revised; null = modal closed
+  const [icClaims, setIcClaims] = useState([]);          // integrity-check flagged claims
+  const [showIcModal, setShowIcModal] = useState(false);
+  const [icMinimized, setIcMinimized] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
   const pendingReasoningRef = useRef({});  // { [agent]: text }
@@ -158,12 +165,57 @@ export default function App() {
         if (d.status) setStatus(d.status);
       })
       .catch(() => {});
+    // Reopen any interview the pipeline is still blocked on — these modals are driven by one-shot
+    // SSE events that won't replay on reconnect, so a reload would otherwise strand the run.
+    fetch('/api/pending-interview')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.type === 'gap' && d.gaps?.length) {
+          setGapQuestions(d.gaps);
+          setGapAccepted(d.accepted ?? []);
+          setGapMinimized(false);
+          setShowGapModal(true);
+          setPipelineMode('action_required');
+        } else if (d.type === 'style' && d.groups?.length) {
+          setStyleGroups(d.groups);
+          setStyleMinimized(false);
+          setShowStyleModal(true);
+          setPipelineMode('action_required');
+        } else if (d.type === 'integrity' && d.claims?.length) {
+          setIcClaims(d.claims);
+          setIcMinimized(false);
+          setShowIcModal(true);
+          setPipelineMode('action_required');
+        } else if (d.type === 'revise' && d.agent) {
+          setReviseAgent(d.agent);
+          setPipelineMode('action_required');
+        } else if (d.type === 'section_review') {
+          setPipelineMode('action_required');
+          // The Approve/Revise bubble is normally restored from chat history. Only ask the server to
+          // re-emit it if the restored history doesn't already end with a live (unused) section-review
+          // actions bubble — avoids stacking a duplicate on a normal reload.
+          const last = [...historyForModal].reverse().find(m => m.role === 'actions');
+          const hasLive = last && !last.used && last.context === 'assembly_section_review';
+          if (!hasLive) {
+            fetch('/api/action', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: 'resume_section_review' }),
+            }).catch(() => {});
+          }
+        }
+      })
+      .catch(() => {});
   }
 
   async function handleAction(id) {
-    setMessages(prev => prev.map(m =>
-      m.role === 'actions' && !m.used ? { ...m, used: true } : m
-    ));
+    // 'Revise…' is reversible (opens a modal you can Cancel out of), so leave the section-review
+    // buttons live — don't grey them. They're disabled on submit instead (handleReviseSubmit).
+    if (id !== 'assembly_revise') {
+      setMessages(prev => prev.map(m =>
+        m.role === 'actions' && !m.used ? { ...m, used: true } : m
+      ));
+    }
     try {
       await fetch('/api/action', {
         method: 'POST',
@@ -204,6 +256,52 @@ export default function App() {
     }
   }
 
+  async function handleIcSubmit(decisions) {
+    try {
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'ic_remediation_submit', decisions }),
+      });
+      // Only dismiss once the submit lands — keep the modal (and choices) on failure.
+      setShowIcModal(false);
+      setIcMinimized(false);
+      setPipelineMode('auto_running');
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Accuracy submit failed: ${err.message}` }]);
+    }
+  }
+
+  async function handleReviseSubmit(text) {
+    setReviseAgent(null);
+    // Now the revise is committed — disable the section-review buttons (a fresh review bubble
+    // appears once the agent finishes revising).
+    setMessages(prev => prev.map(m =>
+      m.role === 'actions' && !m.used ? { ...m, used: true } : m
+    ));
+    try {
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'assembly_revise_submit', text }),
+      });
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Revision failed: ${err.message}` }]);
+    }
+  }
+
+  async function handleReviseCancel() {
+    setReviseAgent(null);
+    // Server clears awaitingRevision and re-shows the Approve/Revise buttons for this section.
+    try {
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'assembly_revise_cancel' }),
+      });
+    } catch { /* best-effort — buttons just won't restore */ }
+  }
+
   useStream(
     useCallback((data) => {
       lastActivityRef.current = Date.now();
@@ -219,6 +317,8 @@ export default function App() {
             text: data.text,
             reasoning,
             background: data.background ?? false,
+            analystData: data.analystData ?? null,
+            sectionData: data.sectionData ?? null,
           }];
           saveHistory(next);
           return next;
@@ -281,14 +381,32 @@ export default function App() {
         });
       } else if (data.type === 'gap_interview_start') {
         setGapQuestions(data.gaps ?? []);
-        setShowGapModal(true);
+        setGapAccepted(data.accepted ?? []);
         setGapMinimized(false);
+        // Let the Analyst-complete bubble land and register visually before the modal
+        // eases in over it — avoids the jarring instant hand-off to user control.
+        setTimeout(() => setShowGapModal(true), 650);
       } else if (data.type === 'style_interview_start') {
         setStyleGroups(data.groups ?? []);
         setShowStyleModal(true);
         setStyleMinimized(false);
+      } else if (data.type === 'integrity_review_start') {
+        setIcClaims(data.claims ?? []);
+        setIcMinimized(false);
+        // Let the "we found a few things" bubble land before the modal eases in over it.
+        setTimeout(() => setShowIcModal(true), 650);
+      } else if (data.type === 'assembly_revise_start') {
+        setReviseAgent(data.agent ?? 'section');
       } else if (data.type === 'status_changed') {
         setStatus(data.status);
+      } else if (data.type === 'history_reload') {
+        // Snapshot restore swapped the persisted history out from under us — pull the new
+        // conversation and replace the rendered messages wholesale.
+        fetch('/api/history')
+          .then((r) => r.json())
+          .then((saved) => { if (Array.isArray(saved)) setMessages(saved); })
+          .catch(() => {});
+        setModalState('hidden');
       } else if (data.type === 'stream_done') {
         setIsWaiting(false);
         setPipelineMode('user_turn');
@@ -417,7 +535,7 @@ export default function App() {
     setStatus(s);
   }
 
-  const inputDisabled = pipelineMode !== 'user_turn' || sending || showGapModal || showStyleModal;
+  const inputDisabled = pipelineMode !== 'user_turn' || sending || showGapModal || showStyleModal || showIcModal || !!reviseAgent;
 
   return (
     <div className="flex flex-col h-screen w-screen bg-app text-base">
@@ -432,6 +550,7 @@ export default function App() {
       {showGapModal && (
         <GapInterviewModal
           gaps={gapQuestions}
+          accepted={gapAccepted}
           onSubmit={handleGapSubmit}
           onHide={() => setGapMinimized(true)}
           minimized={gapMinimized}
@@ -462,6 +581,30 @@ export default function App() {
           <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
           Continue style interview
         </button>
+      )}
+      {showIcModal && (
+        <IntegrityReviewModal
+          claims={icClaims}
+          onSubmit={handleIcSubmit}
+          onHide={() => setIcMinimized(true)}
+          minimized={icMinimized}
+        />
+      )}
+      {showIcModal && icMinimized && (
+        <button
+          onClick={() => setIcMinimized(false)}
+          className="animate-fade-in-up fixed bottom-56 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
+          Finish accuracy check
+        </button>
+      )}
+      {reviseAgent && (
+        <RevisionModal
+          agent={reviseAgent}
+          onSubmit={handleReviseSubmit}
+          onCancel={handleReviseCancel}
+        />
       )}
 
       {/* Header */}

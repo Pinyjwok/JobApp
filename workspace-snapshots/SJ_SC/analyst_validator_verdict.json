@@ -1,0 +1,25 @@
+{
+  "verdict": "REJECT",
+  "agent": "analyst",
+  "summary": "3 blocking issues found.",
+  "issues": [
+    {
+      "field": "strengths[2]",
+      "problem": "The candidate's CV and cover letter do not mention QA/QC principles. Assuming this knowledge purely based on the degree title ('qualification curriculum covers QA/QC principles') is a hallucination of evidence. Downgrade to a Gap.",
+      "severity": "blocking",
+      "audience": "internal"
+    },
+    {
+      "field": "strengths[7]",
+      "problem": "The candidate has not provided evidence of understanding medical terminology or common biochemistry test panels. Do not hallucinate degree curriculum content to supply direct evidence for specific technical knowledge. Downgrade to a Gap.",
+      "severity": "blocking",
+      "audience": "internal"
+    },
+    {
+      "field": "strengths[8]",
+      "problem": "The candidate has no demonstrated experience with WHS policies, infection control, biohazard handling, or NATA/NPAAC standards. Claiming this as a direct strength based on assumptions about their university curriculum is overreach. Downgrade to a Gap.",
+      "severity": "blocking",
+      "audience": "internal"
+    }
+  ]
+}

@@ -78,6 +78,14 @@ export async function initRecipe(projectDir) {
   });
 
   state.recipe.globalVariables.onChange('AgentSelector', (variable) => {
+    // The KEMU recipe spuriously re-selects ProjectSetup while an assembly section node runs (its
+    // canvas default leaks through). Assembly is driven server-side via dispatchAssemblyPhase, NOT
+    // AgentSelector, so this only corrupts fallbackAgent and flashes "Setup" in the timeline. Legit
+    // ProjectSetup selection only happens at reset/new-session, when currentAssemblyPhase is 0.
+    if (variable.lastValue === 'ProjectSetup' && state.currentAssemblyPhase > 0) {
+      console.log(`▶ AGENT    ProjectSetup (ignored — assembly phase ${state.currentAssemblyPhase} active)`);
+      return;
+    }
     state.fallbackAgent = variable.lastValue;
     console.log(`▶ AGENT    ${state.fallbackAgent} (clients=${state.sseClients.size})`);
     broadcast({ type: 'agent_switch', agent: state.fallbackAgent });

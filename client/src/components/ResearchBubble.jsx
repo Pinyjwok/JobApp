@@ -238,7 +238,7 @@ export function ResearchBubble({ msg }) {
       {/* Agent header */}
       <div className="flex items-center gap-2 mb-2">
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
-        <span className="text-xs text-fg-secondary font-semibold">Researcher</span>
+        <span className="text-xs text-fg-secondary font-semibold">Company research</span>
         {msg.cost != null && (
           <span className="text-[10px] text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
         )}
@@ -253,7 +253,7 @@ export function ResearchBubble({ msg }) {
 
       {/* Title */}
       <div className="font-bold text-[15px] mb-1">
-        <span className="text-success">✓</span> Researcher Complete
+        <span className="text-success">✓</span> Here's what we found
       </div>
 
       {/* Summary line */}

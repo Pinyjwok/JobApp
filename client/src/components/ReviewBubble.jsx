@@ -1,7 +1,23 @@
 import { useState } from 'react';
+import { agentLabel } from '../agentLabels';
+
+// Turn a 0–10 fit score into plain words anyone understands.
+function fitWording(score) {
+  if (score == null) return null;
+  if (score >= 8)   return 'a strong match';
+  if (score >= 6.5) return 'a good match';
+  if (score >= 5)   return 'a moderate match';
+  if (score >= 3.5) return 'a partial match';
+  return 'a stretch for now';
+}
 
 // ── Parser ────────────────────────────────────────────────────────────────────
-function parseReviewMsg(text) {
+function parseReviewMsg(raw) {
+  // buildReviewSummary emits markdown-bold labels (e.g. "**Overall Verdict:** REJECTED").
+  // Strip emphasis markers first so the label regexes below see "Overall Verdict: REJECTED" —
+  // otherwise the "**" between the colon and the value breaks \s* and only the score parses,
+  // collapsing every review to a contentless red ✗.
+  const text       = raw.replace(/\*+/g, '');
   const score      = (text.match(/Fit [Ss]core:\s*(\d+(?:\.\d+)?)\/10/) ?? [])[1];
   const verdict    = (text.match(/Overall Verdict:\s*(APPROVED|REJECTED)/) ?? [])[1];
   const reason     = (text.match(/Reason:\s*([^\n]+)/) ?? [])[1]?.trim();
@@ -67,7 +83,6 @@ export function ReviewBubble({ msg }) {
   const [showDetails, setShowDetails] = useState(false);
 
   const ok      = p.verdict === 'APPROVED';
-  const hasData = p.verdict != null;
 
   // Use inline style for border-left color to avoid Tailwind safelist issues
   const borderColor = ok ? 'var(--success)' : p.verdict === 'REJECTED' ? 'var(--danger)' : 'var(--line-strong)';
@@ -78,6 +93,8 @@ export function ReviewBubble({ msg }) {
     p.medium   > 0 && `${p.medium} medium`,
   ].filter(Boolean).join(' · ');
 
+  const fit = fitWording(p.score);
+
   return (
     <div
       className="animate-fade-in-up relative w-full max-w-[85%] rounded-xl border border-line border-l-[3px] bg-surface-2 px-4 py-3 text-sm text-fg shadow-[var(--shadow-panel)]"
@@ -86,56 +103,46 @@ export function ReviewBubble({ msg }) {
       {/* Agent header */}
       <div className="flex items-center gap-2 mb-2">
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
-        <span className="text-xs text-fg-secondary font-semibold">Analysis</span>
+        <span className="text-xs text-fg-secondary font-semibold">{agentLabel('Analysis')}</span>
         {msg.cost != null && (
           <span className="text-[10px] text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
         )}
       </div>
 
-      {/* Title row */}
-      <div className="flex items-center gap-3 mb-3 flex-wrap">
-        <div className="font-bold text-[15px]">
-          <span className={ok ? 'text-success' : 'text-danger'}>{ok ? '✓' : '✗'}</span>{' '}
-          Quality Review Complete
-        </div>
-        {p.score != null && (
-          <span className="text-[12px] font-mono text-fg-muted">{p.score}/10</span>
-        )}
-        {hasData && (
-          <span className={`text-[10.5px] px-2 py-0.5 rounded font-mono font-bold border ${
-            ok ? 'text-success bg-success/10 border-success/20'
-               : 'text-danger bg-danger/10 border-danger/20'
-          }`}>
-            {p.verdict}
-          </span>
-        )}
+      {/* Title — plain language */}
+      <div className="font-bold text-[15px] mb-2">
+        <span className={ok ? 'text-success' : 'text-danger'}>{ok ? '✓' : '✗'}</span>{' '}
+        {ok ? 'Your details all check out' : 'A few things need another look'}
       </div>
 
-      {/* Stats row */}
-      {(p.audited != null || p.issueCount != null) && (
-        <div className="flex items-center gap-1.5 text-[12px] text-fg-secondary mb-0 flex-wrap">
-          {p.audited   != null && <span>{p.audited} audited</span>}
-          {p.approved  != null && <span className="text-fg-faint">·</span>}
-          {p.approved  != null && <span>{p.approved} approved</span>}
-          {p.issueCount != null && <span className="text-fg-faint">·</span>}
-          {p.issueCount != null && (
-            <span className={p.issueCount > 0 ? 'text-danger font-medium' : 'text-success'}>
-              {p.issueCount} issue{p.issueCount !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
+      {/* Plain-language summary */}
+      {ok ? (
+        <p className="text-[13px] text-fg-secondary leading-relaxed mb-2">
+          We went through everything in your background and it all holds up — nothing looks made up or exaggerated.
+        </p>
+      ) : (
+        <p className="text-[13px] text-fg-secondary leading-relaxed mb-2">
+          Before we build your CV, a couple of things in the analysis need checking. See what to review below.
+        </p>
       )}
 
-      {/* Collapsible details */}
-      {(p.issueLines.length > 0 || p.reason || (!ok && severitySummary)) && (
+      {/* Fit score in words */}
+      {p.score != null && fit && (
+        <p className="text-[13px] text-fg leading-relaxed mb-1">
+          Match for this role: <strong className="font-semibold">{p.score} out of 10</strong> — {fit}.
+        </p>
+      )}
+
+      {/* Collapsible details — exact numbers kept here for the curious */}
+      {(p.issueLines.length > 0 || p.reason || p.audited != null) && (
         <div className="border-t border-line mt-3">
           <button
             onClick={() => setShowDetails(v => !v)}
             className="flex items-center gap-1.5 w-full py-2 bg-transparent border-none cursor-pointer text-fg-muted text-[10.5px] font-bold uppercase tracking-[.07em] hover:text-fg-secondary transition-colors"
           >
             <Chevron open={showDetails} />
-            {ok ? 'Audit details' : 'Issues found'}
-            {severitySummary && (
+            {ok ? 'What we checked' : 'What to review'}
+            {!ok && severitySummary && (
               <span className="ml-auto text-fg-faint normal-case tracking-normal font-normal text-[11px]">
                 {severitySummary}
               </span>
@@ -147,14 +154,18 @@ export function ReviewBubble({ msg }) {
               {p.reason && (
                 <p className="text-[12px] text-fg-secondary leading-relaxed px-1 mb-2">{p.reason}</p>
               )}
+              {p.audited != null && (
+                <p className="text-[12px] text-fg-secondary leading-relaxed px-1 mb-2">
+                  We checked {p.audited} detail{p.audited !== 1 ? 's' : ''} drawn from your CV and the job ad
+                  {p.approved != null && <> — {p.approved} are fully backed by what you provided</>}
+                  {p.issueCount != null && p.issueCount > 0
+                    ? <>, and {p.issueCount} need{p.issueCount !== 1 ? '' : 's'} another look.</>
+                    : <>, with nothing to flag.</>}
+                </p>
+              )}
               {p.issueLines.map((issue, i) => (
                 <IssueRow key={i} issue={issue} />
               ))}
-              {p.issueLines.length === 0 && ok && (
-                <p className="text-[12px] text-fg-secondary px-1">
-                  {p.audited} items audited — no issues found.
-                </p>
-              )}
             </div>
           )}
         </div>

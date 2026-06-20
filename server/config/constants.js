@@ -15,6 +15,21 @@ export const DISPATCH_TIMEOUT_MS = 180_000;
 // default tight for the fast linear agents; give the slow ones a generous budget.
 export const NODE_TIMEOUT_MS = {
   analyst_background_input: 600_000, // Analyst full gap analysis — routinely minutes
+  // Assembly LLM nodes: full-document reasoning (style review, integrity check, section
+  // authoring) legitimately runs past the 180s default. A too-tight watchdog turns a
+  // slow-but-fine run into a false STALL with no output. Give them a generous budget.
+  style_negotiator_input:     420_000,
+  profile_builder_input:      420_000,
+  skills_curator_input:       420_000,
+  history_formatter_input:    420_000,
+  credentials_formatter_input:420_000,
+  cover_letter_writer_input:  420_000,
+  style_reviewer_input:       420_000,
+  // The Integrity Checker does a full forensic check of every generated line against the source CV +
+  // accepted gap evidence — it is *designed* to be slow. This budget is a genuine-crash backstop only,
+  // not a slowness policy: a long-but-healthy run salvages its verdict off disk (see dispatchAssemblyPhase).
+  integrity_checker_input:    1_200_000,
+  document_formatter_input:   420_000,
 };
 
 // Status-tag fallback (#1): linear agents whose resulting pipeline_status is deterministic.
@@ -82,19 +97,19 @@ export const AUTO_FIRE_STATUSES = new Set([
 
 export const EXCEPTION_ACTION_BUTTONS = {
   'REVIEW_FAILED': [
-    { id: 'redo_analyst',     label: 'Redo analysis',      variant: 'ghost'   },
-    { id: 'redo_researcher',  label: 'Redo research',       variant: 'ghost'   },
-    { id: 'redo_jd_enhancer', label: 'Redo JD enhancement', variant: 'ghost'   },
-    { id: 'accept_anyway',    label: 'Accept & proceed',    variant: 'primary' },
-    { id: 'details',          label: 'Show details',        variant: 'ghost'   },
+    { id: 'redo_analyst',     label: 'Look at how I fit again', variant: 'ghost'   },
+    { id: 'redo_researcher',  label: 'Research the company again', variant: 'ghost'   },
+    { id: 'redo_jd_enhancer', label: 'Re-read the job ad',      variant: 'ghost'   },
+    { id: 'accept_anyway',    label: 'Looks good — keep going',  variant: 'primary' },
+    { id: 'details',          label: 'Show me the details',     variant: 'ghost'   },
   ],
   'RESEARCH_FAILED': [
-    { id: 'research_retry',  label: 'Retry research',                    variant: 'primary' },
-    { id: 'research_skip',   label: 'Skip & continue (not recommended)', variant: 'ghost'   },
+    { id: 'research_retry',  label: 'Try the research again',  variant: 'primary' },
+    { id: 'research_skip',   label: 'Skip it (not recommended)', variant: 'ghost'   },
   ],
   'ANALYSIS_FAILED': [
-    { id: 'analysis_retry',           label: 'Retry analysis',      variant: 'primary' },
-    { id: 'analysis_redo_researcher', label: 'Redo research first',  variant: 'ghost'   },
+    { id: 'analysis_retry',           label: 'Try again',                variant: 'primary' },
+    { id: 'analysis_redo_researcher', label: 'Research the company first', variant: 'ghost'   },
   ],
 };
 
@@ -134,9 +149,10 @@ export const WORKSPACE_SCAFFOLD = {
   // Validator verdict files — pre-created so the validator agents OVERWRITE an existing file.
   // KEMU's WriteFile creates a nested dir (<name>/<name>) when the target doesn't already exist,
   // which then breaks the server's readFileSync (EISDIR). Scaffolding them avoids the create path.
-  // analyst_validator_verdict.json retired 2026-06-16 — analyst validator is inline; its verdict
-  // returns via the tool-call response only, no file. Tone + assembly verdicts are still file-backed
-  // (SN reads tone findings_for_sn from disk; assembly verdict is server-written).
+  // analyst_validator_verdict.json is file-backed again (2026-06-17): the inline analyst_validator
+  // writes it as the source of truth; the server reads it to broadcast the verdict bubble and the
+  // Analyst reads it for its APPROVE/FLAG/REJECT branch (no longer parses the tool-call text).
+  'analyst_validator_verdict.json':  {},
   'tone_validator_verdict.json':     {},
   'assembly_validator_verdict.json': {},
   'sn_output.json':         {},
