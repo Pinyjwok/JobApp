@@ -1,5 +1,5 @@
 import express from 'express';
-import { readFileSync, writeFileSync, rmSync, readdirSync, mkdirSync, cpSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, rmSync, readdirSync, mkdirSync, cpSync, existsSync, statSync } from 'fs';
 import { join } from 'path';
 import {
   WORKSPACE_DIR, PROJECT_DIR, SNAPSHOTS_DIR, HISTORY_FILE,
@@ -163,6 +163,47 @@ router.get('/history', (_req, res) => {
   } catch {
     res.json([]);
   }
+});
+
+// GET /api/session-meta
+// Lightweight summary for the StartModal "Continue where you left off" card: the position/company
+// being tailored for, when the session was last touched (mtime of chat_history.json → "edited 2h
+// ago"), which source files are present, and how far assembly drafting has progressed.
+router.get('/session-meta', (_req, res) => {
+  const meta = { hasHistory: false, editedAt: null, position_title: '', company_name: '',
+                 files: { cv: false, jd: false, cover_letter: false },
+                 sectionsDrafted: 0, sectionsTotal: 0 };
+
+  // hasHistory + editedAt from the chat history file
+  try {
+    const hist = JSON.parse(readFileSync(HISTORY_FILE, 'utf8'));
+    if (Array.isArray(hist) && hist.length > 0) {
+      meta.hasHistory = true;
+      meta.editedAt = statSync(HISTORY_FILE).mtime.toISOString();
+    }
+  } catch {}
+
+  // position/company from project_meta.json
+  try {
+    const pm = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
+    meta.position_title = pm.position_title || '';
+    meta.company_name   = pm.company_name || '';
+  } catch {}
+
+  // which source files exist
+  meta.files.cv           = existsSync(join(WORKSPACE_DIR, 'cv_raw.txt'));
+  meta.files.jd           = existsSync(join(WORKSPACE_DIR, 'jd_raw.txt'));
+  meta.files.cover_letter = existsSync(join(WORKSPACE_DIR, 'cover_letter_sample.txt'));
+
+  // assembly drafting progress — phases 1-6 are the content sections (7-9 are review/format gates)
+  try {
+    const as = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'));
+    const sections = (as.phases || []).filter(p => p.phase_number >= 1 && p.phase_number <= 6);
+    meta.sectionsTotal   = sections.length;
+    meta.sectionsDrafted = sections.filter(p => /^(COMPLETE|COMPLETED|APPROVED|DONE)$/i.test(p.status || '')).length;
+  } catch {}
+
+  res.json(meta);
 });
 
 // POST /api/history

@@ -78,6 +78,7 @@ export default function App() {
   const [modalState, setModalState] = useState(null);
   const [modalUploading, setModalUploading] = useState(false);
   const [historyForModal, setHistoryForModal] = useState([]);
+  const [sessionMeta, setSessionMeta] = useState(null);
   const [pipelineMode, setPipelineMode] = useState('user_turn');
   const [runningAgent, setRunningAgent] = useState(null);
   const [gapQuestions, setGapQuestions] = useState([]);
@@ -98,10 +99,13 @@ export default function App() {
   const isWaitingRef = useRef(false);
 
   useEffect(() => {
-    fetch('/api/history')
-      .then((r) => r.json())
-      .then((saved) => {
+    Promise.all([
+      fetch('/api/history').then((r) => r.json()).catch(() => []),
+      fetch('/api/session-meta').then((r) => r.json()).catch(() => null),
+    ])
+      .then(([saved, meta]) => {
         setHistoryForModal(saved);
+        setSessionMeta(meta);
         setModalState('pending');
       })
       .catch(() => setModalState('pending'));
@@ -542,6 +546,7 @@ export default function App() {
       {modalState === 'pending' && (
         <StartModal
           hasHistory={historyForModal.length > 0}
+          session={sessionMeta}
           onStart={handleModalStart}
           onResume={handleModalResume}
           uploading={modalUploading}
