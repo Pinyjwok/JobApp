@@ -11,6 +11,17 @@ import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, re
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
+  // The (not-yet-deprecated) KEMU Style Reviewer / Integrity Checker still emit
+  // set_status('STYLE_FAILED'|'INTEGRITY_FAILED'), which leaks into the global pipeline_status
+  // var and trips the top-level EXCEPTION_STATUSES → Main Orchestrator → ProjectSetup restart
+  // (TC05 OBS-TC05-10). But assembly is server-owned: dispatchAssemblyPhase's advisory SR /
+  // IC gates already own these decisions inline. Ignore the leaked status while an assembly
+  // phase is active — mirrors the AgentSelector onChange ProjectSetup guard (recipe-init.js).
+  if (!resume && state.currentAssemblyPhase > 0 &&
+      (status === 'STYLE_FAILED' || status === 'INTEGRITY_FAILED')) {
+    console.log(`[handlePipelineStatus] ${status} ignored — assembly phase ${state.currentAssemblyPhase} owns the gate`);
+    return;
+  }
   if (!resume) {
     const last = state.recentlyDispatched.get(status);
     if (last && Date.now() - last < 30_000) {

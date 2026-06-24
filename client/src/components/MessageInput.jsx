@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { DEV } from '../lib/dev';
 
 const UPLOAD_TARGETS = [
   { label: 'CV / Resume', value: 'cv_raw' },
@@ -100,6 +101,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
           type="button"
           onClick={() => setShowTargetMenu((v) => !v)}
           disabled={disabled}
+          aria-label={`Upload a file (as: ${targetLabel})`}
           className={`flex items-center gap-1.5 rounded-xl text-sm px-3 py-2.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
             uploadTarget
               ? 'bg-accent/10 border border-accent/40 text-accent'
@@ -143,6 +145,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
         <button
           type="button"
           onClick={() => onSend(lastUserMessage)}
+          aria-label="Resend last message"
           className="rounded-xl bg-surface-2 border border-line hover:border-accent/50 text-fg-muted hover:text-accent text-xs px-2.5 py-2.5 transition-all"
           title={`Resend: "${lastUserMessage.slice(0, 30)}"`}
         >
@@ -152,24 +155,28 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
         </button>
       )}
 
-      {/* Inject toggle */}
-      <button
-        type="button"
-        onClick={() => setInjectMode((v) => !v)}
-        className={`rounded-xl border text-[10px] px-2.5 py-2.5 transition-all font-medium tracking-wide uppercase ${
-          injectMode
-            ? 'bg-warn/10 border-warn/40 text-warn'
-            : 'bg-surface-2 border-line text-fg-muted hover:text-fg-secondary'
-        }`}
-        title="Toggle inject mode (bypass KEMU)"
-      >
-        {injectMode ? 'Inject' : 'User'}
-      </button>
+      {/* Inject toggle — developer-only (bypasses KEMU) */}
+      {DEV && (
+        <button
+          type="button"
+          onClick={() => setInjectMode((v) => !v)}
+          aria-pressed={injectMode}
+          className={`rounded-xl border text-[10px] px-2.5 py-2.5 transition-all font-medium tracking-wide uppercase ${
+            injectMode
+              ? 'bg-warn/10 border-warn/40 text-warn'
+              : 'bg-surface-2 border-line text-fg-muted hover:text-fg-secondary'
+          }`}
+          title="Toggle inject mode (bypass KEMU)"
+        >
+          {injectMode ? 'Inject' : 'User'}
+        </button>
+      )}
 
       {/* Send */}
       <button
         type="submit"
         disabled={effectivelyDisabled || !text.trim()}
+        aria-label="Send message"
         className="rounded-xl bg-accent hover:brightness-110 disabled:opacity-30 disabled:cursor-not-allowed text-accent-fg text-sm font-medium px-4 py-2.5 transition-all active:scale-95"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

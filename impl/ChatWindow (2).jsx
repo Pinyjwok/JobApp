@@ -8,7 +8,6 @@ import { ReviewBubble }   from './ReviewBubble';
 import { CompletionBubble } from './CompletionBubble';
 import { DocumentPreview }  from './DocumentPreview';
 import { agentLabel }     from '../agentLabels';
-import { toast }          from '../lib/toast';
 
 // Background "tick" bubbles show only the first line of an agent's text, next to a green check icon.
 // Agent first-lines arrive with inconsistent decoration ("✓ Extractor Complete", "**✓ Data loaded.**",
@@ -240,7 +239,7 @@ function ActionBubble({ msg, onAction, onUpload }) {
     setUploadPending(null);
     Promise.resolve(onUpload(target, file)).catch(err => {
       console.error('[upload] failed:', err);
-      toast('Upload failed. Please try again.', 'error');
+      alert('Upload failed. Please try again.');
     });
   }
 
@@ -321,134 +320,54 @@ function ThinkingIndicator() {
   );
 }
 
-// ── Tick grouping (UI-05) ─────────────────────────────────────────────────────
-// Background "✓ step done" bubbles used to stream as one row each — a wall of ticks during the
-// long pipeline. Collapse a run of them into a single summary row (latest step + count) that
-// expands on demand, so the live conversation stays readable.
-function isTick(msg) {
-  return msg.role !== 'user' && msg.role !== 'actions' && msg.background === true;
-}
-
-function CollapsedTicks({ items }) {
-  const [open, setOpen] = useState(false);
-  const latest = items[items.length - 1];
-  return (
-    <div className="animate-fade-in-up w-full max-w-[85%]">
-      <button
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        className="flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-lg bg-surface-2 border border-line hover:border-line-strong text-xs text-fg-muted transition-all"
-      >
-        <CheckIcon />
-        <span className="text-fg-secondary truncate">{tickLabel(latest)}</span>
-        <span className="text-fg-faint whitespace-nowrap">· {items.length} steps done</span>
-        <span className="ml-auto text-[9px] text-fg-faint">{open ? '▾' : '▸'}</span>
-      </button>
-      {open && (
-        <div className="mt-1.5 ml-1 pl-3 border-l border-line flex flex-col gap-1 animate-fade-in">
-          {items.map((m, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs text-fg-muted py-0.5">
-              <CheckIcon />
-              <span className="truncate">{tickLabel(m)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// The full per-message router (non-tick messages).
-function renderBubble(msg, onAction, onUpload) {
-  if (msg.role === 'user') {
-    return (
-      <div className="animate-fade-in-up max-w-[70%] rounded-xl rounded-br-sm bg-accent text-accent-fg px-4 py-2.5 text-sm shadow-[var(--shadow-panel)]">
-        <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
-      </div>
-    );
-  }
-  if (msg.role === 'actions') return <ActionBubble msg={msg} onAction={onAction} onUpload={onUpload} />;
-  if (msg.agent === 'System' && !msg.background) return <SystemNotice msg={msg} />;
-  if (isCompletion(msg)) return <CompletionBubble meta={msg.meta} doc={msg.documentData} onAction={onAction} />;
-  if (isDocument(msg)) return <DocumentPreview doc={msg.documentData} initialTab={msg.initialTab} />;
-  if (isResearchComplete(msg)) return <ResearchBubble msg={msg} />;
-  if (isAnalystComplete(msg)) return <AnalystBubble msg={msg} />;
-  if (isAssemblySection(msg)) return <SectionBubble msg={msg} />;
-  if (isQualityReview(msg)) return <ReviewBubble msg={msg} />;
-  if (isProjectSetup(msg)) return <ProjectSetupTick />;
-  if (isQualityReviewNotice(msg)) return <QualityReviewNotice msg={msg} />;
-  return <AgentBubble msg={msg} />;
-}
-
 // ── ChatWindow ────────────────────────────────────────────────────────────────
 
 export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
   const bottomRef = useRef(null);
-  const scrollRef = useRef(null);
-  const atBottomRef = useRef(true);     // latest value for the scroll effect (avoids stale closure)
-  const [atBottom, setAtBottom] = useState(true);
 
-  function handleScroll() {
-    const el = scrollRef.current;
-    if (!el) return;
-    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-    atBottomRef.current = near;
-    setAtBottom(near);
-  }
-
-  // Only follow new content when the user is already at the bottom — don't yank them down while
-  // they're reading earlier messages mid-run.
   useEffect(() => {
-    if (atBottomRef.current) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isWaiting]);
 
-  function jumpToLatest() {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  // Collapse consecutive background ticks into groups.
-  const groups = [];
-  for (let i = 0; i < messages.length; i++) {
-    const msg = messages[i];
-    if (isTick(msg)) {
-      const last = groups[groups.length - 1];
-      if (last?.type === 'ticks') last.items.push(msg);
-      else groups.push({ type: 'ticks', items: [msg], key: `t${i}` });
-    } else {
-      groups.push({ type: 'msg', msg, key: `m${i}` });
-    }
-  }
-
   return (
-    <div className="relative flex-1 min-h-0 flex flex-col bg-chat">
-      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
-        {groups.map((g) => {
-          if (g.type === 'ticks') {
-            return (
-              <div key={g.key} className="flex justify-start">
-                {g.items.length >= 2 ? <CollapsedTicks items={g.items} /> : <AgentBubble msg={g.items[0]} />}
-              </div>
-            );
-          }
-          return (
-            <div key={g.key} className={`flex ${g.msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {renderBubble(g.msg, onAction, onUpload)}
-            </div>
-          );
-        })}
-        {isWaiting && <ThinkingIndicator />}
-        <div ref={bottomRef} />
-      </div>
-
-      {!atBottom && (
-        <button
-          onClick={jumpToLatest}
-          className="animate-fade-in absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-full bg-surface-2 border border-line-strong text-fg-secondary hover:text-fg text-xs font-medium px-3.5 py-1.5 shadow-[var(--shadow-float)] transition-all"
+    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3 bg-chat">
+      {messages.map((msg, i) => (
+        <div
+          key={i}
+          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-          Latest
-        </button>
-      )}
+          {msg.role === 'user' ? (
+            <div className="animate-fade-in-up max-w-[70%] rounded-xl rounded-br-sm bg-accent text-accent-fg px-4 py-2.5 text-sm shadow-[var(--shadow-panel)]">
+              <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+            </div>
+          ) : msg.role === 'actions' ? (
+            <ActionBubble msg={msg} onAction={onAction} onUpload={onUpload} />
+          ) : msg.agent === 'System' && !msg.background ? (
+            <SystemNotice msg={msg} />
+          ) : isCompletion(msg) ? (
+            <CompletionBubble meta={msg.meta} onAction={onAction} />
+          ) : isDocument(msg) ? (
+            <DocumentPreview doc={msg.documentData} initialTab={msg.initialTab}
+              onCopy={() => onAction?.('copy_document')} onDownload={() => onAction?.('download')} />
+          ) : isResearchComplete(msg) ? (
+            <ResearchBubble msg={msg} />
+          ) : isAnalystComplete(msg) ? (
+            <AnalystBubble msg={msg} />
+          ) : isAssemblySection(msg) ? (
+            <SectionBubble msg={msg} />
+          ) : isQualityReview(msg) ? (
+            <ReviewBubble msg={msg} />
+          ) : isProjectSetup(msg) ? (
+            <ProjectSetupTick />
+          ) : isQualityReviewNotice(msg) ? (
+            <QualityReviewNotice msg={msg} />
+          ) : (
+            <AgentBubble msg={msg} />
+          )}
+        </div>
+      ))}
+      {isWaiting && <ThinkingIndicator />}
+      <div ref={bottomRef} />
     </div>
   );
 }

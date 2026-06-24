@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Eyebrow, WarnIcon, InfoIcon, CheckIcon } from './primitives';
-import { Modal } from './Modal';
 
 // 2026-06 redesign:
 //   • tier (Important / Nice to have) becomes an eyebrow above the question, not an inline pill —
@@ -55,8 +54,8 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
   const isBaseline = gap.tier === 'Baseline';
 
   return (
-    <Modal onClose={onHide} minimized={minimized} labelledBy="gap-title"
-      className="animate-modal-in bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-5">
+    <div className={`animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md ${minimized ? 'hidden' : ''}`}>
+      <div className="animate-modal-in bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-5">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -67,7 +66,7 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
               </svg>
             </div>
             <div>
-              <h2 id="gap-title" className="text-sm font-semibold text-fg tracking-tight">A few quick questions</h2>
+              <h2 className="text-sm font-semibold text-fg tracking-tight">A few quick questions</h2>
               <p className="text-xs text-fg-muted">
                 {isReask ? 'A couple of answers need a bit more detail' : 'Your answers help tailor your CV'}
               </p>
@@ -205,6 +204,7 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
             Have a look at each question first ({gaps.filter(g => !visited.has(g.id)).length} to go)
           </p>
         )}
-    </Modal>
+      </div>
+    </div>
   );
 }

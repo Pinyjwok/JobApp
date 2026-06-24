@@ -31,6 +31,21 @@ const FAILED_MAP = {
   INTEGRITY_FAILED:  { phase: 'build',   done: ['analyse', 'polish'], substep: 'An accuracy check needs your input.' },
 };
 
+// Overall pipeline progress 0–100 (UI-05). Gives continuous forward motion across the ~15 internal
+// stages so a long single step (the Integrity Checker can run ~20 min) doesn't read as "frozen".
+const PROGRESS = {
+  FILES_SAVED: 5, INITIALIZED: 12, RESEARCH_COMPLETE: 20, RESEARCH_CONFIRM: 24,
+  JD_ENHANCED: 30, PARALLEL_ANALYSIS: 34, ANALYSIS_COMPLETE: 40, GAP_INTERVIEW: 44,
+  REVIEW_COMPLETE: 50, STYLE_NEGOTIATING: 56, TONE_ANALYZED: 60, CV_BUILDING: 64,
+  CV_TAILORED: 100,
+};
+// Within the build phase, advance by which assembly agent is running.
+const ASSEMBLY_PROGRESS = {
+  'Style Negotiator': 58, 'Profile Builder': 66, 'Skills Curator': 70, 'History Formatter': 74,
+  'Credentials Formatter': 78, 'CoverLetter Writer': 82, 'Style Reviewer': 88,
+  'Integrity Checker': 93, 'Document Formatter': 97,
+};
+
 const ASSEMBLY_SUBSTEP = {
   'Style Negotiator':       'Agreeing your style with you…',
   'Profile Builder':        'Writing your profile — review & approve.',
@@ -42,7 +57,7 @@ const ASSEMBLY_SUBSTEP = {
   'Integrity Checker':      'Double-checking every claim…',
 };
 
-export function StatusBar({ status, activeAgent }) {
+export function StatusBar({ status, activeAgent, running = false }) {
   const failed = FAILED_MAP[status];
   const info = STATUS_MAP[status];
 
@@ -57,8 +72,22 @@ export function StatusBar({ status, activeAgent }) {
   const isComplete = status === 'CV_TAILORED';
   const hasFailure = Boolean(failed);
 
+  const pct = hasFailure
+    ? (failed.phase === 'build' ? 85 : 35)
+    : (info?.phase === 'build' && activeAgent && ASSEMBLY_PROGRESS[activeAgent]) || PROGRESS[status] || 0;
+
   return (
     <div className="px-5 py-3 bg-surface border-b border-line">
+      {status && (
+        <div className="h-[3px] w-full max-w-md mx-auto mb-3 bg-line rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ease-out ${
+              hasFailure ? 'bg-danger' : isComplete ? 'bg-success' : 'bg-accent'
+            } ${running && !isComplete && !hasFailure ? 'animate-pulse-soft' : ''}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      )}
       <div className="flex items-center justify-center gap-1 max-w-md mx-auto">
         {PHASES.map((phase, i) => {
           const isDone = donePhases.has(phase.key) || isComplete;

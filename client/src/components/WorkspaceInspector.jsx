@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast, confirmDialog } from '../lib/toast';
 
 const FILES = [
   'project_meta.json',
@@ -52,7 +53,7 @@ function SnapshotsPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       });
-      if (!r.ok) { const e = await r.json(); alert(e.error); return; }
+      if (!r.ok) { const e = await r.json(); toast(e.error, 'error'); return; }
       setNewName('');
       await loadSnapshots();
     } finally {
@@ -61,7 +62,12 @@ function SnapshotsPanel() {
   }
 
   async function handleRestore(name) {
-    if (!confirm(`Restore snapshot "${name}"? Current workspace will be overwritten.`)) return;
+    const ok = await confirmDialog({
+      title: `Restore "${name}"?`,
+      message: 'The current workspace will be overwritten.',
+      confirmLabel: 'Restore', danger: true,
+    });
+    if (!ok) return;
     setBusy(`restore-${name}`);
     try {
       const r = await fetch('/api/restore', {
@@ -69,18 +75,23 @@ function SnapshotsPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       });
-      if (!r.ok) { const e = await r.json(); alert(e.error); }
+      if (!r.ok) { const e = await r.json(); toast(e.error, 'error'); }
     } finally {
       setBusy(null);
     }
   }
 
   async function handleDelete(name) {
-    if (!confirm(`Delete snapshot "${name}"?`)) return;
+    const ok = await confirmDialog({
+      title: `Delete "${name}"?`,
+      message: 'This snapshot will be permanently removed.',
+      confirmLabel: 'Delete', danger: true,
+    });
+    if (!ok) return;
     setBusy(`delete-${name}`);
     try {
       const r = await fetch(`/api/snapshot/${encodeURIComponent(name)}`, { method: 'DELETE' });
-      if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.error || 'Delete failed'); return; }
+      if (!r.ok) { const e = await r.json().catch(() => ({})); toast(e.error || 'Delete failed', 'error'); return; }
       await loadSnapshots();
     } finally {
       setBusy(null);

@@ -304,6 +304,26 @@ router.post('/restore', async (req, res) => {
       status = snapMeta?.status ?? null;
     } catch {}
 
+    // The captured status is `state.pipelineStatus`, which is IN-MEMORY — a dev server restart between
+    // reaching a phase and taking the snapshot wipes it to null (e.g. the SJ_SC snapshot: null status,
+    // current_phase 6). A null/stale gate status (e.g. GAP_INTERVIEW) isn't in any resume branch, so the
+    // restore would route to Main Orchestrator → ProjectSetup instead of the assembly phase. The real
+    // assembly progress lives on disk in cv_assembly_state.json (now restored into the workspace) — trust
+    // it: if it shows assembly genuinely in progress, resume there regardless of the captured status.
+    const ASSEMBLY_RESUME = new Set(['REVIEW_COMPLETE', 'TONE_ANALYZED', 'STYLE_NEGOTIATING', 'SN_START', 'CV_BUILDING']);
+    if (!ASSEMBLY_RESUME.has(status)) {
+      try {
+        const cv = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'));
+        const phases = cv?.phases ?? [];
+        const anyComplete = phases.some(p => p?.status === 'COMPLETE');
+        const inProgress = cv?.metadata?.status === 'ACTIVE' && ((cv?.current_phase ?? 1) > 1 || anyComplete);
+        if (inProgress) {
+          console.log(`[restore] captured status "${status}" but cv_assembly_state shows assembly in progress (current_phase ${cv.current_phase}) — resuming assembly`);
+          status = 'CV_BUILDING';
+        }
+      } catch {}
+    }
+
     state.analystDone          = false;
     state.taDone               = false;
     state.analystOutputText    = null;
@@ -322,7 +342,6 @@ router.post('/restore', async (req, res) => {
     // below → resumeAssembly, which lands at the phase actually reached, bypassing the deleted Assembly
     // Coordinator). Derive the real resume agent from cv_assembly_state.json so the "next agent" notice
     // matches where the user actually lands — not a hardcoded Style Negotiator.
-    const ASSEMBLY_RESUME = new Set(['REVIEW_COMPLETE', 'TONE_ANALYZED', 'STYLE_NEGOTIATING', 'CV_BUILDING']);
     const nextAgent = ASSEMBLY_RESUME.has(status)
       ? assemblyResumeAgent()
       : (HAPPY_PATH[status] ?? 'Main Orchestrator');

@@ -80,6 +80,160 @@ export function clearStaleAnalysis() {
   }
 }
 
+// ── Seniority year arithmetic — server-owned (deterministic-offload) ──────────
+// The Tone Analyst used to compute per-role durations + total/relevant years itself. That math is
+// deterministic but the LLM is bad at it: it estimated "today" to resolve `Present`, re-summed on
+// every reasoning pass, and never converged (8.25/8.3/8.4/12.3…) — a cyclic-reasoning loop. Per the
+// project's deterministic-offload principle, the math moves here; the TA keeps ONLY the judgment:
+// per-role relevance + recent-graduate flag (in style_findings.seniority.role_classification[]).
+// Mirrors the fit-score offload (LLM tags, server computes the number). Fault-tolerant: any missing
+// input leaves the TA's own values untouched (back-compat with pre-offload output).
+function parseYearMonth(s) {
+  if (!s) return null;
+  const str = String(s).trim();
+  if (/^(present|current|now|ongoing)$/i.test(str)) return 'NOW';
+  let m = str.match(/^(\d{4})-(\d{1,2})/);      // 2025-03
+  if (m) return { y: +m[1], mo: +m[2] };
+  m = str.match(/^(\d{4})$/);                    // 2025
+  if (m) return { y: +m[1], mo: 6 };             // mid-year midpoint when only a year is given
+  return null;
+}
+
+function roleDurationYears(role) {
+  const start = parseYearMonth(role.start_date);
+  if (!start || start === 'NOW') return 0;
+  const endRaw = parseYearMonth(role.end_date);
+  const now = new Date();
+  const end = (!endRaw || endRaw === 'NOW') ? { y: now.getFullYear(), mo: now.getMonth() + 1 } : endRaw;
+  const months = (end.y - start.y) * 12 + (end.mo - start.mo);
+  return months > 0 ? Math.round((months / 12) * 10) / 10 : 0;
+}
+
+const normEmployer = e => String(e || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+// ── Verbatim matching ────────────────────────────────────────────────────────
+// Fold the cosmetic differences that make an exact substring match false-negative on real CV text:
+// smart quotes/apostrophes, em/en dashes, collapsed whitespace, case. A "verbatim" quote that differs
+// only by a curly apostrophe is still verbatim — this is the one thing that made an LLM tempting here.
+function normalizeForMatch(s) {
+  return String(s || '')
+    .replace(/[‘’‚‛]/g, "'")   // ' ' ‚ ‛ → '
+    .replace(/[“”„‟]/g, '"')   // " " „ ‟ → "
+    .replace(/[‒-―−]/g, '-')        // ‒ – — ― − → -
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+// ── Tone validation — server-owned (deterministic-offload) ───────────────────
+// The Tone Analyst used to call a tone_validator LLM sub-agent to confirm every quote it emitted is
+// verbatim in the source. That check is pure string matching → it moved here. The register-enum check
+// and the regex coherence heuristics were dropped (synthesizeStyleGuide already defaults a bad register
+// gracefully; the heuristics were advisory noise). Remediation is deterministic: an ungrounded quote is
+// the TA's own captured data, so we simply DROP it (IC server-strip pattern) — no LLM REJECT/retry.
+// Writes tone_validator_verdict.json so the Style Negotiator's findings_for_sn read is unchanged.
+export function runToneValidation() {
+  let findings;
+  try { findings = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'style_findings.json'), 'utf8')); } catch { return null; }
+  let cvRaw = '', cover = '';
+  try { cvRaw = readFileSync(join(WORKSPACE_DIR, 'cv_raw.txt'), 'utf8'); } catch {}
+  try { cover = readFileSync(join(WORKSPACE_DIR, 'cover_letter_sample.txt'), 'utf8'); } catch {}
+  const source = normalizeForMatch(cvRaw + '\n' + cover);
+  const inSource = q => typeof q === 'string' && q.trim().length > 0 && source.includes(normalizeForMatch(q));
+
+  const dropped = [];
+  const sp = findings.style_patterns || {};
+
+  // flagged_issues[].original — drop any whose quoted text isn't in the source
+  if (Array.isArray(findings.flagged_issues)) {
+    findings.flagged_issues = findings.flagged_issues.filter(iss => {
+      const q = iss && (iss.original || iss.example || iss.quoted_text);
+      if (q && q.trim() && !inSource(q)) { dropped.push({ field: 'flagged_issues.original', quote: String(q).slice(0, 60) }); return false; }
+      return true;
+    });
+  }
+  // style_patterns proofs — blank an ungrounded proof, keep the classification
+  for (const key of ['ownership_framing', 'content_focus', 'persuasion_strategy']) {
+    const node = sp[key];
+    if (node && typeof node === 'object' && node.proof && !inSource(node.proof)) {
+      dropped.push({ field: `style_patterns.${key}.proof`, quote: String(node.proof).slice(0, 60) });
+      node.proof = '';
+    }
+  }
+  // signature_phrases.phrases[] — would seed the CV voice from invented phrasing; drop the ungrounded
+  if (sp.signature_phrases && Array.isArray(sp.signature_phrases.phrases)) {
+    sp.signature_phrases.phrases = sp.signature_phrases.phrases.filter(p => {
+      if (p && p.trim() && !inSource(p)) { dropped.push({ field: 'signature_phrases.phrases', quote: String(p).slice(0, 60) }); return false; }
+      return true;
+    });
+  }
+  // examples[] — drop ungrounded
+  if (Array.isArray(sp.examples)) {
+    sp.examples = sp.examples.filter(ex => {
+      if (ex && ex.trim() && !inSource(ex)) { dropped.push({ field: 'style_patterns.examples', quote: String(ex).slice(0, 60) }); return false; }
+      return true;
+    });
+  }
+
+  if (dropped.length) writeFileSync(join(WORKSPACE_DIR, 'style_findings.json'), JSON.stringify(findings, null, 2));
+
+  const verdict = {
+    verdict: dropped.length ? 'FLAG' : 'APPROVE',
+    agent: 'tone_analyst',
+    issues: dropped.map(d => ({ field: d.field, problem: `Quote "${d.quote}…" not found verbatim in source — dropped`, severity: 'resolved' })),
+    findings_for_sn: [],
+    summary: `${dropped.length} ungrounded quote(s) stripped server-side.`,
+  };
+  writeFileSync(join(WORKSPACE_DIR, 'tone_validator_verdict.json'), JSON.stringify(verdict, null, 2));
+  return verdict;
+}
+
+// Compute total + relevant years from candidate_profile dates and the TA's per-role relevance tags,
+// then write them into style_findings.seniority. Returns the computed { years, relevant } or null.
+export function computeSeniorityYears() {
+  let findings, profile;
+  try { findings = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'style_findings.json'), 'utf8')); } catch { return null; }
+  try { profile  = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'candidate_profile.json'), 'utf8')); } catch { return null; }
+  const sen = findings.seniority;
+  const work = profile.work_history;
+  if (!sen || typeof sen !== 'object' || !Array.isArray(work) || !work.length) return null;
+
+  // TA's judgment: per-role { employer, relevant, is_employment }. Match by normalized employer.
+  const tags = Array.isArray(sen.role_classification) ? sen.role_classification : [];
+  const tagFor = (employer) => {
+    const ne = normEmployer(employer);
+    return tags.find(t => {
+      const nt = normEmployer(t.employer);
+      return nt && ne && (nt === ne || nt.includes(ne) || ne.includes(nt));
+    });
+  };
+
+  let total = 0, relevant = 0;
+  for (const role of work) {
+    const dur = roleDurationYears(role);
+    if (!dur) continue;
+    const tag = tagFor(role.employer);
+    // A career break / non-employment role is excluded from total unless the TA didn't tag it.
+    if (tag && tag.is_employment === false) continue;
+    total += dur;
+    if (tag && tag.relevant === true) relevant += dur;
+  }
+  total = Math.round(total * 10) / 10;
+  relevant = Math.round(relevant * 10) / 10;
+
+  // career_stage band from relevant years; recent-graduate is the TA's judgment override (it stays
+  // Junior regardless of relevant years). Only set the band when the TA didn't flag recent-grad.
+  const band = relevant < 3 ? 'early-career' : relevant < 8 ? 'established' : relevant < 15 ? 'senior' : 'senior-leader';
+  sen.years_experience = total;
+  sen.relevant_years_experience = relevant;
+  if (sen.is_recent_graduate === true) sen.career_stage = 'recent-graduate';
+  else if (!sen.career_stage) sen.career_stage = band;
+  else if (sen.career_stage !== 'recent-graduate') sen.career_stage = band;
+
+  writeFileSync(join(WORKSPACE_DIR, 'style_findings.json'), JSON.stringify(findings, null, 2));
+  return { years: total, relevant };
+}
+
 export function fireTAAndAnalyst() {
   state.analystDone = false;
   state.taDone      = false;
@@ -93,10 +247,12 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { status, cleanText } = parseAndStripStatus(raw);
-      // Tone validator is now called as a tool by the Tone Analyst itself (mirrors the Analyst path) —
-      // the server no longer fires tone_validator_input. The inline tone_validator sub-agent still writes
-      // tone_validator_verdict.json (the Style Negotiator reads findings_for_sn from it) and TA owns its own
-      // REJECT/retry loop. We just broadcast TA's completion bubble and join.
+      // Tone validation is now server-owned (runToneValidation below) — it strips any ungrounded quote
+      // from style_findings.json and writes tone_validator_verdict.json (the Style Negotiator reads
+      // findings_for_sn from it). There is no tone_validator LLM node anymore. We then own the seniority
+      // year math + timestamp, broadcast TA's completion bubble, and join.
+      runToneValidation();    // server owns verbatim-quote validation (strips ungrounded quotes) — was the tone_validator LLM node
+      computeSeniorityYears(); // server owns the seniority date/years math (TA only tags relevance) — kills the cyclic-reasoning loop
       stampTimestamp('style_findings.json', 'analyzed_at'); // BUG-126 class — TA hallucinates this; server owns it
       broadcastAgentResult(cleanText, 'Tone Analyst', false);
       if (status) {
@@ -329,8 +485,9 @@ function _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD) {
       repairs.paths_normalized.push({ id: g.id, from: g.requirement_source, to: fixed });
       g.requirement_source = fixed; keptGaps.push(g); continue;
     }
-    // Keep a candidate-backed gap even if its source is orphaned — its accepted evidence stands on its own.
-    if (g.adjudication === 'ACCEPTED' && g.candidate_provided_evidence) { keptGaps.push(g); continue; }
+    // Keep a candidate-backed gap even if its source is orphaned — its (fully or partially) accepted
+    // evidence stands on its own.
+    if ((g.adjudication === 'ACCEPTED' || g.adjudication === 'ACCEPTED_MITIGATED') && g.candidate_provided_evidence) { keptGaps.push(g); continue; }
     repairs.gaps_dropped.push({ id: g.id, requirement_source: g.requirement_source, gap_text: g.gap_text });
   }
   gapAnalysis.gaps = keptGaps;
@@ -382,6 +539,11 @@ function _ingestGapAnswers(gapAnalysis, gapAnswers) {
       const linkedReq = (gapAnalysis.requirements || []).find(r => r.id === gap.requirement_id);
       if (linkedReq) { linkedReq.candidate_status = 'Met (Candidate Evidence)'; linkedReq.candidate_evidence_text = response; }
       gapAnalysis.candidate_backed_strengths.push({ gap_id: answer.gap_id, gap_text: answer.gap_text, evidence: response, tier: answer.tier });
+    } else if (verdict === 'ACCEPTED_MITIGATED') {
+      // Structural gap (e.g. minimum-years experience): the answer strengthens the candidate's framing
+      // but cannot retroactively close the requirement — so DO capture the mitigating evidence as a
+      // backed strength, but DO NOT flip the requirement to Met (fit score stays honest).
+      gapAnalysis.candidate_backed_strengths.push({ gap_id: answer.gap_id, gap_text: answer.gap_text, evidence: response, tier: answer.tier, mitigated: true });
     }
     // REQUIRES_ANCHOR / REJECTED / NOT_EVIDENCE: gap stays open; verdict + reason retained for the summary.
   }
@@ -749,7 +911,8 @@ export async function checkJoin() {
   let highGaps = [];
   try {
     const gapData = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
-    highGaps = (gapData.gaps ?? []).filter(g => g.severity === 'High');
+    // High + Medium (Administrative excluded) — strong CVs were getting only one High item.
+    highGaps = (gapData.gaps ?? []).filter(g => g.severity === 'High' || g.severity === 'Medium');
   } catch (e) {
     console.error('[checkJoin] failed to read high gaps for modal:', e.message);
   }
@@ -811,23 +974,121 @@ const ASSEMBLY_VALIDATOR_AGENT = {
   'Cover Letter Writer': 'coverletter_writer',
 };
 
-// Advisory assembly validator — fires after a section is produced/merged, BEFORE the human Approve/Revise.
-// APPROVE/FLAG only: it never re-runs an agent (the human owns the gate), so there is no REJECT/retry path.
-// Returns FLAG notes to thread into the review bubble, or '' otherwise.
-async function _runAssemblyValidator(phaseAgent) {
+// Advisory assembly validator — server-owned (deterministic-offload). Fires after a section is
+// produced/merged, BEFORE the human Approve/Revise. Every check it ran was mechanical (regex / string
+// match / count), so the LLM `assembly_validator_input` node was retired and the modules ported to JS
+// here. APPROVE/FLAG only: it never re-runs an agent (the human owns the gate). Returns the FLAG notes
+// to thread into the review bubble, or '' otherwise. The DANGER_TERMS scan (TC05) lives here now too.
+const ASM_DANGER_TERMS = ['crm', 'commercialisation', 'commercialization', 'market expansion', 'industry partnership'];
+
+function readWorkspaceJSON(file) {
+  try { return JSON.parse(readFileSync(join(WORKSPACE_DIR, file), 'utf8')); } catch { return null; }
+}
+function readWorkspaceText(file) {
+  try { return readFileSync(join(WORKSPACE_DIR, file), 'utf8'); } catch { return ''; }
+}
+
+export function _assemblyChecks(agentKey) {
+  const issues = [];
+  const push = (field, problem) => issues.push({ field, problem });
+
+  if (agentKey === 'style_negotiator') {
+    const data = readWorkspaceJSON('sn_output.json')?.data || {};
+    const ta = readWorkspaceJSON('style_findings.json') || {};
+    const taFlagged = ta.flagged_issues || [], taPatterns = ta.style_patterns || {};
+    const agreed = data.agreed_overrides || {};
+    const STANDARD = ['implicit_first_person', 'telegraphic', 'bold_metrics', 'passive_voice', 'em_dash', 'ai_register', 'full_sentences', 'action_verbs', 'bold_achievements', 'improve_conciseness', 'user_note'];
+    for (const key of Object.keys(agreed)) {
+      const norm = k => k.toLowerCase().replace(/[^a-z_]/g, '_');
+      const inTA = taFlagged.some(f => norm(f.category || '') === key) || Object.keys(taPatterns).some(k => norm(k) === key);
+      if (!STANDARD.includes(key) && !key.endsWith('_custom') && !inTA) push(`data.agreed_overrides.${key}`, `Override "${key}" not in TA findings and not a standard option`);
+    }
+    if (agreed.telegraphic && agreed.full_sentences) push('data.agreed_overrides', 'Contradictory overrides: telegraphic and full_sentences both active');
+    if (!data.negotiation_summary || !String(data.negotiation_summary).trim()) push('data.negotiation_summary', 'Missing or empty — must summarise what was agreed');
+
+  } else if (agentKey === 'profile_builder') {
+    const data = readWorkspaceJSON('pb_output.json')?.data || {};
+    const profile = readWorkspaceJSON('candidate_profile.json') || {};
+    const findings = readWorkspaceJSON('style_findings.json') || {};
+    const paragraph = data.profile_paragraph?.formatted_text || data.profile_statement || '';
+    // 1. Credential guard
+    const credSrc = ((profile.skills?.certifications || []).join(' ') + ' ' +
+      (profile.education || []).map(e => `${e.qualification || ''} ${e.institution || ''}`).join(' ')).toLowerCase();
+    for (const term of ['credentialled', 'certified', 'registered', 'accredited', 'diplomate', 'fellowship', 'fellow of', 'member of']) {
+      const re = new RegExp(term, 'i');
+      if (re.test(paragraph) && !re.test(credSrc)) push('data.profile_paragraph', `Claims "${term}" credential but no matching entry in education[]/certifications[]`);
+    }
+    // 2. Numeric claim traceability
+    const profileText = normalizeForMatch(JSON.stringify(profile));
+    for (const m of (paragraph.match(/\b(\d+\.?\d*\s*%|\d+\+?\s*(?:year|yr)s?|\$[\d,]+|\d{4})\b/gi) || [])) {
+      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json — may be invented`);
+    }
+    // 3. Contact accuracy
+    const contact = profile.personal_info?.contact || {};
+    const contactStr = data.contact_details?.formatted_text || '';
+    if (contact.email && !contactStr.includes(contact.email)) push('data.contact_details', `Email "${contact.email}" not in contact_details`);
+    if (contact.phone && !contactStr.includes(contact.phone)) push('data.contact_details', `Phone "${contact.phone}" not in contact_details`);
+    // 4. Danger-term / fabrication (TC05)
+    const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
+    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt — likely inferred from a title or sector-misused`);
+    // 5. Numeric cross-section: profile's stated years vs server-computed total (no LLM)
+    const total = findings.seniority?.years_experience;
+    if (typeof total === 'number' && total > 0) {
+      const ym = paragraph.match(/(\d+)\+?\s*years?/i);
+      if (ym && Number(ym[1]) > total + 1.5) push('data.profile_paragraph', `Profile claims ${ym[1]} years but the work history totals ~${total} — overstated`);
+    }
+
+  } else if (agentKey === 'history_formatter') {
+    const history = readWorkspaceJSON('hf_output.json')?.data?.work_history || [];
+    const profile = readWorkspaceJSON('candidate_profile.json') || {};
+    const profEmp = (profile.work_history || []).map(j => normEmployer(j.employer));
+    history.forEach((entry, i) => {
+      const ne = normEmployer(entry.employer);
+      if (!profEmp.some(e => e && ne && (e.includes(ne) || ne.includes(e)))) push(`data.work_history[${i}].employer`, `Employer "${entry.employer}" not in candidate_profile.work_history`);
+      const src = (profile.work_history || []).find(j => {
+        const je = normEmployer(j.employer); return je && ne && (je.includes(ne) || ne.includes(je));
+      });
+      const srcText = src ? normalizeForMatch(JSON.stringify([...(src.responsibilities || []), ...(src.achievements || [])])) : '';
+      (entry.bullets || []).forEach((b, j) => {
+        for (const num of (b.match(/\b\d+\.?\d*\s*%|\b\d+\+?\s*(?:patients?|staff|team|year|yr)|\$[\d,]+/gi) || [])) {
+          if (srcText && !srcText.includes(normalizeForMatch(num))) push(`data.work_history[${i}].bullets[${j}]`, `Metric "${num.trim()}" not in source job data — may be invented`);
+        }
+      });
+    });
+
+  } else if (agentKey === 'coverletter_writer') {
+    const cl = readWorkspaceJSON('clw_output.json')?.data?.cover_letter || {};
+    const meta = readWorkspaceJSON('project_meta.json') || {};
+    const research = normalizeForMatch(JSON.stringify(readWorkspaceJSON('research_output.json')?.research_data || ''));
+    const body = [cl.salutation || '', ...(cl.body_paragraphs || [cl.body || '']), cl.closing_paragraph || '', cl.full_letter || ''].join(' ');
+    const bodyLc = body.toLowerCase();
+    if (meta.company_name && !body.includes(meta.company_name)) push('data.cover_letter', `Company name "${meta.company_name}" not in letter — may use a hallucinated name`);
+    if (meta.position_title) {
+      const words = meta.position_title.split(' ').filter(w => w.length > 3);
+      if (!words.every(w => bodyLc.includes(w.toLowerCase()))) push('data.cover_letter', `Role title "${meta.position_title}" not reflected in letter`);
+    }
+    for (const s of body.split(/[.!?]/).map(x => x.trim()).filter(x => /\d{1,3}(,\d{3})*|\d+%|[A-Z][a-z]+ (Program|Initiative|Framework|Centre|Center|Institute)/.test(x))) {
+      if (research && !research.includes(normalizeForMatch(s).slice(0, 30))) push('data.cover_letter.body', `Specific company claim not in research_output: "${s.slice(0, 80)}…"`);
+    }
+    const wc = body.split(/\s+/).filter(Boolean).length;
+    if (wc < 200) push('data.cover_letter', `Letter is ${wc} words — likely incomplete (target 250–350)`);
+    if (wc > 420) push('data.cover_letter', `Letter is ${wc} words — exceeds 420 word cap`);
+    const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
+    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt — likely fabricated or sector-misused`);
+  }
+  return issues;
+}
+
+function _runAssemblyValidator(phaseAgent) {
   const agentKey = ASSEMBLY_VALIDATOR_AGENT[phaseAgent];
   if (!agentKey) return '';
-  try {
-    await sendToNodeAndWait('assembly_validator_input', 'Validator', agentKey);
-    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), 'utf8'));
-    console.log(`[Validator] verdict=${verdict.verdict} for ${agentKey} (${verdict.issues?.length ?? 0} issue(s))`);
-    if (verdict.verdict === 'FLAG' && (verdict.issues || []).length) {
-      return (verdict.issues || []).map(i => `• ${i.field}: ${i.problem}`).join('\n');
-    }
-  } catch (err) {
-    console.error('[Validator] assembly error:', err.message);
-  }
-  return '';
+  let issues = [];
+  try { issues = _assemblyChecks(agentKey); }
+  catch (err) { console.error('[Validator] assembly error:', err.message); return ''; }
+  const verdict = { verdict: issues.length ? 'FLAG' : 'APPROVE', agent: agentKey, issues };
+  try { writeFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), JSON.stringify(verdict, null, 2)); } catch {}
+  console.log(`[Validator] verdict=${verdict.verdict} for ${agentKey} (${issues.length} issue(s))`);
+  return issues.length ? issues.map(i => `• ${i.field}: ${i.problem}`).join('\n') : '';
 }
 
 export async function dispatchAssemblyPhase(phaseNumber) {
@@ -841,6 +1102,7 @@ export async function dispatchAssemblyPhase(phaseNumber) {
     state.pipelineStatus = 'CV_TAILORED';
     try { await state.recipe.globalVariables.setValue('pipeline_status', 'CV_TAILORED'); } catch {}
     broadcast({ type: 'status_changed', status: 'CV_TAILORED' });
+    broadcastCompletion();
     broadcastMode('idle');
     return;
   }
@@ -862,9 +1124,10 @@ export async function dispatchAssemblyPhase(phaseNumber) {
 
   broadcastMode('auto_running', phase.agent);
   const dispatchStart = Date.now();
+
   let result;
   try {
-    result = await sendToNodeAndWait(phase.inputNode, phase.agent, `__build__${ctx}`);
+    result = await sendToNodeAndWait(phase.inputNode, phase.agent, `__build_section__${ctx}`);
   } catch (err) {
     // The Integrity Checker is a forensic full-document check — designed to run long. The watchdog
     // can fire while the node is still healthily working; because Promise.race doesn't cancel the
@@ -879,12 +1142,32 @@ export async function dispatchAssemblyPhase(phaseNumber) {
     return;
   }
   const { cleanText } = parseAndStripStatus(typeof result === 'string' ? result : JSON.stringify(result ?? ''));
-  broadcastAssemblySectionResult(cleanText, phase.agent);
+  // SR (7) and IC (8) are gates, not content sections. Their agent text is a long forensic working-log
+  // (dual-track notes, per-claim checks) — the handlers below emit a clean server-built summary instead,
+  // so don't dump the raw reasoning to the user.
+  if (phaseNumber !== 7 && phaseNumber !== 8) {
+    broadcastAssemblySectionResult(cleanText, phase.agent);
+  }
 
   await new Promise(r => setTimeout(r, 1000));
 
   if (phaseNumber <= 6 || phaseNumber === 9) {
-    await mergePhaseOutput(phaseNumber);
+    const merged = await mergePhaseOutput(phaseNumber);
+    if (!merged.ok) {
+      // The agent didn't produce a real section (e.g. it asked a clarifying question instead of
+      // building). Don't advance or show Approve/Revise on a phantom section: auto-retry once, then stall.
+      const retries = (state.assemblyRetries ??= {});
+      if ((retries[phaseNumber] ?? 0) < 1) {
+        retries[phaseNumber] = (retries[phaseNumber] ?? 0) + 1;
+        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running ${phase.agent} — the last attempt didn't produce a finished section.` });
+        await new Promise(r => setTimeout(r, 500));
+        return dispatchAssemblyPhase(phaseNumber);
+      }
+      delete retries[phaseNumber];
+      surfaceStall(phase.agent, new Error(`${phase.agent} produced no usable output after a retry (${merged.reason}).`));
+      return;
+    }
+    if (state.assemblyRetries) delete state.assemblyRetries[phaseNumber];
     const notes = await _runAssemblyValidator(phase.agent);
     _showApproveRevise(phase.agent, notes);
     return;
@@ -1153,6 +1436,20 @@ function readSectionOutput(file) {
   return JSON.parse(readFileSync(join(WORKSPACE_DIR, file), 'utf8'))?.data ?? {};
 }
 
+// Profile Builder / Cover Letter Writer reference strengths by id ("strength_1"…). The readable text
+// lives in gap_analysis.json strengths[] {id, strength_text}. Resolve ids → text for the UI bubble so
+// the user never sees "strength_1"; fall back to the raw id if the map is missing or unmatched.
+function _resolveStrengthIds(ids) {
+  let map = {};
+  try {
+    const ga = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
+    for (const s of (ga.strengths ?? [])) if (s?.id) map[s.id] = s.strength_text ?? s.id;
+  } catch (e) {
+    console.error('[assembly] _resolveStrengthIds: gap_analysis read failed:', e.message);
+  }
+  return arr(ids).map(id => map[id] ?? id);
+}
+
 const SECTION_BUILDERS = {
   'Profile Builder': () => {
     const d = readSectionOutput('pb_output.json');
@@ -1162,7 +1459,7 @@ const SECTION_BUILDERS = {
       kind: 'profile',
       paragraph,
       contact: d.contact_details?.formatted_text ?? '',
-      highlights: arr(d.profile_paragraph?.strengths_highlighted),
+      highlights: _resolveStrengthIds(d.profile_paragraph?.strengths_highlighted),
       suggestions: arr(d.advisory_warnings)
         .filter(w => w.suggestion || w.issue)
         .map(w => ({ field: w.field ?? '', issue: w.issue ?? '', suggestion: w.suggestion ?? '' })),
@@ -1195,9 +1492,12 @@ const SECTION_BUILDERS = {
   },
   'Cover Letter Writer': () => {
     const d = readSectionOutput('clw_output.json');
-    const letter = d.cover_letter?.full_letter ?? '';
+    let letter = d.cover_letter?.full_letter ?? '';
     if (!letter) return null;
-    return { kind: 'coverletter', letter, register: d.register_used ?? '', highlights: arr(d.strengths_used) };
+    // House style bans em-dashes; a stale CLW upload can still leak one (notably the "Re:" subject line).
+    // Normalize spaced em/en dashes to a hyphen, leaving unspaced ranges like "$50M–$500M" intact.
+    letter = letter.replace(/ [—–] /g, ' - ');
+    return { kind: 'coverletter', letter, register: d.register_used ?? '', highlights: _resolveStrengthIds(d.strengths_used) };
   },
 };
 
@@ -1225,11 +1525,115 @@ export function broadcastAssemblySectionResult(cleanText, agent) {
   broadcastAgentResult(cleanText, agent, true);
 }
 
+// DocumentPreview reads the same structured per-section output files the assembly bubbles use (no
+// markdown re-parsing). Bodies render as plain text, so strip the agents' light **bold** markers.
+const _stripBold = s => String(s ?? '').replace(/\*\*/g, '');
+
+// Build the DocumentPreview `doc` payload ({ cv, coverLetter }) from the finished section files.
+// Returns null if the core pieces are missing (caller skips the document message).
+export function buildDocumentData() {
+  try {
+    const pb = readSectionOutput('pb_output.json');
+    const sc = readSectionOutput('sc_output.json');
+    const hf = readSectionOutput('hf_output.json');
+    const cf = readSectionOutput('cf_output.json');
+    const clw = readSectionOutput('clw_output.json');
+
+    const c = pb.contact_details?.components ?? {};
+    const name = c.name ?? '';
+    // Contact line: everything except the name, joined like the CV header.
+    const contact = [c.email, c.phone, c.location, c.linkedin, c.portfolio, c.github]
+      .filter(Boolean).join(' · ');
+
+    const experience = arr(hf.work_history).map(r => ({
+      title: r.position ?? '',
+      dates: r.duration ?? '',
+      employer: r.employer ?? '',
+      bullets: arr(r.bullets).map(_stripBold),
+    }));
+
+    // DocumentPreview's "Education & Certifications" block takes plain strings.
+    const education = [
+      ...arr(cf.education).map(e => e.formatted_text || [e.qualification, e.institution, e.year].filter(Boolean).join(', ')),
+      ...arr(cf.certifications),
+    ];
+
+    const skills = {
+      technical: arr(sc.technical_skills),
+      core: arr(sc.soft_skills),
+      certifications: arr(sc.certifications),
+    };
+
+    let coverLetter = clw.cover_letter?.full_letter ?? '';
+    // House style bans spaced em/en dashes (mirror buildSectionData's normalize).
+    coverLetter = coverLetter.replace(/ [—–] /g, ' - ');
+
+    const cv = {
+      name,
+      contact,
+      profile: _stripBold(pb.profile_paragraph?.formatted_text ?? ''),
+      skills,
+      experience,
+      education,
+    };
+
+    // Need at least a CV body or a cover letter to be worth previewing.
+    if (!cv.profile && !experience.length && !coverLetter) return null;
+    return { cv, coverLetter };
+  } catch (e) {
+    console.error('[completion] buildDocumentData failed:', e.message);
+    return null;
+  }
+}
+
+// Broadcast the document preview as an agent_message the client routes to <DocumentPreview>.
+export function broadcastDocument(initialTab = 'cv') {
+  const documentData = buildDocumentData();
+  if (!documentData) {
+    broadcast({ type: 'agent_message', agent: 'System', text: 'The document isn’t ready to preview yet.', background: false });
+    return;
+  }
+  broadcast({ type: 'agent_message', agent: 'Main Orchestrator', text: '', background: false, documentData, initialTab });
+  broadcast({ type: 'stream_done' });
+  broadcastMode('user_turn', 'Main Orchestrator');
+}
+
+// The "arrival" state. Replaces the old MO command-list echo at CV_TAILORED — the client routes a
+// message tagged kind:'completion' to <CompletionBubble>, whose buttons fire existing action ids.
+export function broadcastCompletion() {
+  let meta = {};
+  try {
+    const m = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
+    meta = { role: m.position_title ?? '', company: m.company_name ?? '' };
+  } catch {}
+  // Attach the document so CompletionBubble can offer a real one-click download (no PDF lib yet → .txt).
+  const documentData = buildDocumentData();
+  broadcast({ type: 'agent_message', agent: 'Main Orchestrator', text: 'Your application is ready.', background: false, kind: 'completion', meta, documentData });
+  broadcast({ type: 'stream_done' });
+}
+
+// Did the phase actually produce usable output? An agent that asked a clarifying question (or errored)
+// leaves its data empty. For phases with a structured builder, reuse it as the contract (null = no real
+// section); otherwise require a non-empty data object.
+function _phaseHasRealOutput(phase, outputData) {
+  const data = outputData?.data;
+  if (SECTION_BUILDERS[phase.agent]) return buildSectionData(phase.agent) != null;
+  return !!(data && typeof data === 'object' && Object.keys(data).length > 0);
+}
+
+// Merge a phase's output into cv_assembly_state.json and advance current_phase. Returns
+// { ok, reason } — callers MUST NOT advance/show Approve-Revise when ok is false (empty output would
+// otherwise lock the phase ahead and break Revise).
 export async function mergePhaseOutput(phaseNumber) {
   const phase = ASSEMBLY_PHASES[phaseNumber];
-  if (!phase?.outputFile) return; // SR/IC write cv_assembly_state.json themselves
+  if (!phase?.outputFile) return { ok: true }; // SR/IC write cv_assembly_state.json themselves
   try {
     const outputData = JSON.parse(readFileSync(join(WORKSPACE_DIR, phase.outputFile), 'utf8'));
+    // GUARD: don't mark COMPLETE / advance unless the agent actually produced output.
+    if (!_phaseHasRealOutput(phase, outputData)) {
+      console.warn(`[assembly] phase ${phaseNumber} (${phase.agent}) produced no usable output — NOT advancing (stays PENDING)`);
+      return { ok: false, reason: 'empty_output' };
+    }
     const cvStatePath = join(WORKSPACE_DIR, 'cv_assembly_state.json');
     const cvState = JSON.parse(readFileSync(cvStatePath, 'utf8'));
     const idx = phaseNumber - 1;
@@ -1243,7 +1647,7 @@ export async function mergePhaseOutput(phaseNumber) {
     console.log(`[assembly] merged phase ${phaseNumber} (${phase.agent}) → cv_assembly_state.json`);
   } catch (e) {
     console.error(`[assembly] merge phase ${phaseNumber} failed:`, e.message);
-    return;
+    return { ok: false, reason: 'merge_error' };
   }
 
   // Stale output detection — warn if output file was written more than 5 minutes ago
@@ -1261,6 +1665,7 @@ export async function mergePhaseOutput(phaseNumber) {
       }
     }
   } catch {}
+  return { ok: true };
 }
 
 export async function reShowSectionReview(phaseNumber) {
@@ -1411,6 +1816,17 @@ export function toIcClientClaim(c) {
     evidence_status: c.evidence_status, from_skipped_gap: c.from_skipped_gap,
     canProvideEvidence: c.canProvideEvidence, defaultAction: c.defaultAction, group: c.group,
   };
+}
+
+// Clean, server-built integrity PASS summary — replaces the IC agent's long dual-track working log in
+// the UI. Trusts the deterministic fields on the merged phase data.
+function buildIntegritySummary(phaseData) {
+  const flagged = (phaseData?.unsupported_claims_detail ?? []).length;
+  const checked = phaseData?.claims_checked ?? phaseData?.total_claims_checked ?? null;
+  const bits = [];
+  if (checked != null) bits.push(`${checked} claim${checked === 1 ? '' : 's'} checked`);
+  bits.push(flagged ? `${flagged} flagged` : 'nothing flagged');
+  return `✓ Accuracy check passed — ${bits.join(', ')}. Everything in your CV traces back to what you provided.`;
 }
 
 // Poll cv_assembly_state.json for an IC verdict that landed AFTER the watchdog fired (a slow-but-healthy
@@ -1600,6 +2016,7 @@ async function _handleGate(phaseNumber) {
       // A clean pass clears any remediation history for the next genuine run.
       state.icReview = null;
       state.icRemediationRound = 0;
+      if (phaseNumber === 8) broadcast({ type: 'agent_message', agent: 'System', text: buildIntegritySummary(phaseData) });
       await dispatchAssemblyPhase(phaseNumber + 1);
     } else {
       const failStatus = phaseNumber === 7 ? 'STYLE_FAILED' : 'INTEGRITY_FAILED';
@@ -1694,11 +2111,52 @@ function _showApproveRevise(agentName, notes = '') {
 // one KEMU round-trip on the assembly validator, and KEMU hangs if a second
 // sendToInputWidgetAndWaitForOutput is chained in the same request. Firing PB
 // after the request settles restores the old two-request (button) shape.
+// Synthesize the (historically orphaned) style_guide.json — the voice contract read by CLW / Style
+// Reviewer / HF / CF. No agent ever wrote it, so the cover letter fell back to a generic AI register.
+// The voice data already exists: style_findings.json (Tone Analyst forensic read) + sn_output.json
+// (server-merged agreed overrides). This is a deterministic merge — same offload pattern as the SN
+// merge and the review audit. Called at SN-interview completion, before Profile Builder runs.
+// root-level `register` is load-bearing: SR/CLW read it directly.
+export function synthesizeStyleGuide() {
+  let findings = {};
+  try { findings = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'style_findings.json'), 'utf8')); } catch {}
+  let sn = {};
+  try { sn = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_output.json'), 'utf8')); } catch {}
+
+  const p = findings.style_patterns || {};
+  const sig = p.signature_phrases || {};
+  const agreed = sn.data?.agreed_overrides || {};
+
+  const guide = {
+    synthesized_at: new Date().toISOString(),
+    source: 'server-merge(style_findings.json + sn_output.json)',
+    // Load-bearing root-level register — SR/CLW read this directly for the target voice.
+    register: findings.register || 'confident-professional',
+    voice_descriptor: p.voice_descriptor || '',
+    tense: p.tense || 'past',
+    voice: p.voice || 'active',
+    sentence_structure: p.sentence_structure || '',
+    formality_level: p.formality_level || 'semi-formal',
+    quantification_level: p.quantification_level || 'some',
+    ownership_framing: p.ownership_framing || null,
+    // Only preserve signature phrasing the TA judged worth keeping (intent: preserve); a weak CV
+    // tags intent "none — voice too weak to seed" with an empty list, so we don't echo bad phrasing.
+    signature_phrases: /^preserve/i.test(sig.intent || '') ? (sig.phrases || []) : [],
+    voice_examples: Array.isArray(p.examples) ? p.examples : [],
+    // The user's agreed style decisions (from the SN interview) — directive strings the assembly
+    // agents weight. Carried verbatim so consumers reinforce style_guide with agreed_overrides.
+    agreed_overrides: agreed,
+  };
+  writeFileSync(join(WORKSPACE_DIR, 'style_guide.json'), JSON.stringify(guide, null, 2));
+  return guide;
+}
+
 function _advanceFromSN(notes = '') {
-  if (notes) {
-    broadcast({ type: 'agent_message', agent: 'System', background: true,
-      text: `⚠ Validator notes on the style negotiation:\n${notes}` });
-  }
+  synthesizeStyleGuide(); // write the voice contract before Profile Builder / Cover Letter run
+  // SN validator notes are internal QA (the verdict file is already written by _runAssemblyValidator).
+  // Unlike the section agents, SN has no Approve/Revise bubble to thread them into, so surfacing them
+  // rendered as a contentless background tick. Keep them in the log only — don't show the user.
+  if (notes) console.log(`[Validator] style-negotiation notes (not shown to user):\n${notes}`);
   state.snState = null;
   setTimeout(() => {
     dispatchAssemblyPhase(2).catch(err =>

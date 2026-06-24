@@ -157,6 +157,10 @@ export const WORKSPACE_SCAFFOLD = {
   'assembly_validator_verdict.json': {},
   'sn_output.json':         {},
   'sn_working.json':        {},
+  // Synthesized by the server (synthesizeStyleGuide in dispatch.js) at SN-interview completion from
+  // style_findings.json + sn_output.json. Read by CLW / Style Reviewer / HF / CF for the target voice.
+  // Was historically orphaned (no agent wrote it) → cover letter fell back to generic AI register.
+  'style_guide.json':       {},
   'pb_output.json':         {},
   'sc_output.json':         {},
   'hf_output.json':         {},

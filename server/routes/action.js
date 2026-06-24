@@ -5,7 +5,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
 import { adjudicateGapAnswers } from '../lib/adjudicator.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
@@ -330,8 +330,8 @@ router.post('/', async (req, res) => {
 
         // Which gaps were asked THIS round? Round 1 = all High gaps; round ≥2 = only the pending cards.
         const askedGaps = round === 1
-          ? (gapData.gaps ?? []).filter(g => g.severity === 'High').map(g => ({ id: g.id, gap_text: g.gap_text, tier: g.tier }))
-          : (state.gapPending ?? []).map(g => ({ id: g.id, gap_text: g.gap_text, tier: g.tier }));
+          ? (gapData.gaps ?? []).filter(g => g.severity === 'High' || g.severity === 'Medium').map(g => ({ id: g.id, gap_text: g.gap_text, tier: g.tier, is_structural: !!g.is_structural }))
+          : (state.gapPending ?? []).map(g => ({ id: g.id, gap_text: g.gap_text, tier: g.tier, is_structural: !!g.is_structural }));
 
         broadcastMode('auto_running', 'Analysis'); // "Adjudicating…" banner while the LLM runs
         await state.recipe.globalVariables.setValue('pipeline_status', 'GAP_INTERVIEW');
@@ -342,7 +342,7 @@ router.post('/', async (req, res) => {
         // the adjudicator returns NOT_EVIDENCE for all (fail-closed — never inflates a gap to Met).
         const toJudge = askedGaps
           .filter(g => rawAnswers[g.id]?.trim())
-          .map(g => ({ gap_id: g.id, requirement: g.gap_text, answer: rawAnswers[g.id].trim(), tier: g.tier }));
+          .map(g => ({ gap_id: g.id, requirement: g.gap_text, answer: rawAnswers[g.id].trim(), tier: g.tier, is_structural: g.is_structural }));
         let verdictsById = new Map();
         if (toJudge.length > 0) {
           try {
@@ -369,14 +369,16 @@ router.post('/', async (req, res) => {
           };
         }
 
-        // Pending = answered but not accepted (skipped is terminal, never re-asked).
-        const pending = Object.values(accum).filter(a => !a.skipped && a.verdict !== 'ACCEPTED');
-        const accepted = Object.values(accum).filter(a => a.verdict === 'ACCEPTED');
+        // Addressed = full credit (ACCEPTED) or structural partial-mitigation (ACCEPTED_MITIGATED); both
+        // are terminal and never re-asked. Pending = answered but not addressed (skipped is also terminal).
+        const isAddressed = v => v === 'ACCEPTED' || v === 'ACCEPTED_MITIGATED';
+        const pending = Object.values(accum).filter(a => !a.skipped && !isAddressed(a.verdict));
+        const accepted = Object.values(accum).filter(a => isAddressed(a.verdict));
 
-        // More to try AND under the round cap → re-ask only the non-accepted, with an ack strip for accepted.
+        // More to try AND under the round cap → re-ask only the non-addressed, with an ack strip for the rest.
         if (round < GAP_ROUND_CAP && pending.length > 0) {
           state.gapRound = round + 1;
-          state.gapAccepted = accepted.map(a => ({ gap_text: a.gap_text, evidence: a.user_answer }));
+          state.gapAccepted = accepted.map(a => ({ gap_text: a.gap_text, evidence: a.user_answer, mitigated: a.verdict === 'ACCEPTED_MITIGATED' }));
           state.gapPending = pending.map(a => ({
             id: a.gap_id, gap_text: a.gap_text, tier: a.tier,
             adjudication: a.verdict,
@@ -420,6 +422,23 @@ router.post('/', async (req, res) => {
           console.error('[gap_answers_submit] applyFitScore error:', err.message);
         }
 
+        // Acknowledge what the user's answers achieved before the quality check, so the jump to the fit
+        // summary doesn't feel abrupt (a round-1 ACCEPTED used to finalize instantly with no feedback).
+        const answered = Object.values(accum).filter(a => !a.skipped);
+        if (answered.length) {
+          const full = answered.filter(a => a.verdict === 'ACCEPTED').length;
+          const mit  = answered.filter(a => a.verdict === 'ACCEPTED_MITIGATED').length;
+          const open = answered.filter(a => a.verdict !== 'ACCEPTED' && a.verdict !== 'ACCEPTED_MITIGATED').length;
+          const bits = [];
+          if (full) bits.push(`added ${full} backed point${full === 1 ? '' : 's'} to your CV`);
+          if (mit)  bits.push(`strengthened your position on ${mit} requirement${mit === 1 ? '' : 's'} we can't fully close`);
+          if (open) bits.push(`couldn't fully evidence ${open} — we'll frame ${open === 1 ? 'it' : 'them'} honestly`);
+          if (bits.length) {
+            broadcast({ type: 'agent_message', agent: 'System', text: `Thanks — ${bits.join(', ')}.` });
+            await new Promise(r => setTimeout(r, 600));
+          }
+        }
+
         const status = auditResult.audit.overall_verdict === 'APPROVED' ? 'REVIEW_COMPLETE' : 'REVIEW_FAILED';
         broadcastAgentResult(banner + buildReviewSummary(auditResult.audit), 'Analysis', true);
         await state.recipe.globalVariables.setValue('pipeline_status', status);
@@ -429,6 +448,43 @@ router.post('/', async (req, res) => {
         handlePipelineStatus(status).catch(err => console.error('[gap_answers_submit finalize] route error:', err.message));
         break;
       }
+
+      // ── Completion screen (CV_TAILORED) ──────────────────────────────────
+      case 'view_cv':
+        broadcastDocument('cv');
+        break;
+
+      case 'view_cover_letter':
+        broadcastDocument('cover');
+        break;
+
+      case 'review_audit': {
+        // Re-surface the quality-review summary from the finalized audit on disk.
+        try {
+          const audit = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'review_audit.json'), 'utf8'));
+          if (audit && Object.keys(audit).length) {
+            broadcastAgentResult(buildReviewSummary(audit), 'Analysis', true);
+          } else {
+            broadcast({ type: 'agent_message', agent: 'System', text: 'No quality review is available for this application.', background: false });
+          }
+        } catch {
+          broadcast({ type: 'agent_message', agent: 'System', text: 'No quality review is available for this application.', background: false });
+        }
+        break;
+      }
+
+      // The analysis + change history already live in the conversation above; point the user there
+      // rather than re-running anything. (Full re-surface is a follow-up.)
+      case 'review_analysis':
+      case 'review_changes':
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Scroll up to the analysis and section steps to review the details.', background: false });
+        break;
+
+      // CompletionBubble "Download both" — PDF export isn't wired yet; the per-document Copy/Download
+      // in the preview works today. Point there instead of failing silently.
+      case 'download':
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Open “View CV” or “View cover letter”, then use Copy or .pdf on the preview.', background: false });
+        break;
 
       case 'cl_skip':
       case 'ta_upload_cover':

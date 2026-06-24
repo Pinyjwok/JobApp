@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Modal } from './Modal';
 
 // Integrity-review modal — shown when the accuracy check (Integrity Checker) flags claims it couldn't
 // back up. One card per flagged claim, grouped so skip-traced items read together. Each card resolves to
@@ -83,8 +84,8 @@ export function IntegrityReviewModal({ claims = [], onSubmit, onHide, minimized 
   }
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md ${minimized ? 'hidden' : ''}`}>
-      <div className="animate-fade-in-up bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-xl shadow-[var(--shadow-float)] flex flex-col gap-5 max-h-[88vh]">
+    <Modal onClose={onHide} minimized={minimized} labelledBy="ic-title"
+      className="animate-fade-in-up bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-xl shadow-[var(--shadow-float)] flex flex-col gap-5 max-h-[88vh]">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -95,7 +96,7 @@ export function IntegrityReviewModal({ claims = [], onSubmit, onHide, minimized 
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-fg tracking-tight">A quick accuracy check</h2>
+              <h2 id="ic-title" className="text-sm font-semibold text-fg tracking-tight">A quick accuracy check</h2>
               <p className="text-xs text-fg-muted">A few claims need backing up — or leaving out</p>
             </div>
           </div>
@@ -195,7 +196,6 @@ export function IntegrityReviewModal({ claims = [], onSubmit, onHide, minimized 
             Apply changes
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

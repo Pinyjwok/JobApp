@@ -129,7 +129,7 @@ function FreshStart({ onStart, onBack }) {
         </div>
         <DocRow label="CV / Resume"   badge="Required"    hint="PDF or TXT — drag or click" file={cvFile} onFile={setCvFile} />
         <DocRow label="Job Description" badge="Required"  hint="PDF or TXT — drag or click" file={jdFile} onFile={setJdFile} />
-        <DocRow label="Cover letter sample" badge="Recommended" hint="Lets us match your writing voice" file={clFile} onFile={setClFile} />
+        <DocRow label="Cover Letter Sample" badge="Recommended" hint="Lets us match your writing voice" file={clFile} onFile={setClFile} />
       </div>
 
       {/* Start */}

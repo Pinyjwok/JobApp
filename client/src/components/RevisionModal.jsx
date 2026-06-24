@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Modal } from './Modal';
 
 // Revision popup for assembly section review. Replaces the old "type in the chat box" step so the
 // revise flow matches the modal-driven gap/style interviews. Carries the free-text instruction that
@@ -17,8 +18,8 @@ export function RevisionModal({ agent, onSubmit, onCancel }) {
   }
 
   return (
-    <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
-      <div className="animate-modal-in bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-6">
+    <Modal onClose={onCancel} labelledBy="revise-title"
+      className="animate-modal-in bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-6">
 
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -28,7 +29,7 @@ export function RevisionModal({ agent, onSubmit, onCancel }) {
             </svg>
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-fg tracking-tight">Revise {agent}</h2>
+            <h2 id="revise-title" className="text-sm font-semibold text-fg tracking-tight">Revise {agent}</h2>
             <p className="text-xs text-fg-muted">Describe what to change — the section is regenerated with your notes</p>
           </div>
         </div>
@@ -65,7 +66,6 @@ export function RevisionModal({ agent, onSubmit, onCancel }) {
             Send revision
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

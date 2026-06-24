@@ -11,6 +11,9 @@ import { RevisionModal } from './components/RevisionModal';
 import { IntegrityReviewModal } from './components/IntegrityReviewModal';
 import { useStream } from './hooks/useStream';
 import { useTheme } from './theme';
+import { Toaster } from './components/Toaster';
+import { confirmDialog } from './lib/toast';
+import { DEV } from './lib/dev';
 import './index.css';
 
 // Pipeline statuses the dev "Status" override can jump to.
@@ -213,6 +216,8 @@ export default function App() {
   }
 
   async function handleAction(id) {
+    // 'Start a new application' (completion screen) is a pure client reset — reuse the New-session flow.
+    if (id === 'start_over') { handleReset(); return; }
     // 'Revise…' is reversible (opens a modal you can Cancel out of), so leave the section-review
     // buttons live — don't grey them. They're disabled on submit instead (handleReviseSubmit).
     if (id !== 'assembly_revise') {
@@ -323,6 +328,10 @@ export default function App() {
             background: data.background ?? false,
             analystData: data.analystData ?? null,
             sectionData: data.sectionData ?? null,
+            documentData: data.documentData ?? null,
+            initialTab: data.initialTab ?? null,
+            kind: data.kind ?? null,
+            meta: data.meta ?? null,
           }];
           saveHistory(next);
           return next;
@@ -362,6 +371,10 @@ export default function App() {
         setPipelineMode(data.mode);
         if (data.agent) setRunningAgent(data.agent);
         if (data.mode === 'user_turn') setIsWaiting(false);
+        // Keep the spinner up while the pipeline is still working. Each assembly section emits an
+        // agent_message that clears isWaiting; without this the spinner vanished and never returned
+        // between sequential phases. The next phase re-enters auto_running, so re-show it.
+        else if (data.mode === 'auto_running') setIsWaiting(true);
       } else if (data.type === 'debug_token') {
         try {
           const debug = JSON.parse(data.chunk);
@@ -514,7 +527,13 @@ export default function App() {
   }
 
   async function handleReset() {
-    if (!confirm('Clear workspace and start a new session?')) return;
+    const ok = await confirmDialog({
+      title: 'Start a new session?',
+      message: 'This clears the current workspace and conversation.',
+      confirmLabel: 'Start new',
+      danger: true,
+    });
+    if (!ok) return;
     await fetch('/api/reset?full=1', { method: 'POST' }).catch(() => {});
     setMessages([]);
     setStatus(null);
@@ -543,6 +562,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-app text-base">
+      <Toaster />
       {modalState === 'pending' && (
         <StartModal
           hasHistory={historyForModal.length > 0}
@@ -617,23 +637,26 @@ export default function App() {
         <div className="w-2 h-2 rounded-full bg-success" />
         <h1 className="text-sm font-bold text-fg flex-1 tracking-tight">JobApp</h1>
 
-        <div className="flex items-center gap-1 bg-chat rounded-lg p-0.5 border border-line">
-          <button
-            onClick={() => setShowInspector((v) => !v)}
-            className={`text-xs rounded-md px-2.5 py-1 transition-all ${showInspector ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
-          >
-            Files
-          </button>
-          <button
-            onClick={() => setShowTimeline((v) => !v)}
-            className={`text-xs rounded-md px-2.5 py-1 transition-all ${showTimeline ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
-          >
-            Timeline
-          </button>
-        </div>
+        {DEV && (
+          <div className="flex items-center gap-1 bg-chat rounded-lg p-0.5 border border-line">
+            <button
+              onClick={() => setShowInspector((v) => !v)}
+              className={`text-xs rounded-md px-2.5 py-1 transition-all ${showInspector ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
+            >
+              Files
+            </button>
+            <button
+              onClick={() => setShowTimeline((v) => !v)}
+              className={`text-xs rounded-md px-2.5 py-1 transition-all ${showTimeline ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
+            >
+              Timeline
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center gap-1.5">
           <ThemeToggle theme={theme} onToggle={toggle} />
+          {DEV && (
           <div className="relative">
             <button
               onClick={() => setShowStatusMenu((v) => !v)}
@@ -669,6 +692,7 @@ export default function App() {
               </>
             )}
           </div>
+          )}
           <button
             onClick={handleAbort}
             className="text-xs text-danger hover:brightness-110 border border-danger/40 hover:border-danger/70 rounded-lg px-2.5 py-1.5 transition-all"
@@ -684,7 +708,7 @@ export default function App() {
         </div>
       </div>
 
-      <StatusBar status={status} activeAgent={activeAgent} />
+      <StatusBar status={status} activeAgent={activeAgent} running={pipelineMode === 'auto_running'} />
 
       <div className="flex flex-1 overflow-hidden">
         <ChatWindow

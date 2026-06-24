@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Eyebrow, Disclosure } from './primitives';
-import { Modal } from './Modal';
 
 // Single-fire style interview. Mirrors GapInterviewModal (card deck, visited gating, minimize/hide), but
 // each card is a style dimension with a three-way choice control, plus a final optional "additional notes"
@@ -98,8 +97,8 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
   const hasEvidence = card.finding || (card.examples ?? []).length > 0 || card.insight;
 
   return (
-    <Modal onClose={onHide} minimized={minimized} labelledBy="style-title"
-      className="animate-fade-in-up bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-5">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md ${minimized ? 'hidden' : ''}`}>
+      <div className="animate-fade-in-up bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-5">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -110,7 +109,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
               </svg>
             </div>
             <div>
-              <h2 id="style-title" className="text-sm font-semibold text-fg tracking-tight">Your writing style</h2>
+              <h2 className="text-sm font-semibold text-fg tracking-tight">Your writing style</h2>
               <p className="text-xs text-fg-muted">A few quick calls on how your CV reads</p>
             </div>
           </div>
@@ -282,6 +281,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
             Review all cards before applying ({remaining} need{remaining === 1 ? 's' : ''} a choice)
           </p>
         )}
-    </Modal>
+      </div>
+    </div>
   );
 }
