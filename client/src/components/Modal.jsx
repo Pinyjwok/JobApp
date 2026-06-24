@@ -59,7 +59,7 @@ export function Modal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md ${minimized ? 'hidden' : 'animate-fade-in'}`}
+      className={`fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 bg-black/60 backdrop-blur-md ${minimized ? 'hidden' : 'animate-fade-in'}`}
       onMouseDown={(e) => {
         // Only a click that starts AND ends on the backdrop dismisses (avoids text-selection drags).
         if (closeOnBackdrop && onClose && e.target === e.currentTarget) onClose();

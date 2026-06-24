@@ -22,3 +22,25 @@ export function cvToText(cv) {
   if (cv.education?.length) lines.push('EDUCATION & CERTIFICATIONS', ...cv.education);
   return lines.join('\n').trim();
 }
+
+// CV + cover letter as one plain-text blob (the completion "Download both"). Single source so the
+// separator/ordering can't drift between callers (UI-11).
+export function bothToText(doc) {
+  const cv = doc?.cv ? cvToText(doc.cv) : '';
+  const cl = doc?.coverLetter ?? '';
+  return [cv, cl && '\n\n' + '='.repeat(48) + '\n\nCOVER LETTER\n\n' + cl].filter(Boolean).join('');
+}
+
+// Trigger a browser download of `text` as `${filename}.txt`. Centralized so the blob/anchor dance
+// isn't re-implemented in every component that offers a download (UI-11).
+export function downloadText(filename, text) {
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

@@ -358,6 +358,18 @@ function CollapsedTicks({ items }) {
   );
 }
 
+// Stable React keys per message-object identity (UI-10). Array-index keys made React remount every
+// bubble below a collapsing tick group — losing Disclosure/scroll state. A module-level WeakMap keyed
+// on the message object gives each one a key that survives re-renders; a full array swap (history
+// restore) creates fresh objects, which re-key — the intended remount. WeakMap = no leak.
+const _keyMap = new WeakMap();
+let _keySeq = 0;
+function keyFor(m) {
+  let k = _keyMap.get(m);
+  if (!k) { k = `k${++_keySeq}`; _keyMap.set(m, k); }
+  return k;
+}
+
 // The full per-message router (non-tick messages).
 function renderBubble(msg, onAction, onUpload) {
   if (msg.role === 'user') {
@@ -406,16 +418,17 @@ export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  // Collapse consecutive background ticks into groups.
+  // Collapse consecutive background ticks into groups. Keys come from message identity (keyFor), so a
+  // group is keyed by its first tick — stable as more ticks fold into it.
   const groups = [];
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
     if (isTick(msg)) {
       const last = groups[groups.length - 1];
       if (last?.type === 'ticks') last.items.push(msg);
-      else groups.push({ type: 'ticks', items: [msg], key: `t${i}` });
+      else groups.push({ type: 'ticks', items: [msg], key: keyFor(msg) });
     } else {
-      groups.push({ type: 'msg', msg, key: `m${i}` });
+      groups.push({ type: 'msg', msg, key: keyFor(msg) });
     }
   }
 

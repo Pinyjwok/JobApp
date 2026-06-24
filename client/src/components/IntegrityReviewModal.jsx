@@ -85,7 +85,7 @@ export function IntegrityReviewModal({ claims = [], onSubmit, onHide, minimized 
 
   return (
     <Modal onClose={onHide} minimized={minimized} labelledBy="ic-title"
-      className="animate-fade-in-up bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-xl shadow-[var(--shadow-float)] flex flex-col gap-5 max-h-[88vh]">
+      className="animate-fade-in-up bg-surface border border-line-strong rounded-2xl p-6 sm:p-8 w-full max-w-xl shadow-[var(--shadow-float)] flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between">

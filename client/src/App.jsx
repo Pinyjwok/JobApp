@@ -96,10 +96,39 @@ export default function App() {
   const [showIcModal, setShowIcModal] = useState(false);
   const [icMinimized, setIcMinimized] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [connection, setConnection] = useState('connecting'); // 'connecting' | 'open' | 'reconnecting' | 'closed'
 
   const pendingReasoningRef = useRef({});  // { [agent]: text }
   const lastActivityRef = useRef(Date.now());
   const isWaitingRef = useRef(false);
+  const wasDisconnectedRef = useRef(false);
+
+  // After a reconnect, one-shot SSE events (interview prompts, status) fired while we were offline are
+  // gone. Resync from disk so the run isn't stranded waiting on a modal that never re-opens (UI-08).
+  useEffect(() => {
+    if (connection === 'reconnecting' || connection === 'closed') {
+      wasDisconnectedRef.current = true;
+      return;
+    }
+    if (connection === 'open' && wasDisconnectedRef.current) {
+      wasDisconnectedRef.current = false;
+      fetch('/api/status').then((r) => r.json()).then((d) => { if (d.status) setStatus(d.status); }).catch(() => {});
+      fetch('/api/pending-interview')
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.type === 'gap' && d.gaps?.length && !showGapModal) {
+            setGapQuestions(d.gaps); setGapAccepted(d.accepted ?? []); setGapMinimized(false); setShowGapModal(true); setPipelineMode('action_required');
+          } else if (d.type === 'style' && d.groups?.length && !showStyleModal) {
+            setStyleGroups(d.groups); setStyleMinimized(false); setShowStyleModal(true); setPipelineMode('action_required');
+          } else if (d.type === 'integrity' && d.claims?.length && !showIcModal) {
+            setIcClaims(d.claims); setIcMinimized(false); setShowIcModal(true); setPipelineMode('action_required');
+          } else if (d.type === 'revise' && d.agent && !reviseAgent) {
+            setReviseAgent(d.agent); setPipelineMode('action_required');
+          }
+        })
+        .catch(() => {});
+    }
+  }, [connection, showGapModal, showStyleModal, showIcModal, reviseAgent]);
 
   useEffect(() => {
     Promise.all([
@@ -428,7 +457,8 @@ export default function App() {
         setIsWaiting(false);
         setPipelineMode('user_turn');
       }
-    }, [activeAgent])
+    }, [activeAgent]),
+    useCallback((state) => setConnection(state), [])
   );
 
   useEffect(() => {
@@ -563,6 +593,12 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen w-screen bg-app text-base">
       <Toaster />
+      {(connection === 'reconnecting' || connection === 'closed') && (
+        <div className="animate-fade-in fixed top-3 left-1/2 -translate-x-1/2 z-[55] flex items-center gap-2 rounded-full bg-warn/15 ring-1 ring-warn/40 px-3.5 py-1.5 text-xs text-warn shadow-[var(--shadow-panel)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-warn animate-pulse" />
+          {connection === 'closed' ? 'Connection lost — reload to reconnect.' : 'Reconnecting…'}
+        </div>
+      )}
       {modalState === 'pending' && (
         <StartModal
           hasHistory={historyForModal.length > 0}

@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { CheckIcon } from './primitives';
-import { cvToText } from '../lib/docText';
+import { DocumentModal } from './DocumentPreview';
+import { bothToText, downloadText } from '../lib/docText';
 import { toast } from '../lib/toast';
 
 // CompletionBubble — the "arrival" state. NEW for the 2026-06 redesign.
 // Replaces the orchestrator echoing a markdown command list when status === 'CV_TAILORED'.
-// View buttons fire onAction(id) (server opens the preview); Download/Copy act locally on the doc the
-// server attaches to the completion event (UI-03: honest buttons — no PDF lib yet, so it's .txt, and
-// the dead "see the analysis"/"what changed" links were removed rather than left as no-ops).
+// View CV / View cover letter open the finished docs in a MODAL (the doc is already attached to the
+// completion event) — the pipeline is over, so a dialog reads as "here's your result" rather than
+// appending yet another chat bubble. Download/Copy act locally on the same doc (UI-03: honest buttons
+// — no PDF lib yet, so it's .txt). If the doc is somehow missing, View falls back to the server action.
 //
 // Props:
 //   meta = { role, company }   // from project_meta.json
@@ -43,24 +46,19 @@ function PrimaryAction({ icon, children, onClick }) {
 export function CompletionBubble({ meta = {}, doc, onAction }) {
   const { role, company } = meta;
   const fire = (id) => () => onAction?.(id);
+  const [previewTab, setPreviewTab] = useState(null); // 'cv' | 'cover' | null
+
+  // Open the in-page preview modal when we have the doc; fall back to the server-broadcast bubble only
+  // if it's missing (shouldn't happen on a fresh completion — documentData is attached on the event).
+  const view = (tab, fallbackId) => () => (doc ? setPreviewTab(tab) : onAction?.(fallbackId));
 
   // One-click download of both documents as a single .txt (PDF export is a separate follow-up).
-  const bothText = () => {
-    const cv = doc?.cv ? cvToText(doc.cv) : '';
-    const cl = doc?.coverLetter ?? '';
-    return [cv, cl && '\n\n' + '='.repeat(48) + '\n\nCOVER LETTER\n\n' + cl].filter(Boolean).join('');
-  };
   function handleDownload() {
     const name = (doc?.cv?.name || 'application').replace(/\s+/g, '_');
-    const blob = new Blob([bothText()], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `${name}-application.txt`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
+    downloadText(`${name}-application`, bothToText(doc));
   }
   function handleCopy() {
-    navigator.clipboard?.writeText(bothText())
+    navigator.clipboard?.writeText(bothToText(doc))
       .then(() => toast('Copied CV + cover letter', 'success'))
       .catch(() => toast('Copy failed', 'error'));
   }
@@ -82,8 +80,8 @@ export function CompletionBubble({ meta = {}, doc, onAction }) {
 
       {/* primary pair */}
       <div className="grid grid-cols-2 gap-2 mt-6 mb-2.5">
-        <PrimaryAction icon={<DocGlyph />} onClick={fire('view_cv')}>View CV</PrimaryAction>
-        <PrimaryAction icon={<MailGlyph />} onClick={fire('view_cover_letter')}>View cover letter</PrimaryAction>
+        <PrimaryAction icon={<DocGlyph />} onClick={view('cv', 'view_cv')}>View CV</PrimaryAction>
+        <PrimaryAction icon={<MailGlyph />} onClick={view('cover', 'view_cover_letter')}>View cover letter</PrimaryAction>
       </div>
 
       {/* conversion CTA — real local download of both docs (.txt for now) */}
@@ -108,6 +106,10 @@ export function CompletionBubble({ meta = {}, doc, onAction }) {
           Start a new application
         </button>
       </div>
+
+      {previewTab && (
+        <DocumentModal doc={doc} initialTab={previewTab} onClose={() => setPreviewTab(null)} />
+      )}
     </div>
   );
 }

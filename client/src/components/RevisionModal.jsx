@@ -19,7 +19,7 @@ export function RevisionModal({ agent, onSubmit, onCancel }) {
 
   return (
     <Modal onClose={onCancel} labelledBy="revise-title"
-      className="animate-modal-in bg-surface border border-line-strong rounded-2xl p-8 w-full max-w-lg shadow-[var(--shadow-float)] flex flex-col gap-6">
+      className="animate-modal-in bg-surface border border-line-strong rounded-2xl p-6 sm:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[var(--shadow-float)] flex flex-col gap-6">
 
         {/* Header */}
         <div className="flex items-center gap-3">

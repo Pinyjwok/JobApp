@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { cvToText } from '../lib/docText';
+import { cvToText, downloadText } from '../lib/docText';
+import { toast } from '../lib/toast';
+import { Modal } from './Modal';
 
 // DocumentPreview — first-class preview of the assembled application (CV + cover letter).
 // NEW for the 2026-06 redesign. Renders the two finished artifacts as a page-like surface inside
@@ -48,6 +50,19 @@ function Role({ title, dates, employer, bullets = [] }) {
   );
 }
 
+function Seg({ id, active, onSelect, children }) {
+  return (
+    <button
+      onClick={() => onSelect(id)}
+      className={`text-xs font-medium px-3.5 py-1.5 rounded-md transition-all ${
+        active ? 'bg-surface text-fg shadow-[var(--shadow-panel)]' : 'text-fg-muted hover:text-fg-secondary'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function ToolbarButton({ icon, children, onClick }) {
   return (
     <button onClick={onClick} className="flex items-center gap-1.5 text-xs text-fg-secondary hover:text-fg transition-colors">
@@ -67,7 +82,7 @@ const DownloadIcon = () => (
   </svg>
 );
 
-export function DocumentPreview({ doc, initialTab = 'cv', onCopy, onDownload }) {
+export function DocumentPreview({ doc, initialTab = 'cv', onClose }) {
   const [tab, setTab] = useState(initialTab);
   const cv = doc?.cv ?? {};
   const coverLetter = doc?.coverLetter ?? '';
@@ -75,48 +90,36 @@ export function DocumentPreview({ doc, initialTab = 'cv', onCopy, onDownload }) 
   const activeText = () => (tab === 'cv' ? cvToText(cv) : coverLetter);
 
   function handleCopy() {
-    navigator.clipboard?.writeText(activeText()).catch(() => {});
-    onCopy?.(tab);
+    navigator.clipboard?.writeText(activeText())
+      .then(() => toast(tab === 'cv' ? 'CV copied' : 'Cover letter copied', 'success'))
+      .catch(() => toast('Copy failed', 'error'));
   }
   function handleDownload() {
     const name = (cv.name || 'document').replace(/\s+/g, '_');
-    const blob = new Blob([activeText()], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${name}-${tab === 'cv' ? 'cv' : 'cover-letter'}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    onDownload?.(tab);
+    downloadText(`${name}-${tab === 'cv' ? 'cv' : 'cover-letter'}`, activeText());
   }
 
   const skills = cv.skills ?? {};
   const hasSkills = skills.technical?.length || skills.core?.length || skills.certifications?.length;
-
-  const Seg = ({ id, children }) => (
-    <button
-      onClick={() => setTab(id)}
-      className={`text-xs font-medium px-3.5 py-1.5 rounded-md transition-all ${
-        tab === id ? 'bg-surface text-fg shadow-[var(--shadow-panel)]' : 'text-fg-muted hover:text-fg-secondary'
-      }`}
-    >
-      {children}
-    </button>
-  );
 
   return (
     <div className="animate-fade-in-up w-full max-w-2xl">
       {/* toolbar */}
       <div className="flex items-center justify-between mb-3">
         <div className="inline-flex gap-0.5 bg-surface-2 border border-line rounded-lg p-0.5">
-          <Seg id="cv">CV</Seg>
-          <Seg id="cover">Cover letter</Seg>
+          <Seg id="cv" active={tab === 'cv'} onSelect={setTab}>CV</Seg>
+          <Seg id="cover" active={tab === 'cover'} onSelect={setTab}>Cover letter</Seg>
         </div>
         <div className="flex items-center gap-4">
           <ToolbarButton icon={<CopyIcon />} onClick={handleCopy}>Copy</ToolbarButton>
           <ToolbarButton icon={<DownloadIcon />} onClick={handleDownload}>.txt</ToolbarButton>
+          {onClose && (
+            <button onClick={onClose} aria-label="Close preview" className="text-fg-muted hover:text-fg transition-colors -mr-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
@@ -171,5 +174,17 @@ export function DocumentPreview({ doc, initialTab = 'cv', onCopy, onDownload }) 
         </div>
       </div>
     </div>
+  );
+}
+
+// DocumentModal — the completion screen's "View CV / View cover letter" opens the finished documents
+// in a focused dialog rather than appending another chat bubble. The pipeline is over at this point,
+// so a modal (Esc / backdrop / × to dismiss) reads as "here's your result" instead of "keep chatting".
+export function DocumentModal({ doc, initialTab = 'cv', onClose }) {
+  return (
+    <Modal onClose={onClose} labelledBy="doc-preview-title" className="w-full max-w-2xl">
+      <h2 id="doc-preview-title" className="sr-only">Your tailored documents</h2>
+      <DocumentPreview doc={doc} initialTab={initialTab} onClose={onClose} />
+    </Modal>
   );
 }
