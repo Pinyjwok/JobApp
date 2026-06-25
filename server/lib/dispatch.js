@@ -287,7 +287,7 @@ function buildAnalystValidatorSummary() {
     if (!verdict || !verdict.verdict) return null;
     const issues = verdict.issues ?? verdict.notes ?? [];
     const count = issues.length;
-    let text = `🔍 **Validator: ${verdict.verdict}** — ${count} issue${count === 1 ? '' : 's'}`;
+    let text = `🔍 **Validator: ${verdict.verdict}** - ${count} issue${count === 1 ? '' : 's'}`;
     if ((verdict.verdict === 'FLAG' || verdict.verdict === 'REJECT') && count) {
       text += '\n' + issues.map(i => `• ${i.field}: ${i.problem ?? i.note}`).join('\n');
     }
@@ -355,12 +355,12 @@ export function applyFitScore(gapAnalysisPath) {
   const { score, gateApplied } = calculateFitScore(gapAnalysis);
   // Idempotent: strip any prior "Fit Score: X/10 — " prefix and trailing gate marker before reapplying.
   const qualitative = String(gapAnalysis.fit_rationale ?? '')
-    .replace(/^Fit Score: \d+(\.\d+)?\/10\s*—\s*/, '')
-    .replace(/\s*\(capped — unmet mandatory credential\)\s*$/, '')
+    .replace(/^Fit Score: \d+(\.\d+)?\/10\s*[—-]\s*/, '')
+    .replace(/\s*\(capped [—-] unmet mandatory credential\)\s*$/, '')
     .trim();
-  const marker = gateApplied ? ' (capped — unmet mandatory credential)' : '';
+  const marker = gateApplied ? ' (capped - unmet mandatory credential)' : '';
   gapAnalysis.overall_fit_score = score;
-  gapAnalysis.fit_rationale = (qualitative ? `Fit Score: ${score}/10 — ${qualitative}` : `Fit Score: ${score}/10`) + marker;
+  gapAnalysis.fit_rationale = (qualitative ? `Fit Score: ${score}/10 - ${qualitative}` : `Fit Score: ${score}/10`) + marker;
   gapAnalysis.fit_score_source = 'server';
   // BUG-126: server owns the timestamp — LLMs cannot reliably read "today".
   gapAnalysis.metadata = gapAnalysis.metadata || {};
@@ -732,7 +732,7 @@ export function buildReviewSummary(audit) {
   }
   lines.push('', '---', '');
   lines.push(audit.overall_verdict === 'APPROVED'
-    ? 'Analysis validated and approved.\n\n**Next:** the assembly phase will begin — starting with style negotiation.'
+    ? 'Analysis validated and approved.\n\n**Next:** the assembly phase will begin - starting with style negotiation.'
     : 'Quality issues detected. Main Orchestrator will present correction options.');
   return lines.join('\n');
 }
@@ -839,7 +839,7 @@ export async function checkJoin() {
   console.log(`[checkJoin] analystDone=${state.analystDone} taDone=${state.taDone}`);
   if (!state.analystDone || !state.taDone) {
     if (state.taDone && !state.analystDone) {
-      broadcast({ type: 'agent_message', agent: 'System', text: 'Analysis still running in background — will begin gap review shortly…', background: true });
+      broadcast({ type: 'agent_message', agent: 'System', text: 'Analysis still running in background - will begin gap review shortly…', background: true });
     }
     return;
   }
@@ -948,7 +948,7 @@ export async function checkResearchRedoJoin() {
         context: 'research_confirm',
         prompt: researchSummary + '\n\nHappy with this? We\'ll use it to see how well you fit the role.',
         actions: [
-          { id: 'research_confirm', label: 'Looks good — keep going', variant: 'primary' },
+          { id: 'research_confirm', label: 'Looks good - keep going', variant: 'primary' },
           { id: 'research_redo',    label: 'Research again',          variant: 'ghost'   },
         ],
       });
@@ -956,7 +956,7 @@ export async function checkResearchRedoJoin() {
       await state.recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
       state.pipelineStatus = 'RESEARCH_CONFIRM';
     } else {
-      broadcast({ type: 'agent_message', agent: 'System', text: researchSummary + '\n\n*(Research updated — gap analysis will use this once your style interview completes.)*' });
+      broadcast({ type: 'agent_message', agent: 'System', text: researchSummary + '\n\n*(Research updated - gap analysis will use this once your style interview completes.)*' });
     }
   } catch (err) {
     console.error('[research redo join] error:', err.message);
@@ -1004,7 +1004,7 @@ export function _assemblyChecks(agentKey) {
       if (!STANDARD.includes(key) && !key.endsWith('_custom') && !inTA) push(`data.agreed_overrides.${key}`, `Override "${key}" not in TA findings and not a standard option`);
     }
     if (agreed.telegraphic && agreed.full_sentences) push('data.agreed_overrides', 'Contradictory overrides: telegraphic and full_sentences both active');
-    if (!data.negotiation_summary || !String(data.negotiation_summary).trim()) push('data.negotiation_summary', 'Missing or empty — must summarise what was agreed');
+    if (!data.negotiation_summary || !String(data.negotiation_summary).trim()) push('data.negotiation_summary', 'Missing or empty - must summarise what was agreed');
 
   } else if (agentKey === 'profile_builder') {
     const data = readWorkspaceJSON('pb_output.json')?.data || {};
@@ -1021,7 +1021,7 @@ export function _assemblyChecks(agentKey) {
     // 2. Numeric claim traceability
     const profileText = normalizeForMatch(JSON.stringify(profile));
     for (const m of (paragraph.match(/\b(\d+\.?\d*\s*%|\d+\+?\s*(?:year|yr)s?|\$[\d,]+|\d{4})\b/gi) || [])) {
-      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json — may be invented`);
+      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json - may be invented`);
     }
     // 3. Contact accuracy
     const contact = profile.personal_info?.contact || {};
@@ -1030,12 +1030,12 @@ export function _assemblyChecks(agentKey) {
     if (contact.phone && !contactStr.includes(contact.phone)) push('data.contact_details', `Phone "${contact.phone}" not in contact_details`);
     // 4. Danger-term / fabrication (TC05)
     const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
-    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt — likely inferred from a title or sector-misused`);
+    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt - likely inferred from a title or sector-misused`);
     // 5. Numeric cross-section: profile's stated years vs server-computed total (no LLM)
     const total = findings.seniority?.years_experience;
     if (typeof total === 'number' && total > 0) {
       const ym = paragraph.match(/(\d+)\+?\s*years?/i);
-      if (ym && Number(ym[1]) > total + 1.5) push('data.profile_paragraph', `Profile claims ${ym[1]} years but the work history totals ~${total} — overstated`);
+      if (ym && Number(ym[1]) > total + 1.5) push('data.profile_paragraph', `Profile claims ${ym[1]} years but the work history totals ~${total} - overstated`);
     }
 
   } else if (agentKey === 'history_formatter') {
@@ -1051,7 +1051,7 @@ export function _assemblyChecks(agentKey) {
       const srcText = src ? normalizeForMatch(JSON.stringify([...(src.responsibilities || []), ...(src.achievements || [])])) : '';
       (entry.bullets || []).forEach((b, j) => {
         for (const num of (b.match(/\b\d+\.?\d*\s*%|\b\d+\+?\s*(?:patients?|staff|team|year|yr)|\$[\d,]+/gi) || [])) {
-          if (srcText && !srcText.includes(normalizeForMatch(num))) push(`data.work_history[${i}].bullets[${j}]`, `Metric "${num.trim()}" not in source job data — may be invented`);
+          if (srcText && !srcText.includes(normalizeForMatch(num))) push(`data.work_history[${i}].bullets[${j}]`, `Metric "${num.trim()}" not in source job data - may be invented`);
         }
       });
     });
@@ -1062,7 +1062,7 @@ export function _assemblyChecks(agentKey) {
     const research = normalizeForMatch(JSON.stringify(readWorkspaceJSON('research_output.json')?.research_data || ''));
     const body = [cl.salutation || '', ...(cl.body_paragraphs || [cl.body || '']), cl.closing_paragraph || '', cl.full_letter || ''].join(' ');
     const bodyLc = body.toLowerCase();
-    if (meta.company_name && !body.includes(meta.company_name)) push('data.cover_letter', `Company name "${meta.company_name}" not in letter — may use a hallucinated name`);
+    if (meta.company_name && !body.includes(meta.company_name)) push('data.cover_letter', `Company name "${meta.company_name}" not in letter - may use a hallucinated name`);
     if (meta.position_title) {
       const words = meta.position_title.split(' ').filter(w => w.length > 3);
       if (!words.every(w => bodyLc.includes(w.toLowerCase()))) push('data.cover_letter', `Role title "${meta.position_title}" not reflected in letter`);
@@ -1071,10 +1071,10 @@ export function _assemblyChecks(agentKey) {
       if (research && !research.includes(normalizeForMatch(s).slice(0, 30))) push('data.cover_letter.body', `Specific company claim not in research_output: "${s.slice(0, 80)}…"`);
     }
     const wc = body.split(/\s+/).filter(Boolean).length;
-    if (wc < 200) push('data.cover_letter', `Letter is ${wc} words — likely incomplete (target 250–350)`);
-    if (wc > 420) push('data.cover_letter', `Letter is ${wc} words — exceeds 420 word cap`);
+    if (wc < 200) push('data.cover_letter', `Letter is ${wc} words - likely incomplete (target 250–350)`);
+    if (wc > 420) push('data.cover_letter', `Letter is ${wc} words - exceeds 420 word cap`);
     const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
-    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt — likely fabricated or sector-misused`);
+    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt - likely fabricated or sector-misused`);
   }
   return issues;
 }
@@ -1159,7 +1159,7 @@ export async function dispatchAssemblyPhase(phaseNumber) {
       const retries = (state.assemblyRetries ??= {});
       if ((retries[phaseNumber] ?? 0) < 1) {
         retries[phaseNumber] = (retries[phaseNumber] ?? 0) + 1;
-        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running ${phase.agent} — the last attempt didn't produce a finished section.` });
+        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running ${phase.agent} - the last attempt didn't produce a finished section.` });
         await new Promise(r => setTimeout(r, 500));
         return dispatchAssemblyPhase(phaseNumber);
       }
@@ -1196,8 +1196,8 @@ async function _advisoryStyleReview() {
   broadcast({
     type: 'agent_message', agent: 'System',
     text: issueCount > 0
-      ? `Style review is advisory — ${issueCount} note(s) above for reference. Continuing to the integrity check.`
-      : 'Style review passed — continuing to the integrity check.',
+      ? `Style review is advisory - ${issueCount} note(s) above for reference. Continuing to the integrity check.`
+      : 'Style review passed - continuing to the integrity check.',
   });
   await dispatchAssemblyPhase(8);
 }
@@ -1270,7 +1270,7 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
       title: 'Seniority & Career Level',
       finding: `Inferred level: ${level}. ${s.evidence || 'Based on work-history dates.'}`,
       examples: [],
-      recommendation: `Confirm as ${level} — this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
+      recommendation: `Confirm as ${level} - this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
       insight: 'Seniority framing is the single biggest lever on how a recruiter reads every bullet.',
       recommended_overrides: { seniority_level: `${level} (confirmed by user)` },
     });
@@ -1282,13 +1282,13 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
   if (!has('profile_voice')) {
     out.push({
       id: 'profile_voice',
-      title: 'Professional Summary — Voice',
+      title: 'Professional Summary - Voice',
       finding: 'Your professional summary can be written in first person (you speaking as yourself) or third person (written about you).',
       examples: [
         'First person: "Biomedical Science graduate with hands-on laboratory training…"',
         'Third person: "Sarah is a Biomedical Science graduate with hands-on laboratory training…"',
       ],
-      recommendation: 'Use first person — it reads as direct and modern and is the most common choice today. Prefer third person? Pick "Customise" and type "third person".',
+      recommendation: 'Use first person - it reads as direct and modern and is the most common choice today. Prefer third person? Pick "Customise" and type "third person".',
       insight: 'First person (or implied first person, with no "I") is standard for most professional summaries; third person can suit very senior or academic profiles.',
       recommended_overrides: { profile_voice: 'first person — the summary speaks as the candidate (implied first person, no name and no third-person pronouns)' },
     });
@@ -1300,10 +1300,10 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
     out.push({
       id: 'key_achievements',
       title: 'Key Achievements Section',
-      finding: `Senior role detected (${roleName || 'this role'}) — a Key Achievements section is standard at this level.`,
+      finding: `Senior role detected (${roleName || 'this role'}) - a Key Achievements section is standard at this level.`,
       examples: [],
       recommendation: 'Add a Key Achievements section (2–3 bolded, quantified bullets) immediately after the profile paragraph.',
-      insight: 'Senior-role screens run under 30 seconds — this section is the primary attention anchor.',
+      insight: 'Senior-role screens run under 30 seconds - this section is the primary attention anchor.',
       recommended_overrides: { key_achievements_section: 'Include Key Achievements section — 2–3 bullet points with bold metrics immediately after profile paragraph' },
     });
   }
@@ -1419,7 +1419,7 @@ async function _autoApproveSN(findings = {}) {
   writeFileSync(join(WORKSPACE_DIR, 'sn_output.json'), JSON.stringify(output, null, 2));
   await mergePhaseOutput(1);
   const notes = await _runAssemblyValidator('Style Negotiator');
-  broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found — default professional enhancements applied.' });
+  broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found - default professional enhancements applied.' });
   await _advanceFromSN(notes);
 }
 
@@ -1659,7 +1659,7 @@ export async function mergePhaseOutput(phaseNumber) {
         console.warn(`[assembly] phase ${phaseNumber} output stale (${Math.round(outputAge / 1000)}s old)`);
         broadcast({
           type: 'agent_message', agent: 'System',
-          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output appears stale — completed_at is ${outputData.completed_at}. ` +
+          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output appears stale - completed_at is ${outputData.completed_at}. ` +
                 `The agent may not have run this turn. Check if ${phase.outputFile} was freshly written.`,
         });
       }
@@ -1826,7 +1826,7 @@ function buildIntegritySummary(phaseData) {
   const bits = [];
   if (checked != null) bits.push(`${checked} claim${checked === 1 ? '' : 's'} checked`);
   bits.push(flagged ? `${flagged} flagged` : 'nothing flagged');
-  return `✓ Accuracy check passed — ${bits.join(', ')}. Everything in your CV traces back to what you provided.`;
+  return `✓ Accuracy check passed - ${bits.join(', ')}. Everything in your CV traces back to what you provided.`;
 }
 
 // Poll cv_assembly_state.json for an IC verdict that landed AFTER the watchdog fired (a slow-but-healthy

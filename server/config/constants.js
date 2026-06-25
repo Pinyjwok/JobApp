@@ -100,7 +100,7 @@ export const EXCEPTION_ACTION_BUTTONS = {
     { id: 'redo_analyst',     label: 'Look at how I fit again', variant: 'ghost'   },
     { id: 'redo_researcher',  label: 'Research the company again', variant: 'ghost'   },
     { id: 'redo_jd_enhancer', label: 'Re-read the job ad',      variant: 'ghost'   },
-    { id: 'accept_anyway',    label: 'Looks good — keep going',  variant: 'primary' },
+    { id: 'accept_anyway',    label: 'Looks good - keep going',  variant: 'primary' },
     { id: 'details',          label: 'Show me the details',     variant: 'ghost'   },
   ],
   'RESEARCH_FAILED': [

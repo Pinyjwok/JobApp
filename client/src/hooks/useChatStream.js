@@ -154,7 +154,7 @@ export function useChatStream(run, modal) {
             setPipelineMode('user_turn');
             setMessages((prev) => [...prev, {
               role: 'agent', agent: 'System',
-              text: 'Agent may be ready — pipeline is active. Type to continue or click Abort.',
+              text: 'Agent may be ready - pipeline is active. Type to continue or click Abort.',
             }]);
           }
           lastActivityRef.current = Date.now();

@@ -158,7 +158,7 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
 
       {!loading && !ejd && (
         <p className="text-xs text-fg-faint italic">
-          Enhanced job description not available — enhanced_jd.json not found in workspace.
+          Enhanced job description not available - enhanced_jd.json not found in workspace.
         </p>
       )}
 
@@ -182,7 +182,7 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
               <div className="flex items-start gap-2 rounded-lg border border-warn/30 bg-warn/10 text-warn text-xs px-2.5 py-2 mb-2">
                 <WarnIcon className="w-3.5 h-3.5 mt-px" />
                 <span>
-                  These come straight from the ad. Editing changes what we measure your CV against —
+                  These come straight from the ad. Editing changes what we measure your CV against -
                   only fix something we mis-read; don&rsquo;t add requirements the ad doesn&rsquo;t list.
                 </span>
               </div>
@@ -245,7 +245,7 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
                   onToggle={() => setResearchOpen(v => !v)}
                 >
                   <p className="text-[12.5px] text-fg-secondary leading-relaxed">
-                    This builds on the company research shown earlier in this chat — its mission, culture,
+                    This builds on the company research shown earlier in this chat - its mission, culture,
                     strengths and hiring focus. We didn&rsquo;t repeat it here; scroll up to revisit the
                     research card.
                   </p>
@@ -261,7 +261,7 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
               disabled={submitted}
               className="text-[13px] font-semibold rounded-lg px-3.5 py-2 bg-accent text-accent-fg border border-accent disabled:opacity-50 disabled:cursor-default hover:opacity-90 transition-opacity"
             >
-              {changed ? 'Save & continue' : 'Looks good — continue'}
+              {changed ? 'Save & continue' : 'Looks good - continue'}
             </button>
             <button
               onClick={handleRedo}

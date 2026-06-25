@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
   // Assembly phase running — drop stray text (user clicked button + typed simultaneously)
   if (state.currentAssemblyPhase > 1 && !state.snState && !state.awaitingRevision) {
     res.json({ ok: true });
-    broadcast({ type: 'agent_message', agent: 'System', text: 'Assembly in progress — please use the action buttons.' });
+    broadcast({ type: 'agent_message', agent: 'System', text: 'Assembly in progress - please use the action buttons.' });
     return;
   }
 

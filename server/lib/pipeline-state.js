@@ -93,7 +93,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     // BUG-126: Researcher just finished — stamp the real completion time before the gate displays it.
     stampTimestamp('research_output.json', 'completed_at');
     broadcast({ type: 'action_required', context: 'research_pre_confirm', prompt: '', actions: [
-      { id: 'research_pre_confirm', label: 'Yes — continue',  variant: 'primary' },
+      { id: 'research_pre_confirm', label: 'Yes - continue',  variant: 'primary' },
       { id: 'research_pre_redo',   label: 'Research again',  variant: 'ghost'   },
     ]});
     await state.recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
@@ -241,10 +241,10 @@ export function proceedAfterJDEnhanced() {
     broadcast({
       type: 'action_required',
       context: 'cl_upload_prompt',
-      prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not — we\'ll work from your CV alone.',
+      prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not - we\'ll work from your CV alone.',
       actions: [
         { id: 'ta_upload_cover', label: 'Add a cover letter', type: 'upload', variant: 'primary' },
-        { id: 'cl_skip',         label: 'Skip — use my CV only', variant: 'ghost' },
+        { id: 'cl_skip',         label: 'Skip - use my CV only', variant: 'ghost' },
       ],
     });
     broadcastMode('action_required');

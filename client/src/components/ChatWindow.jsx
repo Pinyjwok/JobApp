@@ -152,7 +152,7 @@ function ProjectSetupTick() {
   return (
     <div className="animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-2 border border-line text-xs text-fg-muted max-w-[85%]">
       <CheckIcon />
-      <span className="text-fg-muted">Project initialised — CV and JD saved</span>
+      <span className="text-fg-muted">Project initialised - CV and JD saved</span>
     </div>
   );
 }

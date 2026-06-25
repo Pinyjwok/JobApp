@@ -118,7 +118,7 @@ export function ReviewBubble({ msg }) {
       {/* Plain-language summary */}
       {ok ? (
         <p className="text-sm text-fg-secondary leading-relaxed mb-2">
-          We went through everything in your background and it all holds up — nothing looks made up or exaggerated.
+          We went through everything in your background and it all holds up - nothing looks made up or exaggerated.
         </p>
       ) : (
         <p className="text-sm text-fg-secondary leading-relaxed mb-2">
@@ -129,7 +129,7 @@ export function ReviewBubble({ msg }) {
       {/* Fit score in words */}
       {p.score != null && fit && (
         <p className="text-sm text-fg leading-relaxed mb-1">
-          Match for this role: <strong className="font-semibold">{p.score} out of 10</strong> — {fit}.
+          Match for this role: <strong className="font-semibold">{p.score} out of 10</strong> - {fit}.
         </p>
       )}
 
@@ -157,7 +157,7 @@ export function ReviewBubble({ msg }) {
               {p.audited != null && (
                 <p className="text-xs text-fg-secondary leading-relaxed px-1 mb-2">
                   We checked {p.audited} detail{p.audited !== 1 ? 's' : ''} drawn from your CV and the job ad
-                  {p.approved != null && <> — {p.approved} are fully backed by what you provided</>}
+                  {p.approved != null && <> - {p.approved} are fully backed by what you provided</>}
                   {p.issueCount != null && p.issueCount > 0
                     ? <>, and {p.issueCount} need{p.issueCount !== 1 ? '' : 's'} another look.</>
                     : <>, with nothing to flag.</>}

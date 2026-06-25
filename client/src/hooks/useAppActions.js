@@ -3,7 +3,7 @@ import { confirmDialog } from '../lib/toast';
 const WELCOME_MESSAGE = {
   role: 'agent',
   agent: 'JobApp',
-  text: `Got your documents — thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way.`,
+  text: `Got your documents - thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way.`,
 };
 
 // All user/server actions for a run (UI-09): message send, the three interview submits, assembly
@@ -246,7 +246,7 @@ export function useAppActions(run, modal) {
       setMessages((prev) => [...prev, { role: 'user', text: `Uploaded ${name} → ${target}.txt` }]);
       setUploadedFiles((prev) => ({ ...prev, [target]: name }));
       if (target === 'cover_letter_sample') {
-        await handleSend('Cover letter uploaded — please proceed with the analysis.');
+        await handleSend('Cover letter uploaded - please proceed with the analysis.');
       }
     } catch (err) {
       pushSystem(`Upload failed: ${err.message}`);
