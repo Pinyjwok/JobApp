@@ -131,7 +131,7 @@ export function StatusBar({ status, activeAgent, running = false }) {
 
       {substep && (
         <div className="flex items-center justify-center mt-2">
-          <span className={`text-[11px] transition-colors ${hasFailure ? 'text-danger' : isComplete ? 'text-success' : 'text-fg-secondary'}`}>
+          <span className={`text-xs transition-colors ${hasFailure ? 'text-danger' : isComplete ? 'text-success' : 'text-fg-secondary'}`}>
             {!isComplete && !hasFailure && <span className="text-accent mr-1">▸</span>}
             {substep}
           </span>

@@ -108,7 +108,7 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
               <span className="text-xs font-semibold text-success">
                 {accepted.length} {accepted.length === 1 ? 'answer counted' : 'answers counted'}
               </span>
-              <span className="ml-auto text-[9px] text-success">{acceptedOpen ? '▾' : '▸'}</span>
+              <span className="ml-auto text-xs text-success">{acceptedOpen ? '▾' : '▸'}</span>
             </button>
             {acceptedOpen && (
               <ul className="flex flex-col gap-1 mt-2 animate-fade-in">
@@ -128,7 +128,7 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
           {/* tier as eyebrow, then question as the focus */}
           <div>
             <Eyebrow tone={isBaseline ? 'warn' : 'muted'}>{isBaseline ? 'Important' : 'Nice to have'}</Eyebrow>
-            <p className="text-[15px] font-medium text-fg leading-relaxed mt-1.5">{gap.gap_text_plain ?? gap.gap_text}</p>
+            <p className="text-base font-medium text-fg leading-relaxed mt-1.5">{gap.gap_text_plain ?? gap.gap_text}</p>
           </div>
 
           {/* hint vs re-ask warning */}

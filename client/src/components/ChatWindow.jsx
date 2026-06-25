@@ -198,7 +198,7 @@ function AgentBubble({ msg }) {
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
         <span className="text-xs text-fg-secondary font-semibold">{agentLabel(msg.agent ?? 'Agent')}</span>
         {msg.cost != null && (
-          <span className="text-[10px] text-fg-faint font-mono">${msg.cost.toFixed(4)}</span>
+          <span className="text-xs text-fg-faint font-mono">${msg.cost.toFixed(4)}</span>
         )}
       </div>
       <div className="prose-sm">
@@ -210,13 +210,13 @@ function AgentBubble({ msg }) {
         <div className="mt-2.5 border-t border-line pt-2">
           <button
             onClick={() => setShowReasoning((v) => !v)}
-            className="text-[11px] text-fg-muted hover:text-fg-secondary transition-colors flex items-center gap-1"
+            className="text-xs text-fg-muted hover:text-fg-secondary transition-colors flex items-center gap-1"
           >
-            <span className="text-[9px]">{showReasoning ? '▲' : '▼'}</span>
+            <span className="text-xs">{showReasoning ? '▲' : '▼'}</span>
             {showReasoning ? 'Hide reasoning' : 'Show reasoning'}
           </button>
           {showReasoning && (
-            <pre className="mt-2 text-[11px] text-fg-muted bg-app rounded-lg p-3 overflow-x-auto whitespace-pre-wrap border border-line max-h-64 overflow-y-auto">
+            <pre className="mt-2 text-xs text-fg-muted bg-app rounded-lg p-3 overflow-x-auto whitespace-pre-wrap border border-line max-h-64 overflow-y-auto">
               {msg.reasoning}
             </pre>
           )}
@@ -246,7 +246,7 @@ function ActionBubble({ msg, onAction, onUpload }) {
 
   return (
     <div className="animate-fade-in-up w-full max-w-[85%] rounded-xl bg-surface-2 border border-line border-l-[3px] border-l-accent px-4 py-3 shadow-[var(--shadow-panel)]">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-accent mb-2">Needs your input</div>
+      <div className="text-xs font-semibold uppercase tracking-wider text-accent mb-2">Needs your input</div>
       {msg.prompt && (
         <div className="text-sm text-fg mb-3 prose-sm">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
@@ -342,7 +342,7 @@ function CollapsedTicks({ items }) {
         <CheckIcon />
         <span className="text-fg-secondary truncate">{tickLabel(latest)}</span>
         <span className="text-fg-faint whitespace-nowrap">· {items.length} steps done</span>
-        <span className="ml-auto text-[9px] text-fg-faint">{open ? '▾' : '▸'}</span>
+        <span className="ml-auto text-xs text-fg-faint">{open ? '▾' : '▸'}</span>
       </button>
       {open && (
         <div className="mt-1.5 ml-1 pl-3 border-l border-line flex flex-col gap-1 animate-fade-in">
