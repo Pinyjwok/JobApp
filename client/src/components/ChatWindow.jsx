@@ -7,6 +7,7 @@ import { SectionBubble }  from './SectionBubble';
 import { ReviewBubble }   from './ReviewBubble';
 import { CompletionBubble } from './CompletionBubble';
 import { DocumentPreview }  from './DocumentPreview';
+import { EnhancedJDBubble } from './EnhancedJDBubble';
 import { agentLabel }     from '../agentLabels';
 import { toast }          from '../lib/toast';
 
@@ -128,6 +129,12 @@ function isCompletion(msg) {
  *  coverLetter) and an optional initialTab set by the view_cv / view_cover_letter action. */
 function isDocument(msg) {
   return !msg.background && msg.documentData != null;
+}
+
+/** JD enhancement done (status JD_ENHANCED) → EnhancedJDBubble. Server tags this message
+ *  kind:'enhanced_jd'; the bubble fetches enhanced_jd.json itself and carries its own gate buttons. */
+function isEnhancedJD(msg) {
+  return msg.kind === 'enhanced_jd' && !msg.background;
 }
 
 // ── Compact renders (no separate file needed) ─────────────────────────────────
@@ -371,7 +378,7 @@ function keyFor(m) {
 }
 
 // The full per-message router (non-tick messages).
-function renderBubble(msg, onAction, onUpload) {
+function renderBubble(msg, onAction, onUpload, onJDConfirm) {
   if (msg.role === 'user') {
     return (
       <div className="animate-fade-in-up max-w-[70%] rounded-xl rounded-br-sm bg-accent text-accent-fg px-4 py-2.5 text-sm shadow-[var(--shadow-panel)]">
@@ -383,6 +390,7 @@ function renderBubble(msg, onAction, onUpload) {
   if (msg.agent === 'System' && !msg.background) return <SystemNotice msg={msg} />;
   if (isCompletion(msg)) return <CompletionBubble meta={msg.meta} doc={msg.documentData} onAction={onAction} />;
   if (isDocument(msg)) return <DocumentPreview doc={msg.documentData} initialTab={msg.initialTab} />;
+  if (isEnhancedJD(msg)) return <EnhancedJDBubble msg={msg} onAction={onAction} onJDConfirm={onJDConfirm} />;
   if (isResearchComplete(msg)) return <ResearchBubble msg={msg} />;
   if (isAnalystComplete(msg)) return <AnalystBubble msg={msg} />;
   if (isAssemblySection(msg)) return <SectionBubble msg={msg} />;
@@ -394,7 +402,7 @@ function renderBubble(msg, onAction, onUpload) {
 
 // ── ChatWindow ────────────────────────────────────────────────────────────────
 
-export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
+export function ChatWindow({ messages, isWaiting, onAction, onUpload, onJDConfirm }) {
   const bottomRef = useRef(null);
   const scrollRef = useRef(null);
   const atBottomRef = useRef(true);     // latest value for the scroll effect (avoids stale closure)
@@ -445,7 +453,7 @@ export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
           }
           return (
             <div key={g.key} className={`flex ${g.msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {renderBubble(g.msg, onAction, onUpload)}
+              {renderBubble(g.msg, onAction, onUpload, onJDConfirm)}
             </div>
           );
         })}

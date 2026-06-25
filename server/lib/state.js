@@ -16,6 +16,7 @@ export const state = {
   gapAccepted:          [],   // [{ gap_text, evidence }] — accepted so far, shown as the modal ack strip
   gapPending:           [],   // gap-shaped cards still needing a better answer (for reload reconstruction)
   researchPartial:      false,
+  awaitingJDReview:     false, // true while the guided enhanced-JD review gate is open (pre gap analysis)
   pipelineStatus:       null,
   recentlyDispatched:   new Map(),
   pendingTADispatch:    false,

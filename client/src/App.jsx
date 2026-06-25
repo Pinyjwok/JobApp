@@ -285,6 +285,7 @@ export default function App() {
           isWaiting={run.isWaiting || run.pipelineMode === 'auto_running'}
           onAction={actions.handleAction}
           onUpload={actions.handleSectionUpload}
+          onJDConfirm={actions.handleJDConfirm}
         />
         {modal.showTimeline && <AgentTimeline turns={run.turns} />}
       </div>

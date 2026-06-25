@@ -141,6 +141,21 @@ export function useAppActions(run, modal) {
     }
   }
 
+  // Guided enhanced-JD review → continue. `edits` is null (no changes) or the edited requirement
+  // arrays, which the server persists to enhanced_jd.json before gap analysis runs.
+  async function handleJDConfirm(edits) {
+    consumeActions();
+    try {
+      await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'jd_review_confirm', edits: edits ?? null }),
+      });
+    } catch (err) {
+      pushSystem(`Continue failed: ${err.message}`);
+    }
+  }
+
   async function handleStyleSubmit(answers) {
     try {
       await fetch('/api/action', {
@@ -329,7 +344,7 @@ export function useAppActions(run, modal) {
 
   return {
     handleSend, handleModalStart, handleModalResume, handleAction,
-    handleGapSubmit, handleStyleSubmit, handleIcSubmit,
+    handleGapSubmit, handleStyleSubmit, handleIcSubmit, handleJDConfirm,
     handleReviseSubmit, handleReviseCancel, handleUpload, handleSectionUpload,
     handleAbort, handleReset, handleSetStatus, handleSetPhase,
   };

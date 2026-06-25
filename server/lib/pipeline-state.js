@@ -38,6 +38,17 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     if (status === 'JD_ENHANCED' || status === 'PARALLEL_ANALYSIS') {
       const gapExists     = (() => { try { readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'));   return true; } catch { return false; } })();
       const findingsExists = (() => { try { readFileSync(join(WORKSPACE_DIR, 'style_findings.json')); return true; } catch { return false; } })();
+      // JD_ENHANCED with neither analysis artifact yet = the user reloaded while sitting on the guided
+      // review gate (the gate is what stops auto-advance into gap analysis). Re-show it rather than
+      // re-firing the Analyst, which would skip the gate the user hasn't confirmed.
+      if (status === 'JD_ENHANCED' && !gapExists && !findingsExists) {
+        const enhancedExists = existsSync(join(WORKSPACE_DIR, 'enhanced_jd.json'));
+        if (enhancedExists) {
+          console.log('[resume] JD_ENHANCED at review gate — re-showing the enhanced-JD review');
+          showJDReviewGate();
+          return;
+        }
+      }
       state.analystDone = gapExists;
       state.taDone      = findingsExists;
       state.analystOutputText = null;
@@ -113,22 +124,9 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'JD_ENHANCED') {
-    const clPath = join(WORKSPACE_DIR, 'cover_letter_sample.txt');
-    if (!existsSync(clPath)) {
-      broadcast({
-        type: 'action_required',
-        context: 'cl_upload_prompt',
-        prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not — we\'ll work from your CV alone.',
-        actions: [
-          { id: 'ta_upload_cover', label: 'Add a cover letter', type: 'upload', variant: 'primary' },
-          { id: 'cl_skip',         label: 'Skip — use my CV only', variant: 'ghost' },
-        ],
-      });
-      broadcastMode('action_required');
-      state.pendingTADispatch = true;
-      return;
-    }
-    fireTAAndAnalyst();
+    // Guided review gate: don't auto-advance to gap analysis. Surface the enhanced JD as a structured
+    // bubble the user reviews (and can lightly edit) first. proceedAfterJDEnhanced() runs on confirm.
+    showJDReviewGate();
     return;
   }
 
@@ -220,4 +218,38 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
       })
       .catch(err => surfaceStall(agent, err));
   }
+}
+
+// ── Guided enhanced-JD review gate ────────────────────────────────────────────
+// After the JD Enhancer writes enhanced_jd.json we no longer auto-advance to gap analysis. Instead we
+// surface a structured, user-facing bubble (EnhancedJDBubble on the client, which fetches the JSON
+// itself) and wait. The bubble carries its own Continue / Re-read buttons. On Continue the client posts
+// jd_review_confirm → proceedAfterJDEnhanced(); on Re-read it posts jd_review_redo.
+export function showJDReviewGate() {
+  state.awaitingJDReview = true;
+  broadcast({ type: 'agent_message', kind: 'enhanced_jd', agent: 'JD Enhancer', text: '' });
+  broadcastMode('user_turn', 'JD Enhancer');
+}
+
+// The post-JD_ENHANCED continuation that used to fire immediately at the gate: prompt for an optional
+// cover letter (if none uploaded), otherwise fan out into Tone Analyst + Analyst. Called once the user
+// confirms the enhanced-JD review (server/routes/action.js → jd_review_confirm).
+export function proceedAfterJDEnhanced() {
+  state.awaitingJDReview = false;
+  const clPath = join(WORKSPACE_DIR, 'cover_letter_sample.txt');
+  if (!existsSync(clPath)) {
+    broadcast({
+      type: 'action_required',
+      context: 'cl_upload_prompt',
+      prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not — we\'ll work from your CV alone.',
+      actions: [
+        { id: 'ta_upload_cover', label: 'Add a cover letter', type: 'upload', variant: 'primary' },
+        { id: 'cl_skip',         label: 'Skip — use my CV only', variant: 'ghost' },
+      ],
+    });
+    broadcastMode('action_required');
+    state.pendingTADispatch = true;
+    return;
+  }
+  fireTAAndAnalyst();
 }
