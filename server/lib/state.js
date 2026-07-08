@@ -17,6 +17,7 @@ export const state = {
   gapPending:           [],   // gap-shaped cards still needing a better answer (for reload reconstruction)
   researchPartial:      false,
   awaitingJDReview:     false, // true while the guided enhanced-JD review gate is open (pre gap analysis)
+  speculativeAnalystFired: false, // Analyst fired early at the review gate so its latency hides behind the user's review; consumed by fireTAAndAnalyst at confirm
   pipelineStatus:       null,
   recentlyDispatched:   new Map(),
   pendingTADispatch:    false,

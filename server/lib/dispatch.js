@@ -234,10 +234,34 @@ export function computeSeniorityYears() {
   return { years: total, relevant };
 }
 
-export function fireTAAndAnalyst() {
-  state.analystDone = false;
-  state.taDone      = false;
+// Fire the Analyst while the user reviews the enhanced JD so its latency overlaps the review rather than
+// being tacked on after confirm. In the no-edit review flow the reviewed JD is final, so this run is
+// always valid. Guarded by state.speculativeAnalystFired so a client reload (which re-enters the gate
+// with server state intact) doesn't double-fire onto analyst_background_input; the same flag tells
+// fireTAAndAnalyst to skip its own Analyst branch at confirm. Status stays JD_ENHANCED and the mode stays
+// user_turn — the gate isn't confirmed yet; the bubble's own "analysing" strip signals the background work.
+export function fireSpeculativeAnalyst() {
+  if (state.speculativeAnalystFired) return;
+  state.speculativeAnalystFired = true;
+  state.analystDone       = false;
   state.analystOutputText = null;
+  clearStaleAnalysis();  // a prior speculative run (e.g. before a JD re-read) would else make the Analyst guard bail
+  stampTimestamp('enhanced_jd.json', 'metadata.enhanced_at');
+  sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+    .then(async r => {
+      const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
+      const { cleanText } = parseAndStripStatus(raw);
+      state.analystOutputText = cleanText;
+      state.analystValidatorSummary = buildAnalystValidatorSummary();
+      state.analystDone = true;
+      syncTADone();
+      await checkJoin();  // parks at analystDone until TA fires at confirm — checkJoin needs both flags
+    })
+    .catch(err => console.error('[Analyst speculative] error:', err));
+}
+
+export function fireTAAndAnalyst() {
+  state.taDone = false;
   // BUG-126: JD Enhancer just finished — stamp the real enhancement time before consumers read it.
   stampTimestamp('enhanced_jd.json', 'metadata.enhanced_at');
   broadcastMode('auto_running', 'Analysis');
@@ -263,6 +287,15 @@ export function fireTAAndAnalyst() {
       }
     })
     .catch(err => console.error('[TA] error:', err));
+  // Analyst — skip if it already fired speculatively while the user reviewed the enhanced JD (no-edit
+  // flow → that run is valid, and re-firing could double-run onto the node while it's still in flight).
+  // Consume the one-shot flag so a later re-run (redo / stall retry) fires the Analyst normally again.
+  if (state.speculativeAnalystFired) {
+    state.speculativeAnalystFired = false;
+    return;  // Analyst already ran/running from the review gate; its .then owns analystDone + checkJoin
+  }
+  state.analystDone = false;
+  state.analystOutputText = null;
   sendToNodeAndWait('analyst_background_input', null, '__analyze__')
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');

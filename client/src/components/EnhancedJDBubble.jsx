@@ -1,70 +1,63 @@
 import { useState, useEffect } from 'react';
-import { Eyebrow, CheckIcon, InfoIcon, WarnIcon, Disclosure } from './primitives';
+import { Eyebrow, CheckIcon, InfoIcon, Disclosure } from './primitives';
 
-// ── Guided enhanced-JD review ─────────────────────────────────────────────────
+// ── Guided enhanced-JD review (MVP: read-only) ────────────────────────────────
 // Shown at the JD_ENHANCED gate (server tags the message kind:'enhanced_jd'). Makes the JD Enhancer's
-// work visible: "What this role needs" comes straight from the ad (requirements — editable, with a
-// caution) and "How your research shaped this" renders the agent's user-facing candidate_brief. It does
-// NOT re-render the company research (that card was already shown) — it links back to it instead.
+// work visible without dumping the whole ad: "What this role needs" is grouped (Must have / Nice to
+// have / What you'd be doing) into collapsible, scannable lists — required is open by default, the rest
+// collapse to a one-line preview. "How your research shaped this" renders the agent's candidate_brief;
+// it does NOT re-render the company research (that card was already shown) — it links back to it.
+// While the user reviews, a quiet "analysing" strip signals the background fit-analysis: the server
+// fires the Analyst speculatively at this gate (fireSpeculativeAnalyst), so its latency hides behind
+// the review. No in-place editing in this MVP — "Re-read the job ad" is the escape hatch for a misread.
 
 const norm = arr => (Array.isArray(arr) ? arr.map(s => String(s).trim()).filter(Boolean) : []);
-const sameList = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 
-// One editable requirement / responsibility row.
-function ReqRow({ value, kind, editing, onChange, onRemove }) {
+// Right-facing caret that rotates open (mirrors Disclosure's ▸/▾ but as an icon).
+function Caret({ open }) {
   return (
-    <div className="flex items-start gap-2 rounded-lg border border-line bg-surface px-2.5 py-2">
-      {kind && (
-        <span className={`mt-px shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide ${
-          kind === 'pref' ? 'text-fg-muted bg-fg-faint/15' : 'text-accent bg-accent/10'
-        }`}>
-          {kind === 'pref' ? 'Pref' : 'Req'}
-        </span>
-      )}
-      {editing ? (
-        <input
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="flex-1 bg-transparent text-[13px] text-fg leading-snug outline-none border-b border-line focus:border-accent"
-        />
-      ) : (
-        <span className="flex-1 text-[13px] text-fg leading-snug">{value}</span>
-      )}
-      {editing && (
-        <button
-          onClick={onRemove}
-          className="shrink-0 font-mono text-[10px] text-fg-faint hover:text-danger transition-colors"
-          title="Remove"
-        >
-          remove
-        </button>
-      )}
-    </div>
+    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+      style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform .18s', flexShrink: 0 }}>
+      <path d="M9 6l6 6-6 6" />
+    </svg>
   );
 }
 
-// An editable list of strings (required / preferred / responsibilities).
-function EditableList({ items, setItems, kind, editing, addLabel }) {
-  if (!items.length && !editing) return null;
+// ── One collapsible requirement group (read-only) ─────────────────────────────
+// Dense list rows with a small marker (no per-row card chrome). `marker` is { cls, el }.
+function ReqGroup({ label, items, open, onToggle, hint, marker }) {
+  const count = items.length;
+  if (!count) return null;
+
   return (
-    <div className="flex flex-col gap-1.5">
-      {items.map((v, i) => (
-        <ReqRow
-          key={i}
-          value={v}
-          kind={kind}
-          editing={editing}
-          onChange={nv => setItems(items.map((x, j) => (j === i ? nv : x)))}
-          onRemove={() => setItems(items.filter((_, j) => j !== i))}
-        />
-      ))}
-      {editing && (
-        <button
-          onClick={() => setItems([...items, ''])}
-          className="self-start font-mono text-[11px] text-accent hover:opacity-75 transition-opacity"
-        >
-          + {addLabel}
-        </button>
+    <div className="border-t border-line first:border-t-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="group flex w-full items-center gap-2 py-2.5 text-left"
+      >
+        <span className="text-fg-faint transition-colors group-hover:text-fg-secondary">
+          <Caret open={open} />
+        </span>
+        <span className="text-[13px] font-semibold text-fg">{label}</span>
+        <span className="rounded-full bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-fg-muted tabular-nums">
+          {count}
+        </span>
+        {hint && !open && <span className="ml-auto truncate text-[11.5px] text-fg-faint">{hint}</span>}
+      </button>
+
+      {open && (
+        <div className="animate-fade-in pb-2.5 pl-5">
+          <ul className="flex flex-col">
+            {items.map((v, i) => (
+              <li key={i} className="flex items-start gap-2.5 py-1 text-[12.5px] leading-snug text-fg-secondary">
+                <span className={`mt-[3px] ${marker.cls}`}>{marker.el}</span>
+                <span>{v}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
@@ -75,16 +68,9 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
   const [meta, setMeta]       = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [editing, setEditing]   = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [respOpen, setRespOpen]   = useState(false);
+  const [openGroup, setOpenGroup] = useState('req');       // 'req' | 'pref' | 'resp' | null
   const [researchOpen, setResearchOpen] = useState(false);
-
-  // Editable arrays — seeded once the JSON resolves.
-  const [reqd, setReqd] = useState([]);
-  const [pref, setPref] = useState([]);
-  const [resp, setResp] = useState([]);
-  const [orig, setOrig] = useState({ reqd: [], pref: [], resp: [] });
 
   useEffect(() => {
     Promise.all([
@@ -92,13 +78,6 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
       fetch('/api/workspace?file=project_meta.json').then(r => r.json()).catch(() => null),
     ]).then(([e, m]) => {
       setEjd(e); setMeta(m);
-      if (e) {
-        const r = norm(e?.requirements?.required_qualifications);
-        const p = norm(e?.requirements?.preferred_qualifications);
-        const k = norm(e?.role_details?.key_responsibilities);
-        setReqd(r); setPref(p); setResp(k);
-        setOrig({ reqd: r, pref: p, resp: k });
-      }
     }).finally(() => setLoading(false));
   }, []);
 
@@ -106,17 +85,14 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
   const company  = meta?.company_name || null;
   const position = meta?.position_title || null;
 
-  const changed =
-    !sameList(reqd, orig.reqd) || !sameList(pref, orig.pref) || !sameList(resp, orig.resp);
+  const reqd = norm(ejd?.requirements?.required_qualifications);
+  const pref = norm(ejd?.requirements?.preferred_qualifications);
+  const resp = norm(ejd?.role_details?.key_responsibilities);
 
   function handleContinue() {
     if (submitted) return;
     setSubmitted(true);
-    setEditing(false);
-    const edits = changed
-      ? { required_qualifications: reqd, preferred_qualifications: pref, key_responsibilities: resp }
-      : null;
-    onJDConfirm?.(edits);
+    onJDConfirm?.(null);   // MVP: no in-place edits — the reviewed JD is confirmed as-is
   }
 
   function handleRedo() {
@@ -125,18 +101,18 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
     onAction?.('jd_review_redo');
   }
 
-  // Summary line: prefer the agent's headline, else describe what we did.
+  const toggle = id => () => setOpenGroup(g => (g === id ? null : id));
+
   const summary = brief?.headline
     || (position
         ? <>We read the <strong className="text-fg font-semibold">{position}</strong> ad{company ? <> at <strong className="text-fg font-semibold">{company}</strong></> : ''} and framed how you'd succeed in it.</>
         : 'Here’s the role you’re applying for, sharpened with what we learned.');
 
-  // Research-shaped synthesis: candidate_brief if present, else a single line from the overview.
   const roleInContext   = brief?.role_in_context || ejd?.role_details?.overview || null;
   const whatToEmphasise = norm(brief?.what_to_emphasise);
 
   return (
-    <div className="animate-fade-in-up relative w-full max-w-[85%] rounded-xl border border-line border-l-[3px] border-l-line-strong bg-surface-2 px-4 py-3 text-sm text-fg shadow-[var(--shadow-panel)]">
+    <div className="animate-fade-in-up relative w-full max-w-[85%] rounded-xl border border-line border-l-[3px] border-l-line-strong bg-surface-2 px-4 py-3.5 text-sm text-fg shadow-[var(--shadow-panel)]">
 
       {/* Agent header — no cost, no internal badges */}
       <div className="flex items-center gap-2 mb-2">
@@ -164,57 +140,33 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
 
       {!loading && ejd && (
         <>
-          {/* ── What this role needs (from the ad) ── */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
+          {/* ── What this role needs (grouped, collapsible) ── */}
+          <div className="rounded-xl border border-line bg-surface overflow-hidden">
+            <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
               <Eyebrow tone="accent" icon={<CheckIcon className="w-3.5 h-3.5" />}>What this role needs</Eyebrow>
-              {!submitted && (
-                <button
-                  onClick={() => setEditing(v => !v)}
-                  className="font-mono text-[10.5px] text-fg-muted border border-line rounded-md px-2 py-0.5 hover:text-accent hover:border-accent/40 transition-colors"
-                >
-                  {editing ? 'Done' : '✎ Edit'}
-                </button>
-              )}
             </div>
 
-            {editing && (
-              <div className="flex items-start gap-2 rounded-lg border border-warn/30 bg-warn/10 text-warn text-xs px-2.5 py-2 mb-2">
-                <WarnIcon className="w-3.5 h-3.5 mt-px" />
-                <span>
-                  These come straight from the ad. Editing changes what we measure your CV against -
-                  only fix something we mis-read; don&rsquo;t add requirements the ad doesn&rsquo;t list.
-                </span>
-              </div>
-            )}
+            <p className="px-3 pb-1.5 text-[11.5px] text-fg-faint">
+              Pulled straight from the ad — this is what we&rsquo;ll measure your CV against.
+            </p>
 
-            <EditableList items={reqd} setItems={setReqd} kind="req"  editing={editing} addLabel="add required" />
-            {(pref.length > 0 || editing) && (
-              <div className="mt-1.5">
-                <EditableList items={pref} setItems={setPref} kind="pref" editing={editing} addLabel="add preferred" />
-              </div>
-            )}
-
-            {(resp.length > 0 || editing) && (
-              <div className="mt-2">
-                {editing ? (
-                  <>
-                    <div className="font-mono text-[10px] font-bold uppercase tracking-wide text-fg-muted mb-1">Key responsibilities</div>
-                    <EditableList items={resp} setItems={setResp} kind={null} editing={editing} addLabel="add responsibility" />
-                  </>
-                ) : (
-                  <Disclosure
-                    title={`${resp.length} key responsibilit${resp.length === 1 ? 'y' : 'ies'}`}
-                    open={respOpen}
-                    onToggle={() => setRespOpen(v => !v)}
-                  >
-                    {resp.map((r, i) => (
-                      <p key={i} className="text-[13px] text-fg-secondary leading-relaxed">• {r}</p>
-                    ))}
-                  </Disclosure>
-                )}
-              </div>
-            )}
+            <div className="px-3 pb-2">
+              <ReqGroup
+                label="Must have" items={reqd}
+                open={openGroup === 'req'} onToggle={toggle('req')} hint={reqd[0]}
+                marker={{ cls: 'text-accent', el: <CheckIcon className="w-3 h-3" /> }}
+              />
+              <ReqGroup
+                label="Nice to have" items={pref}
+                open={openGroup === 'pref'} onToggle={toggle('pref')} hint={pref[0]}
+                marker={{ cls: 'text-fg-faint', el: <span className="block w-1 h-1 rounded-full bg-current" /> }}
+              />
+              <ReqGroup
+                label="What you’d be doing" items={resp}
+                open={openGroup === 'resp'} onToggle={toggle('resp')} hint={resp[0]}
+                marker={{ cls: 'text-fg-faint', el: <span className="block w-1 h-1 rounded-full bg-current" /> }}
+              />
+            </div>
           </div>
 
           {/* ── How your research shaped this (synthesis, not a research re-dump) ── */}
@@ -254,6 +206,23 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
             </div>
           )}
 
+          {/* ── Quiet "productive wait" strip: signals the background fit-analysis is running ── */}
+          {!submitted && (
+            <div className="mt-3 rounded-lg border border-line bg-surface-3/60 px-3 py-2">
+              <div className="flex items-center gap-2 text-[11.5px] text-fg-muted">
+                <span className="flex gap-0.5">
+                  <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" />
+                  <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" style={{ animationDelay: '.2s' }} />
+                  <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" style={{ animationDelay: '.4s' }} />
+                </span>
+                Matching your CV against these requirements — take a moment to review while we work.
+              </div>
+              <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-line">
+                <div className="jd-scan-bar h-full w-full" />
+              </div>
+            </div>
+          )}
+
           {/* ── Gate buttons ── */}
           <div className="flex gap-2 mt-3.5 pt-3 border-t border-line">
             <button
@@ -261,7 +230,7 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
               disabled={submitted}
               className="text-[13px] font-semibold rounded-lg px-3.5 py-2 bg-accent text-accent-fg border border-accent disabled:opacity-50 disabled:cursor-default hover:opacity-90 transition-opacity"
             >
-              {changed ? 'Save & continue' : 'Looks good - continue'}
+              Looks good - continue
             </button>
             <button
               onClick={handleRedo}
@@ -276,3 +245,20 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
     </div>
   );
 }
+
+/*
+  Add these keyframes once to your global stylesheet (index.css) for the "analysing" strip.
+  They degrade gracefully if omitted — dots simply stay static.
+
+  @keyframes jd-shimmer   { 0% { background-position:-140% 0 } 100% { background-position:240% 0 } }
+  @keyframes jd-pulse-dot { 0%,100% { opacity:.35; transform:scale(.85) } 50% { opacity:1; transform:scale(1) } }
+  .jd-scan-dot { animation: jd-pulse-dot 1.2s ease-in-out infinite; }
+  .jd-scan-bar {
+    background: linear-gradient(90deg, transparent, oklch(from var(--accent) l c h / .55), transparent);
+    background-size: 40% 100%; background-repeat: no-repeat;
+    animation: jd-shimmer 1.5s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .jd-scan-dot, .jd-scan-bar { animation: none; }
+  }
+*/

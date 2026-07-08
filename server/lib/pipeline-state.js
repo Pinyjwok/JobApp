@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import {
   WORKSPACE_DIR, INPUT_NODE_MAP, HAPPY_PATH,
@@ -7,7 +7,13 @@ import {
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, stampTimestamp, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, fireSpeculativeAnalyst, stampTimestamp, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
+
+// Disk marker for the guided enhanced-JD review gate. Written when the gate opens, removed on
+// confirm/redo. Survives a client reload AND a server restart, so the resume path can re-show the gate
+// even after the speculative Analyst has already written gap_analysis.json (which would otherwise look
+// like "analysis done, advance past the gate").
+export const JD_REVIEW_MARKER = join(WORKSPACE_DIR, 'jd_review.pending');
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -38,10 +44,12 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     if (status === 'JD_ENHANCED' || status === 'PARALLEL_ANALYSIS') {
       const gapExists     = (() => { try { readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'));   return true; } catch { return false; } })();
       const findingsExists = (() => { try { readFileSync(join(WORKSPACE_DIR, 'style_findings.json')); return true; } catch { return false; } })();
-      // JD_ENHANCED with neither analysis artifact yet = the user reloaded while sitting on the guided
-      // review gate (the gate is what stops auto-advance into gap analysis). Re-show it rather than
-      // re-firing the Analyst, which would skip the gate the user hasn't confirmed.
-      if (status === 'JD_ENHANCED' && !gapExists && !findingsExists) {
+      // The review-gate marker (not the absence of analysis artifacts) is the source of truth for
+      // "still at the gate": the speculative Analyst may have already written gap_analysis.json while
+      // the user is mid-review, so keying off !gapExists would skip the gate the user never confirmed.
+      // Re-show the gate rather than advancing; showJDReviewGate re-fires the speculative Analyst only
+      // if it isn't already flagged as fired.
+      if (status === 'JD_ENHANCED' && existsSync(JD_REVIEW_MARKER)) {
         const enhancedExists = existsSync(join(WORKSPACE_DIR, 'enhanced_jd.json'));
         if (enhancedExists) {
           console.log('[resume] JD_ENHANCED at review gate — re-showing the enhanced-JD review');
@@ -227,8 +235,12 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
 // jd_review_confirm → proceedAfterJDEnhanced(); on Re-read it posts jd_review_redo.
 export function showJDReviewGate() {
   state.awaitingJDReview = true;
+  try { writeFileSync(JD_REVIEW_MARKER, String(Date.now()), 'utf8'); } catch {}
   broadcast({ type: 'agent_message', kind: 'enhanced_jd', agent: 'JD Enhancer', text: '' });
   broadcastMode('user_turn', 'JD Enhancer');
+  // Speculatively run the Analyst behind the review so its latency is hidden. No-op if already fired
+  // (client reload). Parks at analystDone; the pipeline can't advance until TA fires at confirm.
+  fireSpeculativeAnalyst();
 }
 
 // The post-JD_ENHANCED continuation that used to fire immediately at the gate: prompt for an optional
