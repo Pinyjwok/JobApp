@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Eyebrow, CheckIcon, InfoIcon, Disclosure } from './primitives';
 
-// ── Guided enhanced-JD review (MVP: read-only) ────────────────────────────────
-// Shown at the JD_ENHANCED gate (server tags the message kind:'enhanced_jd'). Makes the JD Enhancer's
-// work visible without dumping the whole ad: "What this role needs" is grouped (Must have / Nice to
-// have / What you'd be doing) into collapsible, scannable lists — required is open by default, the rest
-// collapse to a one-line preview. "How your research shaped this" renders the agent's candidate_brief;
-// it does NOT re-render the company research (that card was already shown) — it links back to it.
-// While the user reviews, a quiet "analysing" strip signals the background fit-analysis: the server
-// fires the Analyst speculatively at this gate (fireSpeculativeAnalyst), so its latency hides behind
-// the review. No in-place editing in this MVP — "Re-read the job ad" is the escape hatch for a misread.
+// ── Enhanced-JD reveal (informational, read-only — no gate) ───────────────────
+// Shown when the JD Enhancer finishes (server tags the message kind:'enhanced_jd'). Makes the JD
+// Enhancer's work visible without dumping the whole ad: "What this role needs" is grouped (Must have /
+// Nice to have / What you'd be doing) into collapsible, scannable lists — required is open by default,
+// the rest collapse to a one-line preview. "How your research shaped this" renders the agent's
+// candidate_brief; it does NOT re-render the company research (that card was already shown) — it links
+// back to it. JD enhancement is not user-customisable: there are no Continue/Re-read buttons. The
+// pipeline auto-advances the moment this bubble appears (server proceedAfterJDEnhanced), and the
+// "already moving on" strip signals the fit-analysis is running — this bubble is reference only.
 
 const norm = arr => (Array.isArray(arr) ? arr.map(s => String(s).trim()).filter(Boolean) : []);
 
@@ -63,12 +63,11 @@ function ReqGroup({ label, items, open, onToggle, hint, marker }) {
   );
 }
 
-export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
+export function EnhancedJDBubble({ msg }) {
   const [ejd, setEjd]         = useState(null);
   const [meta, setMeta]       = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [submitted, setSubmitted] = useState(false);
   const [openGroup, setOpenGroup] = useState('req');       // 'req' | 'pref' | 'resp' | null
   const [researchOpen, setResearchOpen] = useState(false);
 
@@ -88,18 +87,6 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
   const reqd = norm(ejd?.requirements?.required_qualifications);
   const pref = norm(ejd?.requirements?.preferred_qualifications);
   const resp = norm(ejd?.role_details?.key_responsibilities);
-
-  function handleContinue() {
-    if (submitted) return;
-    setSubmitted(true);
-    onJDConfirm?.(null);   // MVP: no in-place edits — the reviewed JD is confirmed as-is
-  }
-
-  function handleRedo() {
-    if (submitted) return;
-    setSubmitted(true);
-    onAction?.('jd_review_redo');
-  }
 
   const toggle = id => () => setOpenGroup(g => (g === id ? null : id));
 
@@ -206,39 +193,19 @@ export function EnhancedJDBubble({ msg, onAction, onJDConfirm }) {
             </div>
           )}
 
-          {/* ── Quiet "productive wait" strip: signals the background fit-analysis is running ── */}
-          {!submitted && (
-            <div className="mt-3 rounded-lg border border-line bg-surface-3/60 px-3 py-2">
-              <div className="flex items-center gap-2 text-[11.5px] text-fg-muted">
-                <span className="flex gap-0.5">
-                  <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" />
-                  <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" style={{ animationDelay: '.2s' }} />
-                  <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" style={{ animationDelay: '.4s' }} />
-                </span>
-                Matching your CV against these requirements — take a moment to review while we work.
-              </div>
-              <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-line">
-                <div className="jd-scan-bar h-full w-full" />
-              </div>
+          {/* ── "Already moving on" strip: the next process (fit-analysis) is running now ── */}
+          <div className="mt-3 rounded-lg border border-line bg-surface-3/60 px-3 py-2">
+            <div className="flex items-center gap-2 text-[11.5px] text-fg-muted">
+              <span className="flex gap-0.5">
+                <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" />
+                <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" style={{ animationDelay: '.2s' }} />
+                <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" style={{ animationDelay: '.4s' }} />
+              </span>
+              Matching your CV against these requirements — no action needed, this is just for your reference.
             </div>
-          )}
-
-          {/* ── Gate buttons ── */}
-          <div className="flex gap-2 mt-3.5 pt-3 border-t border-line">
-            <button
-              onClick={handleContinue}
-              disabled={submitted}
-              className="text-[13px] font-semibold rounded-lg px-3.5 py-2 bg-accent text-accent-fg border border-accent disabled:opacity-50 disabled:cursor-default hover:opacity-90 transition-opacity"
-            >
-              Looks good - continue
-            </button>
-            <button
-              onClick={handleRedo}
-              disabled={submitted}
-              className="text-[13px] font-semibold rounded-lg px-3.5 py-2 bg-surface text-fg-secondary border border-line disabled:opacity-50 disabled:cursor-default hover:border-line-strong transition-colors"
-            >
-              Re-read the job ad
-            </button>
+            <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-line">
+              <div className="jd-scan-bar h-full w-full" />
+            </div>
           </div>
         </>
       )}

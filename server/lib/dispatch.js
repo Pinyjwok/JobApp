@@ -88,14 +88,23 @@ export function clearStaleAnalysis() {
 // per-role relevance + recent-graduate flag (in style_findings.seniority.role_classification[]).
 // Mirrors the fit-score offload (LLM tags, server computes the number). Fault-tolerant: any missing
 // input leaves the TA's own values untouched (back-compat with pre-offload output).
+const MONTH_ABBR = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+// Parse a work-history date to { y, mo } (or 'NOW' for ongoing, null if unparseable). The Extractor now
+// stores dates VERBATIM (it no longer computes durations — that's server-owned), so this tolerates the
+// common shapes a CV actually uses: 2025-03, 2025/03, 03/2025, "March 2025", "Mar 2025", bare 2025, and
+// "Present"/"Current"/"ongoing". Kept lenient on purpose — it only ever runs on date fields.
 function parseYearMonth(s) {
   if (!s) return null;
   const str = String(s).trim();
-  if (/^(present|current|now|ongoing)$/i.test(str)) return 'NOW';
-  let m = str.match(/^(\d{4})-(\d{1,2})/);      // 2025-03
+  if (/\b(present|current|now|ongoing|to\s*date|to\s*present)\b/i.test(str) && !/\d{4}/.test(str)) return 'NOW';
+  let m = str.match(/\b(\d{4})[-/](\d{1,2})\b/);          // 2025-03 / 2025/03
   if (m) return { y: +m[1], mo: +m[2] };
-  m = str.match(/^(\d{4})$/);                    // 2025
-  if (m) return { y: +m[1], mo: 6 };             // mid-year midpoint when only a year is given
+  m = str.match(/\b(\d{1,2})[-/](\d{4})\b/);              // 03/2025
+  if (m) return { y: +m[2], mo: +m[1] };
+  m = str.match(/([A-Za-z]{3,})\.?\s+(\d{4})/);           // March 2025 / Mar 2025
+  if (m) { const mo = MONTH_ABBR[m[1].slice(0, 3).toLowerCase()]; if (mo) return { y: +m[2], mo }; }
+  m = str.match(/\b(\d{4})\b/);                            // bare 2025
+  if (m) return { y: +m[1], mo: 6 };                      // mid-year midpoint when only a year is given
   return null;
 }
 
@@ -107,6 +116,26 @@ function roleDurationYears(role) {
   const end = (!endRaw || endRaw === 'NOW') ? { y: now.getFullYear(), mo: now.getMonth() + 1 } : endRaw;
   const months = (end.y - start.y) * 12 + (end.mo - start.mo);
   return months > 0 ? Math.round((months / 12) * 10) / 10 : 0;
+}
+
+// Server owns per-role duration math (deterministic — was Extractor Phase 4.3, a Flash-hand-computed
+// float and a hallucination source, same class as the Tone Analyst seniority loop). After a successful
+// extraction, read candidate_profile.json, compute duration_years for each work_history role from its
+// verbatim start/end dates, and write them back. Consumers are unchanged (Analyst min-years gap +
+// History Formatter read work_history[].duration_years). Idempotent; safe to call on every Extractor return.
+export function computeRoleDurations() {
+  const p = join(WORKSPACE_DIR, 'candidate_profile.json');
+  let profile;
+  try { profile = JSON.parse(readFileSync(p, 'utf8')); } catch { return; }
+  const work = profile.work_history;
+  if (!Array.isArray(work) || !work.length) return;
+  let changed = false;
+  for (const role of work) {
+    if (!role || typeof role !== 'object') continue;
+    const dur = roleDurationYears(role);
+    if (role.duration_years !== dur) { role.duration_years = dur; changed = true; }
+  }
+  if (changed) { try { writeFileSync(p, JSON.stringify(profile, null, 2)); } catch (e) { console.warn(`[durations] write failed: ${e.message}`); } }
 }
 
 const normEmployer = e => String(e || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -809,6 +838,8 @@ export function resolveExtractorStatus(parsedStatus) {
   } catch (e) {
     console.warn(`[extractor-gate] could not read project_meta.json: ${e.message}`);
   }
+  // Success path — the Extractor no longer computes durations; the server owns that math now.
+  computeRoleDurations();
   return parsedStatus;
 }
 

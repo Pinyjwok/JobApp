@@ -7,7 +7,7 @@ const UPLOAD_TARGETS = [
   { label: 'Cover Letter Sample', value: 'cover_letter_sample' },
 ];
 
-export function MessageInput({ onSend, onUpload, disabled, pipelineMode, runningAgent, lastUserMessage }) {
+export function MessageInput({ onSend, onUpload, disabled, pipelineMode, lastUserMessage }) {
   const [text, setText] = useState('');
   const [injectMode, setInjectMode] = useState(false);
   const [uploadTarget, setUploadTarget] = useState(null);
@@ -55,7 +55,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
   const placeholder = injectMode
     ? 'Inject agent message...'
     : isAutoRunning
-      ? `Running: ${runningAgent ?? 'Pipeline'}…`
+      ? 'Working on it…'
       : isActionRequired
         ? 'Select an option above…'
         : 'Type a message…';

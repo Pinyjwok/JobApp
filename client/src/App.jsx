@@ -299,7 +299,6 @@ export default function App() {
         onUpload={actions.handleUpload}
         disabled={inputDisabled}
         pipelineMode={run.pipelineMode}
-        runningAgent={run.runningAgent}
         lastUserMessage={run.lastUserMessage}
       />
     </div>
