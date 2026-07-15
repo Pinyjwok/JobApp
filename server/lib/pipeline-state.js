@@ -152,21 +152,27 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'RESEARCH_REDO') {
+    state.retryThunk = () => { state.recentlyDispatched.delete(status); return handlePipelineStatus(status); };
     broadcastMode('auto_running', 'Researcher');
+    // checkResearchRedoJoin only re-opens the confirm gate while research_confirmed === 0.
     await state.recipe.globalVariables.setValue('research_confirmed', 0);
     const redoStart = Date.now();
     sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
       .then(async r => {
-        const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-        broadcastAgentResult(cleanText, 'Researcher', true);
         // Status from the freshly-rewritten research_output.json, not the prose tag. The mtime floor
         // ensures we don't read the prior run's file (redo reuses the same filename).
         const { status: newStatus, ready } = await resolveStatusFromOutput('Researcher', redoStart);
-        if (ready && newStatus) { await state.recipe.globalVariables.setValue('pipeline_status', newStatus); state.pipelineStatus = newStatus; }
-        else console.warn('[Researcher · redo] no fresh research_output.json on disk');
-        checkResearchRedoJoin();
+        if (!ready || !newStatus) {
+          surfaceStall('Researcher', new Error('no fresh research_output.json on disk'));
+          return;
+        }
+        const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+        broadcastAgentResult(cleanText, 'Researcher', true);
+        await state.recipe.globalVariables.setValue('pipeline_status', newStatus);
+        state.pipelineStatus = newStatus;
+        await checkResearchRedoJoin();
       })
-      .catch(err => console.error('[Researcher · redo] error:', err));
+      .catch(err => surfaceStall('Researcher', err));
     await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
     state.pipelineStatus = 'PARALLEL_ANALYSIS';
     return;

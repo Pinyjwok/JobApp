@@ -5,7 +5,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, resolveStatusFromOutput, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
 import { adjudicateGapAnswers } from '../lib/adjudicator.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
@@ -42,22 +42,8 @@ router.post('/', async (req, res) => {
 
       case 'research_redo':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research…' });
-        broadcastMode('auto_running', 'Researcher');
-        await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
-        state.pipelineStatus = 'PARALLEL_ANALYSIS';
-        { const redoStart = Date.now();
-        sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
-          .then(async r => {
-            const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Researcher', true);
-            // Status from the freshly-rewritten research_output.json, not the prose tag (mtime floor
-            // guards against reading the prior run's file).
-            const { status, ready } = await resolveStatusFromOutput('Researcher', redoStart);
-            if (ready && status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[Researcher redo] no fresh research_output.json on disk');
-            checkResearchRedoJoin();
-          })
-          .catch(err => surfaceStall('Researcher', err)); }
+        state.recentlyDispatched.delete('RESEARCH_REDO');  // a user click must never hit the 30s dedupe
+        await handlePipelineStatus('RESEARCH_REDO');
         break;
 
       case 'redo_analyst': {
