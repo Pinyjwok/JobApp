@@ -5,7 +5,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
 import { adjudicateGapAnswers } from '../lib/adjudicator.js';
 import { handlePipelineStatus, proceedAfterJDEnhanced, JD_REVIEW_MARKER } from '../lib/pipeline-state.js';
 
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
         state.pipelineStatus = 'PARALLEL_ANALYSIS';
         state.analystDone = false;
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
-        sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+        sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
@@ -42,18 +42,8 @@ router.post('/', async (req, res) => {
 
       case 'research_redo':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research…' });
-        broadcastMode('auto_running', 'Researcher');
-        await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
-        state.pipelineStatus = 'PARALLEL_ANALYSIS';
-        sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Researcher', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[Researcher redo] missing pipeline_status tag');
-            checkResearchRedoJoin();
-          })
-          .catch(err => surfaceStall('Researcher', err));
+        state.recentlyDispatched.delete('RESEARCH_REDO');  // a user click must never hit the 30s dedupe
+        await handlePipelineStatus('RESEARCH_REDO');
         break;
 
       case 'redo_analyst': {
@@ -64,7 +54,7 @@ router.post('/', async (req, res) => {
         state.analystDone = false;
         syncTADone();
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
-        sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+        sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
@@ -130,7 +120,6 @@ router.post('/', async (req, res) => {
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-reading the job ad…' });
         state.awaitingJDReview = false;
         rmSync(JD_REVIEW_MARKER, { force: true });  // the re-shown gate rewrites it after re-enhancement
-        state.speculativeAnalystFired = false;      // let the re-shown gate fire a fresh Analyst on the new JD
         state.pipelineStatus = 'RESEARCH_COMPLETE';
         // The re-fired JD Enhancer sets JD_ENHANCED again; clear the 30s dedupe so the gate re-shows.
         state.recentlyDispatched.delete('JD_ENHANCED');
@@ -183,7 +172,7 @@ router.post('/', async (req, res) => {
         state.analystDone = false;
         syncTADone();
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
-        sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+        sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
