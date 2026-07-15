@@ -42,6 +42,23 @@ export const EXPECTED_STATUS = {
   'JD Enhancer': 'JD_ENHANCED',
 };
 
+// Output-file completion contracts — the file-driven replacement for the fragile
+// `pipeline_status:` prose tag. Each agent writes exactly one artifact whose presence + shape
+// (+ mtime freshness, checked in awaitOutputReady) proves it actually finished this turn. The
+// server derives routing from the FILE, not the LLM's typed sentence (which Flash drops). The
+// per-agent status/join effect lives in the callers (they need dispatch.js helpers); this map
+// owns only `file` + the `ready(data)` shape guard. Mirrors the assembly phases, which already
+// route this way (mergePhaseOutput / _phaseHasRealOutput).
+export const COMPLETION_CONTRACTS = {
+  Extractor:     { file: 'candidate_profile.json', ready: d => !!d?.personal_info?.name && Array.isArray(d?.work_history) },
+  Researcher:    { file: 'research_output.json',   ready: d => d?.research_data === null || !!d?.research_data?.mission_values },
+  'JD Enhancer': { file: 'enhanced_jd.json',       ready: d => !!d?.candidate_brief?.headline },
+  // Analysis join (background, no next-status): each branch flips a boolean and calls checkJoin.
+  // register + flagged_issues are written by the TA itself before it returns; the {} scaffold fails.
+  'Tone Analyst':{ file: 'style_findings.json',    ready: d => Array.isArray(d?.flagged_issues) && typeof d?.register === 'string' && d.register.length > 0 },
+  Analyst:       { file: 'gap_analysis.json',      ready: d => Array.isArray(d?.requirements) },
+};
+
 export const AGENT_FOREGROUND = new Set([
   'Main Orchestrator', 'ProjectSetup', 'Researcher',
   'Assembly Coordinator', 'Style Negotiator',

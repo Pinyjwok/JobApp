@@ -7,7 +7,7 @@ import {
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, stampTimestamp, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, stampTimestamp, resolveStatusFromOutput, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -58,7 +58,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
         }
         if (!state.analystDone) {
           console.log('[Resume] gap_analysis missing — re-firing Analyst');
-          sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+          sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
             .then(async r => {
               const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
               broadcastAgentResult(cleanText, 'Analyst', false);
@@ -152,17 +152,27 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'RESEARCH_REDO') {
+    state.retryThunk = () => { state.recentlyDispatched.delete(status); return handlePipelineStatus(status); };
     broadcastMode('auto_running', 'Researcher');
+    // checkResearchRedoJoin only re-opens the confirm gate while research_confirmed === 0.
     await state.recipe.globalVariables.setValue('research_confirmed', 0);
+    const redoStart = Date.now();
     sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
       .then(async r => {
-        const { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+        // Status from the freshly-rewritten research_output.json, not the prose tag. The mtime floor
+        // ensures we don't read the prior run's file (redo reuses the same filename).
+        const { status: newStatus, ready } = await resolveStatusFromOutput('Researcher', redoStart);
+        if (!ready || !newStatus) {
+          surfaceStall('Researcher', new Error('no fresh research_output.json on disk'));
+          return;
+        }
+        const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
         broadcastAgentResult(cleanText, 'Researcher', true);
-        if (newStatus) { await state.recipe.globalVariables.setValue('pipeline_status', newStatus); state.pipelineStatus = newStatus; }
-        else console.warn('[Researcher · redo] missing pipeline_status tag');
-        checkResearchRedoJoin();
+        await state.recipe.globalVariables.setValue('pipeline_status', newStatus);
+        state.pipelineStatus = newStatus;
+        await checkResearchRedoJoin();
       })
-      .catch(err => console.error('[Researcher · redo] error:', err));
+      .catch(err => surfaceStall('Researcher', err));
     await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
     state.pipelineStatus = 'PARALLEL_ANALYSIS';
     return;
@@ -190,14 +200,14 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     console.log(`[Status · auto-fire] ${status} → ${node}`);
     if (agent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
     state.retryThunk = () => { state.recentlyDispatched.delete(status); return handlePipelineStatus(status); };
+    const autoStart = Date.now();
     sendToNodeAndWait(node, agent)
       .then(async r => {
-        let { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-        // Deterministic failure gate: if the Extractor wrote a failure_reason but dropped
-        // the EXTRACTION_FAILED tag, force it — don't retain a stale prior status.
-        if (agent === 'Extractor') newStatus = resolveExtractorStatus(newStatus);
-        newStatus = resolveAgentStatus(agent, newStatus);  // #1: infer expected status on dropped tag
+        const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
         broadcastAgentResult(cleanText, agent, AGENT_FOREGROUND.has(agent));
+        // Status from the agent's OUTPUT FILE, not the prose tag. resolveStatusFromOutput folds in the
+        // Extractor failure_reason gate and the Researcher quality recompute (COMPLETE/PARTIAL/FAILED).
+        const { status: newStatus, ready } = await resolveStatusFromOutput(agent, autoStart);
         if (status === 'INITIALIZED' && state.researchPartial) {
           state.researchPartial = false;
           broadcastMode('user_turn');
@@ -211,11 +221,11 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
             ],
           });
         }
-        if (newStatus) {
+        if (ready && newStatus) {
           await state.recipe.globalVariables.setValue('pipeline_status', newStatus);
           state.pipelineStatus = newStatus;
         } else {
-          surfaceStall(agent, new Error('no status tag and no inference rule'));
+          surfaceStall(agent, new Error(`no usable ${agent} output on disk`));
         }
       })
       .catch(err => surfaceStall(agent, err));
