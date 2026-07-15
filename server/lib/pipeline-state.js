@@ -19,13 +19,13 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   // phase is active — mirrors the AgentSelector onChange ProjectSetup guard (recipe-init.js).
   if (!resume && state.currentAssemblyPhase > 0 &&
       (status === 'STYLE_FAILED' || status === 'INTEGRITY_FAILED')) {
-    console.log(`[handlePipelineStatus] ${status} ignored — assembly phase ${state.currentAssemblyPhase} owns the gate`);
+    console.log(`[Status] ${status} ignored — assembly phase ${state.currentAssemblyPhase} owns the gate`);
     return;
   }
   if (!resume) {
     const last = state.recentlyDispatched.get(status);
     if (last && Date.now() - last < 30_000) {
-      console.log(`[handlePipelineStatus] ${status} already dispatched ${Date.now() - last}ms ago — skip`);
+      console.log(`[Status] ${status} already dispatched ${Date.now() - last}ms ago — skip`);
       return;
     }
     state.recentlyDispatched.set(status, Date.now());
@@ -41,12 +41,12 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
       state.analystDone = gapExists;
       state.taDone      = findingsExists;
       state.analystOutputText = null;
-      console.log(`[resume] ${status} — analystDone=${state.analystDone} taDone=${state.taDone}`);
+      console.log(`[Resume] ${status} — analystDone=${state.analystDone} taDone=${state.taDone}`);
       if (state.analystDone && state.taDone) {
         await checkJoin();
       } else {
         if (!state.taDone) {
-          console.log('[resume] style_findings missing — re-firing Tone Analyst (background)');
+          console.log('[Resume] style_findings missing — re-firing Tone Analyst (background)');
           broadcastMode('auto_running', 'Tone Analyst');
           sendToNodeAndWait('tone_analyst_input', 'Tone Analyst', '__begin_interview__')
             .then(async r => {
@@ -54,25 +54,25 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
               broadcastAgentResult(cleanText, 'Tone Analyst', false);
               state.taDone = true; await checkJoin();
             })
-            .catch(err => console.error('[TA resume] error:', err));
+            .catch(err => console.error('[Tone Analyst · resume] error:', err));
         }
         if (!state.analystDone) {
-          console.log('[resume] gap_analysis missing — re-firing Analyst');
+          console.log('[Resume] gap_analysis missing — re-firing Analyst');
           sendToNodeAndWait('analyst_background_input', null, '__analyze__')
             .then(async r => {
               const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
               broadcastAgentResult(cleanText, 'Analyst', false);
               state.analystDone = true; syncTADone(); await checkJoin();
             })
-            .catch(err => console.error('[Analyst resume] error:', err));
+            .catch(err => console.error('[Analyst · resume] error:', err));
         }
       }
     } else if (status === 'SN_START' || status === 'STYLE_NEGOTIATING' || status === 'CV_BUILDING'
                || status === 'REVIEW_COMPLETE' || status === 'TONE_ANALYZED') {
-      console.log('[resume] phase-aware assembly resume');
+      console.log('[Resume] phase-aware assembly resume');
       await resumeAssembly();
     } else if (status === 'RESEARCH_CONFIRM') {
-      console.log('[resume] RESEARCH_CONFIRM — re-displaying research summary');
+      console.log('[Resume] RESEARCH_CONFIRM — re-displaying research summary');
       await handlePipelineStatus('RESEARCH_COMPLETE');
     }
     return;
@@ -108,7 +108,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
         if (buttons) broadcast({ type: 'action_required', context: status.toLowerCase(), prompt: '', actions: buttons });
         if (newStatus) { await state.recipe.globalVariables.setValue('pipeline_status', newStatus); state.pipelineStatus = newStatus; }
       })
-      .catch(err => console.error('[MO exception] error:', err));
+      .catch(err => console.error('[Orchestrator · exception] error:', err));
     return;
   }
 
@@ -159,10 +159,10 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
         const { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
         broadcastAgentResult(cleanText, 'Researcher', true);
         if (newStatus) { await state.recipe.globalVariables.setValue('pipeline_status', newStatus); state.pipelineStatus = newStatus; }
-        else console.warn('[Researcher RESEARCH_REDO] missing pipeline_status tag');
+        else console.warn('[Researcher · redo] missing pipeline_status tag');
         checkResearchRedoJoin();
       })
-      .catch(err => console.error('[Researcher redo] error:', err));
+      .catch(err => console.error('[Researcher · redo] error:', err));
     await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
     state.pipelineStatus = 'PARALLEL_ANALYSIS';
     return;
@@ -171,7 +171,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (status === 'SN_START' || status === 'REVIEW_COMPLETE') {
     // Server owns assembly dispatch — bypass AC, start SN interview directly
     if (state.snState) {
-      console.log(`[handlePipelineStatus] SN already active (snState=${state.snState}), skip re-dispatch`);
+      console.log(`[Status] SN already active (snState=${state.snState}), skip re-dispatch`);
       return;
     }
     await state.recipe.globalVariables.setValue('pipeline_status', 'CV_BUILDING');
@@ -187,7 +187,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     const agent = HAPPY_PATH[status];
     if (!node) return;
     broadcastMode('auto_running', agent);
-    console.log(`[pipeline_status] auto-fire ${status} → ${node}`);
+    console.log(`[Status · auto-fire] ${status} → ${node}`);
     if (agent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
     state.retryThunk = () => { state.recentlyDispatched.delete(status); return handlePipelineStatus(status); };
     sendToNodeAndWait(node, agent)

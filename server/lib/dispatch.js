@@ -76,7 +76,7 @@ export function clearStaleAnalysis() {
   try {
     rmSync(join(WORKSPACE_DIR, 'gap_analysis.json'), { force: true });
   } catch (err) {
-    console.error('[clearStaleAnalysis] could not remove gap_analysis.json:', err);
+    console.error('[Analysis · clear-stale] could not remove gap_analysis.json:', err);
   }
 }
 
@@ -262,7 +262,7 @@ export function fireTAAndAnalyst() {
         console.warn('[Tone Analyst] missing pipeline_status tag');
       }
     })
-    .catch(err => console.error('[TA] error:', err));
+    .catch(err => console.error('[Tone Analyst] error:', err));
   sendToNodeAndWait('analyst_background_input', null, '__analyze__')
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
@@ -293,7 +293,7 @@ function buildAnalystValidatorSummary() {
     }
     return text;
   } catch (err) {
-    console.error('[Validator] analyst verdict read error:', err.message);
+    console.error('[Analyst · validator] verdict read error:', err.message);
     return null;
   }
 }
@@ -329,7 +329,7 @@ function calculateFitScore(gapAnalysis) {
   const tag = gapAnalysis.role_strictness;
   const weights = STRICTNESS_WEIGHTS[tag] ?? STRICTNESS_WEIGHTS.STANDARD;
   if (!STRICTNESS_WEIGHTS[tag]) {
-    console.warn(`[fit_score] unknown role_strictness="${tag}" — defaulting to STANDARD`);
+    console.warn(`[Analysis · fit-score] unknown role_strictness="${tag}" — defaulting to STANDARD`);
   }
 
   const baselineScore = baseline.length > 0 ? (baselineMet / baseline.length) * weights.baseline : 0;
@@ -346,7 +346,7 @@ function calculateFitScore(gapAnalysis) {
     (r.mandatory_gate === true || STATUTORY_CERT.test(String(r.requirement_text ?? ''))));
   if (gateApplied && total > GATE_CEILING) total = GATE_CEILING;
 
-  console.log(`[fit_score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} gated=${gateApplied} total=${total}`);
+  console.log(`[Analysis · fit-score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} gated=${gateApplied} total=${total}`);
   return { score: total, gateApplied };
 }
 
@@ -579,7 +579,7 @@ export function runReviewAudit(gapAnswers = []) {
   const repairs = _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD);
   const repairCount = repairs.paths_normalized.length + repairs.strengths_dropped.length
                     + repairs.requirements_retiered.length + repairs.gaps_dropped.length + repairs.gates_demoted.length;
-  if (repairCount > 0) console.log(`[runReviewAudit] pre-audit repair: ${repairs.paths_normalized.length} path(s) normalized, ${repairs.strengths_dropped.length} strength(s) dropped, ${repairs.requirements_retiered.length} re-tiered, ${repairs.gaps_dropped.length} orphan gap(s) dropped, ${repairs.gates_demoted.length} gate(s) demoted`);
+  if (repairCount > 0) console.log(`[Review · audit] pre-audit repair: ${repairs.paths_normalized.length} path(s) normalized, ${repairs.strengths_dropped.length} strength(s) dropped, ${repairs.requirements_retiered.length} re-tiered, ${repairs.gaps_dropped.length} orphan gap(s) dropped, ${repairs.gates_demoted.length} gate(s) demoted`);
   writeFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), JSON.stringify(gapAnalysis, null, 2), 'utf8');
 
   const audit = { strengths: [], gaps: [], requirements: [], ats_keywords: [] };
@@ -693,7 +693,7 @@ export function runReviewAudit(gapAnswers = []) {
   writeFileSync(join(WORKSPACE_DIR, 'review_audit.json'), JSON.stringify(reviewAudit, null, 2), 'utf8');
 
   const backableIssues = issuesFound.filter(i => BACKABLE_ISSUE_TYPES.includes(i.issue_type));
-  console.log(`[runReviewAudit] verdict=${overall_verdict} issues=${issuesFound.length} backable=${backableIssues.length} approved=${approvedItems.length}`);
+  console.log(`[Review · audit] verdict=${overall_verdict} issues=${issuesFound.length} backable=${backableIssues.length} approved=${approvedItems.length}`);
   return { audit: reviewAudit, backableIssues };
 }
 
@@ -769,12 +769,12 @@ export function resolveExtractorStatus(parsedStatus) {
     const meta = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
     if (meta && meta.failure_reason) {
       if (parsedStatus !== 'EXTRACTION_FAILED') {
-        console.warn(`[extractor-gate] project_meta.failure_reason="${meta.failure_reason}" but tag was "${parsedStatus ?? 'missing'}" — forcing EXTRACTION_FAILED`);
+        console.warn(`[Extractor · gate] project_meta.failure_reason="${meta.failure_reason}" but tag was "${parsedStatus ?? 'missing'}" — forcing EXTRACTION_FAILED`);
       }
       return 'EXTRACTION_FAILED';
     }
   } catch (e) {
-    console.warn(`[extractor-gate] could not read project_meta.json: ${e.message}`);
+    console.warn(`[Extractor · gate] could not read project_meta.json: ${e.message}`);
   }
   return parsedStatus;
 }
@@ -793,9 +793,9 @@ export function clearExtractorFailure() {
     delete meta.failure_reason;
     delete meta.alternate_name_detected;
     writeFileSync(p, JSON.stringify(meta, null, 2), 'utf8');
-    console.log('[extractor-gate] cleared stale failure markers before Extractor dispatch');
+    console.log('[Extractor · gate] cleared stale failure markers before Extractor dispatch');
   } catch (e) {
-    console.warn(`[extractor-gate] could not clear failure markers: ${e.message}`);
+    console.warn(`[Extractor · gate] could not clear failure markers: ${e.message}`);
   }
 }
 
@@ -814,7 +814,7 @@ export function writeMODispatch(status) {
       'utf8',
     );
   } catch (e) {
-    console.warn(`[mo-dispatch] could not write mo_dispatch.json: ${e.message}`);
+    console.warn(`[Orchestrator · dispatch] could not write mo_dispatch.json: ${e.message}`);
   }
 }
 
@@ -836,7 +836,7 @@ function stripAnalystNarration(text) {
 
 export async function checkJoin() {
   if (!state.recipe) return;
-  console.log(`[checkJoin] analystDone=${state.analystDone} taDone=${state.taDone}`);
+  console.log(`[Analysis · join] analystDone=${state.analystDone} taDone=${state.taDone}`);
   if (!state.analystDone || !state.taDone) {
     if (state.taDone && !state.analystDone) {
       broadcast({ type: 'agent_message', agent: 'System', text: 'Analysis still running in background — will begin gap review shortly…', background: true });
@@ -860,14 +860,14 @@ export async function checkJoin() {
     } catch {}
     if (!gapAnalysisReady) { retries++; await new Promise(r => setTimeout(r, 100)); }
   }
-  if (!gapAnalysisReady) console.error('[checkJoin] gap_analysis.json never became ready — proceeding anyway');
+  if (!gapAnalysisReady) console.error('[Analysis · join] gap_analysis.json never became ready — proceeding anyway');
 
   let computedScore = null;
   try {
     computedScore = applyFitScore(gapAnalysisPath);
-    console.log(`[join] gap_analysis ready, server fit score ${computedScore}`);
+    console.log(`[Analysis · join] gap_analysis ready, server fit score ${computedScore}`);
   } catch (err) {
-    console.error('[join] applyFitScore error:', err.message);
+    console.error('[Analysis · join] applyFitScore error:', err.message);
   }
 
   // Authoritative strength/gap lists for the UI come from gap_analysis.json (server owns the source
@@ -888,7 +888,7 @@ export async function checkJoin() {
       gaps,
     };
   } catch (err) {
-    console.error('[checkJoin] could not build analystData for bubble:', err.message);
+    console.error('[Analysis · join] could not build analystData for bubble:', err.message);
   }
 
   if (state.analystOutputText) {
@@ -914,14 +914,14 @@ export async function checkJoin() {
     // High + Medium (Administrative excluded) — strong CVs were getting only one High item.
     highGaps = (gapData.gaps ?? []).filter(g => g.severity === 'High' || g.severity === 'Medium');
   } catch (e) {
-    console.error('[checkJoin] failed to read high gaps for modal:', e.message);
+    console.error('[Analysis · join] failed to read high gaps for modal:', e.message);
   }
   // Fresh interview: reset the 2-round adjudication loop state.
   state.gapRound = 1;
   state.gapAnswersAccum = {};
   state.gapAccepted = [];
   state.gapPending = [];
-  console.log(`[checkJoin] broadcasting gap_interview_start (round 1) with ${highGaps.length} high gaps`);
+  console.log(`[Analysis · join] broadcasting gap_interview_start (round 1) with ${highGaps.length} high gaps`);
   broadcast({ type: 'gap_interview_start', round: 1, accepted: [], gaps: highGaps });
   broadcastMode('action_required');
 }
@@ -959,7 +959,7 @@ export async function checkResearchRedoJoin() {
       broadcast({ type: 'agent_message', agent: 'System', text: researchSummary + '\n\n*(Research updated — gap analysis will use this once your style interview completes.)*' });
     }
   } catch (err) {
-    console.error('[research redo join] error:', err.message);
+    console.error('[Research · redo-join] error:', err.message);
   }
 }
 
@@ -1084,10 +1084,10 @@ function _runAssemblyValidator(phaseAgent) {
   if (!agentKey) return '';
   let issues = [];
   try { issues = _assemblyChecks(agentKey); }
-  catch (err) { console.error('[Validator] assembly error:', err.message); return ''; }
+  catch (err) { console.error('[Assembly · validator] error:', err.message); return ''; }
   const verdict = { verdict: issues.length ? 'FLAG' : 'APPROVE', agent: agentKey, issues };
   try { writeFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), JSON.stringify(verdict, null, 2)); } catch {}
-  console.log(`[Validator] verdict=${verdict.verdict} for ${agentKey} (${issues.length} issue(s))`);
+  console.log(`[Assembly · validator] verdict=${verdict.verdict} for ${agentKey} (${issues.length} issue(s))`);
   return issues.length ? issues.map(i => `• ${i.field}: ${i.problem}`).join('\n') : '';
 }
 
@@ -1134,7 +1134,7 @@ export async function dispatchAssemblyPhase(phaseNumber) {
     // underlying call, IC keeps going and *does* write its verdict to disk shortly after. Don't burn a
     // 20-min re-run discarding that result: poll for a fresh verdict before declaring a dead stall.
     if (phaseNumber === 8 && await _salvageIntegrityVerdict(dispatchStart)) {
-      console.log('[assembly] IC watchdog fired but a fresh verdict landed — salvaging, running gate');
+      console.log('[Assembly] IC watchdog fired but a fresh verdict landed — salvaging, running gate');
       await _handleGate(8);
       return;
     }
@@ -1191,7 +1191,7 @@ async function _advisoryStyleReview() {
     const cvState = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'));
     issueCount = (cvState.phases[6]?.data?.issues_found ?? []).length;
   } catch (e) {
-    console.error('[assembly] advisory style review read failed:', e.message);
+    console.error('[Assembly] advisory style review read failed:', e.message);
   }
   broadcast({
     type: 'agent_message', agent: 'System',
@@ -1217,7 +1217,7 @@ async function _startSNInterview() {
   try {
     await sendToNodeAndWait('style_negotiator_input', 'Style Negotiator', '__style_analyze__');
   } catch (e) {
-    console.error('[SN] node error:', e.message);
+    console.error('[Style Negotiator] node error:', e.message);
   }
   await new Promise(r => setTimeout(r, 1000));
 
@@ -1445,7 +1445,7 @@ function _resolveStrengthIds(ids) {
     const ga = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
     for (const s of (ga.strengths ?? [])) if (s?.id) map[s.id] = s.strength_text ?? s.id;
   } catch (e) {
-    console.error('[assembly] _resolveStrengthIds: gap_analysis read failed:', e.message);
+    console.error('[Assembly] _resolveStrengthIds: gap_analysis read failed:', e.message);
   }
   return arr(ids).map(id => map[id] ?? id);
 }
@@ -1507,7 +1507,7 @@ function buildSectionData(agent) {
   try {
     return builder();
   } catch (e) {
-    console.error(`[assembly] buildSectionData(${agent}) failed:`, e.message);
+    console.error(`[Assembly] buildSectionData(${agent}) failed:`, e.message);
     return null;
   }
 }
@@ -1581,7 +1581,7 @@ export function buildDocumentData() {
     if (!cv.profile && !experience.length && !coverLetter) return null;
     return { cv, coverLetter };
   } catch (e) {
-    console.error('[completion] buildDocumentData failed:', e.message);
+    console.error('[Assembly · completion] buildDocumentData failed:', e.message);
     return null;
   }
 }
@@ -1631,7 +1631,7 @@ export async function mergePhaseOutput(phaseNumber) {
     const outputData = JSON.parse(readFileSync(join(WORKSPACE_DIR, phase.outputFile), 'utf8'));
     // GUARD: don't mark COMPLETE / advance unless the agent actually produced output.
     if (!_phaseHasRealOutput(phase, outputData)) {
-      console.warn(`[assembly] phase ${phaseNumber} (${phase.agent}) produced no usable output — NOT advancing (stays PENDING)`);
+      console.warn(`[Assembly] phase ${phaseNumber} (${phase.agent}) produced no usable output — NOT advancing (stays PENDING)`);
       return { ok: false, reason: 'empty_output' };
     }
     const cvStatePath = join(WORKSPACE_DIR, 'cv_assembly_state.json');
@@ -1644,9 +1644,9 @@ export async function mergePhaseOutput(phaseNumber) {
     cvState.metadata.completed_phases = phaseNumber;
     cvState.metadata.last_updated    = new Date().toISOString();
     writeFileSync(cvStatePath, JSON.stringify(cvState, null, 2));
-    console.log(`[assembly] merged phase ${phaseNumber} (${phase.agent}) → cv_assembly_state.json`);
+    console.log(`[Assembly] merged phase ${phaseNumber} (${phase.agent}) → cv_assembly_state.json`);
   } catch (e) {
-    console.error(`[assembly] merge phase ${phaseNumber} failed:`, e.message);
+    console.error(`[Assembly] merge phase ${phaseNumber} failed:`, e.message);
     return { ok: false, reason: 'merge_error' };
   }
 
@@ -1656,7 +1656,7 @@ export async function mergePhaseOutput(phaseNumber) {
     if (outputData.completed_at) {
       const outputAge = Date.now() - new Date(outputData.completed_at).getTime();
       if (outputAge > 300_000) {
-        console.warn(`[assembly] phase ${phaseNumber} output stale (${Math.round(outputAge / 1000)}s old)`);
+        console.warn(`[Assembly] phase ${phaseNumber} output stale (${Math.round(outputAge / 1000)}s old)`);
         broadcast({
           type: 'agent_message', agent: 'System',
           text: `⚠ Phase ${phaseNumber} (${phase.agent}) output appears stale — completed_at is ${outputData.completed_at}. ` +
@@ -1697,7 +1697,7 @@ export async function resumeAssembly() {
   try {
     phases = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'))?.phases ?? [];
   } catch (e) {
-    console.error('[resume] cv_assembly_state unreadable — restarting SN:', e.message);
+    console.error('[Resume] cv_assembly_state unreadable — restarting SN:', e.message);
   }
   const isComplete = n => phases[n - 1]?.status === 'COMPLETE';
 
@@ -1706,18 +1706,18 @@ export async function resumeAssembly() {
   while (resumePhase <= 9 && isComplete(resumePhase)) resumePhase++;
 
   if (resumePhase > 9) {                       // everything done → finished state
-    console.log('[resume] all assembly phases complete → CV_TAILORED');
+    console.log('[Resume] all assembly phases complete → CV_TAILORED');
     await dispatchAssemblyPhase(10);           // no-phase branch sets CV_TAILORED + idle
     return;
   }
   if (resumePhase === 1) {                      // SN not done → run the interview
-    console.log('[resume] SN not complete → style negotiation');
+    console.log('[Resume] SN not complete → style negotiation');
     state.snState = null;
     await dispatchAssemblyPhase(1);
     return;
   }
   if (resumePhase === 2) {                      // only SN done; SN has no review bubble → run PB
-    console.log('[resume] SN complete, Profile Builder next');
+    console.log('[Resume] SN complete, Profile Builder next');
     state.currentAssemblyPhase = 1;
     await dispatchAssemblyPhase(2);
     return;
@@ -1726,7 +1726,7 @@ export async function resumeAssembly() {
   // resumePhase 3..9 → re-show the last completed content section (phases 2–6; gates 7/8 + DF 9 auto).
   const lastContent = Math.min(resumePhase - 1, 6);
   const agent = ASSEMBLY_PHASES[lastContent].agent;
-  console.log(`[resume] landing on phase ${lastContent} (${agent}) review`);
+  console.log(`[Resume] landing on phase ${lastContent} (${agent}) review`);
   state.currentAssemblyPhase = lastContent;
   state.fallbackAgent = agent;
   broadcast({ type: 'agent_switch', agent });
@@ -1870,7 +1870,7 @@ function _stripListClaims(listClaims) {
       cv.metadata && (cv.metadata.last_updated = new Date().toISOString());
       writeFileSync(cvPath, JSON.stringify(cv, null, 2));
     }
-  } catch (e) { console.error('[ic-remediation] skills strip failed:', e.message); }
+  } catch (e) { console.error('[Assembly · IC-remediation] skills strip failed:', e.message); }
 
   // additional_information lives in candidate_profile.json (publications/awards) — best effort.
   const addl = listClaims.filter(c => c.section === 'additional_information');
@@ -1886,7 +1886,7 @@ function _stripListClaims(listClaims) {
         });
       }
       writeFileSync(cpPath, JSON.stringify(cp, null, 2));
-    } catch (e) { console.error('[ic-remediation] additional_information strip failed:', e.message); }
+    } catch (e) { console.error('[Assembly · IC-remediation] additional_information strip failed:', e.message); }
   }
   return removed;
 }
@@ -1926,7 +1926,7 @@ export async function runIcRemediation(decisions = {}) {
       verdicts = await adjudicateGapAnswers(evidenceItems.map(e => ({
         gap_id: e.gap_id, requirement: e.gap_text, answer: e.answer,
       })));
-    } catch (e) { console.error('[ic-remediation] adjudicator error:', e.message); }
+    } catch (e) { console.error('[Assembly · IC-remediation] adjudicator error:', e.message); }
     const vById = new Map(verdicts.map(v => [v.gap_id, v]));
     const accepted = [];
     for (const e of evidenceItems) {
@@ -1944,7 +1944,7 @@ export async function runIcRemediation(decisions = {}) {
         _ingestGapAnswers(ga, accepted);
         writeFileSync(gaPath, JSON.stringify(ga, null, 2));
         broadcast({ type: 'agent_message', agent: 'System', text: `Backed up ${accepted.length} claim${accepted.length === 1 ? '' : 's'} with your evidence.` });
-      } catch (e) { console.error('[ic-remediation] gap ingest failed:', e.message); }
+      } catch (e) { console.error('[Assembly · IC-remediation] gap ingest failed:', e.message); }
       // A gap that's now ACCEPTED backs *every* claim tracing to it — so don't also strip/re-flow a
       // sibling claim the user happened to mark "remove". The accepted evidence wins; IC will pass it.
       const acceptedGapIds = new Set(accepted.map(a => a.gap_id));
@@ -1957,7 +1957,7 @@ export async function runIcRemediation(decisions = {}) {
   const proseRemovals = removeList.filter(c => c.sectionType === 'prose');
   const otherRemovals = removeList.filter(c => c.sectionType === 'other'); // fold into list-strip best-effort
   const strippedCount = _stripListClaims([...listRemovals, ...otherRemovals]);
-  if (strippedCount) console.log(`[ic-remediation] stripped ${strippedCount} list-section claim(s) server-side`);
+  if (strippedCount) console.log(`[Assembly · IC-remediation] stripped ${strippedCount} list-section claim(s) server-side`);
 
   // 3) Date corrections — re-run History Formatter (existing pattern).
   if (dateClaims.length) {
@@ -2068,7 +2068,7 @@ async function _handleGate(phaseNumber) {
       broadcastMode('action_required');
     }
   } catch (e) {
-    console.error(`[assembly] gate check phase ${phaseNumber} failed:`, e.message);
+    console.error(`[Assembly] gate check phase ${phaseNumber} failed:`, e.message);
     // Never strand the pipeline on a gate-read error. Previously this swallowed the error and left
     // the run stuck in auto_running (the user only saw the 45s "pipeline is active" stall banner,
     // never a button). Always surface a continuation so the user can proceed or re-run.
@@ -2156,10 +2156,10 @@ function _advanceFromSN(notes = '') {
   // SN validator notes are internal QA (the verdict file is already written by _runAssemblyValidator).
   // Unlike the section agents, SN has no Approve/Revise bubble to thread them into, so surfacing them
   // rendered as a contentless background tick. Keep them in the log only — don't show the user.
-  if (notes) console.log(`[Validator] style-negotiation notes (not shown to user):\n${notes}`);
+  if (notes) console.log(`[Style Negotiator · validator] notes (not shown to user):\n${notes}`);
   state.snState = null;
   setTimeout(() => {
     dispatchAssemblyPhase(2).catch(err =>
-      console.error('[advanceFromSN] Profile Builder dispatch failed:', err.message));
+      console.error('[Assembly · advance-SN] Profile Builder dispatch failed:', err.message));
   }, 500);
 }
