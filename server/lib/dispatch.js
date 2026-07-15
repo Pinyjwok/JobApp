@@ -1,6 +1,6 @@
-import { readFileSync, writeFileSync, existsSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, rmSync, statSync } from 'fs';
 import { join } from 'path';
-import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND } from '../config/constants.js';
+import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND, COMPLETION_CONTRACTS } from '../config/constants.js';
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
@@ -21,6 +21,69 @@ export function resolveAgentStatus(agentName, parsedStatus) {
   return null;
 }
 
+// ── File-driven completion (replaces the fragile `pipeline_status:` prose tag) ─────────────────
+
+// Faithful port of Researcher Phase 4 quality assessment (researcher_agent_instructions.md:302-346).
+// The pseudocode collapses: both COMPLETE branches are identical and totalWithData never changes the
+// outcome — the real signal is validCount over the 5 required fields at their min floors. Max ceilings
+// are intentionally dropped (over-length data is still real; downgrading it would be perverse). Server
+// owns this math rather than trusting Flash to hand-count validCount + emit the right enum.
+export function researchQuality(data) {
+  const rd = data?.research_data;
+  if (rd == null) return 'RESEARCH_FAILED';
+  const strOK = (s, min) => typeof s === 'string' && s.trim().length >= min;
+  const arrOK = (a, min) => Array.isArray(a) && a.length >= min;
+  let valid = 0;
+  if (strOK(rd.mission_values,   50))  valid++;
+  if (strOK(rd.culture_overview, 100)) valid++;
+  if (arrOK(rd.key_strengths,     2))  valid++;
+  if (strOK(rd.strategic_plan,   100)) valid++;
+  if (strOK(rd.interview_focus,  100)) valid++;
+  return valid >= 5 ? 'RESEARCH_COMPLETE'
+       : valid >= 3 ? 'RESEARCH_PARTIAL'
+       : 'RESEARCH_FAILED';
+}
+
+// Core predicate for both the linear resolver and the analysis join. The node round-trip already told
+// us the agent FINISHED; this tells us it actually produced its artifact THIS turn. Bounded poll (mirror
+// checkJoin's 20×100ms) for the contract file, requiring:
+//   1. mtime >= dispatchStart — a stale file from a prior run (redo/resume reuse the same filenames)
+//      cannot satisfy the guard; the fresh write must land first.
+//   2. the contract's ready(data) shape check — rejects the {} scaffold / a clarifying-question turn.
+// Returns { ready, data }. No contract → { ready: true, data: null } (caller falls back to inference).
+export async function awaitOutputReady(agentName, dispatchStart = 0) {
+  const contract = COMPLETION_CONTRACTS[agentName];
+  if (!contract) return { ready: true, data: null };
+  const path = join(WORKSPACE_DIR, contract.file);
+  for (let i = 0; i < 20; i++) {
+    try {
+      if (existsSync(path) && statSync(path).mtimeMs >= dispatchStart) {
+        const parsed = JSON.parse(readFileSync(path, 'utf8'));
+        if (contract.ready(parsed)) return { ready: true, data: parsed };
+      }
+    } catch {}
+    await new Promise(r => setTimeout(r, 100));
+  }
+  console.warn(`[${agentName}] output file ${contract.file} never became ready (fresh + shape-valid)`);
+  return { ready: false, data: null };
+}
+
+// Linear-agent status resolution from the output file (not the tag). Waits for the artifact, then
+// derives the next pipeline_status from its content. Returns { status, ready }; ready:false means no
+// usable output landed (caller should surfaceStall). Agents with no contract fall back to the existing
+// EXPECTED_STATUS inference.
+export async function resolveStatusFromOutput(agentName, dispatchStart = 0) {
+  if (!COMPLETION_CONTRACTS[agentName]) return { status: resolveAgentStatus(agentName, null), ready: true };
+  const { ready, data } = await awaitOutputReady(agentName, dispatchStart);
+  if (!ready) return { status: null, ready: false };
+  let status;
+  if (agentName === 'Extractor')       status = resolveExtractorStatus('INITIALIZED'); // failure_reason override wins
+  else if (agentName === 'Researcher') status = researchQuality(data);
+  else if (agentName === 'JD Enhancer')status = 'JD_ENHANCED';
+  else                                 status = resolveAgentStatus(agentName, null);
+  return { status, ready: true };
+}
+
 // Single recovery affordance for #1 (no inference rule) and #2 (timeout/throw): surface a
 // visible error bubble + a Retry gate that re-fires state.retryThunk.
 export function surfaceStall(agentName, err) {
@@ -37,24 +100,25 @@ export function surfaceStall(agentName, err) {
   broadcastMode('action_required');
 }
 
-// Consolidated fire → parse → advance for the linear happy-path agents. Registers a retry
-// thunk, applies the Extractor failure gate then the status-tag fallback, and either advances
-// (setValue → onChange drives the next step) or surfaces a stall.
+// Consolidated fire → advance for the linear happy-path agents. Registers a retry thunk, then takes
+// the next status from the agent's OUTPUT FILE (resolveStatusFromOutput) — not the fragile prose tag —
+// and either advances (setValue → onChange drives the next step) or surfaces a stall. parseAndStripStatus
+// is kept only to clean the display text.
 export async function runLinearDispatch({ node, agent, query = '__auto__', foreground }) {
   state.retryThunk = () => runLinearDispatch({ node, agent, query, foreground });
   const fg = foreground ?? AGENT_FOREGROUND.has(agent);
   broadcastMode('auto_running', agent);
+  const dispatchStart = Date.now();
   try {
     const r = await sendToNodeAndWait(node, agent, query);
-    let { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
-    if (agent === 'Extractor') status = resolveExtractorStatus(status);
-    status = resolveAgentStatus(agent, status);
+    const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
     broadcastAgentResult(cleanText, agent, fg);
-    if (status) {
+    const { status, ready } = await resolveStatusFromOutput(agent, dispatchStart);
+    if (ready && status) {
       await state.recipe.globalVariables.setValue('pipeline_status', status);
       state.pipelineStatus = status;
     } else {
-      surfaceStall(agent, new Error('no status tag and no inference rule'));
+      surfaceStall(agent, new Error(`no usable ${agent} output on disk`));
     }
   } catch (err) {
     surfaceStall(agent, err);
@@ -243,27 +307,40 @@ export function fireTAAndAnalyst() {
   broadcastMode('auto_running', 'Analysis');
   state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
   state.pipelineStatus = 'PARALLEL_ANALYSIS';
-  sendToNodeAndWait('tone_analyst_input', 'Tone Analyst', '__tone_analysis__')
+  const dispatchStart = Date.now();  // mtime freshness floor — a stale prior-run file can't satisfy the guard
+  // One combined header for the parallel pair (both run in the background, completions land separately
+  // below). quietBanner suppresses each node's own start banner so the group reads cleanly; logLabel
+  // names the Analyst in the console without switching AgentSelector (it stays a zero-output bg agent).
+  const RULE = '─'.repeat(72);
+  console.log(`\n┌${RULE}`);
+  console.log('│ ▶ PARALLEL ANALYSIS (background) — starting both:');
+  console.log('│    · Tone Analyst  → node:tone_analyst_input       (timeout 180s)');
+  console.log('│    · Analyst       → node:analyst_background_input (timeout 600s)');
+  console.log(`└${RULE}`);
+  sendToNodeAndWait('tone_analyst_input', 'Tone Analyst', '__tone_analysis__', 'default', { quietBanner: true })
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
-      const { status, cleanText } = parseAndStripStatus(raw);
-      // Tone validation is now server-owned (runToneValidation below) — it strips any ungrounded quote
-      // from style_findings.json and writes tone_validator_verdict.json (the Style Negotiator reads
-      // findings_for_sn from it). There is no tone_validator LLM node anymore. We then own the seniority
-      // year math + timestamp, broadcast TA's completion bubble, and join.
-      runToneValidation();    // server owns verbatim-quote validation (strips ungrounded quotes) — was the tone_validator LLM node
-      computeSeniorityYears(); // server owns the seniority date/years math (TA only tags relevance) — kills the cyclic-reasoning loop
-      stampTimestamp('style_findings.json', 'analyzed_at'); // BUG-126 class — TA hallucinates this; server owns it
+      const { cleanText } = parseAndStripStatus(raw);
       broadcastAgentResult(cleanText, 'Tone Analyst', false);
-      if (status) {
+      // taDone now flips on the FILE, not the prose tag. The common failure was TA writing
+      // style_findings.json but dropping the `pipeline_status:` tag → taDone stayed false → the
+      // analysis join hung silently. Gate on a fresh, shape-valid file instead.
+      const { ready } = await awaitOutputReady('Tone Analyst', dispatchStart);
+      if (ready) {
+        // Server-owned post-processing (only meaningful once real findings exist): strip ungrounded
+        // quotes (runToneValidation, was the tone_validator LLM node), compute seniority years (kills
+        // the cyclic-reasoning loop; TA only tags relevance), and stamp analyzed_at (BUG-126 class).
+        runToneValidation();
+        computeSeniorityYears();
+        stampTimestamp('style_findings.json', 'analyzed_at');
         state.taDone = true;
         await checkJoin();
       } else {
-        console.warn('[Tone Analyst] missing pipeline_status tag');
+        console.warn('[Tone Analyst] style_findings.json not fresh/valid — analysis join cannot advance');
       }
     })
     .catch(err => console.error('[Tone Analyst] error:', err));
-  sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+  sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { quietBanner: true, logLabel: 'Analyst' })
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { cleanText } = parseAndStripStatus(raw);

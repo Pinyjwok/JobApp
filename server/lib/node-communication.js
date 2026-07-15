@@ -27,7 +27,12 @@ function withTimeout(promise, ms, label) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-export async function sendToNodeAndWait(nodeName, agentName, query = '__auto__', sessionId = 'default') {
+// opts: { logLabel, quietBanner }. logLabel names the agent in the banner/footer WITHOUT switching
+// AgentSelector — used for the background Analyst (agentName=null keeps the UI off it, but the console
+// should still read "Analyst", not "(no agent)"). quietBanner suppresses the per-node start banner so
+// a caller (fireTAAndAnalyst) can print one combined header for a parallel group; the footer still fires.
+export async function sendToNodeAndWait(nodeName, agentName, query = '__auto__', sessionId = 'default', opts = {}) {
+  const label = opts.logLabel ?? agentName;
   if (agentName) {
     await state.recipe.globalVariables.setValue('AgentSelector', agentName);
     await new Promise((r) => setTimeout(r, 150));
@@ -35,7 +40,7 @@ export async function sendToNodeAndWait(nodeName, agentName, query = '__auto__',
   state.lastDispatch = { nodeName, agentName, query, sessionId };
   const timeoutMs = NODE_TIMEOUT_MS[nodeName] ?? DISPATCH_TIMEOUT_MS;
   const startedAt = Date.now();
-  banner(agentName, nodeName, query, timeoutMs);
+  if (!opts.quietBanner) banner(label, nodeName, query, timeoutMs);
   try {
     const result = await withTimeout(
       state.recipe.sendToInputWidgetAndWaitForOutput(nodeName, {
@@ -45,12 +50,12 @@ export async function sendToNodeAndWait(nodeName, agentName, query = '__auto__',
       timeoutMs,
       agentName ?? nodeName,
     );
-    footer(agentName, true, `${JSON.stringify(result)?.length ?? 0} chars`, startedAt);
+    footer(label, true, `${JSON.stringify(result)?.length ?? 0} chars`, startedAt);
     return result;
   } catch (err) {
     // A timeout means the node received the message but never produced output — falling back
     // to ' Message' would just hang again. Surface the stall to the caller instead.
-    if (err.message?.startsWith('STALL:')) { footer(agentName, false, err.message, startedAt); throw err; }
+    if (err.message?.startsWith('STALL:')) { footer(label, false, err.message, startedAt); throw err; }
     console.log(`  ↳ fallback → node:' Message' (${nodeName} not found): ${err.message}`);
     const fallback = await withTimeout(
       state.recipe.sendToInputWidgetAndWaitForOutput(' Message', {
@@ -60,7 +65,7 @@ export async function sendToNodeAndWait(nodeName, agentName, query = '__auto__',
       timeoutMs,
       agentName ?? ' Message',
     );
-    footer(agentName, true, `${JSON.stringify(fallback)?.length ?? 0} chars (fallback)`, startedAt);
+    footer(label, true, `${JSON.stringify(fallback)?.length ?? 0} chars (fallback)`, startedAt);
     return fallback;
   }
 }
