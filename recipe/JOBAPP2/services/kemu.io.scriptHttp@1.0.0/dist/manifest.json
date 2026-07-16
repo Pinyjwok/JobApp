@@ -1,0 +1,21 @@
+{
+  "name": "kemu.io.scriptHttp",
+  "version": "1.0.0",
+  "title": "Script HTTP",
+  "shortTitle": "",
+  "description": "Provides HTTP support for the Script widget",
+  "processor": "js",
+  "widgetUI": false,
+  "internal": true,
+  "settingsUI": false,
+  "eventEmitter": true,
+  "ignoreParentEvents": true,
+  "svgIcon": "icon.svg",
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "stream",
+      "type": "JsonObj"
+    }
+  ]
+}
