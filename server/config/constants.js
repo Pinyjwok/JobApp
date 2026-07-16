@@ -47,16 +47,23 @@ export const EXPECTED_STATUS = {
 // (+ mtime freshness, checked in awaitOutputReady) proves it actually finished this turn. The
 // server derives routing from the FILE, not the LLM's typed sentence (which Flash drops). The
 // per-agent status/join effect lives in the callers (they need dispatch.js helpers); this map
-// owns only `file` + the `ready(data)` shape guard. Mirrors the assembly phases, which already
-// route this way (mergePhaseOutput / _phaseHasRealOutput).
+// owns only `file`, the `ready(data)` shape guard, and `stamp`. Mirrors the assembly phases, which
+// already route this way (mergePhaseOutput / _phaseHasRealOutput).
+//
+// `stamp` — dot-path of the artifact's completion timestamp, or null when it has none. Agents write
+// the literal `__DATE_TODAY__` token there and the server is the only source of "now": awaitOutputReady
+// stamps this the instant the artifact is proven fresh+valid, which is the truest "agent finished" time
+// we have. Substitution alone is NOT enough — it only runs on the display path (broadcast + GET
+// /api/workspace), so an unstamped field keeps the raw token ON DISK, where the next agent's ReadFile
+// and any server-side date math both see garbage. Stamp every timestamp an agent is asked to write.
 export const COMPLETION_CONTRACTS = {
-  Extractor:     { file: 'candidate_profile.json', ready: d => !!d?.personal_info?.name && Array.isArray(d?.work_history) },
-  Researcher:    { file: 'research_output.json',   ready: d => d?.research_data === null || !!d?.research_data?.mission_values },
-  'JD Enhancer': { file: 'enhanced_jd.json',       ready: d => !!d?.candidate_brief?.headline },
+  Extractor:     { file: 'candidate_profile.json', ready: d => !!d?.personal_info?.name && Array.isArray(d?.work_history), stamp: null },
+  Researcher:    { file: 'research_output.json',   ready: d => d?.research_data === null || !!d?.research_data?.mission_values, stamp: 'completed_at' },
+  'JD Enhancer': { file: 'enhanced_jd.json',       ready: d => !!d?.candidate_brief?.headline, stamp: 'metadata.enhanced_at' },
   // Analysis join (background, no next-status): each branch flips a boolean and calls checkJoin.
   // register + flagged_issues are written by the TA itself before it returns; the {} scaffold fails.
-  'Tone Analyst':{ file: 'style_findings.json',    ready: d => Array.isArray(d?.flagged_issues) && typeof d?.register === 'string' && d.register.length > 0 },
-  Analyst:       { file: 'gap_analysis.json',      ready: d => Array.isArray(d?.requirements) },
+  'Tone Analyst':{ file: 'style_findings.json',    ready: d => Array.isArray(d?.flagged_issues) && typeof d?.register === 'string' && d.register.length > 0, stamp: 'analyzed_at' },
+  Analyst:       { file: 'gap_analysis.json',      ready: d => Array.isArray(d?.requirements), stamp: 'metadata.analyzed_at' },
 };
 
 export const AGENT_FOREGROUND = new Set([
@@ -117,7 +124,7 @@ export const EXCEPTION_ACTION_BUTTONS = {
     { id: 'redo_analyst',     label: 'Look at how I fit again', variant: 'ghost'   },
     { id: 'redo_researcher',  label: 'Research the company again', variant: 'ghost'   },
     { id: 'redo_jd_enhancer', label: 'Re-read the job ad',      variant: 'ghost'   },
-    { id: 'accept_anyway',    label: 'Looks good — keep going',  variant: 'primary' },
+    { id: 'accept_anyway',    label: 'Looks good - keep going',  variant: 'primary' },
     { id: 'details',          label: 'Show me the details',     variant: 'ghost'   },
   ],
   'RESEARCH_FAILED': [

@@ -51,6 +51,11 @@ export function researchQuality(data) {
 //      cannot satisfy the guard; the fresh write must land first.
 //   2. the contract's ready(data) shape check — rejects the {} scaffold / a clarifying-question turn.
 // Returns { ready, data }. No contract → { ready: true, data: null } (caller falls back to inference).
+//
+// This is also where the artifact's completion timestamp is stamped (contract.stamp): the moment
+// freshness is proven is the truest "the agent finished" time available, and stamping at this single
+// choke point means no agent-written date can reach disk as a raw `__DATE_TODAY__` token. `data` is
+// returned pre-stamp — no caller reads a timestamp off it, they re-read the file.
 export async function awaitOutputReady(agentName, dispatchStart = 0) {
   const contract = COMPLETION_CONTRACTS[agentName];
   if (!contract) return { ready: true, data: null };
@@ -59,7 +64,10 @@ export async function awaitOutputReady(agentName, dispatchStart = 0) {
     try {
       if (existsSync(path) && statSync(path).mtimeMs >= dispatchStart) {
         const parsed = JSON.parse(readFileSync(path, 'utf8'));
-        if (contract.ready(parsed)) return { ready: true, data: parsed };
+        if (contract.ready(parsed)) {
+          if (contract.stamp) stampTimestamp(contract.file, contract.stamp);
+          return { ready: true, data: parsed };
+        }
       }
     } catch {}
     await new Promise(r => setTimeout(r, 100));
@@ -152,25 +160,72 @@ export function clearStaleAnalysis() {
 // per-role relevance + recent-graduate flag (in style_findings.seniority.role_classification[]).
 // Mirrors the fit-score offload (LLM tags, server computes the number). Fault-tolerant: any missing
 // input leaves the TA's own values untouched (back-compat with pre-offload output).
+const MONTH_ABBR = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+// Parse a work-history date to { y, mo } (or 'NOW' for ongoing, null if unparseable). The Extractor now
+// stores dates VERBATIM (it no longer computes durations — that's server-owned), so this tolerates the
+// common shapes a CV actually uses: 2025-03, 2025/03, 03/2025, "March 2025", "Mar 2025", bare 2025, and
+// "Present"/"Current"/"ongoing". Kept lenient on purpose — it only ever runs on date fields.
+const validMonth = mo => mo >= 1 && mo <= 12;
 function parseYearMonth(s) {
   if (!s) return null;
   const str = String(s).trim();
-  if (/^(present|current|now|ongoing)$/i.test(str)) return 'NOW';
-  let m = str.match(/^(\d{4})-(\d{1,2})/);      // 2025-03
-  if (m) return { y: +m[1], mo: +m[2] };
-  m = str.match(/^(\d{4})$/);                    // 2025
-  if (m) return { y: +m[1], mo: 6 };             // mid-year midpoint when only a year is given
+  // An ongoing marker wins outright, even alongside a year ("2020 - Present" as an end_date means
+  // ongoing, not 2020). A year-guard here would fall through to the bare-year rule below and date the
+  // role's end to mid-2020, silently truncating every current role by its whole tenure.
+  if (/\b(present|current|now|ongoing|to\s*date)\b/i.test(str)) return 'NOW';
+  // Each shape falls through to the next when the month is out of range, so a malformed "2025-13"
+  // degrades to the bare-year rule rather than yielding month 13.
+  let m = str.match(/\b(\d{4})[-/](\d{1,2})\b/);          // 2025-03 / 2025/03
+  if (m && validMonth(+m[2])) return { y: +m[1], mo: +m[2] };
+  m = str.match(/\b(\d{1,2})[-/](\d{4})\b/);              // 03/2025
+  if (m && validMonth(+m[1])) return { y: +m[2], mo: +m[1] };
+  m = str.match(/([A-Za-z]{3,})\.?\s+(\d{4})/);           // March 2025 / Mar 2025
+  if (m) { const mo = MONTH_ABBR[m[1].slice(0, 3).toLowerCase()]; if (mo) return { y: +m[2], mo }; }
+  m = str.match(/\b(\d{4})\b/);                            // bare 2025
+  if (m) return { y: +m[1], mo: 6 };                      // mid-year midpoint when only a year is given
   return null;
 }
 
+// Years between a role's start and end, or null when the start date can't be read at all. A missing or
+// unparseable END date still means "ongoing" (the common "Present" case), but without a start there is
+// nothing to measure from — null, never 0. Callers must treat null as unknown, not as zero tenure.
 function roleDurationYears(role) {
   const start = parseYearMonth(role.start_date);
-  if (!start || start === 'NOW') return 0;
+  if (!start || start === 'NOW') return null;
   const endRaw = parseYearMonth(role.end_date);
   const now = new Date();
   const end = (!endRaw || endRaw === 'NOW') ? { y: now.getFullYear(), mo: now.getMonth() + 1 } : endRaw;
   const months = (end.y - start.y) * 12 + (end.mo - start.mo);
   return months > 0 ? Math.round((months / 12) * 10) / 10 : 0;
+}
+
+// Server owns per-role duration math (deterministic — was Extractor Phase 4.3, a Flash-hand-computed
+// float and a hallucination source, same class as the Tone Analyst seniority loop). After a successful
+// extraction, read candidate_profile.json, compute duration_years for each work_history role from its
+// verbatim start/end dates, and write them back. Consumers are unchanged (Analyst min-years gap +
+// History Formatter read work_history[].duration_years). Idempotent; safe to call on every Extractor return.
+export function computeRoleDurations() {
+  const p = join(WORKSPACE_DIR, 'candidate_profile.json');
+  let profile;
+  try { profile = JSON.parse(readFileSync(p, 'utf8')); } catch { return; }
+  const work = profile.work_history;
+  if (!Array.isArray(work) || !work.length) return;
+  let changed = false;
+  for (const role of work) {
+    if (!role || typeof role !== 'object') continue;
+    const dur = roleDurationYears(role);
+    // Unreadable start date → leave duration_years off the role entirely. Writing 0 would assert
+    // "spent no time here", and the Analyst sums this field for its minimum-years requirement check —
+    // a 0 there turns a qualified candidate into a false Gap. Absent reads as unknown; 0 reads as a lie.
+    if (dur == null) {
+      console.warn(`[durations] ${role.employer ?? '?'} — ${role.position ?? '?'}: cannot read start_date ` +
+                   `(start="${role.start_date ?? ''}" end="${role.end_date ?? ''}"), leaving duration_years unset`);
+      if ('duration_years' in role) { delete role.duration_years; changed = true; }
+      continue;
+    }
+    if (role.duration_years !== dur) { role.duration_years = dur; changed = true; }
+  }
+  if (changed) { try { writeFileSync(p, JSON.stringify(profile, null, 2)); } catch (e) { console.warn(`[durations] write failed: ${e.message}`); } }
 }
 
 const normEmployer = e => String(e || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -244,7 +299,7 @@ export function runToneValidation() {
   const verdict = {
     verdict: dropped.length ? 'FLAG' : 'APPROVE',
     agent: 'tone_analyst',
-    issues: dropped.map(d => ({ field: d.field, problem: `Quote "${d.quote}…" not found verbatim in source — dropped`, severity: 'resolved' })),
+    issues: dropped.map(d => ({ field: d.field, problem: `Quote "${d.quote}…" not found verbatim in source - dropped`, severity: 'resolved' })),
     findings_for_sn: [],
     summary: `${dropped.length} ungrounded quote(s) stripped server-side.`,
   };
@@ -302,8 +357,6 @@ export function fireTAAndAnalyst() {
   state.analystDone = false;
   state.taDone      = false;
   state.analystOutputText = null;
-  // BUG-126: JD Enhancer just finished — stamp the real enhancement time before consumers read it.
-  stampTimestamp('enhanced_jd.json', 'metadata.enhanced_at');
   broadcastMode('auto_running', 'Analysis');
   state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
   state.pipelineStatus = 'PARALLEL_ANALYSIS';
@@ -328,11 +381,11 @@ export function fireTAAndAnalyst() {
       const { ready } = await awaitOutputReady('Tone Analyst', dispatchStart);
       if (ready) {
         // Server-owned post-processing (only meaningful once real findings exist): strip ungrounded
-        // quotes (runToneValidation, was the tone_validator LLM node), compute seniority years (kills
-        // the cyclic-reasoning loop; TA only tags relevance), and stamp analyzed_at (BUG-126 class).
+        // quotes (runToneValidation, was the tone_validator LLM node) and compute seniority years (kills
+        // the cyclic-reasoning loop; TA only tags relevance). analyzed_at is already stamped by
+        // awaitOutputReady above, via the contract.
         runToneValidation();
         computeSeniorityYears();
-        stampTimestamp('style_findings.json', 'analyzed_at');
         state.taDone = true;
         await checkJoin();
       } else {
@@ -364,7 +417,7 @@ function buildAnalystValidatorSummary() {
     if (!verdict || !verdict.verdict) return null;
     const issues = verdict.issues ?? verdict.notes ?? [];
     const count = issues.length;
-    let text = `🔍 **Validator: ${verdict.verdict}** — ${count} issue${count === 1 ? '' : 's'}`;
+    let text = `🔍 **Validator: ${verdict.verdict}** - ${count} issue${count === 1 ? '' : 's'}`;
     if ((verdict.verdict === 'FLAG' || verdict.verdict === 'REJECT') && count) {
       text += '\n' + issues.map(i => `• ${i.field}: ${i.problem ?? i.note}`).join('\n');
     }
@@ -432,12 +485,12 @@ export function applyFitScore(gapAnalysisPath) {
   const { score, gateApplied } = calculateFitScore(gapAnalysis);
   // Idempotent: strip any prior "Fit Score: X/10 — " prefix and trailing gate marker before reapplying.
   const qualitative = String(gapAnalysis.fit_rationale ?? '')
-    .replace(/^Fit Score: \d+(\.\d+)?\/10\s*—\s*/, '')
-    .replace(/\s*\(capped — unmet mandatory credential\)\s*$/, '')
+    .replace(/^Fit Score: \d+(\.\d+)?\/10\s*[—-]\s*/, '')
+    .replace(/\s*\(capped [—-] unmet mandatory credential\)\s*$/, '')
     .trim();
-  const marker = gateApplied ? ' (capped — unmet mandatory credential)' : '';
+  const marker = gateApplied ? ' (capped - unmet mandatory credential)' : '';
   gapAnalysis.overall_fit_score = score;
-  gapAnalysis.fit_rationale = (qualitative ? `Fit Score: ${score}/10 — ${qualitative}` : `Fit Score: ${score}/10`) + marker;
+  gapAnalysis.fit_rationale = (qualitative ? `Fit Score: ${score}/10 - ${qualitative}` : `Fit Score: ${score}/10`) + marker;
   gapAnalysis.fit_score_source = 'server';
   // BUG-126: server owns the timestamp — LLMs cannot reliably read "today".
   gapAnalysis.metadata = gapAnalysis.metadata || {};
@@ -809,7 +862,7 @@ export function buildReviewSummary(audit) {
   }
   lines.push('', '---', '');
   lines.push(audit.overall_verdict === 'APPROVED'
-    ? 'Analysis validated and approved.\n\n**Next:** the assembly phase will begin — starting with style negotiation.'
+    ? 'Analysis validated and approved.\n\n**Next:** the assembly phase will begin - starting with style negotiation.'
     : 'Quality issues detected. Main Orchestrator will present correction options.');
   return lines.join('\n');
 }
@@ -853,6 +906,8 @@ export function resolveExtractorStatus(parsedStatus) {
   } catch (e) {
     console.warn(`[Extractor · gate] could not read project_meta.json: ${e.message}`);
   }
+  // Success path — the Extractor no longer computes durations; the server owns that math now.
+  computeRoleDurations();
   return parsedStatus;
 }
 
@@ -916,7 +971,7 @@ export async function checkJoin() {
   console.log(`[Analysis · join] analystDone=${state.analystDone} taDone=${state.taDone}`);
   if (!state.analystDone || !state.taDone) {
     if (state.taDone && !state.analystDone) {
-      broadcast({ type: 'agent_message', agent: 'System', text: 'Analysis still running in background — will begin gap review shortly…', background: true });
+      broadcast({ type: 'agent_message', agent: 'System', text: 'Analysis still running in background - will begin gap review shortly…', background: true });
     }
     return;
   }
@@ -1025,7 +1080,7 @@ export async function checkResearchRedoJoin() {
         context: 'research_confirm',
         prompt: researchSummary + '\n\nHappy with this? We\'ll use it to see how well you fit the role.',
         actions: [
-          { id: 'research_confirm', label: 'Looks good — keep going', variant: 'primary' },
+          { id: 'research_confirm', label: 'Looks good - keep going', variant: 'primary' },
           { id: 'research_redo',    label: 'Research again',          variant: 'ghost'   },
         ],
       });
@@ -1033,7 +1088,7 @@ export async function checkResearchRedoJoin() {
       await state.recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
       state.pipelineStatus = 'RESEARCH_CONFIRM';
     } else {
-      broadcast({ type: 'agent_message', agent: 'System', text: researchSummary + '\n\n*(Research updated — gap analysis will use this once your style interview completes.)*' });
+      broadcast({ type: 'agent_message', agent: 'System', text: researchSummary + '\n\n*(Research updated - gap analysis will use this once your style interview completes.)*' });
     }
   } catch (err) {
     console.error('[Research · redo-join] error:', err.message);
@@ -1081,7 +1136,7 @@ export function _assemblyChecks(agentKey) {
       if (!STANDARD.includes(key) && !key.endsWith('_custom') && !inTA) push(`data.agreed_overrides.${key}`, `Override "${key}" not in TA findings and not a standard option`);
     }
     if (agreed.telegraphic && agreed.full_sentences) push('data.agreed_overrides', 'Contradictory overrides: telegraphic and full_sentences both active');
-    if (!data.negotiation_summary || !String(data.negotiation_summary).trim()) push('data.negotiation_summary', 'Missing or empty — must summarise what was agreed');
+    if (!data.negotiation_summary || !String(data.negotiation_summary).trim()) push('data.negotiation_summary', 'Missing or empty - must summarise what was agreed');
 
   } else if (agentKey === 'profile_builder') {
     const data = readWorkspaceJSON('pb_output.json')?.data || {};
@@ -1098,7 +1153,7 @@ export function _assemblyChecks(agentKey) {
     // 2. Numeric claim traceability
     const profileText = normalizeForMatch(JSON.stringify(profile));
     for (const m of (paragraph.match(/\b(\d+\.?\d*\s*%|\d+\+?\s*(?:year|yr)s?|\$[\d,]+|\d{4})\b/gi) || [])) {
-      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json — may be invented`);
+      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json - may be invented`);
     }
     // 3. Contact accuracy
     const contact = profile.personal_info?.contact || {};
@@ -1107,12 +1162,12 @@ export function _assemblyChecks(agentKey) {
     if (contact.phone && !contactStr.includes(contact.phone)) push('data.contact_details', `Phone "${contact.phone}" not in contact_details`);
     // 4. Danger-term / fabrication (TC05)
     const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
-    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt — likely inferred from a title or sector-misused`);
+    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt - likely inferred from a title or sector-misused`);
     // 5. Numeric cross-section: profile's stated years vs server-computed total (no LLM)
     const total = findings.seniority?.years_experience;
     if (typeof total === 'number' && total > 0) {
       const ym = paragraph.match(/(\d+)\+?\s*years?/i);
-      if (ym && Number(ym[1]) > total + 1.5) push('data.profile_paragraph', `Profile claims ${ym[1]} years but the work history totals ~${total} — overstated`);
+      if (ym && Number(ym[1]) > total + 1.5) push('data.profile_paragraph', `Profile claims ${ym[1]} years but the work history totals ~${total} - overstated`);
     }
 
   } else if (agentKey === 'history_formatter') {
@@ -1128,7 +1183,7 @@ export function _assemblyChecks(agentKey) {
       const srcText = src ? normalizeForMatch(JSON.stringify([...(src.responsibilities || []), ...(src.achievements || [])])) : '';
       (entry.bullets || []).forEach((b, j) => {
         for (const num of (b.match(/\b\d+\.?\d*\s*%|\b\d+\+?\s*(?:patients?|staff|team|year|yr)|\$[\d,]+/gi) || [])) {
-          if (srcText && !srcText.includes(normalizeForMatch(num))) push(`data.work_history[${i}].bullets[${j}]`, `Metric "${num.trim()}" not in source job data — may be invented`);
+          if (srcText && !srcText.includes(normalizeForMatch(num))) push(`data.work_history[${i}].bullets[${j}]`, `Metric "${num.trim()}" not in source job data - may be invented`);
         }
       });
     });
@@ -1139,7 +1194,7 @@ export function _assemblyChecks(agentKey) {
     const research = normalizeForMatch(JSON.stringify(readWorkspaceJSON('research_output.json')?.research_data || ''));
     const body = [cl.salutation || '', ...(cl.body_paragraphs || [cl.body || '']), cl.closing_paragraph || '', cl.full_letter || ''].join(' ');
     const bodyLc = body.toLowerCase();
-    if (meta.company_name && !body.includes(meta.company_name)) push('data.cover_letter', `Company name "${meta.company_name}" not in letter — may use a hallucinated name`);
+    if (meta.company_name && !body.includes(meta.company_name)) push('data.cover_letter', `Company name "${meta.company_name}" not in letter - may use a hallucinated name`);
     if (meta.position_title) {
       const words = meta.position_title.split(' ').filter(w => w.length > 3);
       if (!words.every(w => bodyLc.includes(w.toLowerCase()))) push('data.cover_letter', `Role title "${meta.position_title}" not reflected in letter`);
@@ -1148,10 +1203,10 @@ export function _assemblyChecks(agentKey) {
       if (research && !research.includes(normalizeForMatch(s).slice(0, 30))) push('data.cover_letter.body', `Specific company claim not in research_output: "${s.slice(0, 80)}…"`);
     }
     const wc = body.split(/\s+/).filter(Boolean).length;
-    if (wc < 200) push('data.cover_letter', `Letter is ${wc} words — likely incomplete (target 250–350)`);
-    if (wc > 420) push('data.cover_letter', `Letter is ${wc} words — exceeds 420 word cap`);
+    if (wc < 200) push('data.cover_letter', `Letter is ${wc} words - likely incomplete (target 250–350)`);
+    if (wc > 420) push('data.cover_letter', `Letter is ${wc} words - exceeds 420 word cap`);
     const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
-    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt — likely fabricated or sector-misused`);
+    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt - likely fabricated or sector-misused`);
   }
   return issues;
 }
@@ -1229,14 +1284,14 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   await new Promise(r => setTimeout(r, 1000));
 
   if (phaseNumber <= 6 || phaseNumber === 9) {
-    const merged = await mergePhaseOutput(phaseNumber);
+    const merged = await mergePhaseOutput(phaseNumber, dispatchStart);
     if (!merged.ok) {
       // The agent didn't produce a real section (e.g. it asked a clarifying question instead of
       // building). Don't advance or show Approve/Revise on a phantom section: auto-retry once, then stall.
       const retries = (state.assemblyRetries ??= {});
       if ((retries[phaseNumber] ?? 0) < 1) {
         retries[phaseNumber] = (retries[phaseNumber] ?? 0) + 1;
-        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running ${phase.agent} — the last attempt didn't produce a finished section.` });
+        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running ${phase.agent} - the last attempt didn't produce a finished section.` });
         await new Promise(r => setTimeout(r, 500));
         return dispatchAssemblyPhase(phaseNumber);
       }
@@ -1273,8 +1328,8 @@ async function _advisoryStyleReview() {
   broadcast({
     type: 'agent_message', agent: 'System',
     text: issueCount > 0
-      ? `Style review is advisory — ${issueCount} note(s) above for reference. Continuing to the integrity check.`
-      : 'Style review passed — continuing to the integrity check.',
+      ? `Style review is advisory - ${issueCount} note(s) above for reference. Continuing to the integrity check.`
+      : 'Style review passed - continuing to the integrity check.',
   });
   await dispatchAssemblyPhase(8);
 }
@@ -1347,7 +1402,7 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
       title: 'Seniority & Career Level',
       finding: `Inferred level: ${level}. ${s.evidence || 'Based on work-history dates.'}`,
       examples: [],
-      recommendation: `Confirm as ${level} — this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
+      recommendation: `Confirm as ${level} - this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
       insight: 'Seniority framing is the single biggest lever on how a recruiter reads every bullet.',
       recommended_overrides: { seniority_level: `${level} (confirmed by user)` },
     });
@@ -1359,15 +1414,15 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
   if (!has('profile_voice')) {
     out.push({
       id: 'profile_voice',
-      title: 'Professional Summary — Voice',
+      title: 'Professional Summary - Voice',
       finding: 'Your professional summary can be written in first person (you speaking as yourself) or third person (written about you).',
       examples: [
         'First person: "Biomedical Science graduate with hands-on laboratory training…"',
         'Third person: "Sarah is a Biomedical Science graduate with hands-on laboratory training…"',
       ],
-      recommendation: 'Use first person — it reads as direct and modern and is the most common choice today. Prefer third person? Pick "Customise" and type "third person".',
+      recommendation: 'Use first person - it reads as direct and modern and is the most common choice today. Prefer third person? Pick "Customise" and type "third person".',
       insight: 'First person (or implied first person, with no "I") is standard for most professional summaries; third person can suit very senior or academic profiles.',
-      recommended_overrides: { profile_voice: 'first person — the summary speaks as the candidate (implied first person, no name and no third-person pronouns)' },
+      recommended_overrides: { profile_voice: 'first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)' },
     });
   }
 
@@ -1377,11 +1432,11 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
     out.push({
       id: 'key_achievements',
       title: 'Key Achievements Section',
-      finding: `Senior role detected (${roleName || 'this role'}) — a Key Achievements section is standard at this level.`,
+      finding: `Senior role detected (${roleName || 'this role'}) - a Key Achievements section is standard at this level.`,
       examples: [],
       recommendation: 'Add a Key Achievements section (2–3 bolded, quantified bullets) immediately after the profile paragraph.',
-      insight: 'Senior-role screens run under 30 seconds — this section is the primary attention anchor.',
-      recommended_overrides: { key_achievements_section: 'Include Key Achievements section — 2–3 bullet points with bold metrics immediately after profile paragraph' },
+      insight: 'Senior-role screens run under 30 seconds - this section is the primary attention anchor.',
+      recommended_overrides: { key_achievements_section: 'Include Key Achievements section - 2–3 bullet points with bold metrics immediately after profile paragraph' },
     });
   }
   return out;
@@ -1398,7 +1453,7 @@ export function stampSeniorityOverride(groups, findings = {}) {
   const totStr = s.years_experience          != null ? `${s.years_experience} total` : null;
   const yearsStr = [relStr, totStr].filter(Boolean).join(' / ') || 'experience unspecified';
   g.recommended_overrides = g.recommended_overrides || {};
-  g.recommended_overrides.seniority_level = `${level} (${yearsStr} yrs — confirmed by user)`;
+  g.recommended_overrides.seniority_level = `${level} (${yearsStr} yrs - confirmed by user)`;
   return groups;
 }
 
@@ -1485,10 +1540,10 @@ async function _autoApproveSN(findings = {}) {
     data: {
       agreed_overrides: {
         bold_achievements:   'Bold numeric metrics and key results in work history bullets',
-        improve_conciseness: 'Keep bullets concise — under 18 words where possible',
+        improve_conciseness: 'Keep bullets concise - under 18 words where possible',
       },
       negotiation_outcome: 'NO_ISSUES_FOUND',
-      negotiation_summary: 'No style findings available — default professional overrides applied.',
+      negotiation_summary: 'No style findings available - default professional overrides applied.',
       original_style: { tense: p.tense, voice: p.voice, bullet_format: p.bullet_format },
       user_confirmed: true,
     },
@@ -1496,7 +1551,7 @@ async function _autoApproveSN(findings = {}) {
   writeFileSync(join(WORKSPACE_DIR, 'sn_output.json'), JSON.stringify(output, null, 2));
   await mergePhaseOutput(1);
   const notes = await _runAssemblyValidator('Style Negotiator');
-  broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found — default professional enhancements applied.' });
+  broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found - default professional enhancements applied.' });
   await _advanceFromSN(notes);
 }
 
@@ -1701,7 +1756,10 @@ function _phaseHasRealOutput(phase, outputData) {
 // Merge a phase's output into cv_assembly_state.json and advance current_phase. Returns
 // { ok, reason } — callers MUST NOT advance/show Approve-Revise when ok is false (empty output would
 // otherwise lock the phase ahead and break Revise).
-export async function mergePhaseOutput(phaseNumber) {
+//
+// `dispatchStart` (ms epoch) is the freshness floor for the stale-output check; 0/omitted skips it, for
+// callers (resume, revise re-merge) that aren't driving a fresh agent turn.
+export async function mergePhaseOutput(phaseNumber, dispatchStart = 0) {
   const phase = ASSEMBLY_PHASES[phaseNumber];
   if (!phase?.outputFile) return { ok: true }; // SR/IC write cv_assembly_state.json themselves
   try {
@@ -1715,7 +1773,10 @@ export async function mergePhaseOutput(phaseNumber) {
     const cvState = JSON.parse(readFileSync(cvStatePath, 'utf8'));
     const idx = phaseNumber - 1;
     cvState.phases[idx].status       = 'COMPLETE';
-    cvState.phases[idx].completed_at = outputData.completed_at ?? new Date().toISOString();
+    // Server owns the time. The agent's own completed_at is the literal `__DATE_TODAY__` token, and
+    // copying it through (the old `outputData.completed_at ?? …` — the ?? only caught it being absent,
+    // never it being a token) leaked that token straight into cv_assembly_state.json.
+    cvState.phases[idx].completed_at = new Date().toISOString();
     cvState.phases[idx].data         = outputData.data;
     cvState.current_phase            = phaseNumber + 1;
     cvState.metadata.completed_phases = phaseNumber;
@@ -1727,17 +1788,22 @@ export async function mergePhaseOutput(phaseNumber) {
     return { ok: false, reason: 'merge_error' };
   }
 
-  // Stale output detection — warn if output file was written more than 5 minutes ago
+  // Stale output detection: did the agent actually write this artifact THIS turn? File mtime is the only
+  // honest signal. This used to read the agent's own `completed_at`, which cannot work in either
+  // direction — the agent writes the literal `__DATE_TODAY__` token, so `new Date(token)` is Invalid
+  // Date, the age is NaN, and `NaN > 300_000` is false, so the check silently never fired. Had the token
+  // been substituted it would resolve to midnight today and fire on every afternoon run instead. Same
+  // mtime >= dispatchStart guard awaitOutputReady uses for the linear agents.
   try {
-    const outputData = JSON.parse(readFileSync(join(WORKSPACE_DIR, phase.outputFile), 'utf8'));
-    if (outputData.completed_at) {
-      const outputAge = Date.now() - new Date(outputData.completed_at).getTime();
-      if (outputAge > 300_000) {
-        console.warn(`[Assembly] phase ${phaseNumber} output stale (${Math.round(outputAge / 1000)}s old)`);
+    if (dispatchStart) {
+      const mtime = statSync(join(WORKSPACE_DIR, phase.outputFile)).mtimeMs;
+      if (mtime < dispatchStart) {
+        const age = Math.round((dispatchStart - mtime) / 1000);
+        console.warn(`[Assembly] phase ${phaseNumber} output stale (${phase.outputFile} predates dispatch by ${age}s)`);
         broadcast({
           type: 'agent_message', agent: 'System',
-          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output appears stale — completed_at is ${outputData.completed_at}. ` +
-                `The agent may not have run this turn. Check if ${phase.outputFile} was freshly written.`,
+          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output looks stale - ${phase.outputFile} was last written ` +
+                `${age}s before this step started, so the agent may not have run this turn.`,
         });
       }
     }
@@ -1903,7 +1969,7 @@ function buildIntegritySummary(phaseData) {
   const bits = [];
   if (checked != null) bits.push(`${checked} claim${checked === 1 ? '' : 's'} checked`);
   bits.push(flagged ? `${flagged} flagged` : 'nothing flagged');
-  return `✓ Accuracy check passed — ${bits.join(', ')}. Everything in your CV traces back to what you provided.`;
+  return `✓ Accuracy check passed - ${bits.join(', ')}. Everything in your CV traces back to what you provided.`;
 }
 
 // Poll cv_assembly_state.json for an IC verdict that landed AFTER the watchdog fired (a slow-but-healthy

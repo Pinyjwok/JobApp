@@ -7,7 +7,7 @@ import {
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, stampTimestamp, resolveStatusFromOutput, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, resolveStatusFromOutput, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -38,6 +38,8 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     if (status === 'JD_ENHANCED' || status === 'PARALLEL_ANALYSIS') {
       const gapExists     = (() => { try { readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'));   return true; } catch { return false; } })();
       const findingsExists = (() => { try { readFileSync(join(WORKSPACE_DIR, 'style_findings.json')); return true; } catch { return false; } })();
+      // JD enhancement is no longer a gate — on resume at JD_ENHANCED we just re-drive the analysis
+      // (re-fire TA/Analyst for whichever artifact is missing), same as PARALLEL_ANALYSIS.
       state.analystDone = gapExists;
       state.taDone      = findingsExists;
       state.analystOutputText = null;
@@ -79,10 +81,11 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'RESEARCH_COMPLETE') {
-    // BUG-126: Researcher just finished — stamp the real completion time before the gate displays it.
-    stampTimestamp('research_output.json', 'completed_at');
+    // completed_at is stamped by awaitOutputReady when the Researcher's artifact lands (contract.stamp).
+    // Not re-stamped here on purpose: 'research_skip' also routes through this branch without the
+    // Researcher having run, and claiming a completion time for a run that never happened is a lie.
     broadcast({ type: 'action_required', context: 'research_pre_confirm', prompt: '', actions: [
-      { id: 'research_pre_confirm', label: 'Yes — continue',  variant: 'primary' },
+      { id: 'research_pre_confirm', label: 'Yes - continue',  variant: 'primary' },
       { id: 'research_pre_redo',   label: 'Research again',  variant: 'ghost'   },
     ]});
     await state.recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
@@ -113,22 +116,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'JD_ENHANCED') {
-    const clPath = join(WORKSPACE_DIR, 'cover_letter_sample.txt');
-    if (!existsSync(clPath)) {
-      broadcast({
-        type: 'action_required',
-        context: 'cl_upload_prompt',
-        prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not — we\'ll work from your CV alone.',
-        actions: [
-          { id: 'ta_upload_cover', label: 'Add a cover letter', type: 'upload', variant: 'primary' },
-          { id: 'cl_skip',         label: 'Skip — use my CV only', variant: 'ghost' },
-        ],
-      });
-      broadcastMode('action_required');
-      state.pendingTADispatch = true;
-      return;
-    }
-    fireTAAndAnalyst();
+    revealEnhancedJD();
     return;
   }
 
@@ -230,4 +218,30 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
       })
       .catch(err => surfaceStall(agent, err));
   }
+}
+
+// ── Enhanced-JD reveal (informational, no gate) ───────────────────────────────
+// After the JD Enhancer writes enhanced_jd.json we surface a structured, read-only bubble
+// (EnhancedJDBubble on the client, which fetches the JSON itself) AND immediately advance the pipeline.
+// JD enhancement is not user-customisable, so there is nothing to approve: the user sees the sharpened
+// JD while the next step is already visibly running. Then prompt for an optional cover letter (if none
+// was uploaded), otherwise fan out into Tone Analyst + Analyst.
+export function revealEnhancedJD() {
+  broadcast({ type: 'agent_message', kind: 'enhanced_jd', agent: 'JD Enhancer', text: '' });
+  const clPath = join(WORKSPACE_DIR, 'cover_letter_sample.txt');
+  if (!existsSync(clPath)) {
+    broadcast({
+      type: 'action_required',
+      context: 'cl_upload_prompt',
+      prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not - we\'ll work from your CV alone.',
+      actions: [
+        { id: 'ta_upload_cover', label: 'Add a cover letter', type: 'upload', variant: 'primary' },
+        { id: 'cl_skip',         label: 'Skip - use my CV only', variant: 'ghost' },
+      ],
+    });
+    broadcastMode('action_required');
+    state.pendingTADispatch = true;
+    return;
+  }
+  fireTAAndAnalyst();
 }

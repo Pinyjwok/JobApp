@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
   try {
     switch (id) {
       case 'research_confirm':
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed — running gap analysis…' });
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed - running gap analysis…' });
         broadcastMode('auto_running', 'Analyst');
         await state.recipe.globalVariables.setValue('research_confirmed', 1);
         await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
@@ -77,7 +77,7 @@ router.post('/', async (req, res) => {
         break;
 
       case 'research_pre_confirm':
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed — running JD enhancement…' });
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed - running JD enhancement…' });
         state.pipelineStatus = 'RESEARCH_COMPLETE';
         runLinearDispatch({ node: 'jd_enhancer_input', agent: 'JD Enhancer' });
         break;
@@ -116,7 +116,7 @@ router.post('/', async (req, res) => {
         break;
 
       case 'research_skip':
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Skipping research — continuing with available data…' });
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Skipping research - continuing with available data…' });
         await handlePipelineStatus('RESEARCH_COMPLETE');
         break;
 
@@ -400,9 +400,9 @@ router.post('/', async (req, res) => {
           const bits = [];
           if (full) bits.push(`added ${full} backed point${full === 1 ? '' : 's'} to your CV`);
           if (mit)  bits.push(`strengthened your position on ${mit} requirement${mit === 1 ? '' : 's'} we can't fully close`);
-          if (open) bits.push(`couldn't fully evidence ${open} — we'll frame ${open === 1 ? 'it' : 'them'} honestly`);
+          if (open) bits.push(`couldn't fully evidence ${open} - we'll frame ${open === 1 ? 'it' : 'them'} honestly`);
           if (bits.length) {
-            broadcast({ type: 'agent_message', agent: 'System', text: `Thanks — ${bits.join(', ')}.` });
+            broadcast({ type: 'agent_message', agent: 'System', text: `Thanks - ${bits.join(', ')}.` });
             await new Promise(r => setTimeout(r, 600));
           }
         }
