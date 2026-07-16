@@ -5,7 +5,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, fireTAAndAnalyst, finishAnalystTurn, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
 import { adjudicateGapAnswers } from '../lib/adjudicator.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
@@ -31,13 +31,16 @@ router.post('/', async (req, res) => {
         state.pipelineStatus = 'PARALLEL_ANALYSIS';
         state.analystDone = false;
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
-        sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
-          .then(async r => {
-            const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Analyst', false);
-            state.analystDone = true; syncTADone(); await checkJoin();
-          })
-          .catch(err => surfaceStall('Analyst', err));
+        {
+          const dispatchStart = Date.now();  // mtime freshness floor for finishAnalystTurn's gate
+          sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
+            .then(async r => {
+              const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+              broadcastAgentResult(cleanText, 'Analyst', false);
+              await finishAnalystTurn(dispatchStart); syncTADone(); await checkJoin();
+            })
+            .catch(err => surfaceStall('Analyst', err));
+        }
         break;
 
       case 'research_redo':
@@ -54,11 +57,12 @@ router.post('/', async (req, res) => {
         state.analystDone = false;
         syncTADone();
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
+        const dispatchStart = Date.now();  // mtime freshness floor for finishAnalystTurn's gate
         sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
-            state.analystDone = true; syncTADone(); await checkJoin();
+            await finishAnalystTurn(dispatchStart); syncTADone(); await checkJoin();
           })
           .catch(err => surfaceStall('Analyst', err));
         break;
@@ -128,11 +132,12 @@ router.post('/', async (req, res) => {
         state.analystDone = false;
         syncTADone();
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
+        const dispatchStart = Date.now();  // mtime freshness floor for finishAnalystTurn's gate
         sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
-            state.analystDone = true; syncTADone(); await checkJoin();
+            await finishAnalystTurn(dispatchStart); syncTADone(); await checkJoin();
           })
           .catch(err => surfaceStall('Analyst', err));
         break;

@@ -5,6 +5,7 @@ import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
 import { adjudicateGapAnswers } from './adjudicator.js';
+import { runAnalystValidator } from './analyst-validator.js';
 
 // ── Status-tag fallback + stall recovery (#1 / #2) ────────────────────────────
 
@@ -344,35 +345,35 @@ export function fireTAAndAnalyst() {
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { cleanText } = parseAndStripStatus(raw);
-      state.analystOutputText = cleanText; // validator is now called as a tool by the Analyst itself
-      // The inline analyst_validator writes analyst_validator_verdict.json as the source of truth.
-      // Read it here so checkJoin can surface a compact verdict bubble to the user (the validator
-      // is otherwise invisible — it runs inside the LLM node, the server never fires it).
-      state.analystValidatorSummary = buildAnalystValidatorSummary();
-      state.analystDone = true;
+      state.analystOutputText = cleanText;
+      await finishAnalystTurn(dispatchStart);
       syncTADone();
       await checkJoin();
     })
     .catch(err => console.error('[Analyst] error:', err));
 }
 
-// Read the analyst validator's verdict file and render a compact one-liner for the UI.
-// Returns null if the file is missing/unreadable/empty (e.g. validator never ran).
-function buildAnalystValidatorSummary() {
-  try {
-    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'analyst_validator_verdict.json'), 'utf8'));
-    if (!verdict || !verdict.verdict) return null;
-    const issues = verdict.issues ?? verdict.notes ?? [];
-    const count = issues.length;
-    let text = `🔍 **Validator: ${verdict.verdict}** — ${count} issue${count === 1 ? '' : 's'}`;
-    if ((verdict.verdict === 'FLAG' || verdict.verdict === 'REJECT') && count) {
-      text += '\n' + issues.map(i => `• ${i.field}: ${i.problem ?? i.note}`).join('\n');
-    }
-    return text;
-  } catch (err) {
-    console.error('[Analyst · validator] verdict read error:', err.message);
-    return null;
+// Shared tail for EVERY Analyst dispatch — the parallel-analysis fire above plus the four re-fire
+// paths (action.js research_confirm/redo_analyst/analysis_retry, pipeline-state.js resume). All of
+// them previously just set `state.analystDone = true` the moment the KEMU promise resolved.
+//
+// That was safe only by accident. It relied on the Analyst's Phase 9 (validator + fix pass) running
+// synchronously inside its own KEMU turn, which meant gap_analysis.json was necessarily final before
+// the promise resolved — which is why 9b10002 could note "Analyst branch already tag-free" and leave
+// COMPLETION_CONTRACTS.Analyst unused. Moving Phase 9 to the server removes that guarantee: the turn
+// now resolves right after Phase 8, with nothing proving the write landed before we read it. That is
+// the exact race 9b10002 already fixed for the Tone Analyst (TA wrote style_findings.json but dropped
+// its tag → the join hung). So gate on the same freshness contract the TA branch uses, then run the
+// validator against a file we know is this turn's.
+export async function finishAnalystTurn(dispatchStart) {
+  const { ready } = await awaitOutputReady('Analyst', dispatchStart); // COMPLETION_CONTRACTS.Analyst
+  if (!ready) {
+    console.warn('[Analyst] gap_analysis.json not fresh/valid — skipping validator, analysis join cannot advance');
+    return;
   }
+  // Discarded by checkJoin (the verdict stays internal — see the note there); kept for parity.
+  state.analystValidatorSummary = await runAnalystValidator();
+  state.analystDone = true;
 }
 
 // ── Server-owned fit score calculation ───────────────────────────────────────

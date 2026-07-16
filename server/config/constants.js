@@ -166,9 +166,10 @@ export const WORKSPACE_SCAFFOLD = {
   // Validator verdict files — pre-created so the validator agents OVERWRITE an existing file.
   // KEMU's WriteFile creates a nested dir (<name>/<name>) when the target doesn't already exist,
   // which then breaks the server's readFileSync (EISDIR). Scaffolding them avoids the create path.
-  // analyst_validator_verdict.json is file-backed again (2026-06-17): the inline analyst_validator
-  // writes it as the source of truth; the server reads it to broadcast the verdict bubble and the
-  // Analyst reads it for its APPROVE/FLAG/REJECT branch (no longer parses the tool-call text).
+  // analyst_validator_verdict.json is now SERVER-written (2026-07-16), not KEMU-written: the audit
+  // moved off the inline analyst_validator tool call into server/lib/analyst-validator.js. Nothing
+  // reads it anymore — it is a pure audit trail for an otherwise invisible internal QA step. Kept
+  // scaffolded so the file always exists with a readable shape.
   'analyst_validator_verdict.json':  {},
   'tone_validator_verdict.json':     {},
   'assembly_validator_verdict.json': {},

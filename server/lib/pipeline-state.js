@@ -7,7 +7,7 @@ import {
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, stampTimestamp, resolveStatusFromOutput, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, finishAnalystTurn, stampTimestamp, resolveStatusFromOutput, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -58,11 +58,12 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
         }
         if (!state.analystDone) {
           console.log('[Resume] gap_analysis missing — re-firing Analyst');
+          const analystStart = Date.now();  // mtime freshness floor for finishAnalystTurn's gate
           sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
             .then(async r => {
               const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
               broadcastAgentResult(cleanText, 'Analyst', false);
-              state.analystDone = true; syncTADone(); await checkJoin();
+              await finishAnalystTurn(analystStart); syncTADone(); await checkJoin();
             })
             .catch(err => console.error('[Analyst · resume] error:', err));
         }
