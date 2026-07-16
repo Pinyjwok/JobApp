@@ -51,6 +51,11 @@ export function researchQuality(data) {
 //      cannot satisfy the guard; the fresh write must land first.
 //   2. the contract's ready(data) shape check — rejects the {} scaffold / a clarifying-question turn.
 // Returns { ready, data }. No contract → { ready: true, data: null } (caller falls back to inference).
+//
+// This is also where the artifact's completion timestamp is stamped (contract.stamp): the moment
+// freshness is proven is the truest "the agent finished" time available, and stamping at this single
+// choke point means no agent-written date can reach disk as a raw `__DATE_TODAY__` token. `data` is
+// returned pre-stamp — no caller reads a timestamp off it, they re-read the file.
 export async function awaitOutputReady(agentName, dispatchStart = 0) {
   const contract = COMPLETION_CONTRACTS[agentName];
   if (!contract) return { ready: true, data: null };
@@ -59,7 +64,10 @@ export async function awaitOutputReady(agentName, dispatchStart = 0) {
     try {
       if (existsSync(path) && statSync(path).mtimeMs >= dispatchStart) {
         const parsed = JSON.parse(readFileSync(path, 'utf8'));
-        if (contract.ready(parsed)) return { ready: true, data: parsed };
+        if (contract.ready(parsed)) {
+          if (contract.stamp) stampTimestamp(contract.file, contract.stamp);
+          return { ready: true, data: parsed };
+        }
       }
     } catch {}
     await new Promise(r => setTimeout(r, 100));
@@ -157,14 +165,20 @@ const MONTH_ABBR = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug
 // stores dates VERBATIM (it no longer computes durations — that's server-owned), so this tolerates the
 // common shapes a CV actually uses: 2025-03, 2025/03, 03/2025, "March 2025", "Mar 2025", bare 2025, and
 // "Present"/"Current"/"ongoing". Kept lenient on purpose — it only ever runs on date fields.
+const validMonth = mo => mo >= 1 && mo <= 12;
 function parseYearMonth(s) {
   if (!s) return null;
   const str = String(s).trim();
-  if (/\b(present|current|now|ongoing|to\s*date|to\s*present)\b/i.test(str) && !/\d{4}/.test(str)) return 'NOW';
+  // An ongoing marker wins outright, even alongside a year ("2020 - Present" as an end_date means
+  // ongoing, not 2020). A year-guard here would fall through to the bare-year rule below and date the
+  // role's end to mid-2020, silently truncating every current role by its whole tenure.
+  if (/\b(present|current|now|ongoing|to\s*date)\b/i.test(str)) return 'NOW';
+  // Each shape falls through to the next when the month is out of range, so a malformed "2025-13"
+  // degrades to the bare-year rule rather than yielding month 13.
   let m = str.match(/\b(\d{4})[-/](\d{1,2})\b/);          // 2025-03 / 2025/03
-  if (m) return { y: +m[1], mo: +m[2] };
+  if (m && validMonth(+m[2])) return { y: +m[1], mo: +m[2] };
   m = str.match(/\b(\d{1,2})[-/](\d{4})\b/);              // 03/2025
-  if (m) return { y: +m[2], mo: +m[1] };
+  if (m && validMonth(+m[1])) return { y: +m[2], mo: +m[1] };
   m = str.match(/([A-Za-z]{3,})\.?\s+(\d{4})/);           // March 2025 / Mar 2025
   if (m) { const mo = MONTH_ABBR[m[1].slice(0, 3).toLowerCase()]; if (mo) return { y: +m[2], mo }; }
   m = str.match(/\b(\d{4})\b/);                            // bare 2025
@@ -172,9 +186,12 @@ function parseYearMonth(s) {
   return null;
 }
 
+// Years between a role's start and end, or null when the start date can't be read at all. A missing or
+// unparseable END date still means "ongoing" (the common "Present" case), but without a start there is
+// nothing to measure from — null, never 0. Callers must treat null as unknown, not as zero tenure.
 function roleDurationYears(role) {
   const start = parseYearMonth(role.start_date);
-  if (!start || start === 'NOW') return 0;
+  if (!start || start === 'NOW') return null;
   const endRaw = parseYearMonth(role.end_date);
   const now = new Date();
   const end = (!endRaw || endRaw === 'NOW') ? { y: now.getFullYear(), mo: now.getMonth() + 1 } : endRaw;
@@ -197,6 +214,15 @@ export function computeRoleDurations() {
   for (const role of work) {
     if (!role || typeof role !== 'object') continue;
     const dur = roleDurationYears(role);
+    // Unreadable start date → leave duration_years off the role entirely. Writing 0 would assert
+    // "spent no time here", and the Analyst sums this field for its minimum-years requirement check —
+    // a 0 there turns a qualified candidate into a false Gap. Absent reads as unknown; 0 reads as a lie.
+    if (dur == null) {
+      console.warn(`[durations] ${role.employer ?? '?'} — ${role.position ?? '?'}: cannot read start_date ` +
+                   `(start="${role.start_date ?? ''}" end="${role.end_date ?? ''}"), leaving duration_years unset`);
+      if ('duration_years' in role) { delete role.duration_years; changed = true; }
+      continue;
+    }
     if (role.duration_years !== dur) { role.duration_years = dur; changed = true; }
   }
   if (changed) { try { writeFileSync(p, JSON.stringify(profile, null, 2)); } catch (e) { console.warn(`[durations] write failed: ${e.message}`); } }
@@ -273,7 +299,7 @@ export function runToneValidation() {
   const verdict = {
     verdict: dropped.length ? 'FLAG' : 'APPROVE',
     agent: 'tone_analyst',
-    issues: dropped.map(d => ({ field: d.field, problem: `Quote "${d.quote}…" not found verbatim in source — dropped`, severity: 'resolved' })),
+    issues: dropped.map(d => ({ field: d.field, problem: `Quote "${d.quote}…" not found verbatim in source - dropped`, severity: 'resolved' })),
     findings_for_sn: [],
     summary: `${dropped.length} ungrounded quote(s) stripped server-side.`,
   };
@@ -331,8 +357,6 @@ export function fireTAAndAnalyst() {
   state.analystDone = false;
   state.taDone      = false;
   state.analystOutputText = null;
-  // BUG-126: JD Enhancer just finished — stamp the real enhancement time before consumers read it.
-  stampTimestamp('enhanced_jd.json', 'metadata.enhanced_at');
   broadcastMode('auto_running', 'Analysis');
   state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
   state.pipelineStatus = 'PARALLEL_ANALYSIS';
@@ -357,11 +381,11 @@ export function fireTAAndAnalyst() {
       const { ready } = await awaitOutputReady('Tone Analyst', dispatchStart);
       if (ready) {
         // Server-owned post-processing (only meaningful once real findings exist): strip ungrounded
-        // quotes (runToneValidation, was the tone_validator LLM node), compute seniority years (kills
-        // the cyclic-reasoning loop; TA only tags relevance), and stamp analyzed_at (BUG-126 class).
+        // quotes (runToneValidation, was the tone_validator LLM node) and compute seniority years (kills
+        // the cyclic-reasoning loop; TA only tags relevance). analyzed_at is already stamped by
+        // awaitOutputReady above, via the contract.
         runToneValidation();
         computeSeniorityYears();
-        stampTimestamp('style_findings.json', 'analyzed_at');
         state.taDone = true;
         await checkJoin();
       } else {
@@ -1260,7 +1284,7 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   await new Promise(r => setTimeout(r, 1000));
 
   if (phaseNumber <= 6 || phaseNumber === 9) {
-    const merged = await mergePhaseOutput(phaseNumber);
+    const merged = await mergePhaseOutput(phaseNumber, dispatchStart);
     if (!merged.ok) {
       // The agent didn't produce a real section (e.g. it asked a clarifying question instead of
       // building). Don't advance or show Approve/Revise on a phantom section: auto-retry once, then stall.
@@ -1398,7 +1422,7 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
       ],
       recommendation: 'Use first person - it reads as direct and modern and is the most common choice today. Prefer third person? Pick "Customise" and type "third person".',
       insight: 'First person (or implied first person, with no "I") is standard for most professional summaries; third person can suit very senior or academic profiles.',
-      recommended_overrides: { profile_voice: 'first person — the summary speaks as the candidate (implied first person, no name and no third-person pronouns)' },
+      recommended_overrides: { profile_voice: 'first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)' },
     });
   }
 
@@ -1412,7 +1436,7 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
       examples: [],
       recommendation: 'Add a Key Achievements section (2–3 bolded, quantified bullets) immediately after the profile paragraph.',
       insight: 'Senior-role screens run under 30 seconds - this section is the primary attention anchor.',
-      recommended_overrides: { key_achievements_section: 'Include Key Achievements section — 2–3 bullet points with bold metrics immediately after profile paragraph' },
+      recommended_overrides: { key_achievements_section: 'Include Key Achievements section - 2–3 bullet points with bold metrics immediately after profile paragraph' },
     });
   }
   return out;
@@ -1429,7 +1453,7 @@ export function stampSeniorityOverride(groups, findings = {}) {
   const totStr = s.years_experience          != null ? `${s.years_experience} total` : null;
   const yearsStr = [relStr, totStr].filter(Boolean).join(' / ') || 'experience unspecified';
   g.recommended_overrides = g.recommended_overrides || {};
-  g.recommended_overrides.seniority_level = `${level} (${yearsStr} yrs — confirmed by user)`;
+  g.recommended_overrides.seniority_level = `${level} (${yearsStr} yrs - confirmed by user)`;
   return groups;
 }
 
@@ -1516,10 +1540,10 @@ async function _autoApproveSN(findings = {}) {
     data: {
       agreed_overrides: {
         bold_achievements:   'Bold numeric metrics and key results in work history bullets',
-        improve_conciseness: 'Keep bullets concise — under 18 words where possible',
+        improve_conciseness: 'Keep bullets concise - under 18 words where possible',
       },
       negotiation_outcome: 'NO_ISSUES_FOUND',
-      negotiation_summary: 'No style findings available — default professional overrides applied.',
+      negotiation_summary: 'No style findings available - default professional overrides applied.',
       original_style: { tense: p.tense, voice: p.voice, bullet_format: p.bullet_format },
       user_confirmed: true,
     },
@@ -1732,7 +1756,10 @@ function _phaseHasRealOutput(phase, outputData) {
 // Merge a phase's output into cv_assembly_state.json and advance current_phase. Returns
 // { ok, reason } — callers MUST NOT advance/show Approve-Revise when ok is false (empty output would
 // otherwise lock the phase ahead and break Revise).
-export async function mergePhaseOutput(phaseNumber) {
+//
+// `dispatchStart` (ms epoch) is the freshness floor for the stale-output check; 0/omitted skips it, for
+// callers (resume, revise re-merge) that aren't driving a fresh agent turn.
+export async function mergePhaseOutput(phaseNumber, dispatchStart = 0) {
   const phase = ASSEMBLY_PHASES[phaseNumber];
   if (!phase?.outputFile) return { ok: true }; // SR/IC write cv_assembly_state.json themselves
   try {
@@ -1746,7 +1773,10 @@ export async function mergePhaseOutput(phaseNumber) {
     const cvState = JSON.parse(readFileSync(cvStatePath, 'utf8'));
     const idx = phaseNumber - 1;
     cvState.phases[idx].status       = 'COMPLETE';
-    cvState.phases[idx].completed_at = outputData.completed_at ?? new Date().toISOString();
+    // Server owns the time. The agent's own completed_at is the literal `__DATE_TODAY__` token, and
+    // copying it through (the old `outputData.completed_at ?? …` — the ?? only caught it being absent,
+    // never it being a token) leaked that token straight into cv_assembly_state.json.
+    cvState.phases[idx].completed_at = new Date().toISOString();
     cvState.phases[idx].data         = outputData.data;
     cvState.current_phase            = phaseNumber + 1;
     cvState.metadata.completed_phases = phaseNumber;
@@ -1758,17 +1788,22 @@ export async function mergePhaseOutput(phaseNumber) {
     return { ok: false, reason: 'merge_error' };
   }
 
-  // Stale output detection — warn if output file was written more than 5 minutes ago
+  // Stale output detection: did the agent actually write this artifact THIS turn? File mtime is the only
+  // honest signal. This used to read the agent's own `completed_at`, which cannot work in either
+  // direction — the agent writes the literal `__DATE_TODAY__` token, so `new Date(token)` is Invalid
+  // Date, the age is NaN, and `NaN > 300_000` is false, so the check silently never fired. Had the token
+  // been substituted it would resolve to midnight today and fire on every afternoon run instead. Same
+  // mtime >= dispatchStart guard awaitOutputReady uses for the linear agents.
   try {
-    const outputData = JSON.parse(readFileSync(join(WORKSPACE_DIR, phase.outputFile), 'utf8'));
-    if (outputData.completed_at) {
-      const outputAge = Date.now() - new Date(outputData.completed_at).getTime();
-      if (outputAge > 300_000) {
-        console.warn(`[Assembly] phase ${phaseNumber} output stale (${Math.round(outputAge / 1000)}s old)`);
+    if (dispatchStart) {
+      const mtime = statSync(join(WORKSPACE_DIR, phase.outputFile)).mtimeMs;
+      if (mtime < dispatchStart) {
+        const age = Math.round((dispatchStart - mtime) / 1000);
+        console.warn(`[Assembly] phase ${phaseNumber} output stale (${phase.outputFile} predates dispatch by ${age}s)`);
         broadcast({
           type: 'agent_message', agent: 'System',
-          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output appears stale - completed_at is ${outputData.completed_at}. ` +
-                `The agent may not have run this turn. Check if ${phase.outputFile} was freshly written.`,
+          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output looks stale - ${phase.outputFile} was last written ` +
+                `${age}s before this step started, so the agent may not have run this turn.`,
         });
       }
     }

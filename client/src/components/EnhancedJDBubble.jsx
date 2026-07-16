@@ -8,7 +8,7 @@ import { Eyebrow, CheckIcon, InfoIcon, Disclosure } from './primitives';
 // the rest collapse to a one-line preview. "How your research shaped this" renders the agent's
 // candidate_brief; it does NOT re-render the company research (that card was already shown) — it links
 // back to it. JD enhancement is not user-customisable: there are no Continue/Re-read buttons. The
-// pipeline auto-advances the moment this bubble appears (server proceedAfterJDEnhanced), and the
+// pipeline auto-advances the moment this bubble appears (server revealEnhancedJD), and the
 // "already moving on" strip signals the fit-analysis is running — this bubble is reference only.
 
 const norm = arr => (Array.isArray(arr) ? arr.map(s => String(s).trim()).filter(Boolean) : []);
@@ -63,7 +63,7 @@ function ReqGroup({ label, items, open, onToggle, hint, marker }) {
   );
 }
 
-export function EnhancedJDBubble({ msg }) {
+export function EnhancedJDBubble() {
   const [ejd, setEjd]         = useState(null);
   const [meta, setMeta]       = useState(null);
   const [loading, setLoading] = useState(true);
@@ -134,7 +134,7 @@ export function EnhancedJDBubble({ msg }) {
             </div>
 
             <p className="px-3 pb-1.5 text-[11.5px] text-fg-faint">
-              Pulled straight from the ad — this is what we&rsquo;ll measure your CV against.
+              Pulled straight from the ad - this is what we&rsquo;ll measure your CV against.
             </p>
 
             <div className="px-3 pb-2">
@@ -201,7 +201,7 @@ export function EnhancedJDBubble({ msg }) {
                 <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" style={{ animationDelay: '.2s' }} />
                 <span className="w-1 h-1 rounded-full bg-accent jd-scan-dot" style={{ animationDelay: '.4s' }} />
               </span>
-              Matching your CV against these requirements — no action needed, this is just for your reference.
+              Matching your CV against these requirements - no action needed, this is just for your reference.
             </div>
             <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-line">
               <div className="jd-scan-bar h-full w-full" />
@@ -212,20 +212,3 @@ export function EnhancedJDBubble({ msg }) {
     </div>
   );
 }
-
-/*
-  Add these keyframes once to your global stylesheet (index.css) for the "analysing" strip.
-  They degrade gracefully if omitted — dots simply stay static.
-
-  @keyframes jd-shimmer   { 0% { background-position:-140% 0 } 100% { background-position:240% 0 } }
-  @keyframes jd-pulse-dot { 0%,100% { opacity:.35; transform:scale(.85) } 50% { opacity:1; transform:scale(1) } }
-  .jd-scan-dot { animation: jd-pulse-dot 1.2s ease-in-out infinite; }
-  .jd-scan-bar {
-    background: linear-gradient(90deg, transparent, oklch(from var(--accent) l c h / .55), transparent);
-    background-size: 40% 100%; background-repeat: no-repeat;
-    animation: jd-shimmer 1.5s linear infinite;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .jd-scan-dot, .jd-scan-bar { animation: none; }
-  }
-*/

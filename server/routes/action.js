@@ -1,5 +1,5 @@
 import express from 'express';
-import { readFileSync, writeFileSync, rmSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join } from 'path';
 import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
@@ -7,7 +7,7 @@ import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
 import { syncTADone, checkJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
 import { adjudicateGapAnswers } from '../lib/adjudicator.js';
-import { handlePipelineStatus, proceedAfterJDEnhanced, JD_REVIEW_MARKER } from '../lib/pipeline-state.js';
+import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
 const router = express.Router();
 export default router;
@@ -79,50 +79,6 @@ router.post('/', async (req, res) => {
       case 'research_pre_confirm':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed - running JD enhancement…' });
         state.pipelineStatus = 'RESEARCH_COMPLETE';
-        runLinearDispatch({ node: 'jd_enhancer_input', agent: 'JD Enhancer' });
-        break;
-
-      // ── Guided enhanced-JD review gate ──────────────────────────────────────
-      case 'jd_review_confirm': {
-        // Ignore a stale confirm (e.g. the persisted bubble re-clicked after the gate already
-        // advanced on a prior reload) — only the open gate may proceed.
-        if (!state.awaitingJDReview) { res.json({ ok: true, stale: true }); return; }
-        rmSync(JD_REVIEW_MARKER, { force: true });  // left the gate — resume must not re-show it
-        // Optional in-place requirement edits from the bubble. requirements.* and
-        // role_details.key_responsibilities feed the downstream gap analysis, so persist them to
-        // enhanced_jd.json BEFORE proceeding. Only arrays the client actually sent are touched.
-        const edits = req.body.edits;
-        if (edits && typeof edits === 'object') {
-          try {
-            const path = join(WORKSPACE_DIR, 'enhanced_jd.json');
-            const ejd  = JSON.parse(readFileSync(path, 'utf8'));
-            ejd.requirements  = ejd.requirements  || {};
-            ejd.role_details  = ejd.role_details  || {};
-            const clean = a => Array.isArray(a) ? a.map(s => String(s).trim()).filter(Boolean) : null;
-            const reqd = clean(edits.required_qualifications);
-            const pref = clean(edits.preferred_qualifications);
-            const resp = clean(edits.key_responsibilities);
-            if (reqd) ejd.requirements.required_qualifications  = reqd;
-            if (pref) ejd.requirements.preferred_qualifications = pref;
-            if (resp) ejd.role_details.key_responsibilities     = resp;
-            writeFileSync(path, JSON.stringify(ejd, null, 2), 'utf8');
-            console.log('[jd_review_confirm] persisted requirement edits to enhanced_jd.json');
-          } catch (err) {
-            console.error('[jd_review_confirm] could not persist edits:', err.message);
-          }
-        }
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Looks good - moving on…' });
-        proceedAfterJDEnhanced();
-        break;
-      }
-
-      case 'jd_review_redo':
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Re-reading the job ad…' });
-        state.awaitingJDReview = false;
-        rmSync(JD_REVIEW_MARKER, { force: true });  // the re-shown gate rewrites it after re-enhancement
-        state.pipelineStatus = 'RESEARCH_COMPLETE';
-        // The re-fired JD Enhancer sets JD_ENHANCED again; clear the 30s dedupe so the gate re-shows.
-        state.recentlyDispatched.delete('JD_ENHANCED');
         runLinearDispatch({ node: 'jd_enhancer_input', agent: 'JD Enhancer' });
         break;
 

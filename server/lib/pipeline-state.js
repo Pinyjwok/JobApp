@@ -7,13 +7,7 @@ import {
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, stampTimestamp, resolveStatusFromOutput, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
-
-// Disk marker for the guided enhanced-JD review gate. Written when the gate opens, removed on
-// confirm/redo. Survives a client reload AND a server restart, so the resume path can re-show the gate
-// even after the speculative Analyst has already written gap_analysis.json (which would otherwise look
-// like "analysis done, advance past the gate").
-export const JD_REVIEW_MARKER = join(WORKSPACE_DIR, 'jd_review.pending');
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, resolveStatusFromOutput, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -87,8 +81,9 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'RESEARCH_COMPLETE') {
-    // BUG-126: Researcher just finished — stamp the real completion time before the gate displays it.
-    stampTimestamp('research_output.json', 'completed_at');
+    // completed_at is stamped by awaitOutputReady when the Researcher's artifact lands (contract.stamp).
+    // Not re-stamped here on purpose: 'research_skip' also routes through this branch without the
+    // Researcher having run, and claiming a completion time for a run that never happened is a lie.
     broadcast({ type: 'action_required', context: 'research_pre_confirm', prompt: '', actions: [
       { id: 'research_pre_confirm', label: 'Yes - continue',  variant: 'primary' },
       { id: 'research_pre_redo',   label: 'Research again',  variant: 'ghost'   },
@@ -121,9 +116,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'JD_ENHANCED') {
-    // Guided review gate: don't auto-advance to gap analysis. Surface the enhanced JD as a structured
-    // bubble the user reviews (and can lightly edit) first. proceedAfterJDEnhanced() runs on confirm.
-    showJDReviewGate();
+    revealEnhancedJD();
     return;
   }
 
@@ -230,19 +223,11 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
 // ── Enhanced-JD reveal (informational, no gate) ───────────────────────────────
 // After the JD Enhancer writes enhanced_jd.json we surface a structured, read-only bubble
 // (EnhancedJDBubble on the client, which fetches the JSON itself) AND immediately advance the pipeline.
-// JD enhancement is not user-customisable — there is no Continue/Re-read approval; the user sees the
-// sharpened JD while the next process is already visibly running. proceedAfterJDEnhanced() fires the
-// analysis (or the optional cover-letter prompt) straight away.
-export function showJDReviewGate() {
+// JD enhancement is not user-customisable, so there is nothing to approve: the user sees the sharpened
+// JD while the next step is already visibly running. Then prompt for an optional cover letter (if none
+// was uploaded), otherwise fan out into Tone Analyst + Analyst.
+export function revealEnhancedJD() {
   broadcast({ type: 'agent_message', kind: 'enhanced_jd', agent: 'JD Enhancer', text: '' });
-  proceedAfterJDEnhanced();
-}
-
-// The post-JD_ENHANCED continuation that used to fire immediately at the gate: prompt for an optional
-// cover letter (if none uploaded), otherwise fan out into Tone Analyst + Analyst. Called once the user
-// confirms the enhanced-JD review (server/routes/action.js → jd_review_confirm).
-export function proceedAfterJDEnhanced() {
-  state.awaitingJDReview = false;
   const clPath = join(WORKSPACE_DIR, 'cover_letter_sample.txt');
   if (!existsSync(clPath)) {
     broadcast({

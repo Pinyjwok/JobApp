@@ -3,7 +3,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { HAPPY_PATH, EXCEPTION_STATUSES, INPUT_NODE_MAP, AGENT_FOREGROUND } from '../config/constants.js';
-import { reShowSectionReview, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch, clearStaleAnalysis } from '../lib/dispatch.js';
+import { reShowSectionReview, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch, clearStaleAnalysis, stampTimestamp } from '../lib/dispatch.js';
 
 const router = express.Router();
 export default router;
@@ -132,6 +132,11 @@ function fireUserMessage(node, nextAgent, message, sessionId, foreground) {
           broadcastMode('user_turn', 'ProjectSetup');
           return; // no status to set
         } else {
+          // ProjectSetup validated the files and wrote project_meta.json — this is the moment the
+          // project is created, so it's the only honest source for created_at. Stamped here rather
+          // than on the FILES_SAVED status, which an Extractor re-run also sets (message.js RERUNS)
+          // and would silently rewrite created_at into "last re-ran at".
+          stampTimestamp('project_meta.json', 'created_at');
           broadcastAgentResult(cleanText, 'ProjectSetup', foreground);
         }
       } else {
