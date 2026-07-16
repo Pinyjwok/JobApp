@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan — Guided JD Enhancement UX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --surface:#f8f9fb; --surface-2:#ffffff; --surface-3:#f1f3f7;
+    --line:#e3e6eb; --line-strong:#d2d7df;
+    --fg:#1b2230; --fg-2:#525c6b; --fg-muted:#79828f; --fg-faint:#a3abb6;
+    --accent:#2f5fd0; --accent-fg:#fff; --success:#1f9d57; --danger:#d24545; --warn:#b07512;
+    --shadow-panel:0 1px 2px rgba(20,30,50,.06),0 4px 12px rgba(20,30,50,.07);
+    --shadow-float:0 20px 50px rgba(20,30,50,.16);
+    --font-sans:'Schibsted Grotesk',system-ui,-apple-system,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;min-width:0}
+  html,body{margin:0}
+  body{font-family:var(--font-sans);color:var(--fg);background:var(--surface);
+    background-image:radial-gradient(1200px 600px at 80% -10%, #eef2fb 0%, transparent 60%);
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 24px 96px}
+  code,.mono{font-family:var(--font-mono)}
+  a{color:var(--accent);text-decoration:none}
+  /* ── header ── */
+  .eyebrow{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--fg-muted)}
+  h1{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:.35em 0 .15em}
+  .lede{font-size:16px;color:var(--fg-2);max-width:64ch}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;
+    font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid var(--line-strong);
+    color:var(--fg-muted);background:var(--surface-2)}
+  .pill.good{color:var(--success);border-color:color-mix(in oklab,var(--success),transparent 70%);
+    background:color-mix(in oklab,var(--success),transparent 92%)}
+  .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  /* ── sections ── */
+  section{margin-top:44px}
+  .shead{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+  .shead h2{font-size:13px;font-family:var(--font-mono);font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--fg);margin:0}
+  .shead .n{font-family:var(--font-mono);font-size:12px;color:var(--accent);font-weight:700}
+  .rule{height:1px;background:var(--line);flex:1}
+  /* ── cards / grid ── */
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  @media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+    box-shadow:var(--shadow-panel)}
+  .card h3{margin:0 0 6px;font-size:14px;font-weight:600}
+  .card p{margin:0;font-size:13.5px;color:var(--fg-2)}
+  .card .tag{font-family:var(--font-mono);font-size:10.5px;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--fg-muted)}
+  .files{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+  .files code{font-size:12px;color:var(--fg);background:var(--surface-3);border:1px solid var(--line);
+    border-radius:6px;padding:2px 7px;display:inline-block;width:fit-content}
+  .new{color:var(--success);font-weight:700;font-family:var(--font-mono);font-size:10px}
+  /* ── before/after ── */
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.ba{grid-template-columns:1fr}}
+  .ba .card.cur{opacity:.78}
+  .ba .card.cur h3::before{content:"NOW · ";color:var(--fg-faint);font-family:var(--font-mono);font-size:11px}
+  .ba .card.nxt{border-color:color-mix(in oklab,var(--accent),transparent 55%)}
+  .ba .card.nxt h3::before{content:"NEW · ";color:var(--accent);font-family:var(--font-mono);font-size:11px}
+  ol.steps{margin:8px 0 0;padding-left:0;list-style:none;counter-reset:s}
+  ol.steps li{counter-increment:s;position:relative;padding:7px 0 7px 30px;font-size:13.5px;color:var(--fg-2);
+    border-top:1px dashed var(--line)}
+  ol.steps li:first-child{border-top:0}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:7px;width:20px;height:20px;
+    border-radius:6px;background:var(--surface-3);border:1px solid var(--line);font-family:var(--font-mono);
+    font-size:11px;font-weight:600;display:grid;place-items:center;color:var(--fg-muted)}
+  ol.steps li.ins::before{background:var(--accent);color:#fff;border-color:var(--accent)}
+  ol.steps li.ins{color:var(--fg);font-weight:500}
+  .mermaid{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:18px;
+    box-shadow:var(--shadow-panel);overflow:auto}
+  /* ── the mock bubble (faithful to app design system) ── */
+  .stage{background:var(--surface-3);border:1px solid var(--line);border-radius:16px;padding:26px;
+    display:flex;justify-content:center}
+  .bubble{position:relative;width:100%;max-width:560px;border-radius:14px;border:1px solid var(--line);
+    border-left:3px solid var(--line-strong);background:var(--surface-2);padding:16px 18px;font-size:14px;
+    box-shadow:var(--shadow-panel)}
+  .bhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .dot{width:6px;height:6px;border-radius:999px;background:var(--fg-faint)}
+  .bhead .who{font-size:12px;color:var(--fg-2);font-weight:600}
+  .bhead .cost{font-family:var(--font-mono);font-size:11px;color:var(--fg-faint);margin-left:2px}
+  .badge{margin-left:auto;font-family:var(--font-mono);font-size:11px;font-weight:600;padding:2px 7px;
+    border-radius:5px;color:var(--success);border:1px solid color-mix(in oklab,var(--success),transparent 78%);
+    background:color-mix(in oklab,var(--success),transparent 90%)}
+  .btitle{font-weight:700;font-size:16px;margin:2px 0 4px;display:flex;align-items:center;gap:7px}
+  .bsum{font-size:13px;color:var(--fg-2);margin:0 0 14px}
+  .fwsec{margin-top:6px}
+  .fwlabel{display:flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:11px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px}
+  .fwlabel.ad{color:var(--accent)} .fwlabel.res{color:var(--fg-muted)}
+  .glyph{width:16px;height:16px;border-radius:5px;display:grid;place-items:center;flex-shrink:0;font-size:11px;font-weight:700}
+  .glyph.ad{background:color-mix(in oklab,var(--accent),transparent 86%);color:var(--accent)}
+  .glyph.res{background:var(--surface-3);color:var(--fg-muted);border:1px solid var(--line)}
+  .reqrow{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:8px;border:1px solid var(--line);
+    background:var(--surface);margin-bottom:6px;font-size:13px;color:var(--fg)}
+  .reqrow .rk{font-family:var(--font-mono);font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--accent);background:color-mix(in oklab,var(--accent),transparent 88%);padding:2px 5px;border-radius:4px;
+    flex-shrink:0;margin-top:1px}
+  .reqrow .rk.pref{color:var(--fg-muted);background:var(--surface-3)}
+  .reqrow .ed{margin-left:auto;display:flex;gap:6px;flex-shrink:0;opacity:.0;transition:opacity .15s}
+  .reqrow:hover .ed{opacity:1}
+  .reqrow .ed span{font-family:var(--font-mono);font-size:10px;color:var(--fg-faint);cursor:pointer}
+  .reqrow .ed span:hover{color:var(--accent)}
+  .caution{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:var(--warn);
+    background:color-mix(in oklab,var(--warn),transparent 92%);border:1px solid color-mix(in oklab,var(--warn),transparent 80%);
+    border-radius:8px;padding:9px 11px;margin:2px 0 10px}
+  .editbtn{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-muted);border:1px solid var(--line);
+    background:var(--surface);border-radius:6px;padding:2px 8px;cursor:pointer;margin-left:auto}
+  .rescard{border:1px solid var(--line);border-left:2.5px solid var(--accent);border-radius:8px;padding:9px 11px;
+    margin-bottom:7px;background:color-mix(in oklab,var(--accent),transparent 96%)}
+  .rescard.s{border-left-color:var(--success);background:color-mix(in oklab,var(--success),transparent 96%)}
+  .rescard.w{border-left-color:var(--warn);background:color-mix(in oklab,var(--warn),transparent 96%)}
+  .rescard .rl{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    margin-bottom:3px;color:var(--accent)}
+  .rescard.s .rl{color:var(--success)} .rescard.w .rl{color:var(--warn)}
+  .rescard p{margin:0;font-size:12.5px;color:var(--fg-2);line-height:1.5}
+  .disc{display:flex;align-items:center;gap:7px;width:100%;padding:7px 2px;background:none;border:0;cursor:pointer;
+    border-top:1px solid var(--line);margin-top:6px;color:var(--fg-muted);font-family:var(--font-mono);font-size:11px;
+    font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+  .disc .ct{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--fg-faint);font-weight:400;text-transform:none}
+  .bfoot{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .btn{font-size:13px;font-weight:600;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--line)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.ghost{background:var(--surface);color:var(--fg-2)}
+  .mockcap{font-size:12px;color:var(--fg-muted);text-align:center;margin-top:12px;font-style:italic}
+  /* ── list ── */
+  ul.clean{margin:8px 0 0;padding-left:18px}
+  ul.clean li{font-size:13.5px;color:var(--fg-2);margin:5px 0}
+  ul.clean li code{font-size:12px;background:var(--surface-3);padding:1px 5px;border-radius:5px}
+  .risk{border-left:3px solid var(--warn)}
+  .ok{border-left:3px solid var(--success)}
+  /* ── input ── */
+  .qbox{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:14px;padding:22px;
+    box-shadow:var(--shadow-panel)}
+  .qbox h3{margin:0 0 4px;font-size:16px}
+  .qbox p.sub{margin:0 0 16px;color:var(--fg-2);font-size:13.5px}
+  .opt{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+    margin-bottom:9px;cursor:pointer;background:var(--surface)}
+  .opt:hover{border-color:var(--line-strong)}
+  .opt input{margin-top:3px;accent-color:var(--accent);width:15px;height:15px}
+  .opt b{font-size:13.5px;font-weight:600} .opt span{font-size:12.5px;color:var(--fg-muted);display:block;margin-top:2px}
+  .qbox textarea{width:100%;margin-top:6px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;
+    font-family:var(--font-sans);font-size:13px;color:var(--fg);background:var(--surface);resize:vertical;min-height:64px}
+  .qsubmit{margin-top:14px;background:var(--accent);color:#fff;border:0;border-radius:9px;padding:10px 18px;
+    font-weight:600;font-size:13.5px;cursor:pointer;font-family:var(--font-sans)}
+  .foot{margin-top:40px;font-size:12px;color:var(--fg-faint);text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Branch · jd-enhancer-ui</div>
+    <h1>Guided JD Enhancement UX</h1>
+    <p class="lede">Make the JD Enhancer's work <strong>visible</strong>: after research is confirmed,
+      show the user <strong>the role they're applying for</strong> — its requirements (from the ad) plus
+      a short synthesis of how their research shapes how they'd succeed — then let them confirm (and
+      lightly edit) before gap analysis runs. <em>No re-dump of the research already shown.</em></p>
+    <div class="pillrow">
+      <span class="pill good">Frontend + server</span>
+      <span class="pill" style="color:var(--warn);border-color:color-mix(in oklab,var(--warn),transparent 70%)">JD Enhancer v1.8 → v1.9 · KEMU upload</span>
+      <span class="pill">+ candidate_brief block</span>
+      <span class="pill">No model swap · stays Flash 3.0</span>
+    </div>
+  </header>
+
+  <!-- CONTEXT -->
+  <section>
+    <div class="shead"><span class="n">01</span><h2>The problem</h2><span class="rule"></span></div>
+    <div class="grid g2">
+      <div class="card">
+        <span class="tag">Today</span>
+        <h3 style="margin-top:6px">JD Enhancer runs invisibly</h3>
+        <p>After the research-confirm gate, the server fires the JD Enhancer as a <em>background</em>
+          agent (<code class="mono">runLinearDispatch</code> → <code class="mono">JD_ENHANCED</code>) and
+          immediately moves to the cover-letter prompt / gap analysis. The user never sees what the
+          enhancement actually did — the work is abstracted away.</p>
+      </div>
+      <div class="card risk">
+        <span class="tag">The gap</span>
+        <h3 style="margin-top:6px">Today's JSON is built for the gap analysis, not the user</h3>
+        <p><code class="mono">requirements.*</code> stays cleanly ad-derived (good — the bubble labels it),
+          but <code class="mono">company_context</code> just <em>duplicates the research</em> and
+          <code class="mono">role_details.overview</code> is generic prose. Nothing is authored
+          <em>for the candidate</em>. So the agent must emit a small new user-facing block —
+          <code class="mono">candidate_brief</code> — that the bubble renders directly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOW CHANGE -->
+  <section>
+    <div class="shead"><span class="n">02</span><h2>Flow change — insert a review gate</h2><span class="rule"></span></div>
+    <div class="ba">
+      <div class="card cur">
+        <h3>auto-advance</h3>
+        <ol class="steps">
+          <li><code class="mono">research_pre_confirm</code> → JD Enhancer (background)</li>
+          <li><code class="mono">JD_ENHANCED</code> fires → CL-prompt / gap analysis <em>immediately</em></li>
+          <li>User never reviews the enhanced JD</li>
+        </ol>
+      </div>
+      <div class="card nxt">
+        <h3>guided review</h3>
+        <ol class="steps">
+          <li>JD Enhancer runs (unchanged)</li>
+          <li class="ins"><code class="mono">JD_ENHANCED</code> → <b>guided review bubble + gate</b>, then STOP</li>
+          <li class="ins">User reviews / edits requirements → <code class="mono">jd_review_confirm</code></li>
+          <li>Persist edits → proceed to CL-prompt / gap analysis (as today)</li>
+        </ol>
+      </div>
+    </div>
+    <div style="margin-top:14px" class="mermaid">
+flowchart TD
+  A["research_pre_confirm"] --> B["JD Enhancer runs<br/>writes enhanced_jd.json"]
+  B --> C["pipeline_status: JD_ENHANCED"]
+  C --> D{"handlePipelineStatus"}
+  D -- "NEW gate" --> E["Guided review bubble<br/>awaitingJDReview = true"]
+  E -- "Looks good — continue" --> F["jd_review_confirm<br/>persist edits to enhanced_jd.json"]
+  E -- "Re-read the job ad" --> G["jd_review_redo<br/>re-run JD Enhancer"]
+  G --> B
+  F --> H["proceedAfterJDEnhanced()<br/>CL prompt / fireTAAndAnalyst"]
+  H --> I["Gap analysis"]
+  classDef ins fill:#2f5fd0,stroke:#2f5fd0,color:#fff;
+  classDef norm fill:#ffffff,stroke:#d2d7df,color:#1b2230;
+  class E,F ins;
+  class A,B,C,D,G,H,I norm;
+    </div>
+  </section>
+
+  <!-- THE MOCK -->
+  <section>
+    <div class="shead"><span class="n">03</span><h2>What the user sees — EnhancedJDBubble</h2><span class="rule"></span></div>
+    <div class="stage">
+      <div class="bubble">
+        <div class="bhead">
+          <span class="dot"></span><span class="who">Job description, sharpened</span>
+        </div>
+        <div class="btitle"><span style="color:var(--success)">✓</span> Here's the role you're applying for</div>
+        <p class="bsum">We read the <strong>Lab Technician (Grade 1)</strong> ad closely and used what we
+          learned about <strong>Melbourne Pathology</strong> to frame how you'd succeed in it.</p>
+
+        <!-- WHAT THE ROLE NEEDS (from the ad) -->
+        <div class="fwsec">
+          <p class="fwlabel ad"><span class="glyph ad">✓</span> What this role needs
+            <button class="editbtn">✎ Edit</button></p>
+          <div class="caution">
+            <span>⚠</span>
+            <span>These come straight from the ad. Editing changes what we measure your CV against —
+              only fix something we mis-read; don't add requirements the ad doesn't list.</span>
+          </div>
+          <div class="reqrow"><span class="rk">Req</span><span>Certificate IV in Laboratory Techniques (or equivalent)</span>
+            <span class="ed"><span>edit</span><span>remove</span></span></div>
+          <div class="reqrow"><span class="rk">Req</span><span>Eligibility for a Working with Children Check</span>
+            <span class="ed"><span>edit</span><span>remove</span></span></div>
+          <div class="reqrow"><span class="rk pref">Pref</span><span>Experience with automated chemistry analysers (Roche cobas / Abbott Architect)</span>
+            <span class="ed"><span>edit</span><span>remove</span></span></div>
+          <button class="disc" style="border-top:0;margin-top:2px;justify-content:flex-start">+ 6 key responsibilities <span class="ct">▾</span></button>
+        </div>
+
+        <!-- HOW RESEARCH SHARPENED IT (synthesis, not a research re-dump) -->
+        <div class="fwsec" style="margin-top:12px">
+          <p class="fwlabel res"><span class="glyph res">↳</span> How your research shaped this</p>
+          <div class="rescard s"><div class="rl">The role, in context</div>
+            <p>A graduate-entry biochem role in a high-throughput lab — your earlier research framed it
+              as <strong>mentorship-driven with a 12-week orientation</strong>, so we lead on learning fast, not prior depth.</p></div>
+          <div class="rescard w"><div class="rl">What to emphasise at interview</div>
+            <p>Tie your CV to <strong>specimen integrity &amp; QC, throughput under shift pressure,
+              accreditation awareness</strong> — the themes their hiring focus pointed to.</p></div>
+          <button class="disc">See the company research again <span class="ct">↑ shown earlier ▾</span></button>
+        </div>
+
+        <div class="bfoot">
+          <button class="btn primary">Looks good — continue</button>
+          <button class="btn ghost">Re-read the job ad</button>
+        </div>
+      </div>
+    </div>
+    <p class="mockcap">"What this role needs" = <code>requirements.*</code> (editable). "How your research shaped this" = the new <code>candidate_brief</code>. Hover a requirement row to reveal edit / remove.</p>
+  </section>
+
+  <!-- IMPLEMENTATION -->
+  <section>
+    <div class="shead"><span class="n">04</span><h2>Implementation</h2><span class="rule"></span></div>
+
+    <div class="card" style="margin-bottom:14px;border-left:3px solid var(--warn)">
+      <span class="tag" style="color:var(--warn)">Agent · JD Enhancer v1.8 → v1.9 · KEMU upload</span>
+      <h3 style="margin-top:6px">New <code class="mono">candidate_brief</code> block — authored for the user</h3>
+      <p style="margin-bottom:10px">Add a Phase-5 block written <em>for the candidate</em> (plain, warm, 2nd person) that the
+        bubble renders verbatim. Existing gap-analysis fields stay untouched → Analyst is unaffected, older runs degrade gracefully.</p>
+      <pre style="margin:0;background:var(--surface-3);border:1px solid var(--line);border-radius:9px;padding:12px 14px;overflow:auto;font-family:var(--font-mono);font-size:11.5px;line-height:1.55;color:var(--fg)">"candidate_brief": {
+  "headline": "one warm line naming the role + what makes it tick",
+  "role_in_context": "1-2 sentences: what this role really is, framed by research",
+  "what_to_emphasise": ["angles/themes to foreground — NOT new requirements"],
+  "requirement_notes": [{ "requirement": "&lt;verbatim&gt;", "why_it_matters": "one plain line" }]
+}</pre>
+      <ul class="clean">
+        <li><b>Firewall still holds</b> — <code>what_to_emphasise</code> are angles drawn from the hiring focus + JD duties, never new mandatory items.</li>
+        <li><b>No research re-dump</b> — <code>role_in_context</code> <em>references</em> research as already-shown context; it doesn't re-list mission/culture.</li>
+        <li><b>Anti-fabrication</b> — if research is <code>INSUFFICIENT</code>, the brief derives from the JD alone; never invent specifics. No internal terms ("firewall") in the copy.</li>
+        <li><b>De-code the instructions</b> (your request) — convert the pseudocode-heavy phases to prose, like the 2026-06-19 de-constrain pass did for PB/HF/CLW/SC. <em>Preserve as prose:</em> the firewall, the statutory Mandatory-Requirements merge + dedupe, the Phase 6.0 keyword safety-net, the <code>__DATE_TODAY__</code> + bare-filename rules. Schema stays literal (it's data).</li>
+        <li>Bump version → <b>v1.9</b>; update <code>docs/CLAUDE.md</code> + memory version tables.</li>
+      </ul>
+      <div class="files"><code>docs/instructions/jd_enhancer_instructions.md</code></div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <span class="tag">Server</span>
+        <h3 style="margin-top:6px">Gate + persistence</h3>
+        <ul class="clean">
+          <li><b>pipeline-state.js</b> — <code>JD_ENHANCED</code> branch: extract CL-prompt/<code>fireTAAndAnalyst</code> into <code>proceedAfterJDEnhanced()</code>; replace body with the review-bubble broadcast + <code>state.awaitingJDReview=true</code>. Add resume guard (enhanced_jd present, gap_analysis + style_findings absent → re-show gate).</li>
+          <li><b>action.js</b> — <span class="new">+</span> <code>jd_review_confirm</code> (merge edits → <code>writeFileSync(enhanced_jd.json)</code> → proceed) and <span class="new">+</span> <code>jd_review_redo</code> (mirror <code>redo_jd_enhancer</code>, <code>recentlyDispatched.delete('JD_ENHANCED')</code>).</li>
+          <li><b>state.js</b> — <span class="new">+</span> <code>awaitingJDReview</code>; reset in <code>/reset</code> &amp; <code>/restore</code>.</li>
+        </ul>
+        <div class="files">
+          <code>server/lib/pipeline-state.js</code>
+          <code>server/routes/action.js</code>
+          <code>server/lib/state.js</code>
+        </div>
+      </div>
+      <div class="card">
+        <span class="tag">Frontend</span>
+        <h3 style="margin-top:6px">The bubble + wiring</h3>
+        <ul class="clean">
+          <li><span class="new">NEW</span> <b>EnhancedJDBubble.jsx</b> — fetches <code>enhanced_jd.json</code>; renders <code>candidate_brief</code> (headline · role-in-context · what-to-emphasise) + <code>requirements.*</code> (ad-labelled, editable + caution); <b>links back to</b> the earlier research, no re-render. Fallback to <code>role_details.overview</code> if <code>candidate_brief</code> absent (older runs); confirm / redo buttons.</li>
+          <li><b>ChatWindow.jsx</b> — detector <code>isEnhancedJD(msg)</code> (<code>msg.kind==='enhanced_jd'</code>); render the bubble; thread <code>onJDConfirm</code>.</li>
+          <li><b>useAppActions.js</b> — <span class="new">+</span> <code>handleJDConfirm(edits)</code> (mirrors <code>handleGapSubmit</code>); <b>App.jsx</b> passes it to <code>&lt;ChatWindow&gt;</code>.</li>
+        </ul>
+        <div class="files">
+          <code>client/src/components/EnhancedJDBubble.jsx <span class="new">NEW</span></code>
+          <code>client/src/components/ChatWindow.jsx</code>
+          <code>client/src/hooks/useAppActions.js</code>
+          <code>client/src/App.jsx</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RISKS -->
+  <section>
+    <div class="shead"><span class="n">05</span><h2>Decisions, risks &amp; verification</h2><span class="rule"></span></div>
+    <div class="grid g3">
+      <div class="card ok"><span class="tag">Decided</span>
+        <h3 style="margin-top:6px">No redundancy with research</h3>
+        <p>The earlier research card isn't re-rendered here. This view is about <em>the role</em> —
+          requirements + a short synthesis of how research shaped it — with a link back to the research, not a repeat of it.</p></div>
+      <div class="card ok"><span class="tag">Decided</span>
+        <h3 style="margin-top:6px">Editable requirements + caution</h3>
+        <p>User can fix mis-read criteria; a caution banner warns that edits change gap-analysis input.</p></div>
+      <div class="card risk"><span class="tag">Watch</span>
+        <h3 style="margin-top:6px">Redo dedupe + resume</h3>
+        <p>Re-fired <code class="mono">JD_ENHANCED</code> must clear the 30s dedupe; reload at the gate must re-show (not skip) — both handled.</p></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <span class="tag">Verify end-to-end</span>
+      <ul class="clean">
+        <li><code>node --check</code> server files + <code>npm --prefix client run build</code> pass.</li>
+        <li>Upload v1.9 to KEMU; re-run the enhancer → <code>enhanced_jd.json</code> carries a populated <code>candidate_brief</code> (and unchanged <code>requirements.*</code>).</li>
+        <li>Fresh run → research confirm → bubble appears (no auto-advance); renders the brief + requirements; older run with no brief falls back cleanly.</li>
+        <li>Edit a requirement → continue → <code>workspace/enhanced_jd.json</code> reflects it AND gap analysis runs against the edited set.</li>
+        <li>"Re-read the job ad" re-runs the enhancer (no stall); reload at gate re-renders &amp; still gates.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- INPUT -->
+  <section>
+    <div class="shead"><span class="n">06</span><h2>Your call</h2><span class="rule"></span></div>
+    <div class="qbox">
+      <h3>Does this plan match what you want?</h3>
+      <p class="sub">Pick one, add notes if you like, then queue your answer. (You can also annotate any element above — including the mock bubble — and send it back.)</p>
+      <form data-lavish-question="plan_decision" onsubmit="event.preventDefault();
+        const f=new FormData(event.currentTarget);
+        const choice=f.get('decision'); const notes=(f.get('notes')||'').trim();
+        if(!choice){return;}
+        let msg='Plan decision: '+choice; if(notes) msg+=' — Notes: '+notes;
+        window.lavish.queuePrompt(msg,{tag:'decision',text:choice,element:event.currentTarget,data:{question:'plan_decision',answer:choice,notes}});
+        window.lavish.sendQueuedPrompts && window.lavish.sendQueuedPrompts();">
+        <label class="opt"><input type="radio" name="decision" value="Approve — implement as planned">
+          <span><b>Approve — implement as planned</b><span>Build the gate, bubble, editable requirements, and persistence exactly as above.</span></span></label>
+        <label class="opt"><input type="radio" name="decision" value="Approve but simplify — read-only, no editing first">
+          <span><b>Approve but ship read-only first</b><span>Drop the editable-requirements path for v1; just the guided review + confirm gate.</span></span></label>
+        <label class="opt"><input type="radio" name="decision" value="Change the approach">
+          <span><b>I want changes</b><span>Describe what to adjust in the notes below.</span></span></label>
+        <textarea name="notes" placeholder="Optional notes — e.g. tweak the copy, the caution wording, the section order…"></textarea>
+        <button class="qsubmit" type="submit">Queue &amp; send answer →</button>
+      </form>
+    </div>
+  </section>
+
+  <p class="foot">Design source: the project's own design system (client <code class="mono">index.css</code> tokens, Schibsted Grotesk / JetBrains Mono) — so the mock faithfully shows the product.</p>
+
+</div>
+<script>
+  mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{
+    fontFamily:"'JetBrains Mono', monospace",fontSize:'13px',
+    primaryColor:'#ffffff',primaryTextColor:'#1b2230',primaryBorderColor:'#d2d7df',
+    lineColor:'#a3abb6',secondaryColor:'#f1f3f7',tertiaryColor:'#f8f9fb'}});
+</script>
+</body>
+</html>

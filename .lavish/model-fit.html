@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="luxury">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Fit Deep-Dive — Per-Agent Recommendations</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style type="text/tailwindcss">
+  @layer utilities {
+    .grad-head { background: linear-gradient(120deg,#d4af37 0%,#b08d2e 50%,#e8c766 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  }
+  /* readability: roomy rows, never cramped */
+  .rec-table th, .rec-table td { padding-top:.85rem; padding-bottom:.85rem; vertical-align:middle; }
+  .rec-table td .note { display:block; font-size:.72rem; line-height:1.1rem; color:var(--color-base-content); opacity:.5; margin-top:.15rem; }
+  .class-head td { background:var(--color-base-200); }
+</style>
+</head>
+<body class="bg-base-200 text-base-content">
+<main class="mx-auto max-w-6xl p-4 sm:p-6 lg:p-10 min-w-0">
+
+  <!-- HERO -->
+  <header class="mb-10">
+    <div class="flex items-center gap-2 mb-3 flex-wrap">
+      <span class="badge badge-soft badge-warning">Research deep-dive</span>
+      <span class="badge badge-soft">June 2026 landscape</span>
+      <span class="badge badge-soft badge-info">Provider-neutral</span>
+    </div>
+    <h1 class="text-4xl sm:text-5xl font-bold grad-head leading-tight">Model fit, per agent</h1>
+    <p class="mt-4 max-w-3xl text-base-content/70 text-lg leading-relaxed">
+      Each of your 20 agents mapped to a <b>task class</b>, then three model picks —
+      a <b class="text-success">cost</b> floor, a <b class="text-warning">middle-ground</b> default, a
+      <b class="text-info">quality</b> ceiling — plus a <b>suggested reasoning level</b>.
+      Picks spread across Anthropic, Google, OpenAI and DeepSeek by task shape, not brand.
+    </p>
+  </header>
+
+  <!-- TIERS -->
+  <section class="mb-12">
+    <h2 class="text-2xl font-bold mb-5">The three tiers</h2>
+    <div class="grid gap-5 md:grid-cols-3 min-w-0">
+      <div class="card card-border bg-base-100 min-w-0">
+        <div class="card-body gap-2">
+          <div class="flex items-center gap-2"><span class="badge badge-success">1</span><h3 class="card-title text-success">Cost</h3></div>
+          <p class="text-sm text-base-content/70 leading-relaxed">Cheapest model that still clears the bar. For mechanical, high-volume, judgment-light nodes. Never where a hallucination ships into the CV.</p>
+          <p class="text-xs text-base-content/50">Flash-Lite · DeepSeek V3.2 · Haiku 4.5</p>
+        </div>
+      </div>
+      <div class="card card-border bg-base-100 ring-1 ring-warning/40 min-w-0">
+        <div class="card-body gap-2">
+          <div class="flex items-center gap-2"><span class="badge badge-warning">2</span><h3 class="card-title text-warning">Middle ★</h3></div>
+          <p class="text-sm text-base-content/70 leading-relaxed">The sane default. ~80% of frontier quality at a fraction of cost; caching closes the rest. Most nodes belong here.</p>
+          <p class="text-xs text-base-content/50">Sonnet 4.6 · Gemini 3.1 Pro · GPT-5.4</p>
+        </div>
+      </div>
+      <div class="card card-border bg-base-100 min-w-0">
+        <div class="card-body gap-2">
+          <div class="flex items-center gap-2"><span class="badge badge-info">3</span><h3 class="card-title text-info">Quality</h3></div>
+          <p class="text-sm text-base-content/70 leading-relaxed">Frontier reasoning or best-in-class prose. Reserve for irreducible judgment and the writing users actually read.</p>
+          <p class="text-xs text-base-content/50">Opus 4.7 · Fable 5 (prose) · Gemini 3.1 Pro</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REASONING LEGEND -->
+  <section class="mb-12">
+    <h2 class="text-2xl font-bold mb-2">Reasoning levels</h2>
+    <p class="text-sm text-base-content/60 mb-5 max-w-3xl">How much thinking budget to allocate (reasoning-effort on reasoning-capable models; for non-reasoning models, read as "task depth"). More reasoning = slower + pricier, so match it to the task, don't max it everywhere.</p>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 min-w-0">
+      <div class="card card-border bg-base-100 min-w-0"><div class="card-body py-4 gap-1"><span class="badge badge-ghost">None / Minimal</span><p class="text-xs text-base-content/60 leading-relaxed">Map, format, dispatch. No chain-of-thought — it only adds latency + cost.</p></div></div>
+      <div class="card card-border bg-base-100 min-w-0"><div class="card-body py-4 gap-1"><span class="badge badge-info badge-soft">Low</span><p class="text-xs text-base-content/60 leading-relaxed">Parse ambiguity, classify, hold a conversation. A little planning.</p></div></div>
+      <div class="card card-border bg-base-100 min-w-0"><div class="card-body py-4 gap-1"><span class="badge badge-warning badge-soft">Medium</span><p class="text-xs text-base-content/60 leading-relaxed">Synthesis + craft: research framing, prose over facts, editorial polish.</p></div></div>
+      <div class="card card-border bg-base-100 min-w-0"><div class="card-body py-4 gap-1"><span class="badge badge-error badge-soft">High</span><p class="text-xs text-base-content/60 leading-relaxed">Irreducible judgment: fit/gap calls, semantic entailment, fabrication hunts.</p></div></div>
+    </div>
+  </section>
+
+  <!-- LANDSCAPE -->
+  <section class="mb-12">
+    <h2 class="text-2xl font-bold mb-1">The landscape</h2>
+    <p class="text-sm text-base-content/60 mb-5">June 2026 list prices, USD / 1M tokens. Cheap → premium. Caching cuts input 50–80%.</p>
+    <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+      <table class="table table-zebra">
+        <thead><tr><th>Model</th><th>Provider</th><th class="text-right">In</th><th class="text-right">Out</th><th>Sweet spot</th></tr></thead>
+        <tbody>
+          <tr><td class="font-semibold">Gemini 2.5 / 3.1 Flash-Lite</td><td>Google</td><td class="text-right">$0.10</td><td class="text-right">$0.40</td><td class="text-base-content/70">Cheapest fast extract / classify</td></tr>
+          <tr><td class="font-semibold">DeepSeek V3.2</td><td>DeepSeek</td><td class="text-right">$0.14</td><td class="text-right">$0.28</td><td class="text-base-content/70">Cheapest reasoning, ~proprietary quality</td></tr>
+          <tr><td class="font-semibold">Gemini 2.5 Flash</td><td>Google</td><td class="text-right">$0.15</td><td class="text-right">$0.60</td><td class="text-base-content/70">90%+ classification, fast</td></tr>
+          <tr><td class="font-semibold">GPT-5.4-nano</td><td>OpenAI</td><td class="text-right">$0.20</td><td class="text-right">$1.25</td><td class="text-base-content/70">Classify / extract</td></tr>
+          <tr><td class="font-semibold">Claude Haiku 4.5</td><td>Anthropic</td><td class="text-right">$0.25</td><td class="text-right">$1.25</td><td class="text-base-content/70">Cheap judgment, safe JSON</td></tr>
+          <tr><td class="font-semibold">DeepSeek V4 Pro</td><td>DeepSeek</td><td class="text-right">~$0.40</td><td class="text-right">~$0.90</td><td class="text-base-content/70">~Opus coding, 34× cheaper out</td></tr>
+          <tr><td class="font-semibold">Gemini 3 Flash</td><td>Google</td><td class="text-right">$0.50</td><td class="text-right">$3.00</td><td class="text-base-content/70">Mid extract + more reasoning</td></tr>
+          <tr><td class="font-semibold">Gemini 3.1 Pro</td><td>Google</td><td class="text-right">$2.00</td><td class="text-right">~$10</td><td class="text-base-content/70">Lowest-cost frontier</td></tr>
+          <tr><td class="font-semibold">GPT-5.4</td><td>OpenAI</td><td class="text-right">$2.50</td><td class="text-right">$15</td><td class="text-base-content/70">Best-value workhorse</td></tr>
+          <tr><td class="font-semibold">Claude Sonnet 4.6</td><td>Anthropic</td><td class="text-right">$3.00</td><td class="text-right">$15</td><td class="text-base-content/70">Safest strict-JSON + human prose</td></tr>
+          <tr><td class="font-semibold">Claude Opus 4.7</td><td>Anthropic</td><td class="text-right">$5.00</td><td class="text-right">$25</td><td class="text-base-content/70">Frontier judgment + prose</td></tr>
+          <tr><td class="font-semibold">Claude Fable 5</td><td>Anthropic</td><td class="text-right">prem.</td><td class="text-right">prem.</td><td class="text-base-content/70">#1 EQ-Bench creative writing</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PER-AGENT -->
+  <section class="mb-10">
+    <h2 class="text-2xl font-bold mb-1">Per-agent recommendations</h2>
+    <p class="text-sm text-base-content/60 mb-6">
+      Grouped by task class. <span class="text-success font-medium">Cost</span> · <span class="text-warning font-medium">Middle ★</span> · <span class="text-info font-medium">Quality</span> · <b>Reason</b> = suggested reasoning level. "Now" = current model.
+    </p>
+
+    <div class="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+      <table class="table rec-table">
+        <thead>
+          <tr class="text-sm">
+            <th class="min-w-[10rem]">Agent</th>
+            <th class="min-w-[6rem]">Now</th>
+            <th class="min-w-[6.5rem]">Reason</th>
+            <th class="text-success min-w-[8rem]">Cost</th>
+            <th class="text-warning min-w-[8rem]">Middle ★</th>
+            <th class="text-info min-w-[8rem]">Quality</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Mechanical — field mapping, no judgment</td></tr>
+          <tr>
+            <td class="font-semibold">Credentials Formatter</td>
+            <td><span class="badge badge-soft badge-sm">Flash 3.0</span></td>
+            <td><span class="badge badge-ghost badge-sm">None</span></td>
+            <td>Gemini 2.5 Flash-Lite</td>
+            <td>Gemini 2.5 Flash</td>
+            <td>Haiku 4.5</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Document Formatter</td>
+            <td><span class="badge badge-soft badge-sm">v1.1</span></td>
+            <td><span class="badge badge-ghost badge-sm">None</span></td>
+            <td>Gemini 2.5 Flash-Lite</td>
+            <td>Gemini 2.5 Flash</td>
+            <td>Haiku 4.5</td>
+          </tr>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Extraction — messy input → strict JSON</td></tr>
+          <tr>
+            <td class="font-semibold">Extractor</td>
+            <td><span class="badge badge-soft badge-sm">v2.4</span></td>
+            <td><span class="badge badge-info badge-soft badge-sm">Low</span></td>
+            <td>Gemini 2.5 Flash</td>
+            <td>Haiku 4.5</td>
+            <td>Sonnet 4.6 <span class="note">long / ambiguous</span></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">ProjectSetup</td>
+            <td><span class="badge badge-soft badge-sm">v1.17</span></td>
+            <td><span class="badge badge-info badge-soft badge-sm">Low</span></td>
+            <td>Gemini 2.5 Flash</td>
+            <td>Haiku 4.5</td>
+            <td>Sonnet 4.6</td>
+          </tr>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Routing — read JSON, dispatch, don't reason hard</td></tr>
+          <tr>
+            <td class="font-semibold">Main Orchestrator</td>
+            <td><span class="badge badge-soft badge-sm">v5.8</span></td>
+            <td><span class="badge badge-info badge-soft badge-sm">Low</span></td>
+            <td>Haiku 4.5</td>
+            <td>Haiku 4.5</td>
+            <td>Sonnet 4.6 <span class="note">only if routing bugs</span></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Assembly Coordinator</td>
+            <td><span class="badge badge-soft badge-sm">v4.2</span></td>
+            <td><span class="badge badge-info badge-soft badge-sm">Low</span></td>
+            <td>Haiku 4.5</td>
+            <td>Haiku 4.5</td>
+            <td>Sonnet 4.6</td>
+          </tr>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Conversational — user-facing, warmth + tact matter</td></tr>
+          <tr>
+            <td class="font-semibold">Reviewer</td>
+            <td><span class="badge badge-soft badge-sm">v4.0</span></td>
+            <td><span class="badge badge-info badge-soft badge-sm">Low</span></td>
+            <td>Haiku 4.5</td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Style Negotiator</td>
+            <td><span class="badge badge-soft badge-sm">v3.0</span></td>
+            <td><span class="badge badge-warning badge-soft badge-sm">Low–Med</span></td>
+            <td>Haiku 4.5</td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7</td>
+          </tr>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Research / synthesis — gather + frame</td></tr>
+          <tr>
+            <td class="font-semibold">Researcher</td>
+            <td><span class="badge badge-soft badge-sm">v2.2</span></td>
+            <td><span class="badge badge-warning badge-soft badge-sm">Medium</span></td>
+            <td>DeepSeek V3.2</td>
+            <td>Gemini 3.1 Pro</td>
+            <td>Sonnet 4.6</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">JD Enhancer</td>
+            <td><span class="badge badge-soft badge-sm">v1.9</span></td>
+            <td><span class="badge badge-warning badge-soft badge-sm">Medium</span></td>
+            <td>Gemini 3.1 Pro</td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7</td>
+          </tr>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Semantic judgment — errors are expensive</td></tr>
+          <tr>
+            <td class="font-semibold">Analyst</td>
+            <td><span class="badge badge-soft badge-sm">v2.31</span></td>
+            <td><span class="badge badge-error badge-soft badge-sm">High</span></td>
+            <td>DeepSeek V3.2</td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Tone Analyst</td>
+            <td><span class="badge badge-soft badge-sm">v4.8</span></td>
+            <td><span class="badge badge-warning badge-soft badge-sm">Medium</span></td>
+            <td>DeepSeek V3.2</td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Integrity Checker</td>
+            <td><span class="badge badge-soft badge-sm">v3.2</span></td>
+            <td><span class="badge badge-error badge-soft badge-sm">High</span></td>
+            <td>Sonnet 4.6 <span class="note">don't go lower</span></td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7 <span class="note">ship-stopper gate</span></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Analyst Validator</td>
+            <td><span class="badge badge-soft badge-sm">DeepSeek R4 Pro</span></td>
+            <td><span class="badge badge-error badge-soft badge-sm">High</span></td>
+            <td>DeepSeek V3.2</td>
+            <td>DeepSeek R4 Pro <span class="note">current — good</span></td>
+            <td>Opus 4.7</td>
+          </tr>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Fact-bearing writing — temp ≤ 1.0, never fabricate</td></tr>
+          <tr>
+            <td class="font-semibold">Profile Builder</td>
+            <td><span class="badge badge-soft badge-sm">Sonnet 4.6</span></td>
+            <td><span class="badge badge-warning badge-soft badge-sm">Medium</span></td>
+            <td>Sonnet 4.6 <span class="note">floor for facts</span></td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">History Formatter</td>
+            <td><span class="badge badge-soft badge-sm">Sonnet 4.6</span></td>
+            <td><span class="badge badge-info badge-soft badge-sm">Low</span></td>
+            <td>Haiku 4.5 <span class="note">facts frozen</span></td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7</td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Skills Curator</td>
+            <td><span class="badge badge-soft badge-sm">Sonnet 4.6</span></td>
+            <td><span class="badge badge-info badge-soft badge-sm">Low</span></td>
+            <td>Haiku 4.5 <span class="note">if safety rule holds</span></td>
+            <td>Sonnet 4.6</td>
+            <td>Opus 4.7</td>
+          </tr>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Creative writing — defines output quality; spend here</td></tr>
+          <tr>
+            <td class="font-semibold">CoverLetter Writer</td>
+            <td><span class="badge badge-soft badge-sm">Sonnet 4.6</span></td>
+            <td><span class="badge badge-warning badge-soft badge-sm">Medium</span></td>
+            <td>Sonnet 4.6</td>
+            <td>Sonnet 4.6</td>
+            <td>Fable 5 / Opus 4.7 <span class="note">least cleanup</span></td>
+          </tr>
+          <tr>
+            <td class="font-semibold">Style Reviewer</td>
+            <td><span class="badge badge-soft badge-sm">v3.1</span></td>
+            <td><span class="badge badge-warning badge-soft badge-sm">Medium</span></td>
+            <td>Sonnet 4.6 <span class="note">last editor</span></td>
+            <td>Sonnet 4.6</td>
+            <td>Fable 5 / Opus 4.7</td>
+          </tr>
+
+          <tr class="class-head"><td colspan="6" class="text-xs font-bold uppercase tracking-wider text-base-content/50">Server-side LLM — outside KEMU, via OpenRouter</td></tr>
+          <tr>
+            <td class="font-semibold">evidence-classifier</td>
+            <td><span class="badge badge-soft badge-sm">Haiku 4.5</span></td>
+            <td><span class="badge badge-info badge-soft badge-sm">Low</span></td>
+            <td>Gemini 2.5 Flash</td>
+            <td>Haiku 4.5 <span class="note">current — safe</span></td>
+            <td>Sonnet 4.6</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- KEY MOVES -->
+  <section class="mb-12 grid gap-5 lg:grid-cols-2 min-w-0">
+    <div class="card card-border bg-base-100 min-w-0">
+      <div class="card-body">
+        <h3 class="card-title text-success">Quick wins — cut cost, ~zero risk</h3>
+        <ul class="text-sm space-y-2.5 list-disc pl-5 leading-relaxed">
+          <li><b>Credentials Formatter:</b> Flash 3.0 → <b>Gemini 2.5 Flash-Lite</b>, reasoning <b>off</b>. Pure field-map.</li>
+          <li><b>MO + Assembly Coordinator:</b> → <b>Haiku 4.5</b>, <b>low</b> reasoning. They dispatch, not reason.</li>
+          <li><b>Extractor / ProjectSetup:</b> <b>Gemini 2.5 Flash</b> at 90%+, 1/20th Sonnet's output price.</li>
+          <li><b>Analyst Validator:</b> DeepSeek R4 Pro already right; probe <b>V3.2</b> for more savings.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-border bg-base-100 ring-1 ring-info/30 min-w-0">
+      <div class="card-body">
+        <h3 class="card-title text-info">Don't cheap out</h3>
+        <ul class="text-sm space-y-2.5 list-disc pl-5 leading-relaxed">
+          <li><b>Integrity Checker:</b> fabrication gate, <b>high</b> reasoning. A miss ships a lie. Sonnet floor, Opus for hard ones.</li>
+          <li><b>Cover Letter + Style Reviewer:</b> what the user reads. Sonnet min; <b>Fable 5</b> tops EQ-Bench prose.</li>
+          <li><b>Profile Builder / History Formatter:</b> fact-bearing — <b>temp ≤ 1.0</b>, stay Sonnet+. Cheap models fabricate to fill word floors.</li>
+          <li><b>Analyst:</b> downstream trusts its gap calls. <b>High</b> reasoning; V3.2 only if you accept edge-case noise.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONSTRAINTS -->
+  <section class="mb-12">
+    <div class="alert alert-warning alert-soft items-start">
+      <div class="min-w-0">
+        <h3 class="font-bold">Constraints baked into your stack</h3>
+        <ul class="text-sm mt-2 space-y-1.5 list-disc pl-5 leading-relaxed">
+          <li><b>KEMU routes via OpenRouter</b> — picks must be OpenRouter-served. All four providers are.</li>
+          <li><b>max_tokens hardcoded 65536</b>; OpenRouter key cap must exceed it. Don't pick a lower-cap model.</li>
+          <li><b>Temp 0–2.</b> Gate/format → 0. Fact-writers → ≤1.0. Never &gt;1.0 on fact-bearing output (your rule).</li>
+          <li><b>Caching</b> drops Sonnet effective input to ~$0.30/M at 60%+ hit — middle-ground beats "cheap" once cached.</li>
+          <li><b>Reasoning effort costs tokens + latency</b> — only the High-tier judgment nodes justify it; keep it off for mechanical/routing.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOURCES -->
+  <section class="mb-6">
+    <h3 class="text-lg font-bold mb-3">Sources</h3>
+    <div class="text-xs text-base-content/60 grid gap-1.5 sm:grid-cols-2">
+      <a class="link" href="https://benchlm.ai/llm-pricing">BenchLM — Pricing 2026</a>
+      <a class="link" href="https://www.tldl.io/resources/llm-api-pricing-2026">TLDL — Pricing GPT-5/Claude/Gemini/DeepSeek</a>
+      <a class="link" href="https://www.cloudzero.com/blog/llm-api-pricing-comparison/">CloudZero — Pricing ranked</a>
+      <a class="link" href="https://www.morphllm.com/llm-api">MorphLLM — 12 APIs compared</a>
+      <a class="link" href="https://llm-stats.com/leaderboards/llm-leaderboard">llm-stats — Leaderboard</a>
+      <a class="link" href="https://www.clickrank.ai/llm-leaderboard/">ClickRank — Leaderboard 2026</a>
+      <a class="link" href="https://whatllm.org/best-llm-for-coding">WhatLLM — Best for coding</a>
+      <a class="link" href="https://tokenwisehq.com/best-llm-for/data-extraction">Tokenwise — Data extraction</a>
+      <a class="link" href="https://modelslab.com/blog/ai/gemini-3-1-flash-lite-api-cheap-fast-llm-2026">ModelsLab — Gemini Flash-Lite</a>
+      <a class="link" href="https://benchlm.ai/blog/posts/best-llm-writing">BenchLM — Best for writing</a>
+      <a class="link" href="https://www.buildmvpfast.com/articles/best-llms-2026-guide/creative-writing-ai">BuildMVPFast — Creative writing</a>
+      <a class="link" href="https://iternal.ai/llm-selection-guide">Iternal — Selection guide</a>
+    </div>
+    <p class="text-xs text-base-content/40 mt-4 leading-relaxed">June-2026 list prices, move 30–50%/yr — re-check before budgeting. Design: Lavish DaisyUI <code>luxury</code> fallback (a research report has no app-specific design system to match).</p>
+  </section>
+
+</main>
+</body>
+</html>

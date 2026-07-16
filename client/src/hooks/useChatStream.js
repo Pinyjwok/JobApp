@@ -62,6 +62,9 @@ export function useChatStream(run, modal) {
           delete pendingReasoningRef.current[data.agent];
           const updated = [...prev];
           updated[realIdx] = { ...updated[realIdx], reasoning: data.text };
+          // The bubble was already persisted (without reasoning) by agent_message — re-save so the
+          // patched-in reasoning survives a reload.
+          saveHistory(updated);
           return updated;
         });
       } else if (data.type === 'action_required') {
