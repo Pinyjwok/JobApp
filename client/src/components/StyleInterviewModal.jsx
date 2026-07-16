@@ -171,7 +171,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
           <div className="flex flex-col gap-3">
             {/* kicker + headline */}
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-muted">{card.title}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">{card.title}</p>
               <h3 className="text-base font-semibold text-fg leading-snug mt-1">{card.recommendation ?? card.title}</h3>
             </div>
 
@@ -183,7 +183,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
                 onToggle={() => setOpenEvidence(prev => ({ ...prev, [card.id]: !prev[card.id] }))}
               >
                 {card.finding && (
-                  <p className="text-[13px] text-fg-secondary leading-relaxed whitespace-pre-line">{card.finding}</p>
+                  <p className="text-sm text-fg-secondary leading-relaxed whitespace-pre-line">{card.finding}</p>
                 )}
                 {(card.examples ?? []).length > 0 && (
                   <div className="flex flex-col gap-1.5 border-l-2 border-line pl-3">
@@ -214,7 +214,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
                   >
                     <Radio active={active} />
                     <span className="flex-1">{opt.label}</span>
-                    {opt.sub && <span className="text-[11px] text-fg-muted">{opt.sub}</span>}
+                    {opt.sub && <span className="text-xs text-fg-muted">{opt.sub}</span>}
                   </button>
                 );
               })}

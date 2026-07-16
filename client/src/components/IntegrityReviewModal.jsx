@@ -127,7 +127,7 @@ export function IntegrityReviewModal({ claims = [], onSubmit, onHide, minimized 
             return (
               <div key={g.key} className="flex flex-col gap-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">{g.heading}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">{g.heading}</p>
                   <p className="text-xs text-fg-faint mt-0.5">{g.blurb}</p>
                 </div>
                 {items.map(c => {

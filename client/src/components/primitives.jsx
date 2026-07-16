@@ -43,7 +43,7 @@ export function InfoIcon({ className = 'w-3.5 h-3.5' }) {
 // Small uppercase kicker. tone: muted | success | warn | accent
 export function Eyebrow({ tone = 'muted', icon, children, className = '' }) {
   return (
-    <div className={`flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider ${TONE[tone]} ${className}`}>
+    <div className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider ${TONE[tone]} ${className}`}>
       {icon}{children}
     </div>
   );
@@ -68,7 +68,7 @@ export function SectionDivider({ label, tone = 'muted', icon, first = false, rul
 }
 
 // Collapsible detail panel. Controlled — pass `open` + `onToggle` (mirrors the
-// AgentBubble reasoning toggle: text-[9px] caret, quiet trigger row).
+// AgentBubble reasoning toggle: text-xs caret, quiet trigger row).
 export function Disclosure({ title, open, onToggle, children }) {
   return (
     <div>
@@ -77,7 +77,7 @@ export function Disclosure({ title, open, onToggle, children }) {
         onClick={onToggle}
         className="flex items-center gap-1.5 text-xs text-fg-muted hover:text-fg-secondary transition-colors"
       >
-        <span className="text-[9px]">{open ? '▾' : '▸'}</span>
+        <span className="text-xs">{open ? '▾' : '▸'}</span>
         {title}
       </button>
       {open && (

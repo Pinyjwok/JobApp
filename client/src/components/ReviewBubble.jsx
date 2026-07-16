@@ -62,12 +62,12 @@ function IssueRow({ issue }) {
   const isCrit = /critical/i.test(issue.severity);
   const isHigh = /high/i.test(issue.severity);
   return (
-    <div className={`text-[12px] leading-relaxed px-2.5 py-2 rounded-md ${
+    <div className={`text-xs leading-relaxed px-2.5 py-2 rounded-md ${
       isCrit ? 'bg-danger/8 border border-danger/15' :
       isHigh ? 'bg-warn/8 border border-warn/15'   :
                'bg-surface border border-line'
     }`}>
-      <span className={`font-mono font-bold text-[9.5px] uppercase tracking-wider mr-2 ${
+      <span className={`font-mono font-bold text-xs uppercase tracking-wider mr-2 ${
         isCrit ? 'text-danger' : isHigh ? 'text-warn' : 'text-fg-muted'
       }`}>
         {issue.severity}
@@ -105,30 +105,30 @@ export function ReviewBubble({ msg }) {
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
         <span className="text-xs text-fg-secondary font-semibold">{agentLabel('Analysis')}</span>
         {msg.cost != null && (
-          <span className="text-[10px] text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
+          <span className="text-xs text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
         )}
       </div>
 
       {/* Title — plain language */}
-      <div className="font-bold text-[15px] mb-2">
+      <div className="font-bold text-base mb-2">
         <span className={ok ? 'text-success' : 'text-danger'}>{ok ? '✓' : '✗'}</span>{' '}
         {ok ? 'Your details all check out' : 'A few things need another look'}
       </div>
 
       {/* Plain-language summary */}
       {ok ? (
-        <p className="text-[13px] text-fg-secondary leading-relaxed mb-2">
+        <p className="text-sm text-fg-secondary leading-relaxed mb-2">
           We went through everything in your background and it all holds up — nothing looks made up or exaggerated.
         </p>
       ) : (
-        <p className="text-[13px] text-fg-secondary leading-relaxed mb-2">
+        <p className="text-sm text-fg-secondary leading-relaxed mb-2">
           Before we build your CV, a couple of things in the analysis need checking. See what to review below.
         </p>
       )}
 
       {/* Fit score in words */}
       {p.score != null && fit && (
-        <p className="text-[13px] text-fg leading-relaxed mb-1">
+        <p className="text-sm text-fg leading-relaxed mb-1">
           Match for this role: <strong className="font-semibold">{p.score} out of 10</strong> — {fit}.
         </p>
       )}
@@ -138,12 +138,12 @@ export function ReviewBubble({ msg }) {
         <div className="border-t border-line mt-3">
           <button
             onClick={() => setShowDetails(v => !v)}
-            className="flex items-center gap-1.5 w-full py-2 bg-transparent border-none cursor-pointer text-fg-muted text-[10.5px] font-bold uppercase tracking-[.07em] hover:text-fg-secondary transition-colors"
+            className="flex items-center gap-1.5 w-full py-2 bg-transparent border-none cursor-pointer text-fg-muted text-xs font-bold uppercase tracking-[.07em] hover:text-fg-secondary transition-colors"
           >
             <Chevron open={showDetails} />
             {ok ? 'What we checked' : 'What to review'}
             {!ok && severitySummary && (
-              <span className="ml-auto text-fg-faint normal-case tracking-normal font-normal text-[11px]">
+              <span className="ml-auto text-fg-faint normal-case tracking-normal font-normal text-xs">
                 {severitySummary}
               </span>
             )}
@@ -152,10 +152,10 @@ export function ReviewBubble({ msg }) {
           {showDetails && (
             <div className="pb-2 space-y-1.5">
               {p.reason && (
-                <p className="text-[12px] text-fg-secondary leading-relaxed px-1 mb-2">{p.reason}</p>
+                <p className="text-xs text-fg-secondary leading-relaxed px-1 mb-2">{p.reason}</p>
               )}
               {p.audited != null && (
-                <p className="text-[12px] text-fg-secondary leading-relaxed px-1 mb-2">
+                <p className="text-xs text-fg-secondary leading-relaxed px-1 mb-2">
                   We checked {p.audited} detail{p.audited !== 1 ? 's' : ''} drawn from your CV and the job ad
                   {p.approved != null && <> — {p.approved} are fully backed by what you provided</>}
                   {p.issueCount != null && p.issueCount > 0

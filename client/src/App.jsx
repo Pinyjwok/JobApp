@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { ChatWindow } from './components/ChatWindow';
 import { MessageInput } from './components/MessageInput';
 import { StatusBar } from './components/StatusBar';
@@ -9,10 +9,12 @@ import { GapInterviewModal } from './components/GapInterviewModal';
 import { StyleInterviewModal } from './components/StyleInterviewModal';
 import { RevisionModal } from './components/RevisionModal';
 import { IntegrityReviewModal } from './components/IntegrityReviewModal';
-import { useStream } from './hooks/useStream';
-import { useTheme } from './theme';
 import { Toaster } from './components/Toaster';
-import { confirmDialog } from './lib/toast';
+import { useTheme } from './theme';
+import { useRunState } from './hooks/useRunState';
+import { useModalManager } from './hooks/useModalManager';
+import { useChatStream } from './hooks/useChatStream';
+import { useAppActions } from './hooks/useAppActions';
 import { DEV } from './lib/dev';
 import './index.css';
 
@@ -41,6 +43,21 @@ const PIPELINE_STATUSES = [
   { value: 'INTEGRITY_FAILED',  group: 'exception' },
 ];
 
+// Assembly is server-owned and every phase shares the coarse CV_BUILDING status, so a plain status
+// override can't resume a specific agent. These map to /api/dev/phase, which jumps to and re-fires the
+// chosen phase (workspace must already hold the assembly inputs — restore a snapshot first).
+const ASSEMBLY_PHASES_DEV = [
+  { phase: 1, label: '1 · Style Negotiator' },
+  { phase: 2, label: '2 · Profile Builder' },
+  { phase: 3, label: '3 · Skills Curator' },
+  { phase: 4, label: '4 · History Formatter' },
+  { phase: 5, label: '5 · Credentials Formatter' },
+  { phase: 6, label: '6 · Cover Letter Writer' },
+  { phase: 7, label: '7 · Style Reviewer' },
+  { phase: 8, label: '8 · Integrity Checker' },
+  { phase: 9, label: '9 · Document Formatter' },
+];
+
 function ThemeToggle({ theme, onToggle }) {
   return (
     <button
@@ -66,45 +83,15 @@ function ThemeToggle({ theme, onToggle }) {
 
 export default function App() {
   const { theme, toggle } = useTheme();
-  const [messages, setMessages] = useState([]);
-  const [activeAgent, setActiveAgent] = useState(null);
-  const [status, setStatus] = useState(null);
-  const [sending, setSending] = useState(false);
-  const [lastUserMessage, setLastUserMessage] = useState(null);
-  const [turns, setTurns] = useState([]);
-  const [showTimeline, setShowTimeline] = useState(false);
-  const [showInspector, setShowInspector] = useState(false);
-  const [inspectorRefresh, setInspectorRefresh] = useState(0);
-  const [isWaiting, _setIsWaiting] = useState(false);
-  const setIsWaiting = (v) => { isWaitingRef.current = v; _setIsWaiting(v); };
-  const [uploadedFiles, setUploadedFiles] = useState({});
-  const [modalState, setModalState] = useState(null);
-  const [modalUploading, setModalUploading] = useState(false);
-  const [historyForModal, setHistoryForModal] = useState([]);
-  const [sessionMeta, setSessionMeta] = useState(null);
-  const [pipelineMode, setPipelineMode] = useState('user_turn');
-  const [runningAgent, setRunningAgent] = useState(null);
-  const [gapQuestions, setGapQuestions] = useState([]);
-  const [gapAccepted, setGapAccepted] = useState([]); // accepted-claim ack strip (round ≥2)
-  const [showGapModal, setShowGapModal] = useState(false);
-  const [gapMinimized, setGapMinimized] = useState(false);
-  const [styleGroups, setStyleGroups] = useState([]);
-  const [showStyleModal, setShowStyleModal] = useState(false);
-  const [styleMinimized, setStyleMinimized] = useState(false);
-  const [reviseAgent, setReviseAgent] = useState(null); // assembly section being revised; null = modal closed
-  const [icClaims, setIcClaims] = useState([]);          // integrity-check flagged claims
-  const [showIcModal, setShowIcModal] = useState(false);
-  const [icMinimized, setIcMinimized] = useState(false);
-  const [showStatusMenu, setShowStatusMenu] = useState(false);
-  const [connection, setConnection] = useState('connecting'); // 'connecting' | 'open' | 'reconnecting' | 'closed'
+  const run = useRunState();
+  const modal = useModalManager(run);
+  const { connection } = useChatStream(run, modal);
+  const actions = useAppActions(run, modal);
 
-  const pendingReasoningRef = useRef({});  // { [agent]: text }
-  const lastActivityRef = useRef(Date.now());
-  const isWaitingRef = useRef(false);
+  // Bridge: after a reconnect, one-shot SSE events (interview prompts, status) fired while we were
+  // offline are gone. Resync from disk so the run isn't stranded waiting on a modal that never
+  // re-opens (UI-08). guardOpen skips any interview already on screen.
   const wasDisconnectedRef = useRef(false);
-
-  // After a reconnect, one-shot SSE events (interview prompts, status) fired while we were offline are
-  // gone. Resync from disk so the run isn't stranded waiting on a modal that never re-opens (UI-08).
   useEffect(() => {
     if (connection === 'reconnecting' || connection === 'closed') {
       wasDisconnectedRef.current = true;
@@ -112,483 +99,19 @@ export default function App() {
     }
     if (connection === 'open' && wasDisconnectedRef.current) {
       wasDisconnectedRef.current = false;
-      fetch('/api/status').then((r) => r.json()).then((d) => { if (d.status) setStatus(d.status); }).catch(() => {});
+      fetch('/api/status').then((r) => r.json()).then((d) => { if (d.status) run.setStatus(d.status); }).catch(() => {});
       fetch('/api/pending-interview')
         .then((r) => r.json())
-        .then((d) => {
-          if (d.type === 'gap' && d.gaps?.length && !showGapModal) {
-            setGapQuestions(d.gaps); setGapAccepted(d.accepted ?? []); setGapMinimized(false); setShowGapModal(true); setPipelineMode('action_required');
-          } else if (d.type === 'style' && d.groups?.length && !showStyleModal) {
-            setStyleGroups(d.groups); setStyleMinimized(false); setShowStyleModal(true); setPipelineMode('action_required');
-          } else if (d.type === 'integrity' && d.claims?.length && !showIcModal) {
-            setIcClaims(d.claims); setIcMinimized(false); setShowIcModal(true); setPipelineMode('action_required');
-          } else if (d.type === 'revise' && d.agent && !reviseAgent) {
-            setReviseAgent(d.agent); setPipelineMode('action_required');
-          }
-        })
+        .then((d) => modal.applyPending(d, { guardOpen: true }))
         .catch(() => {});
     }
-  }, [connection, showGapModal, showStyleModal, showIcModal, reviseAgent]);
+    // run.setStatus + modal.applyPending are the only members used and are stable references.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connection, run.setStatus, modal.applyPending]);
 
-  useEffect(() => {
-    Promise.all([
-      fetch('/api/history').then((r) => r.json()).catch(() => []),
-      fetch('/api/session-meta').then((r) => r.json()).catch(() => null),
-    ])
-      .then(([saved, meta]) => {
-        setHistoryForModal(saved);
-        setSessionMeta(meta);
-        setModalState('pending');
-      })
-      .catch(() => setModalState('pending'));
-  }, []);
-
-  function saveHistory(msgs) {
-    const clean = msgs.map(({ streaming, stalled, ...m }) => m);
-    fetch('/api/history', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(clean),
-    }).catch(() => {});
-  }
-
-  const WELCOME_MESSAGE = {
-    role: 'agent',
-    agent: 'JobApp',
-    text: `Got your documents — thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way.`,
-  };
-
-  async function handleModalStart(cvFile, jdFile, clFile = null) {
-    setModalUploading(true);
-
-    // Full clear: a new session must not inherit ANY prior files — including a stale
-    // cover_letter_sample.txt, which would otherwise survive and bleed into the run.
-    await fetch('/api/reset?full=1', { method: 'POST' }).catch(() => {});
-
-    const uploadFile = async (file, target) => {
-      const body = await file.arrayBuffer();
-      await fetch(`/api/upload?target=${target}&filename=${encodeURIComponent(file.name)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body,
-      });
-    };
-    await uploadFile(cvFile, 'cv_raw');
-    await uploadFile(jdFile, 'jd_raw');
-    if (clFile) await uploadFile(clFile, 'cover_letter_sample');
-
-    setStatus(null);
-    setActiveAgent('ProjectSetup');
-    setTurns([{ agent: 'ProjectSetup', timestamp: Date.now(), cost: null }]);
-    setLastUserMessage(null);
-    setUploadedFiles({ cv_raw: cvFile.name, jd_raw: jdFile.name, ...(clFile ? { cover_letter_sample: clFile.name } : {}) });
-    setPipelineMode('user_turn');
-    const initial = [WELCOME_MESSAGE];
-    setMessages(initial);
-    saveHistory(initial);
-    setModalUploading(false);
-    setModalState('hidden');
-
-    await handleSend('Files are saved to disk as cv_raw.txt and jd_raw.txt. Please initialise the project.');
-  }
-
-  function handleModalResume() {
-    setMessages(historyForModal);
-    setModalState('hidden');
-    fetch('/api/status')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.status) setStatus(d.status);
-      })
-      .catch(() => {});
-    // Reopen any interview the pipeline is still blocked on — these modals are driven by one-shot
-    // SSE events that won't replay on reconnect, so a reload would otherwise strand the run.
-    fetch('/api/pending-interview')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.type === 'gap' && d.gaps?.length) {
-          setGapQuestions(d.gaps);
-          setGapAccepted(d.accepted ?? []);
-          setGapMinimized(false);
-          setShowGapModal(true);
-          setPipelineMode('action_required');
-        } else if (d.type === 'style' && d.groups?.length) {
-          setStyleGroups(d.groups);
-          setStyleMinimized(false);
-          setShowStyleModal(true);
-          setPipelineMode('action_required');
-        } else if (d.type === 'integrity' && d.claims?.length) {
-          setIcClaims(d.claims);
-          setIcMinimized(false);
-          setShowIcModal(true);
-          setPipelineMode('action_required');
-        } else if (d.type === 'revise' && d.agent) {
-          setReviseAgent(d.agent);
-          setPipelineMode('action_required');
-        } else if (d.type === 'section_review') {
-          setPipelineMode('action_required');
-          // The Approve/Revise bubble is normally restored from chat history. Only ask the server to
-          // re-emit it if the restored history doesn't already end with a live (unused) section-review
-          // actions bubble — avoids stacking a duplicate on a normal reload.
-          const last = [...historyForModal].reverse().find(m => m.role === 'actions');
-          const hasLive = last && !last.used && last.context === 'assembly_section_review';
-          if (!hasLive) {
-            fetch('/api/action', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id: 'resume_section_review' }),
-            }).catch(() => {});
-          }
-        }
-      })
-      .catch(() => {});
-  }
-
-  async function handleAction(id) {
-    // 'Start a new application' (completion screen) is a pure client reset — reuse the New-session flow.
-    if (id === 'start_over') { handleReset(); return; }
-    // 'Revise…' is reversible (opens a modal you can Cancel out of), so leave the section-review
-    // buttons live — don't grey them. They're disabled on submit instead (handleReviseSubmit).
-    if (id !== 'assembly_revise') {
-      setMessages(prev => prev.map(m =>
-        m.role === 'actions' && !m.used ? { ...m, used: true } : m
-      ));
-    }
-    try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Action failed: ${err.message}` }]);
-    }
-  }
-
-  async function handleGapSubmit(answers) {
-    setShowGapModal(false);
-    setGapMinimized(false);
-    try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'gap_answers_submit', answers }),
-      });
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Gap submit failed: ${err.message}` }]);
-    }
-  }
-
-  async function handleStyleSubmit(answers) {
-    try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'style_answers_submit', answers }),
-      });
-      // Only dismiss once the submit lands — keep the modal (and answers) on failure.
-      setShowStyleModal(false);
-      setStyleMinimized(false);
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Style submit failed: ${err.message}` }]);
-    }
-  }
-
-  async function handleIcSubmit(decisions) {
-    try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'ic_remediation_submit', decisions }),
-      });
-      // Only dismiss once the submit lands — keep the modal (and choices) on failure.
-      setShowIcModal(false);
-      setIcMinimized(false);
-      setPipelineMode('auto_running');
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Accuracy submit failed: ${err.message}` }]);
-    }
-  }
-
-  async function handleReviseSubmit(text) {
-    setReviseAgent(null);
-    // Now the revise is committed — disable the section-review buttons (a fresh review bubble
-    // appears once the agent finishes revising).
-    setMessages(prev => prev.map(m =>
-      m.role === 'actions' && !m.used ? { ...m, used: true } : m
-    ));
-    try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'assembly_revise_submit', text }),
-      });
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Revision failed: ${err.message}` }]);
-    }
-  }
-
-  async function handleReviseCancel() {
-    setReviseAgent(null);
-    // Server clears awaitingRevision and re-shows the Approve/Revise buttons for this section.
-    try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'assembly_revise_cancel' }),
-      });
-    } catch { /* best-effort — buttons just won't restore */ }
-  }
-
-  useStream(
-    useCallback((data) => {
-      lastActivityRef.current = Date.now();
-      if (data.type === 'agent_message') {
-        setIsWaiting(false);
-        const agentName = data.agent ?? activeAgent;
-        const reasoning = pendingReasoningRef.current[agentName] ?? '';
-        delete pendingReasoningRef.current[agentName];
-        setMessages((prev) => {
-          const next = [...prev, {
-            role: 'agent',
-            agent: agentName,
-            text: data.text,
-            reasoning,
-            background: data.background ?? false,
-            analystData: data.analystData ?? null,
-            sectionData: data.sectionData ?? null,
-            documentData: data.documentData ?? null,
-            initialTab: data.initialTab ?? null,
-            kind: data.kind ?? null,
-            meta: data.meta ?? null,
-          }];
-          saveHistory(next);
-          return next;
-        });
-        setInspectorRefresh((n) => n + 1);
-        fetch('/api/status')
-          .then((r) => r.json())
-          .then((d) => setStatus(d.status))
-          .catch(() => {});
-      } else if (data.type === 'reasoning') {
-        pendingReasoningRef.current[data.agent] = data.text;
-        // Late-arrival: if the agent_message already landed, patch it in-place
-        setMessages((prev) => {
-          const idx = [...prev].reverse().findIndex(
-            (m) => m.role === 'agent' && m.agent === data.agent && !m.reasoning?.trim()
-          );
-          if (idx === -1) return prev;
-          const realIdx = prev.length - 1 - idx;
-          delete pendingReasoningRef.current[data.agent];
-          const updated = [...prev];
-          updated[realIdx] = { ...updated[realIdx], reasoning: data.text };
-          return updated;
-        });
-      } else if (data.type === 'action_required') {
-        setMessages((prev) => {
-          const next = [...prev, {
-            role: 'actions',
-            context: data.context,
-            prompt: data.prompt,
-            actions: data.actions,
-            used: false,
-          }];
-          saveHistory(next);
-          return next;
-        });
-      } else if (data.type === 'pipeline_mode') {
-        setPipelineMode(data.mode);
-        if (data.agent) setRunningAgent(data.agent);
-        if (data.mode === 'user_turn') setIsWaiting(false);
-        // Keep the spinner up while the pipeline is still working. Each assembly section emits an
-        // agent_message that clears isWaiting; without this the spinner vanished and never returned
-        // between sequential phases. The next phase re-enters auto_running, so re-show it.
-        else if (data.mode === 'auto_running') setIsWaiting(true);
-      } else if (data.type === 'debug_token') {
-        try {
-          const debug = JSON.parse(data.chunk);
-          if (debug.usage?.cost != null) {
-            setTurns((prev) => {
-              const idx = [...prev].reverse().findIndex((t) => t.cost == null);
-              if (idx === -1) return prev;
-              const realIdx = prev.length - 1 - idx;
-              const updated = [...prev];
-              updated[realIdx] = { ...updated[realIdx], cost: debug.usage.cost };
-              return updated;
-            });
-          }
-        } catch { /* non-JSON debug token */ }
-      } else if (data.type === 'agent_switch') {
-        setActiveAgent(data.agent);
-        setTurns((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.agent === data.agent && Date.now() - last.timestamp < 2000) return prev;
-          return [...prev, { agent: data.agent, timestamp: Date.now(), cost: null }];
-        });
-      } else if (data.type === 'gap_interview_start') {
-        setGapQuestions(data.gaps ?? []);
-        setGapAccepted(data.accepted ?? []);
-        setGapMinimized(false);
-        // Let the Analyst-complete bubble land and register visually before the modal
-        // eases in over it — avoids the jarring instant hand-off to user control.
-        setTimeout(() => setShowGapModal(true), 650);
-      } else if (data.type === 'style_interview_start') {
-        setStyleGroups(data.groups ?? []);
-        setShowStyleModal(true);
-        setStyleMinimized(false);
-      } else if (data.type === 'integrity_review_start') {
-        setIcClaims(data.claims ?? []);
-        setIcMinimized(false);
-        // Let the "we found a few things" bubble land before the modal eases in over it.
-        setTimeout(() => setShowIcModal(true), 650);
-      } else if (data.type === 'assembly_revise_start') {
-        setReviseAgent(data.agent ?? 'section');
-      } else if (data.type === 'status_changed') {
-        setStatus(data.status);
-      } else if (data.type === 'history_reload') {
-        // Snapshot restore swapped the persisted history out from under us — pull the new
-        // conversation and replace the rendered messages wholesale.
-        fetch('/api/history')
-          .then((r) => r.json())
-          .then((saved) => { if (Array.isArray(saved)) setMessages(saved); })
-          .catch(() => {});
-        setModalState('hidden');
-      } else if (data.type === 'stream_done') {
-        setIsWaiting(false);
-        setPipelineMode('user_turn');
-      }
-    }, [activeAgent]),
-    useCallback((state) => setConnection(state), [])
-  );
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      if (pipelineMode !== 'auto_running') return;
-      if (Date.now() - lastActivityRef.current <= 45_000) return;
-      fetch('/api/status')
-        .then((r) => r.json())
-        .then((d) => {
-          const interactiveStatuses = new Set([
-            'REVIEW_COMPLETE', 'STYLE_NEGOTIATING',
-            'CV_BUILDING', 'PARALLEL_ANALYSIS',
-          ]);
-          if (d.status && interactiveStatuses.has(d.status) && !isWaitingRef.current) {
-            setIsWaiting(false);
-            setPipelineMode('user_turn');
-            setMessages((prev) => [...prev, {
-              role: 'agent', agent: 'System',
-              text: 'Agent may be ready — pipeline is active. Type to continue or click Abort.',
-            }]);
-          }
-          lastActivityRef.current = Date.now();
-        })
-        .catch(() => {});
-    }, 15_000);
-    return () => clearInterval(id);
-  }, [pipelineMode]);
-
-  async function handleSend(text) {
-    setLastUserMessage(text);
-    setMessages((prev) => {
-      const next = [...prev, { role: 'user', text }];
-      saveHistory(next);
-      return next;
-    });
-    setSending(true);
-    setIsWaiting(true);
-    setPipelineMode('auto_running');
-    try {
-      await fetch('/api/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
-      });
-    } catch (err) {
-      setMessages((prev) => [...prev, { role: 'agent', agent: 'System', text: `Error: ${err.message}` }]);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  async function handleUpload(name, fileObj, forcedTarget = null) {
-    let target;
-    if (forcedTarget) {
-      target = forcedTarget;
-    } else {
-      const lower = name.toLowerCase();
-      if (lower.includes('cover') || lower.includes('cl_') || lower.includes('_cl')) {
-        target = 'cover_letter_sample';
-      } else if (lower.includes('cv') || lower.includes('resume')) {
-        target = 'cv_raw';
-      } else if (lower.includes('jd') || lower.includes('job')) {
-        target = 'jd_raw';
-      } else {
-        const choice = prompt(`What is "${name}"? Type "cv", "jd", or "cover":`);
-        if (choice?.toLowerCase().startsWith('cv')) target = 'cv_raw';
-        else if (choice?.toLowerCase().startsWith('jd')) target = 'jd_raw';
-        else if (choice?.toLowerCase().startsWith('cover')) target = 'cover_letter_sample';
-        else return;
-      }
-    }
-
-    try {
-      const body = await fileObj.arrayBuffer();
-      await fetch(`/api/upload?target=${target}&filename=${encodeURIComponent(name)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body,
-      });
-      setMessages((prev) => [...prev, { role: 'user', text: `Uploaded ${name} → ${target}.txt` }]);
-      setUploadedFiles((prev) => ({ ...prev, [target]: name }));
-      if (target === 'cover_letter_sample') {
-        await handleSend('Cover letter uploaded — please proceed with the analysis.');
-      }
-    } catch (err) {
-      setMessages((prev) => [...prev, { role: 'agent', agent: 'System', text: `Upload failed: ${err.message}` }]);
-    }
-  }
-
-  async function handleAbort() {
-    await fetch('/api/abort', { method: 'POST' }).catch(() => {});
-    setSending(false);
-    setIsWaiting(false);
-    setPipelineMode('user_turn');
-    setMessages((prev) => [...prev, { role: 'agent', agent: 'System', text: '⏹ Processing aborted.' }]);
-  }
-
-  async function handleReset() {
-    const ok = await confirmDialog({
-      title: 'Start a new session?',
-      message: 'This clears the current workspace and conversation.',
-      confirmLabel: 'Start new',
-      danger: true,
-    });
-    if (!ok) return;
-    await fetch('/api/reset?full=1', { method: 'POST' }).catch(() => {});
-    setMessages([]);
-    setStatus(null);
-    setActiveAgent('Main Orchestrator');
-    setTurns([]);
-    setLastUserMessage(null);
-    setUploadedFiles({});
-    setPipelineMode('user_turn');
-    setModalUploading(false);
-    setHistoryForModal([]);
-    setModalState('pending');
-  }
-
-  async function handleSetStatus(s) {
-    if (!s) return;
-    setShowStatusMenu(false);
-    await fetch('/api/dev/status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: s }),
-    }).catch(() => {});
-    setStatus(s);
-  }
-
-  const inputDisabled = pipelineMode !== 'user_turn' || sending || showGapModal || showStyleModal || showIcModal || !!reviseAgent;
+  const inputDisabled =
+    run.pipelineMode !== 'user_turn' || run.sending ||
+    modal.showGapModal || modal.showStyleModal || modal.showIcModal || !!modal.reviseAgent;
 
   return (
     <div className="flex flex-col h-screen w-screen bg-app text-base">
@@ -599,72 +122,72 @@ export default function App() {
           {connection === 'closed' ? 'Connection lost — reload to reconnect.' : 'Reconnecting…'}
         </div>
       )}
-      {modalState === 'pending' && (
+      {modal.modalState === 'pending' && (
         <StartModal
-          hasHistory={historyForModal.length > 0}
-          session={sessionMeta}
-          onStart={handleModalStart}
-          onResume={handleModalResume}
-          uploading={modalUploading}
+          hasHistory={modal.historyForModal.length > 0}
+          session={modal.sessionMeta}
+          onStart={actions.handleModalStart}
+          onResume={actions.handleModalResume}
+          uploading={modal.modalUploading}
         />
       )}
-      {showGapModal && (
+      {modal.showGapModal && (
         <GapInterviewModal
-          gaps={gapQuestions}
-          accepted={gapAccepted}
-          onSubmit={handleGapSubmit}
-          onHide={() => setGapMinimized(true)}
-          minimized={gapMinimized}
+          gaps={modal.gapQuestions}
+          accepted={modal.gapAccepted}
+          onSubmit={actions.handleGapSubmit}
+          onHide={() => modal.setGapMinimized(true)}
+          minimized={modal.gapMinimized}
         />
       )}
-      {showGapModal && gapMinimized && (
+      {modal.showGapModal && modal.gapMinimized && (
         <button
-          onClick={() => setGapMinimized(false)}
+          onClick={() => modal.setGapMinimized(false)}
           className="animate-fade-in-up fixed bottom-24 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
           Continue gap interview
         </button>
       )}
-      {showStyleModal && (
+      {modal.showStyleModal && (
         <StyleInterviewModal
-          groups={styleGroups}
-          onSubmit={handleStyleSubmit}
-          onHide={() => setStyleMinimized(true)}
-          minimized={styleMinimized}
+          groups={modal.styleGroups}
+          onSubmit={actions.handleStyleSubmit}
+          onHide={() => modal.setStyleMinimized(true)}
+          minimized={modal.styleMinimized}
         />
       )}
-      {showStyleModal && styleMinimized && (
+      {modal.showStyleModal && modal.styleMinimized && (
         <button
-          onClick={() => setStyleMinimized(false)}
+          onClick={() => modal.setStyleMinimized(false)}
           className="animate-fade-in-up fixed bottom-40 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
           Continue style interview
         </button>
       )}
-      {showIcModal && (
+      {modal.showIcModal && (
         <IntegrityReviewModal
-          claims={icClaims}
-          onSubmit={handleIcSubmit}
-          onHide={() => setIcMinimized(true)}
-          minimized={icMinimized}
+          claims={modal.icClaims}
+          onSubmit={actions.handleIcSubmit}
+          onHide={() => modal.setIcMinimized(true)}
+          minimized={modal.icMinimized}
         />
       )}
-      {showIcModal && icMinimized && (
+      {modal.showIcModal && modal.icMinimized && (
         <button
-          onClick={() => setIcMinimized(false)}
+          onClick={() => modal.setIcMinimized(false)}
           className="animate-fade-in-up fixed bottom-56 right-6 z-40 flex items-center gap-2 rounded-full bg-accent hover:brightness-110 text-accent-fg text-sm font-medium px-4 py-2.5 shadow-lg transition-all active:scale-95"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent-fg/80 animate-pulse" />
           Finish accuracy check
         </button>
       )}
-      {reviseAgent && (
+      {modal.reviseAgent && (
         <RevisionModal
-          agent={reviseAgent}
-          onSubmit={handleReviseSubmit}
-          onCancel={handleReviseCancel}
+          agent={modal.reviseAgent}
+          onSubmit={actions.handleReviseSubmit}
+          onCancel={actions.handleReviseCancel}
         />
       )}
 
@@ -676,14 +199,14 @@ export default function App() {
         {DEV && (
           <div className="flex items-center gap-1 bg-chat rounded-lg p-0.5 border border-line">
             <button
-              onClick={() => setShowInspector((v) => !v)}
-              className={`text-xs rounded-md px-2.5 py-1 transition-all ${showInspector ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
+              onClick={() => modal.setShowInspector((v) => !v)}
+              className={`text-xs rounded-md px-2.5 py-1 transition-all ${modal.showInspector ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
             >
               Files
             </button>
             <button
-              onClick={() => setShowTimeline((v) => !v)}
-              className={`text-xs rounded-md px-2.5 py-1 transition-all ${showTimeline ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
+              onClick={() => modal.setShowTimeline((v) => !v)}
+              className={`text-xs rounded-md px-2.5 py-1 transition-all ${modal.showTimeline ? 'bg-surface-2 text-fg border border-line' : 'text-fg-muted hover:text-fg-secondary'}`}
             >
               Timeline
             </button>
@@ -695,33 +218,43 @@ export default function App() {
           {DEV && (
           <div className="relative">
             <button
-              onClick={() => setShowStatusMenu((v) => !v)}
-              className={`text-xs border rounded-lg px-2.5 py-1.5 transition-all ${showStatusMenu ? 'text-fg border-line-strong bg-surface-2' : 'text-fg-secondary hover:text-fg border-line hover:border-line-strong'}`}
+              onClick={() => modal.setShowStatusMenu((v) => !v)}
+              className={`text-xs border rounded-lg px-2.5 py-1.5 transition-all ${modal.showStatusMenu ? 'text-fg border-line-strong bg-surface-2' : 'text-fg-secondary hover:text-fg border-line hover:border-line-strong'}`}
             >
               Status
             </button>
-            {showStatusMenu && (
+            {modal.showStatusMenu && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowStatusMenu(false)} />
+                <div className="fixed inset-0 z-40" onClick={() => modal.setShowStatusMenu(false)} />
                 <div className="absolute right-0 mt-1.5 z-50 w-56 max-h-[70vh] overflow-y-auto rounded-lg border border-line-strong bg-surface shadow-lg py-1">
-                  <div className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">Pipeline</div>
+                  <div className="px-3 pt-1.5 pb-1 text-xs font-semibold uppercase tracking-wider text-fg-faint">Assembly · re-fire phase</div>
+                  {ASSEMBLY_PHASES_DEV.map((p) => (
+                    <button
+                      key={p.phase}
+                      onClick={() => actions.handleSetPhase(p.phase)}
+                      className="w-full text-left px-3 py-1.5 text-xs font-mono text-fg-secondary transition-colors hover:bg-surface-2"
+                    >
+                      {'   '}{p.label}
+                    </button>
+                  ))}
+                  <div className="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-fg-faint border-t border-line mt-1">Pipeline · set status</div>
                   {PIPELINE_STATUSES.filter((s) => s.group === 'pipeline').map((s) => (
                     <button
                       key={s.value}
-                      onClick={() => handleSetStatus(s.value)}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors hover:bg-surface-2 ${status === s.value ? 'text-accent font-semibold' : 'text-fg-secondary'}`}
+                      onClick={() => actions.handleSetStatus(s.value)}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors hover:bg-surface-2 ${run.status === s.value ? 'text-accent font-semibold' : 'text-fg-secondary'}`}
                     >
-                      {status === s.value ? '● ' : '   '}{s.value}
+                      {run.status === s.value ? '● ' : '   '}{s.value}
                     </button>
                   ))}
-                  <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint border-t border-line mt-1">Exception</div>
+                  <div className="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-fg-faint border-t border-line mt-1">Exception</div>
                   {PIPELINE_STATUSES.filter((s) => s.group === 'exception').map((s) => (
                     <button
                       key={s.value}
-                      onClick={() => handleSetStatus(s.value)}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors hover:bg-surface-2 ${status === s.value ? 'text-danger font-semibold' : 'text-fg-secondary'}`}
+                      onClick={() => actions.handleSetStatus(s.value)}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors hover:bg-surface-2 ${run.status === s.value ? 'text-danger font-semibold' : 'text-fg-secondary'}`}
                     >
-                      {status === s.value ? '● ' : '   '}{s.value}
+                      {run.status === s.value ? '● ' : '   '}{s.value}
                     </button>
                   ))}
                 </div>
@@ -730,13 +263,13 @@ export default function App() {
           </div>
           )}
           <button
-            onClick={handleAbort}
+            onClick={actions.handleAbort}
             className="text-xs text-danger hover:brightness-110 border border-danger/40 hover:border-danger/70 rounded-lg px-2.5 py-1.5 transition-all"
           >
             Abort
           </button>
           <button
-            onClick={handleReset}
+            onClick={actions.handleReset}
             className="text-xs text-fg-secondary hover:text-fg border border-line hover:border-line-strong rounded-lg px-2.5 py-1.5 transition-all"
           >
             New
@@ -744,59 +277,29 @@ export default function App() {
         </div>
       </div>
 
-      <StatusBar status={status} activeAgent={activeAgent} running={pipelineMode === 'auto_running'} />
+      <StatusBar status={run.status} activeAgent={run.activeAgent} running={run.pipelineMode === 'auto_running'} />
 
       <div className="flex flex-1 overflow-hidden">
         <ChatWindow
-          messages={messages}
-          isWaiting={isWaiting || pipelineMode === 'auto_running'}
-          onAction={handleAction}
-          onUpload={async (actionId, file) => {
-            if (actionId === 'ta_upload_cover') {
-              setMessages(prev => prev.map(m =>
-                m.role === 'actions' && !m.used ? { ...m, used: true } : m
-              ));
-              try {
-                const body = await file.arrayBuffer();
-                await fetch(`/api/upload?target=cover_letter_sample&filename=${encodeURIComponent(file.name)}`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/octet-stream' },
-                  body,
-                });
-                setMessages(prev => [...prev, { role: 'user', text: `Uploaded ${file.name} → cover_letter_sample.txt` }]);
-                setUploadedFiles(prev => ({ ...prev, cover_letter_sample: file.name }));
-                await fetch('/api/action', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ id: 'ta_upload_cover' }),
-                });
-              } catch (err) {
-                setMessages(prev => [...prev, { role: 'agent', agent: 'System', text: `Upload failed: ${err.message}` }]);
-              }
-            } else if (actionId === 'cv_revalidate_upload' || actionId === 'jd_revalidate_upload') {
-              setMessages(prev => prev.map(m =>
-                m.role === 'actions' && !m.used ? { ...m, used: true } : m
-              ));
-              const target = actionId === 'cv_revalidate_upload' ? 'cv_raw' : 'jd_raw';
-              await handleUpload(file.name, file, target);
-              await handleSend('Files are saved to disk as cv_raw.txt and jd_raw.txt. Please initialise the project.');
-            }
-          }}
+          messages={run.messages}
+          isWaiting={run.isWaiting || run.pipelineMode === 'auto_running'}
+          onAction={actions.handleAction}
+          onUpload={actions.handleSectionUpload}
         />
-        {showTimeline && <AgentTimeline turns={turns} />}
+        {modal.showTimeline && <AgentTimeline turns={run.turns} />}
       </div>
 
-      {showInspector && (
-        <WorkspaceInspector refresh={inspectorRefresh} onClose={() => setShowInspector(false)} />
+      {modal.showInspector && (
+        <WorkspaceInspector refresh={modal.inspectorRefresh} onClose={() => modal.setShowInspector(false)} />
       )}
 
       <MessageInput
-        onSend={handleSend}
-        onUpload={handleUpload}
+        onSend={actions.handleSend}
+        onUpload={actions.handleUpload}
         disabled={inputDisabled}
-        pipelineMode={pipelineMode}
-        runningAgent={runningAgent}
-        lastUserMessage={lastUserMessage}
+        pipelineMode={run.pipelineMode}
+        runningAgent={run.runningAgent}
+        lastUserMessage={run.lastUserMessage}
       />
     </div>
   );

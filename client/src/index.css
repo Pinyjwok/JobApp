@@ -12,12 +12,12 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
-  --app-bg:      #fbfbfc;   /* page / chat outer            */
-  --chat-bg:     #f6f7f9;   /* chat scroll area             */
-  --surface:     #ffffff;   /* header, input, panels        */
-  --surface-2:   #ffffff;   /* agent bubbles, cards         */
-  --line:        #e6e8ed;   /* hairline borders             */
-  --line-strong: #d5d9e0;   /* inputs, emphasised borders   */
+  --app-bg:      #f3f4f7;   /* page / chat outer (tinted so white cards lift) */
+  --chat-bg:     #eef0f4;   /* chat scroll area             */
+  --surface:     #f8f9fb;   /* header, input, panels        */
+  --surface-2:   #ffffff;   /* agent bubbles, cards (sit above panels) */
+  --line:        #e3e6eb;   /* hairline borders             */
+  --line-strong: #d2d7df;   /* inputs, emphasised borders   */
 
   --fg:          #1b2230;   /* primary text                 */
   --fg-2:        #525c6b;   /* secondary text               */
@@ -30,7 +30,7 @@
   --danger:      #d24545;
   --warn:        #b07512;   /* KEMU/debug surfaces          */
 
-  --shadow-panel: 0 1px 3px rgba(20,30,50,.05);
+  --shadow-panel: 0 1px 2px rgba(20,30,50,.06), 0 4px 12px rgba(20,30,50,.07);
   --shadow-float: 0 20px 50px rgba(20,30,50,.16);
   color-scheme: light;
 }
@@ -54,7 +54,7 @@
   --danger:      #ec6a6a;
   --warn:        #e0a23a;
 
-  --shadow-panel: none;
+  --shadow-panel: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.30);
   --shadow-float: 0 20px 50px rgba(0,0,0,.5);
   color-scheme: dark;
 }

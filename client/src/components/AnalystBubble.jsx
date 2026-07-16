@@ -57,14 +57,14 @@ function DetailRow({ tag, tagClass, label, detail }) {
         onClick={() => setOpen(v => !v)}
         className={`flex items-center gap-2 w-full py-[5px] px-1 rounded-md bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5 ${open ? 'bg-accent/5' : ''}`}
       >
-        <span className={`text-[9.5px] font-bold font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border flex-shrink-0 ${tagClass}`}>
+        <span className={`text-xs font-bold font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border flex-shrink-0 ${tagClass}`}>
           {tag}
         </span>
-        <span className="text-[12.5px] text-fg-secondary flex-1 leading-snug">{preview}</span>
+        <span className="text-xs text-fg-secondary flex-1 leading-snug">{preview}</span>
         <span className="text-fg-muted flex-shrink-0"><Chevron open={open} /></span>
       </button>
       {open && (
-        <p className="text-[12.5px] text-fg-secondary leading-relaxed mx-1 mt-0.5 mb-2">{detail}</p>
+        <p className="text-xs text-fg-secondary leading-relaxed mx-1 mt-0.5 mb-2">{detail}</p>
       )}
     </div>
   );
@@ -99,10 +99,10 @@ function GapGroup({ groupKey, items, defaultOpen }) {
         onClick={() => setOpen(v => !v)}
         className="flex items-center gap-2 w-full py-2 px-1 rounded-md bg-transparent border-none cursor-pointer text-left transition-colors hover:bg-accent/5"
       >
-        <span className={`text-[9.5px] font-bold font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border flex-shrink-0 ${tagClass}`}>
+        <span className={`text-xs font-bold font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border flex-shrink-0 ${tagClass}`}>
           {label}
         </span>
-        <span className="text-[11px] text-fg-muted font-medium flex-1">
+        <span className="text-xs text-fg-muted font-medium flex-1">
           {items.length} gap{items.length !== 1 ? 's' : ''}
         </span>
         <span className="text-fg-muted flex-shrink-0"><Chevron open={open} /></span>
@@ -145,17 +145,17 @@ export function AnalystBubble({ msg }) {
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
         <span className="text-xs text-fg-secondary font-semibold">How you fit</span>
         {msg.cost != null && (
-          <span className="text-[10px] text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
+          <span className="text-xs text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
         )}
       </div>
 
       {/* Title + score */}
       <div className="flex items-baseline gap-3 mb-3">
-        <div className="font-bold text-[15px]">
+        <div className="font-bold text-base">
           <span className="text-success">✓</span> Here's how you fit this role
         </div>
         {score != null && (
-          <span className={`text-[13px] font-bold font-mono ${scoreClass(score)}`}>
+          <span className={`text-sm font-bold font-mono ${scoreClass(score)}`}>
             {score}/10
           </span>
         )}
@@ -163,10 +163,10 @@ export function AnalystBubble({ msg }) {
 
       {/* Strengths / gaps count pills */}
       <div className="flex gap-2 mb-3 flex-wrap">
-        <span className="text-[11px] px-2 py-1 rounded-md font-medium text-success bg-success/10 border border-success/20">
+        <span className="text-xs px-2 py-1 rounded-md font-medium text-success bg-success/10 border border-success/20">
           {strengths.length} strength{strengths.length !== 1 ? 's' : ''}
         </span>
-        <span className={`text-[11px] px-2 py-1 rounded-md font-medium border ${
+        <span className={`text-xs px-2 py-1 rounded-md font-medium border ${
           gaps.length === 0
             ? 'text-success bg-success/10 border-success/20'
             : gaps.length <= 4

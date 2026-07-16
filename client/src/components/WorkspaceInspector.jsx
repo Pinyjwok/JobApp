@@ -131,7 +131,7 @@ function SnapshotsPanel() {
         <div key={snap.name} className="flex items-center gap-2 bg-surface-2 border border-line rounded-lg px-3 py-2">
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium text-fg truncate">{snap.name}</p>
-            <p className="text-[10px] text-fg-faint mt-0.5">
+            <p className="text-xs text-fg-faint mt-0.5">
               {snap.status && <span className="text-accent mr-2">{snap.status}</span>}
               {snap.savedAt ? new Date(snap.savedAt).toLocaleString() : ''}
               {snap.files ? ` · ${snap.files} files` : ''}
@@ -140,14 +140,14 @@ function SnapshotsPanel() {
           <button
             onClick={() => handleRestore(snap.name)}
             disabled={!!busy}
-            className="text-[11px] px-2.5 py-1 rounded bg-success/15 hover:bg-success/25 text-success disabled:opacity-40 transition-colors"
+            className="text-xs px-2.5 py-1 rounded bg-success/15 hover:bg-success/25 text-success disabled:opacity-40 transition-colors"
           >
             {busy === `restore-${snap.name}` ? '…' : 'Restore'}
           </button>
           <button
             onClick={() => handleDelete(snap.name)}
             disabled={!!busy}
-            className="text-[11px] px-2 py-1 rounded bg-danger/10 hover:bg-danger/20 text-danger disabled:opacity-40 transition-colors"
+            className="text-xs px-2 py-1 rounded bg-danger/10 hover:bg-danger/20 text-danger disabled:opacity-40 transition-colors"
           >
             {busy === `delete-${snap.name}` ? '…' : '✕'}
           </button>
@@ -193,7 +193,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
         {activeFile !== SNAP_TAB && (
           <button
             onClick={() => load(activeFile)}
-            className="text-[10px] text-fg-faint hover:text-fg-secondary transition-colors px-1.5 py-0.5 rounded hover:bg-chat"
+            className="text-xs text-fg-faint hover:text-fg-secondary transition-colors px-1.5 py-0.5 rounded hover:bg-chat"
           >
             Refresh
           </button>
@@ -214,7 +214,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
           <button
             key={f}
             onClick={() => setActiveFile(f)}
-            className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
+            className={`text-xs px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
               activeFile === f
                 ? 'bg-surface-2 text-fg font-medium border-t border-x border-line'
                 : 'text-fg-muted hover:text-fg-secondary hover:bg-chat'
@@ -225,7 +225,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
         ))}
         <button
           onClick={() => setActiveFile(KEMU_TAB)}
-          className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
+          className={`text-xs px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
             activeFile === KEMU_TAB
               ? 'bg-warn/10 text-warn font-medium border-t border-x border-warn/30'
               : 'text-warn/70 hover:text-warn hover:bg-chat'
@@ -235,7 +235,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
         </button>
         <button
           onClick={() => setActiveFile(SNAP_TAB)}
-          className={`text-[11px] px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
+          className={`text-xs px-2.5 py-1.5 rounded-t-lg whitespace-nowrap transition-all -mb-px ${
             activeFile === SNAP_TAB
               ? 'bg-success/10 text-success font-medium border-t border-x border-success/30'
               : 'text-success/70 hover:text-success hover:bg-chat'
@@ -261,7 +261,7 @@ export function WorkspaceInspector({ refresh, onClose }) {
               <p className="text-xs text-fg-muted italic text-center py-4">File not found or empty</p>
             )}
             {!loading && data !== null && (
-              <pre className="text-[11px] text-fg-secondary font-mono whitespace-pre-wrap break-all leading-relaxed">
+              <pre className="text-xs text-fg-secondary font-mono whitespace-pre-wrap break-all leading-relaxed">
                 {JSON.stringify(data, null, 2)}
               </pre>
             )}

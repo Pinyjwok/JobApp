@@ -29,7 +29,7 @@ export function AgentTimeline({ turns }) {
                 <span className={`text-xs font-medium truncate block ${isLast ? 'text-fg' : 'text-fg-secondary'}`}>
                   {agentLabel(turn.agent)}
                 </span>
-                <div className="flex gap-2 text-[10px] text-fg-faint mt-0.5">
+                <div className="flex gap-2 text-xs text-fg-faint mt-0.5">
                   {elapsed && <span>+{elapsed}</span>}
                   {turn.cost != null && <span className="font-mono">${turn.cost.toFixed(4)}</span>}
                 </div>

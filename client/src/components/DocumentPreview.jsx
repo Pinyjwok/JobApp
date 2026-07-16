@@ -23,7 +23,7 @@ import { Modal } from './Modal';
 function DocSectionHeader({ children }) {
   return (
     <div className="flex items-center gap-3 mt-[18px] mb-2 first:mt-0">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted">{children}</span>
+      <span className="text-xs font-semibold uppercase tracking-[0.12em] text-fg-muted">{children}</span>
       <span className="flex-1 h-px bg-line" />
     </div>
   );
@@ -33,14 +33,14 @@ function Role({ title, dates, employer, bullets = [] }) {
   return (
     <div className="mb-3.5 last:mb-0">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-[14px] font-semibold text-fg">{title}</span>
-        {dates && <span className="text-[12px] font-mono text-fg-muted shrink-0">{dates}</span>}
+        <span className="text-sm font-semibold text-fg">{title}</span>
+        {dates && <span className="text-xs font-mono text-fg-muted shrink-0">{dates}</span>}
       </div>
-      {employer && <div className="text-[13px] text-fg-secondary mt-0.5">{employer}</div>}
+      {employer && <div className="text-sm text-fg-secondary mt-0.5">{employer}</div>}
       {bullets.length > 0 && (
         <ul className="mt-1.5 space-y-1">
           {bullets.map((b, i) => (
-            <li key={i} className="flex gap-2 text-[13px] text-fg-secondary leading-relaxed">
+            <li key={i} className="flex gap-2 text-sm text-fg-secondary leading-relaxed">
               <span className="text-fg-faint">•</span><span>{b}</span>
             </li>
           ))}
@@ -135,14 +135,14 @@ export function DocumentPreview({ doc, initialTab = 'cv', onClose }) {
               {cv.profile && (
                 <>
                   <DocSectionHeader>Profile</DocSectionHeader>
-                  <p className="text-[13.5px] leading-[1.65] text-fg">{cv.profile}</p>
+                  <p className="text-sm leading-[1.65] text-fg">{cv.profile}</p>
                 </>
               )}
 
               {hasSkills && (
                 <>
                   <DocSectionHeader>Skills</DocSectionHeader>
-                  <div className="text-[13px] leading-[1.7] text-fg-secondary space-y-0.5">
+                  <div className="text-sm leading-[1.7] text-fg-secondary space-y-0.5">
                     {skills.technical?.length > 0 && <div><span className="text-fg-muted">Technical: </span>{skills.technical.join(' · ')}</div>}
                     {skills.core?.length > 0 && <div><span className="text-fg-muted">Core: </span>{skills.core.join(' · ')}</div>}
                     {skills.certifications?.length > 0 && <div><span className="text-fg-muted">Certifications: </span>{skills.certifications.join(' · ')}</div>}
@@ -160,14 +160,14 @@ export function DocumentPreview({ doc, initialTab = 'cv', onClose }) {
               {cv.education?.length > 0 && (
                 <>
                   <DocSectionHeader>Education &amp; Certifications</DocSectionHeader>
-                  <div className="text-[13px] leading-[1.7] text-fg-secondary">
+                  <div className="text-sm leading-[1.7] text-fg-secondary">
                     {cv.education.map((e, i) => <div key={i}>{e}</div>)}
                   </div>
                 </>
               )}
             </>
           ) : (
-            <div className="max-w-[64ch] whitespace-pre-wrap text-[14px] leading-relaxed text-fg">
+            <div className="max-w-[64ch] whitespace-pre-wrap text-sm leading-relaxed text-fg">
               {coverLetter}
             </div>
           )}

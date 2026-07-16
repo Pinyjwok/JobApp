@@ -58,7 +58,7 @@ function DocRow({ label, badge, hint, file, onFile }) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-fg">{label}</span>
           {badge && (
-            <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
+            <span className={`text-xs font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
               badge === 'Required' ? 'bg-accent/10 text-accent' : 'bg-surface text-fg-muted'
             }`}>{badge}</span>
           )}
