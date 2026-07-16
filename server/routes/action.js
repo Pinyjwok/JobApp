@@ -144,28 +144,6 @@ router.post('/', async (req, res) => {
         runLinearDispatch({ node: 'researcher_input', agent: 'Researcher', query: '__redo__' });
         break;
 
-      case 'ac_proceed':
-        broadcastMode('auto_running', 'Assembly Coordinator');
-        sendToNodeAndWait('assembly_coordinator_input', 'Assembly Coordinator', 'proceed')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Assembly Coordinator', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-          })
-          .catch(err => surfaceStall('Assembly Coordinator', err));
-        break;
-
-      case 'ac_redo':
-        broadcastMode('auto_running', 'Main Orchestrator');
-        sendToNodeAndWait(' Message', 'Main Orchestrator', 'redo')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Main Orchestrator', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-          })
-          .catch(err => surfaceStall('Main Orchestrator', err));
-        break;
-
       // ── SN style interview (single-fire modal) ────────────────────────────
       case 'style_answers_submit': {
         if (state.snState !== 'modal') break; // stale submit — interview already finalized
