@@ -1,10 +1,26 @@
-import { confirmDialog } from '../lib/toast';
+import { confirmDialog, toast } from '../lib/toast';
 
 const WELCOME_MESSAGE = {
   role: 'agent',
   agent: 'JobApp',
   text: `Got your documents - thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way.`,
 };
+
+// fetch() only rejects on network failure, so every POST goes through here — a 4xx/5xx becomes a
+// throw the caller's catch can report, instead of an "OK" that lets the flow continue on stale state.
+async function post(url, init = {}) {
+  const res = await fetch(url, { method: 'POST', ...init });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.error ?? `HTTP ${res.status}`);
+  }
+  return res;
+}
+
+const postAction = (payload) => post('/api/action', {
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload),
+});
 
 // All user/server actions for a run (UI-09): message send, the three interview submits, assembly
 // revise/cancel, file upload, abort/reset, the dev status override, and the start/resume flows. Each
@@ -43,21 +59,27 @@ export function useAppActions(run, modal) {
   async function handleModalStart(cvFile, jdFile, clFile = null) {
     modal.setModalUploading(true);
 
-    // Full clear: a new session must not inherit ANY prior files — including a stale
-    // cover_letter_sample.txt, which would otherwise survive and bleed into the run.
-    await fetch('/api/reset?full=1', { method: 'POST' }).catch(() => {});
-
     const uploadFile = async (file, target) => {
       const body = await file.arrayBuffer();
-      await fetch(`/api/upload?target=${target}&filename=${encodeURIComponent(file.name)}`, {
-        method: 'POST',
+      await post(`/api/upload?target=${target}&filename=${encodeURIComponent(file.name)}`, {
         headers: { 'Content-Type': 'application/octet-stream' },
         body,
       });
     };
-    await uploadFile(cvFile, 'cv_raw');
-    await uploadFile(jdFile, 'jd_raw');
-    if (clFile) await uploadFile(clFile, 'cover_letter_sample');
+
+    try {
+      // Full clear: a new session must not inherit ANY prior files — including a stale
+      // cover_letter_sample.txt, which would otherwise survive and bleed into the run.
+      await post('/api/reset?full=1');
+      await uploadFile(cvFile, 'cv_raw');
+      await uploadFile(jdFile, 'jd_raw');
+      if (clFile) await uploadFile(clFile, 'cover_letter_sample');
+    } catch (err) {
+      // Chat isn't on screen yet — the StartModal stays up, so report via toast.
+      modal.setModalUploading(false);
+      toast(`Couldn't start: ${err.message}`, 'error');
+      return;
+    }
 
     setStatus(null);
     setActiveAgent('ProjectSetup');
@@ -117,25 +139,18 @@ export function useAppActions(run, modal) {
     // buttons live — don't grey them. They're disabled on submit instead (handleReviseSubmit).
     if (id !== 'assembly_revise') consumeActions();
     try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
+      await postAction({ id });
     } catch (err) {
       pushSystem(`Action failed: ${err.message}`);
     }
   }
 
   async function handleGapSubmit(answers) {
-    modal.setShowGapModal(false);
-    modal.setGapMinimized(false);
     try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'gap_answers_submit', answers }),
-      });
+      await postAction({ id: 'gap_answers_submit', answers });
+      // Only dismiss once the submit lands — keep the modal (and answers) on failure.
+      modal.setShowGapModal(false);
+      modal.setGapMinimized(false);
     } catch (err) {
       pushSystem(`Gap submit failed: ${err.message}`);
     }
@@ -143,11 +158,7 @@ export function useAppActions(run, modal) {
 
   async function handleStyleSubmit(answers) {
     try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'style_answers_submit', answers }),
-      });
+      await postAction({ id: 'style_answers_submit', answers });
       // Only dismiss once the submit lands — keep the modal (and answers) on failure.
       modal.setShowStyleModal(false);
       modal.setStyleMinimized(false);
@@ -158,11 +169,7 @@ export function useAppActions(run, modal) {
 
   async function handleIcSubmit(decisions) {
     try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'ic_remediation_submit', decisions }),
-      });
+      await postAction({ id: 'ic_remediation_submit', decisions });
       // Only dismiss once the submit lands — keep the modal (and choices) on failure.
       modal.setShowIcModal(false);
       modal.setIcMinimized(false);
@@ -173,16 +180,13 @@ export function useAppActions(run, modal) {
   }
 
   async function handleReviseSubmit(text) {
-    modal.setReviseAgent(null);
-    // Now the revise is committed — disable the section-review buttons (a fresh review bubble
-    // appears once the agent finishes revising).
-    consumeActions();
     try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'assembly_revise_submit', text }),
-      });
+      await postAction({ id: 'assembly_revise_submit', text });
+      // Now the revise is committed — close it and disable the section-review buttons (a fresh
+      // review bubble appears once the agent finishes revising). On failure the modal keeps the
+      // typed text and the buttons stay live.
+      modal.setReviseAgent(null);
+      consumeActions();
     } catch (err) {
       pushSystem(`Revision failed: ${err.message}`);
     }
@@ -192,11 +196,7 @@ export function useAppActions(run, modal) {
     modal.setReviseAgent(null);
     // Server clears awaitingRevision and re-shows the Approve/Revise buttons for this section.
     try {
-      await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 'assembly_revise_cancel' }),
-      });
+      await postAction({ id: 'assembly_revise_cancel' });
     } catch { /* best-effort — buttons just won't restore */ }
   }
 
@@ -217,14 +217,15 @@ export function useAppActions(run, modal) {
         if (choice?.toLowerCase().startsWith('cv')) target = 'cv_raw';
         else if (choice?.toLowerCase().startsWith('jd')) target = 'jd_raw';
         else if (choice?.toLowerCase().startsWith('cover')) target = 'cover_letter_sample';
-        else return;
+        else return false;
       }
     }
 
+    // Returns whether the file actually landed — handleSectionUpload gates its re-validate
+    // message on this, so a failed upload can't kick the pipeline off with a stale file.
     try {
       const body = await fileObj.arrayBuffer();
-      await fetch(`/api/upload?target=${target}&filename=${encodeURIComponent(name)}`, {
-        method: 'POST',
+      await post(`/api/upload?target=${target}&filename=${encodeURIComponent(name)}`, {
         headers: { 'Content-Type': 'application/octet-stream' },
         body,
       });
@@ -233,8 +234,10 @@ export function useAppActions(run, modal) {
       if (target === 'cover_letter_sample') {
         await handleSend('Cover letter uploaded - please proceed with the analysis.');
       }
+      return true;
     } catch (err) {
       pushSystem(`Upload failed: ${err.message}`);
+      return false;
     }
   }
 
@@ -243,26 +246,21 @@ export function useAppActions(run, modal) {
     if (actionId === 'ta_upload_cover') {
       consumeActions();
       try {
-        const body = await file.arrayBuffer();
-        await fetch(`/api/upload?target=cover_letter_sample&filename=${encodeURIComponent(file.name)}`, {
-          method: 'POST',
+        await post(`/api/upload?target=cover_letter_sample&filename=${encodeURIComponent(file.name)}`, {
           headers: { 'Content-Type': 'application/octet-stream' },
-          body,
+          body: await file.arrayBuffer(),
         });
         setMessages((prev) => [...prev, { role: 'user', text: `Uploaded ${file.name} → cover_letter_sample.txt` }]);
         setUploadedFiles((prev) => ({ ...prev, cover_letter_sample: file.name }));
-        await fetch('/api/action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: 'ta_upload_cover' }),
-        });
+        await postAction({ id: 'ta_upload_cover' });
       } catch (err) {
         pushSystem(`Upload failed: ${err.message}`);
       }
     } else if (actionId === 'cv_revalidate_upload' || actionId === 'jd_revalidate_upload') {
       consumeActions();
       const target = actionId === 'cv_revalidate_upload' ? 'cv_raw' : 'jd_raw';
-      await handleUpload(file.name, file, target);
+      const uploaded = await handleUpload(file.name, file, target);
+      if (!uploaded) return;
       await handleSend('Files are saved to disk as cv_raw.txt and jd_raw.txt. Please initialise the project.');
     }
   }
@@ -283,7 +281,13 @@ export function useAppActions(run, modal) {
       danger: true,
     });
     if (!ok) return;
-    await fetch('/api/reset?full=1', { method: 'POST' }).catch(() => {});
+    try {
+      await post('/api/reset?full=1');
+    } catch (err) {
+      // Workspace still holds the old run — clearing the UI here would just hide it.
+      pushSystem(`Couldn't start a new session: ${err.message}`);
+      return;
+    }
     setMessages([]);
     setStatus(null);
     setActiveAgent('Main Orchestrator');
@@ -313,16 +317,22 @@ export function useAppActions(run, modal) {
   async function handleSetPhase(n) {
     if (!n) return;
     modal.setShowStatusMenu(false);
+    const prevStatus = run.status;
+    const prevMode = run.pipelineMode;
+    const prevWaiting = run.isWaiting;
     setStatus('CV_BUILDING');
     setIsWaiting(true);
     setPipelineMode('auto_running');
     try {
-      await fetch('/api/dev/phase', {
-        method: 'POST',
+      await post('/api/dev/phase', {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phase: n }),
       });
     } catch (err) {
+      // Nothing was dispatched — undo the optimistic jump so the run isn't stranded mid-spinner.
+      setStatus(prevStatus);
+      setIsWaiting(prevWaiting);
+      setPipelineMode(prevMode);
       pushSystem(`Phase jump failed: ${err.message}`);
     }
   }

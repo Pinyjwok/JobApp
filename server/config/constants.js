@@ -68,7 +68,7 @@ export const COMPLETION_CONTRACTS = {
 
 export const AGENT_FOREGROUND = new Set([
   'Main Orchestrator', 'ProjectSetup', 'Researcher',
-  'Assembly Coordinator', 'Style Negotiator',
+  'Style Negotiator',
   'Profile Builder', 'Skills Curator', 'History Formatter',
   'Credentials Formatter', 'Cover Letter Writer',
   'Style Reviewer', 'Integrity Checker', 'Document Formatter',
