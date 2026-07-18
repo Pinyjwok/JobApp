@@ -45,6 +45,21 @@ export function researchQuality(data) {
        : 'RESEARCH_FAILED';
 }
 
+// The COMPLETE/PARTIAL/FAILED verdict is the SERVER's (researchQuality), not the agent's — since
+// Researcher v2.3 the agent no longer types a `pipeline_status:` tag or a "quality:" line for the
+// client to scrape. The ResearchBubble still needs to badge the result, so persist the derived verdict
+// into research_output.json (the file the bubble already fetches on render) → one source of truth, no
+// re-derived threshold rule drifting on the client. Idempotent; a write failure is a warn, not a crash.
+// Must run BEFORE the completion text is broadcast (callers resolve-then-broadcast) so the stamped file
+// is on disk before the client fetches it.
+function persistResearchQuality(data, status) {
+  try {
+    if (!data || data.quality === status) return;
+    data.quality = status;
+    writeFileSync(join(WORKSPACE_DIR, 'research_output.json'), JSON.stringify(data, null, 2));
+  } catch (e) { console.warn(`[research quality] write failed: ${e.message}`); }
+}
+
 // Core predicate for both the linear resolver and the analysis join. The node round-trip already told
 // us the agent FINISHED; this tells us it actually produced its artifact THIS turn. Bounded poll (mirror
 // checkJoin's 20×100ms) for the contract file, requiring:
@@ -79,7 +94,7 @@ export async function resolveStatusFromOutput(agentName, dispatchStart = 0) {
   if (!ready) return { status: null, ready: false };
   let status;
   if (agentName === 'Extractor')       status = resolveExtractorStatus('INITIALIZED'); // failure_reason override wins
-  else if (agentName === 'Researcher') status = researchQuality(data);
+  else if (agentName === 'Researcher') { status = researchQuality(data); persistResearchQuality(data, status); }
   else if (agentName === 'JD Enhancer')status = 'JD_ENHANCED';
   else                                 status = resolveAgentStatus(agentName, null);
   return { status, ready: true };
@@ -113,8 +128,10 @@ export async function runLinearDispatch({ node, agent, query = '__auto__', foreg
   try {
     const r = await sendToNodeAndWait(node, agent, query);
     const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
-    broadcastAgentResult(cleanText, agent, fg);
+    // Resolve from the output file FIRST — this also stamps the server-derived Researcher quality into
+    // research_output.json — so the file is final on disk before the broadcast triggers the client fetch.
     const { status, ready } = await resolveStatusFromOutput(agent, dispatchStart);
+    broadcastAgentResult(cleanText, agent, fg);
     if (ready && status) {
       await state.recipe.globalVariables.setValue('pipeline_status', status);
       state.pipelineStatus = status;
@@ -153,14 +170,25 @@ export function clearStaleAnalysis() {
 // per-role relevance + recent-graduate flag (in style_findings.seniority.role_classification[]).
 // Mirrors the fit-score offload (LLM tags, server computes the number). Fault-tolerant: any missing
 // input leaves the TA's own values untouched (back-compat with pre-offload output).
+const MONTH_NUM = {
+  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12,
+  january: 1, february: 2, march: 3, april: 4, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+};
+// Parse the VERBATIM date shapes the Extractor stores. It captures the CV's own wording, so this must
+// tolerate month-name form ("March 2025", "Sept. 2024") as well as numeric — the earlier version only
+// handled YYYY-MM / YYYY and silently returned null on "March 2025", zeroing every duration downstream.
 function parseYearMonth(s) {
   if (!s) return null;
   const str = String(s).trim();
-  if (/^(present|current|now|ongoing)$/i.test(str)) return 'NOW';
-  let m = str.match(/^(\d{4})-(\d{1,2})/);      // 2025-03
+  if (/^(present|current|now|ongoing|to date|todate|ongoing role)$/i.test(str)) return 'NOW';
+  let m = str.match(/^(\d{4})[-/.](\d{1,2})\b/);        // 2025-03, 2025/03
   if (m) return { y: +m[1], mo: +m[2] };
-  m = str.match(/^(\d{4})$/);                    // 2025
-  if (m) return { y: +m[1], mo: 6 };             // mid-year midpoint when only a year is given
+  m = str.match(/^(\d{1,2})[/.](\d{4})\b/);              // 03/2025, 3.2025
+  if (m) return { y: +m[2], mo: +m[1] };
+  m = str.match(/^([A-Za-z]+)\.?\s+(\d{4})\b/);          // March 2025, Mar 2025, Sept. 2024
+  if (m) { const mo = MONTH_NUM[m[1].toLowerCase()]; if (mo) return { y: +m[2], mo }; }
+  m = str.match(/^(\d{4})$/);                            // 2025
+  if (m) return { y: +m[1], mo: 6 };                     // mid-year midpoint when only a year is given
   return null;
 }
 
@@ -175,6 +203,31 @@ function roleDurationYears(role) {
 }
 
 const normEmployer = e => String(e || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+// ── Per-role duration_years — server-owned (the missing half of the date offload) ────────────────────
+// The Extractor stores work_history start_date/end_date VERBATIM ("March 2025" / "Present") and sets
+// duration_years:0, on the contract that the SERVER computes the real number — hand-computed durations
+// from a model were a hallucination source. That server half was documented (memory + handover) as
+// `computeRoleDurations` but was NEVER actually implemented, so duration_years sat at 0 for every role,
+// silently breaking the Analyst min-years threshold guard, History Formatter's "(N years)" render, and
+// the CoverLetter Writer. This is that missing function. Deterministic + idempotent: recompute from the
+// verbatim dates on every Extractor return (incl. redos), write back only when a value changed. Bad/
+// unparseable dates yield 0 (same as a genuinely zero-length role) — a warn, never a throw.
+export function computeRoleDurations() {
+  const p = join(WORKSPACE_DIR, 'candidate_profile.json');
+  let profile;
+  try { profile = JSON.parse(readFileSync(p, 'utf8')); } catch { return; }
+  const work = profile.work_history;
+  if (!Array.isArray(work) || !work.length) return;
+  let changed = false;
+  for (const role of work) {
+    const dur = roleDurationYears(role);
+    if (role.duration_years !== dur) { role.duration_years = dur; changed = true; }
+  }
+  if (!changed) return;
+  try { writeFileSync(p, JSON.stringify(profile, null, 2)); }
+  catch (e) { console.warn(`[Extractor · durations] write failed: ${e.message}`); }
+}
 
 // ── Verbatim matching ────────────────────────────────────────────────────────
 // Fold the cosmetic differences that make an exact substring match false-negative on real CV text:
@@ -371,9 +424,29 @@ export async function finishAnalystTurn(dispatchStart) {
     console.warn('[Analyst] gap_analysis.json not fresh/valid — skipping validator, analysis join cannot advance');
     return;
   }
+  // Build strengths[] from the requirements[] the Analyst just wrote (Phase 4 is gone — the agent tags
+  // each requirement, the server assembles the array). This must land BEFORE runAnalystValidator so the
+  // audit has strengths to attack; the validator patches requirements, so re-derive after it too.
+  deriveStrengthsOnDisk();
   // Discarded by checkJoin (the verdict stays internal — see the note there); kept for parity.
   state.analystValidatorSummary = await runAnalystValidator();
+  deriveStrengthsOnDisk();
   state.analystDone = true;
+}
+
+// Read gap_analysis + candidate_profile off disk, rebuild strengths[], write back. Thin wrapper over the
+// pure deriveStrengths for the two finishAnalystTurn hooks (runReviewAudit already has both in memory).
+function deriveStrengthsOnDisk() {
+  try {
+    const gapPath = join(WORKSPACE_DIR, 'gap_analysis.json');
+    const gapAnalysis = JSON.parse(readFileSync(gapPath, 'utf8'));
+    const candidateProfile = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'candidate_profile.json'), 'utf8'));
+    const { dropped } = deriveStrengths(gapAnalysis, candidateProfile);
+    writeFileSync(gapPath, JSON.stringify(gapAnalysis, null, 2), 'utf8');
+    if (dropped.length) console.log(`[Analyst] deriveStrengths dropped ${dropped.length} unbackable strength(s): ${dropped.map(d => d.id).join(', ')}`);
+  } catch (e) {
+    console.error('[Analyst] deriveStrengths failed:', e.message);
+  }
 }
 
 // ── Server-owned fit score calculation ───────────────────────────────────────
@@ -398,9 +471,15 @@ function calculateFitScore(gapAnalysis) {
   // from the baseline/differentiator denominator AND from the mandatory-cert gate below. The semantic
   // decision of *what* is Pending lives in the Analyst; the server only does the deterministic math.
   const isPending = r => r.candidate_status === 'Pending';
-  // Scored set = genuine requirements only (tier filter + source guard against responsibility mislabeling).
-  const baseline = reqs.filter(r => r.tier === 'Baseline' && !isResponsibility(r) && !isPending(r));
-  const differentiator = reqs.filter(r => r.tier === 'Differentiator' && !isResponsibility(r) && !isPending(r));
+  // Scored set = genuine requirements only. Tier is server-owned: `_computeTier` derives it from the
+  // requirement's `source` (which enhanced_jd list the JD Enhancer filed it under), falling back to the
+  // Analyst's `r.tier` only when source is unresolvable. This matches the gate + summary, which already
+  // use `_computeTier`, so the FIRST score shown at the join can no longer disagree with the post-repair
+  // score. Measured 0 delta across 6 real fixtures (the `!isResponsibility` guard already neutralised the
+  // common "responsibility mislabelled Baseline" case; this closes the residual Baseline↔Differentiator gap).
+  const tierOf = r => _computeTier(r) ?? r.tier;
+  const baseline = reqs.filter(r => tierOf(r) === 'Baseline' && !isResponsibility(r) && !isPending(r));
+  const differentiator = reqs.filter(r => tierOf(r) === 'Differentiator' && !isResponsibility(r) && !isPending(r));
   const baselineMet = baseline.filter(isMet).length;
   const differentiatorMet = differentiator.filter(isMet).length;
 
@@ -426,6 +505,48 @@ function calculateFitScore(gapAnalysis) {
 
   console.log(`[Analysis · fit-score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} gated=${gateApplied} total=${total}`);
   return { score: total, gateApplied };
+}
+
+// ── Analysis summary census (derive-on-read, deliberately NOT stored) ─────────
+// Counts over requirements[]/strengths[]/gaps[] — total & met per tier, strengths/
+// gaps/critical counts. The Analyst used to hand-tally these WHILE reasoning, which
+// drifted between passes (a captured live trace re-tallied "25 met / 32", "7+3=10",
+// and even a phantom "78% match" across ~4 rebuilds). A count is a .filter().length,
+// not a judgment: the model owns Met/Gap/Pending per requirement; counting is ours.
+//
+// It is NOT written back to gap_analysis.json, on purpose. The file's arrays are
+// mutated at FOUR points after the Analyst returns — runAnalystValidator (semantic
+// corrections), _repairGapAnalysis (drops strengths / retiers), and _ingestGapAnswers
+// on both the gap-interview and IC-remediation paths. A stored census would have to be
+// re-stamped at every one of those or go stale on disk; and grep confirms nothing reads
+// it (the UI bubble reads the arrays directly). So this stays a pure derive-on-read
+// helper: any future consumer (a report/export) calls it on the freshly-read object and
+// gets a count that cannot drift, because it is computed at the moment of use.
+export function computeAnalysisSummary(gapAnalysis) {
+  const reqs = Array.isArray(gapAnalysis?.requirements) ? gapAnalysis.requirements : [];
+  const strengths = Array.isArray(gapAnalysis?.strengths) ? gapAnalysis.strengths : [];
+  const gaps = Array.isArray(gapAnalysis?.gaps) ? gapAnalysis.gaps : [];
+  const isMet = r => r.candidate_status === 'Met' || r.candidate_status === 'Met (Candidate Evidence)';
+
+  // Scored tiers exclude responsibilities (context/duties, never scored). baseline_requirements
+  // is a census of ALL Baseline items — unlike the fit-score denominator it does NOT drop Pending.
+  // Trust the server's own _computeTier over any stale Analyst tier label.
+  const scored = reqs.filter(r => !isResponsibility(r));
+  const baseline = scored.filter(r => (_computeTier(r) ?? r.tier) === 'Baseline');
+  const differentiator = scored.filter(r => (_computeTier(r) ?? r.tier) === 'Differentiator');
+
+  return {
+    total_requirements: reqs.length,
+    baseline_requirements: baseline.length,
+    differentiator_requirements: differentiator.length,
+    responsibility_requirements: reqs.filter(isResponsibility).length,
+    requirements_met: reqs.filter(isMet).length,
+    baseline_met: baseline.filter(isMet).length,
+    differentiator_met: differentiator.filter(isMet).length,
+    strengths_count: strengths.length,
+    gaps_count: gaps.length,
+    critical_gaps: gaps.filter(g => String(g.severity).toLowerCase() === 'high').length,
+  };
 }
 
 export function applyFitScore(gapAnalysisPath) {
@@ -516,29 +637,91 @@ function _computeTier(r) {
   return null;
 }
 
+// ── Server-owned strengths[] derivation ──────────────────────────────────────
+// The Analyst used to hand-BUILD strengths[] in a Phase 4 that rebuilt the whole array ~4× per run,
+// flip-flopping individual items between direct/transferable + conf 3/4 — the worst reasoning-stability
+// sink in a captured trace. The per-requirement JUDGMENT (Met? confidence? direct vs transferable? the
+// 1-sentence narrative) is irreducibly the model's and STAYS on the requirement. What's mechanical — and
+// what moved here — is the ASSEMBLY: membership filter, impact map, id assignment, path validation.
+//
+// A strength is derived from a requirement iff ALL hold:
+//   • candidate_status Met (a "Met (Candidate Evidence)" backed gap carries no evidence_type and lives in
+//     candidate_backed_strengths[], not here). Responsibilities ARE eligible — they're excluded from the
+//     fit-SCORE denominator, but a demonstrably-performed duty is a real, displayable strength.
+//   • is_candidate_asset !== false (the agent's employer-side/admin exclusion flag; absent = asset)
+//   • membership: (evidence_type "direct" AND confidence_level >= 4) OR evidence_type "transferable"
+//   • passes the publications/grants asset guards (mechanical: claim keyword vs empty profile array)
+//   • evidence_source resolves in candidate_profile (repair a mangled path if possible, else drop)
+//
+// Pure + idempotent: it REPLACES gapAnalysis.strengths wholesale from the CURRENT requirements[], so it is
+// safe to call at every point requirements settle (after the validator patch, after _repairGapAnalysis).
+// ids are strength_N in requirement order — stable across re-derivation because requirements never reorder,
+// and every id consumer (review audit, _resolveStrengthIds for PB/CLW) runs after the last derivation.
+// Returns { strengths, dropped } — dropped = requirements that qualified but whose path never resolved,
+// surfaced in the review-repair summary. Mutates gapAnalysis.strengths and any repaired evidence_source.
+function _failsAssetGuard(r, candidateProfile) {
+  const t = String(r.requirement_text || '').toLowerCase();
+  const empty = k => !Array.isArray(candidateProfile?.[k]) || candidateProfile[k].length === 0;
+  if (/publication|journal|peer[- ]review/.test(t) && empty('publications')) return true;
+  if (/\bgrant|funding|chief investigator/.test(t) && empty('grants')) return true;
+  return false;
+}
+
+export function deriveStrengths(gapAnalysis, candidateProfile) {
+  const isMet = r => r.candidate_status === 'Met' || r.candidate_status === 'Met (Candidate Evidence)';
+  const strengths = [];
+  const dropped = [];
+  let n = 0;
+  for (const r of (gapAnalysis.requirements || [])) {
+    if (!isMet(r)) continue;
+    if (r.is_candidate_asset === false) continue; // agent-flagged employer-side/admin item
+    const et = r.evidence_type;
+    const conf = r.confidence_level;
+    const member = (et === 'direct' && Number(conf) >= 4) || et === 'transferable';
+    if (!member) continue;
+    if (_failsAssetGuard(r, candidateProfile)) continue;
+
+    // Evidence path must resolve; try to repair a mangled one, else the claim is unbackable → drop it
+    // (never ship an unverifiable strength into the CV — parity with the old _repairGapAnalysis drop).
+    let path = r.evidence_source;
+    if (resolvePath(candidateProfile, path, 'candidate_profile') == null) {
+      const fixed = _repairPath(candidateProfile, path, 'candidate_profile');
+      if (!fixed) { dropped.push({ id: r.id, evidence_source: path, strength_text: r.requirement_text }); continue; }
+      path = fixed; r.evidence_source = fixed;
+    }
+
+    const tier = _computeTier(r) ?? r.tier;
+    const impact = et === 'transferable' ? 'Low' : (tier === 'Baseline' ? 'High' : 'Medium');
+    n += 1;
+    strengths.push({
+      id: `strength_${n}`,
+      strength_text: r.requirement_text,           // verbatim requirement_text (Analyst Critical Rule 4)
+      evidence_source: path,
+      evidence_context: r.strength_note ?? '',      // the one irreducibly-LLM narrative, tagged on the req
+      confidence_level: et === 'transferable' ? Math.min(Number(conf) || 3, 3) : conf,
+      requirement_id: r.id,
+      tier,
+      evidence_type: et,
+      impact,
+    });
+  }
+  gapAnalysis.strengths = strengths;
+  return { strengths, dropped };
+}
+
 // Layers 1+2 — deterministic pre-audit repair, run before the verdict phases. The Analyst can ship
 // gap_analysis.json with malformed evidence_source paths (descriptive text appended, "and"-joined) even
 // after a validator REJECT, because its retry loop is capped ("proceed regardless of the second verdict").
 // Those non-resolving paths would otherwise surface as Critical 'A - Evidence Mismatch' → REVIEW_FAILED →
 // a blunt redo-everything menu that re-runs the same nondeterministic node and reproduces the defect.
-// Fix them here where the server owns the truth: normalize+re-resolve (repair), drop the strength if it's
-// still unverifiable (never ship an unbackable claim into the CV), overwrite a provably-wrong requirement
-// tier with the computed-correct one, and drop unbacked orphan gaps whose requirement_source isn't in the
-// JD. Mutates gapAnalysis in place; returns a repair record for the audit + summary.
+// Fix them here where the server owns the truth: overwrite a provably-wrong requirement tier with the
+// computed-correct one, and drop unbacked orphan gaps whose requirement_source isn't in the JD. Strength
+// path-validation + the "drop an unbackable strength" rule now live in deriveStrengths (which rebuilds
+// strengths[] from requirements[] right after this runs), so this no longer touches strengths[].
+// Mutates gapAnalysis in place; returns a repair record for the audit + summary (strengths_dropped is
+// filled in by the caller from the derivation result).
 function _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD) {
   const repairs = { paths_normalized: [], strengths_dropped: [], requirements_retiered: [], gaps_dropped: [], gates_demoted: [] };
-
-  const keptStrengths = [];
-  for (const s of (gapAnalysis.strengths || [])) {
-    if (resolvePath(candidateProfile, s.evidence_source, 'candidate_profile') != null) { keptStrengths.push(s); continue; }
-    const fixed = _repairPath(candidateProfile, s.evidence_source, 'candidate_profile');
-    if (fixed) {
-      repairs.paths_normalized.push({ id: s.id, from: s.evidence_source, to: fixed });
-      s.evidence_source = fixed; keptStrengths.push(s); continue;
-    }
-    repairs.strengths_dropped.push({ id: s.id, evidence_source: s.evidence_source, strength_text: s.strength_text });
-  }
-  gapAnalysis.strengths = keptStrengths;
 
   for (const r of (gapAnalysis.requirements || [])) {
     const correct = _computeTier(r);
@@ -655,6 +838,9 @@ export function runReviewAudit(gapAnswers = []) {
   // BEFORE the verdict phases see the data, then persist (downstream agents read the cleaned file).
   _ingestGapAnswers(gapAnalysis, gapAnswers);
   const repairs = _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD);
+  // Re-derive strengths[] off the just-repaired requirements[] (retiers + any validator-flipped statuses).
+  // This owns strength path-validation now, so feed its drop list back into the repair summary.
+  repairs.strengths_dropped = deriveStrengths(gapAnalysis, candidateProfile).dropped;
   const repairCount = repairs.paths_normalized.length + repairs.strengths_dropped.length
                     + repairs.requirements_retiered.length + repairs.gaps_dropped.length + repairs.gates_demoted.length;
   if (repairCount > 0) console.log(`[Review · audit] pre-audit repair: ${repairs.paths_normalized.length} path(s) normalized, ${repairs.strengths_dropped.length} strength(s) dropped, ${repairs.requirements_retiered.length} re-tiered, ${repairs.gaps_dropped.length} orphan gap(s) dropped, ${repairs.gates_demoted.length} gate(s) demoted`);
@@ -854,6 +1040,9 @@ export function resolveExtractorStatus(parsedStatus) {
   } catch (e) {
     console.warn(`[Extractor · gate] could not read project_meta.json: ${e.message}`);
   }
+  // Success path: the Extractor stored verbatim dates and left duration_years:0. Compute the real
+  // per-role durations server-side now, on every successful return (including redos). Idempotent.
+  if (parsedStatus === 'INITIALIZED') computeRoleDurations();
   return parsedStatus;
 }
 

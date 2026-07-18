@@ -205,10 +205,12 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     sendToNodeAndWait(node, agent)
       .then(async r => {
         const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-        broadcastAgentResult(cleanText, agent, AGENT_FOREGROUND.has(agent));
         // Status from the agent's OUTPUT FILE, not the prose tag. resolveStatusFromOutput folds in the
-        // Extractor failure_reason gate and the Researcher quality recompute (COMPLETE/PARTIAL/FAILED).
+        // Extractor failure_reason gate and the Researcher quality recompute (COMPLETE/PARTIAL/FAILED),
+        // and stamps that verdict into research_output.json. Resolve BEFORE broadcasting so the file the
+        // client's ResearchBubble fetches on render is already final on disk.
         const { status: newStatus, ready } = await resolveStatusFromOutput(agent, autoStart);
+        broadcastAgentResult(cleanText, agent, AGENT_FOREGROUND.has(agent));
         if (status === 'INITIALIZED' && state.researchPartial) {
           state.researchPartial = false;
           broadcastMode('user_turn');

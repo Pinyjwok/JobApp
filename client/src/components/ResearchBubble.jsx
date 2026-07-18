@@ -44,12 +44,13 @@ const HIGHLIGHT_KEYS = new Set(HIGHLIGHTS.map(h => h.key));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Parse company name, field count, quality from the researcher's markdown text */
+/** Parse the company name from the researcher's completion message.
+ *  Quality + field counts are NO LONGER scraped from prose — the server owns the verdict and stamps it
+ *  into research_output.json (read below), since Researcher v2.3 dropped the status/quality text.
+ *  Tolerates both the v2.3 message ("…gathered for Suncorp Group.") and the old em-dash form. */
 function parseResearchMsg(text) {
-  const company = (text.match(/for \*?\*?([^*\n—–-]+?)\*?\*?\s*[—–-]/) ?? [])[1]?.trim() ?? null;
-  const [, f, t] = text.match(/(\d+)\/(\d+) fields/) ?? [];
-  const quality  = (text.match(/quality:\s*(RESEARCH_\w+)/) ?? [])[1] ?? 'RESEARCH_COMPLETE';
-  return { company, filled: f ? +f : null, total: t ? +t : null, quality };
+  const company = (text.match(/gathered for\s+\*?\*?(.+?)\*?\*?\s*(?:[—–.]|$)/m) ?? [])[1]?.trim() ?? null;
+  return { company };
 }
 
 /** Normalise a research_data field value to a readable string */
@@ -197,6 +198,7 @@ function SourceGroup({ sources, label }) {
 
 export function ResearchBubble({ msg }) {
   const [data, setData]               = useState(null);
+  const [quality, setQuality]         = useState(null);   // server-derived verdict, read from the file
   const [loading, setLoading]         = useState(true);
   const [moreOpen, setMoreOpen]       = useState(false);
   const [activeIntel, setActiveIntel] = useState(null);
@@ -206,8 +208,8 @@ export function ResearchBubble({ msg }) {
   useEffect(() => {
     fetch('/api/workspace?file=research_output.json')
       .then(r => r.json())
-      .then(d => setData(d?.research_data ?? null))
-      .catch(() => setData(null))
+      .then(d => { setData(d?.research_data ?? null); setQuality(d?.quality ?? null); })
+      .catch(() => { setData(null); setQuality(null); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -230,7 +232,10 @@ export function ResearchBubble({ msg }) {
   const companySrcs = sources.filter(s => s.origin === 'company');
   const sectorSrcs  = sources.filter(s => s.origin === 'sector');
 
-  const hasError = parsed.quality === 'RESEARCH_FAILED';
+  // Verdict + counts from the file (server-owned), not the prose. filled/total are display-only.
+  const filled   = intel.length || null;
+  const total    = filled != null ? INTEL_FIELDS.length : null;
+  const hasError = quality === 'RESEARCH_FAILED';
 
   return (
     <div className={`animate-fade-in-up relative w-full max-w-[85%] rounded-xl border border-line border-l-[3px] border-l-line-strong bg-surface-2 px-4 py-3 text-sm text-fg shadow-[var(--shadow-panel)] ${hasError ? 'ring-1 ring-danger/40' : ''}`}>
@@ -242,13 +247,11 @@ export function ResearchBubble({ msg }) {
         {msg.cost != null && (
           <span className="text-xs text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
         )}
-        <div className="ml-auto">
-          <QualityBadge
-            quality={parsed.quality}
-            filled={parsed.filled}
-            total={parsed.total}
-          />
-        </div>
+        {quality && (
+          <div className="ml-auto">
+            <QualityBadge quality={quality} filled={filled} total={total} />
+          </div>
+        )}
       </div>
 
       {/* Title */}

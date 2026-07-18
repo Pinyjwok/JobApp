@@ -133,10 +133,13 @@ const readText = name => readFileSync(join(WORKSPACE_DIR, name), 'utf8');
  *
  * Mechanical only — mirrors _repairGapAnalysis's shape (mutate + return a summary for logging).
  *
- * CRITICAL: the fit score is computed from `requirements[].candidate_status` (calculateFitScore), NOT
- * from strengths[]/gaps[]. Moving an item between those two arrays alone changes the UI bubble and
- * nothing else — the score would not budge. So every move here also flips the linked requirement's
- * candidate_status via requirement_id. That is what makes the patch real rather than cosmetic.
+ * CRITICAL: the fit score is computed from `requirements[].candidate_status` (calculateFitScore), and
+ * strengths[] is now DERIVED from requirements[] by deriveStrengths (dispatch.js) right after this runs.
+ * So this patch touches ONLY requirements[] (candidate_status / evidence_source / evidence_type) and the
+ * gaps[] list — the strengths array is rebuilt from the patched requirements, never edited here. A patch
+ * that only moved items between strengths[]/gaps[] would be doubly dead now: it wouldn't budge the score
+ * AND the derivation would overwrite it. Every entry below flips the linked requirement via requirement_id;
+ * an entry with no resolvable requirement is skipped, because there is nothing real to change.
  *
  * @param {object} gapAnalysis  parsed gap_analysis.json (mutated)
  * @param {object} patch        {demote_strengths, promote_gaps, correct_evidence_source}
@@ -150,85 +153,71 @@ export function applyAnalystValidatorPatch(gapAnalysis, patch, candidateProfile 
 
   const reqs = gapAnalysis.requirements ?? [];
   const reqById = new Map(reqs.map(r => [r.id, r]));
-  const nextId = (arr, prefix) => {
+  const nextGapId = arr => {
     const max = arr.reduce((m, x) => {
-      const n = parseInt(String(x?.id ?? '').replace(`${prefix}_`, ''), 10);
+      const n = parseInt(String(x?.id ?? '').replace('gap_', ''), 10);
       return Number.isFinite(n) && n > m ? n : m;
     }, 0);
-    return `${prefix}_${max + 1}`;
+    return `gap_${max + 1}`;
   };
 
-  // ── Demote: strength → gap. Always safe (removes credit), so no path verification needed.
+  // ── Demote: flip the strength's requirement → Gap, and add a gap entry. The derivation will drop the
+  // strength on the next pass because the requirement is no longer Met. Always safe (removes credit).
   for (const d of (patch.demote_strengths ?? [])) {
-    const i = (gapAnalysis.strengths ?? []).findIndex(s => s.id === d?.id);
-    if (i === -1) { skipped.push(`demote ${d?.id}: no such strength`); continue; }
-    const s = gapAnalysis.strengths[i];
+    const s = (gapAnalysis.strengths ?? []).find(x => x.id === d?.id);
+    if (!s) { skipped.push(`demote ${d?.id}: no such strength`); continue; }
     const req = reqById.get(s.requirement_id);
-    gapAnalysis.strengths.splice(i, 1);
+    if (!req) { skipped.push(`demote ${d.id}: strength has no linked requirement`); continue; }
     gapAnalysis.gaps = gapAnalysis.gaps ?? [];
     gapAnalysis.gaps.push({
-      id: nextId(gapAnalysis.gaps, 'gap'),
-      gap_text: req?.requirement_text ?? s.strength_text,
-      requirement_source: req?.source ?? null,
-      requirement_id: s.requirement_id ?? null,
-      tier: s.tier ?? req?.tier ?? null,
+      id: nextGapId(gapAnalysis.gaps),
+      gap_text: req.requirement_text ?? s.strength_text,
+      requirement_source: req.source ?? null,
+      requirement_id: req.id,
+      tier: req.tier ?? s.tier ?? null,
       // Deterministic from tier — a missing required item hurts more than a missing preferred one.
-      severity: (s.tier ?? req?.tier) === 'Baseline' ? 'High' : 'Medium',
+      severity: (req.tier ?? s.tier) === 'Baseline' ? 'High' : 'Medium',
       evidence_context: d.reason ?? 'Demoted by validator: cited evidence does not prove the requirement.',
       mitigation_strategy: 'Address directly: the CV does not yet evidence this requirement.',
     });
-    if (req) {
-      req.candidate_status = 'Gap';
-      req.evidence_source = null;
-      req.evidence_downgrade = { reason: d.reason ?? 'validator: insufficient evidence' };
-    }
-    applied.push(`demote ${d.id} → gap${req ? ` (${req.id} → Gap)` : ''}`);
+    req.candidate_status = 'Gap';
+    req.evidence_source = null;
+    req.evidence_downgrade = { reason: d.reason ?? 'validator: insufficient evidence' };
+    applied.push(`demote ${d.id} → gap (${req.id} → Gap)`);
   }
 
-  // ── Promote: gap → strength. GRANTS credit, so it is gated. A hallucinated path here would inflate
-  // the fit score, and _repairGapAnalysis would only drop the orphaned strength — the requirement would
-  // stay "Met". Verify the path resolves first; skip the promotion outright if it doesn't.
+  // ── Promote: flip the gap's requirement → Met and remove the gap; the derivation materialises the
+  // strength from that requirement. GRANTS credit, so it is gated: a hallucinated path would inflate the
+  // fit score. Verify the path resolves AND a real requirement backs the gap; skip otherwise.
   for (const p of (patch.promote_gaps ?? [])) {
     const i = (gapAnalysis.gaps ?? []).findIndex(g => g.id === p?.id);
     if (i === -1) { skipped.push(`promote ${p?.id}: no such gap`); continue; }
     const g = gapAnalysis.gaps[i];
     const req = reqById.get(g.requirement_id);
-    if (req?.candidate_status === 'Pending') { skipped.push(`promote ${p.id}: requirement is Pending (administrative, unscored)`); continue; }
+    if (!req) { skipped.push(`promote ${p.id}: gap has no linked requirement (nothing to score)`); continue; }
+    if (req.candidate_status === 'Pending') { skipped.push(`promote ${p.id}: requirement is Pending (administrative, unscored)`); continue; }
     const path = p.proposed_evidence_source;
     if (!path || (candidateProfile && resolvePath(candidateProfile, path, 'candidate_profile') == null)) {
       skipped.push(`promote ${p.id}: proposed_evidence_source does not resolve (${path ?? 'none'})`);
       continue;
     }
     gapAnalysis.gaps.splice(i, 1);
-    gapAnalysis.strengths = gapAnalysis.strengths ?? [];
-    gapAnalysis.strengths.push({
-      id: nextId(gapAnalysis.strengths, 'strength'),
-      // Verbatim rule (Analyst Critical Rule 4): strength_text copies requirement_text exactly.
-      strength_text: req?.requirement_text ?? g.gap_text,
-      evidence_source: path,
-      evidence_context: p.reason ?? 'Promoted by validator: evidence exists in the CV.',
-      confidence_level: 4,
-      requirement_id: g.requirement_id ?? null,
-      tier: g.tier ?? req?.tier ?? null,
-      evidence_type: 'direct',
-      impact: (g.tier ?? req?.tier) === 'Baseline' ? 'High' : 'Medium',
-    });
-    if (req) {
-      req.candidate_status = 'Met';
-      req.evidence_source = path;
-      req.confidence_level = 4;
-    }
-    applied.push(`promote ${p.id} → strength${req ? ` (${req.id} → Met)` : ''}`);
+    req.candidate_status = 'Met';
+    req.evidence_source = path;
+    req.confidence_level = 4;
+    req.evidence_type = 'direct';                       // derivation membership needs a tag
+    req.strength_note = p.reason ?? 'Promoted by validator: evidence exists in the CV.';
+    applied.push(`promote ${p.id} → strength (${req.id} → Met)`);
   }
 
-  // ── Correct a strength's cited path. Mirror it onto the requirement, which carries its own copy.
+  // ── Correct a cited path: fix it on the requirement; the derived strength picks up the new path.
   for (const c of (patch.correct_evidence_source ?? [])) {
     const s = (gapAnalysis.strengths ?? []).find(x => x.id === c?.id);
     if (!s) { skipped.push(`correct ${c?.id}: no such strength`); continue; }
     if (!c.new_path) { skipped.push(`correct ${c.id}: no new_path`); continue; }
-    s.evidence_source = c.new_path;
     const req = reqById.get(s.requirement_id);
-    if (req) req.evidence_source = c.new_path;
+    if (!req) { skipped.push(`correct ${c.id}: strength has no linked requirement`); continue; }
+    req.evidence_source = c.new_path;
     applied.push(`correct ${c.id} evidence_source`);
   }
 

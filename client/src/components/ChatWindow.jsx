@@ -63,13 +63,16 @@ const ERROR_RE = /\bFAILED\b|✗\s|\bError:/;
 
 // ── Message type detectors ─────────────────────────────────────────────────────
 
-/** Researcher completion → ResearchBubble */
+/** Researcher completion → ResearchBubble.
+ *  Anchor on the stable "Researcher Complete" heading (the completion message the agent always prints),
+ *  NOT a scraped status enum — since Researcher v2.3 the server owns the COMPLETE/PARTIAL/FAILED verdict
+ *  and the agent no longer types it into the prose. Old-format enum kept as a fallback for safety. */
 function isResearchComplete(msg) {
   return (
     msg.agent === 'Researcher' &&
     !msg.background &&
     typeof msg.text === 'string' &&
-    /RESEARCH_(COMPLETE|PARTIAL|FAILED)/.test(msg.text)
+    (/Researcher Complete/i.test(msg.text) || /RESEARCH_(COMPLETE|PARTIAL|FAILED)/.test(msg.text))
   );
 }
 
