@@ -334,6 +334,12 @@ router.post('/restore', async (req, res) => {
     state.retryThunk           = null;
     state.lastDispatch         = null;
     state.pipelineStatus       = status;
+    // Gap-interview round state is in-memory only; a round-2 re-ask can't be reconstructed from a
+    // snapshot (gapPending never hits disk). Reset to a clean round 1 so /api/pending-interview
+    // rebuilds the gap modal from gap_analysis.json on disk instead of serving stale cards.
+    state.gapRound             = 1;
+    state.gapAccepted          = [];
+    state.gapPending           = [];
 
     if (status) {
       try { await state.recipe.globalVariables.setValue('pipeline_status', status); } catch {}

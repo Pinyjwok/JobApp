@@ -13,7 +13,7 @@ export function useChatStream(run, modal) {
     setIsWaiting, isWaitingRef, setPipelineMode, setRunningAgent, setTurns,
     pipelineMode,
   } = run;
-  const { openGap, openStyle, openIc, openRevise, bumpInspector, setModalState } = modal;
+  const { openGap, openStyle, openIc, openRevise, applyPending, bumpInspector, setModalState } = modal;
 
   const [connection, setConnection] = useState('connecting'); // connecting | open | reconnecting | closed
   const pendingReasoningRef = useRef({}); // { [agent]: text }
@@ -123,10 +123,34 @@ export function useChatStream(run, modal) {
         setStatus(data.status);
       } else if (data.type === 'history_reload') {
         // Snapshot restore swapped the persisted history out from under us — pull the new
-        // conversation and replace the rendered messages wholesale.
+        // conversation and replace the rendered messages wholesale, then reopen whatever
+        // interview the restored pipeline is blocked on. The *_start SSE events fire once and
+        // won't replay on restore, and the gap interview has no server-side resume re-broadcast
+        // at all, so without this the gap modal never reopens. Mirrors the returning-user resume
+        // path (useAppActions.handleModalResume) — the two must stay in lock-step.
         fetch('/api/history')
           .then((r) => r.json())
-          .then((saved) => { if (Array.isArray(saved)) setMessages(saved); })
+          .then((saved) => {
+            const restored = Array.isArray(saved) ? saved : [];
+            setMessages(restored);
+            return fetch('/api/pending-interview')
+              .then((r) => r.json())
+              .then((d) => applyPending(d, {
+                // Only re-emit the section Approve/Revise bubble if the restored history doesn't
+                // already end with a live (unused) one — avoids stacking a duplicate.
+                requestSectionReview: () => {
+                  const last = [...restored].reverse().find((m) => m.role === 'actions');
+                  const hasLive = last && !last.used && last.context === 'assembly_section_review';
+                  if (!hasLive) {
+                    fetch('/api/action', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ id: 'resume_section_review' }),
+                    }).catch(() => {});
+                  }
+                },
+              }));
+          })
           .catch(() => {});
         setModalState('hidden');
       } else if (data.type === 'stream_done') {
@@ -135,7 +159,7 @@ export function useChatStream(run, modal) {
       }
     }, [activeAgent, setActiveAgent, setStatus, setMessages, saveHistory, setIsWaiting,
         setPipelineMode, setRunningAgent, setTurns, openGap, openStyle, openIc, openRevise,
-        bumpInspector, setModalState]),
+        applyPending, bumpInspector, setModalState]),
     useCallback((state) => setConnection(state), [])
   );
 
