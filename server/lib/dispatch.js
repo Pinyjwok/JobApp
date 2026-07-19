@@ -1372,9 +1372,15 @@ function readWorkspaceText(file) {
   try { return readFileSync(join(WORKSPACE_DIR, file), 'utf8'); } catch { return ''; }
 }
 
+// Each issue may carry a `remedy` describing how the server can fix it in place BEFORE the user sees the
+// section (see _remediateAssemblySection):
+//   { kind: 'prose',   section, claim }  → hand the claim to the Style Reviewer __remediate__ re-flow
+//   { kind: 'contact', which, value }    → deterministic JS patch of the contact block
+// Issues with no `remedy` are advisory only (structural, or backstopped by the Integrity Checker gate)
+// and still ride in the section-review notes so nothing is silently hidden.
 export function _assemblyChecks(agentKey) {
   const issues = [];
-  const push = (field, problem) => issues.push({ field, problem });
+  const push = (field, problem, remedy) => issues.push(remedy ? { field, problem, remedy } : { field, problem });
 
   if (agentKey === 'style_negotiator') {
     const data = readWorkspaceJSON('sn_output.json')?.data || {};
@@ -1400,21 +1406,23 @@ export function _assemblyChecks(agentKey) {
       (profile.education || []).map(e => `${e.qualification || ''} ${e.institution || ''}`).join(' ')).toLowerCase();
     for (const term of ['credentialled', 'certified', 'registered', 'accredited', 'diplomate', 'fellowship', 'fellow of', 'member of']) {
       const re = new RegExp(term, 'i');
-      if (re.test(paragraph) && !re.test(credSrc)) push('data.profile_paragraph', `Claims "${term}" credential but no matching entry in education[]/certifications[]`);
+      if (re.test(paragraph) && !re.test(credSrc)) push('data.profile_paragraph', `Claims "${term}" credential but no matching entry in education[]/certifications[]`, { kind: 'prose', section: 'profile', claim: term });
     }
     // 2. Numeric claim traceability
     const profileText = normalizeForMatch(JSON.stringify(profile));
-    for (const m of (paragraph.match(/\b(\d+\.?\d*\s*%|\d+\+?\s*(?:year|yr)s?|\$[\d,]+|\d{4})\b/gi) || [])) {
-      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json - may be invented`);
+    // Per-alternative leading \b (no trailing \b): a trailing \b can never match after "%" or "$…"
+    // (both end in a non-word char), which silently let every invented percentage/dollar metric through.
+    for (const m of (paragraph.match(/\b\d+\.?\d*\s*%|\b\d+\+?\s*(?:year|yr)s?|\$[\d,]+|\b\d{4}\b/gi) || [])) {
+      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json - may be invented`, { kind: 'prose', section: 'profile', claim: m.trim() });
     }
-    // 3. Contact accuracy
+    // 3. Contact accuracy — deterministically patchable (the value comes straight from candidate_profile.json)
     const contact = profile.personal_info?.contact || {};
     const contactStr = data.contact_details?.formatted_text || '';
-    if (contact.email && !contactStr.includes(contact.email)) push('data.contact_details', `Email "${contact.email}" not in contact_details`);
-    if (contact.phone && !contactStr.includes(contact.phone)) push('data.contact_details', `Phone "${contact.phone}" not in contact_details`);
+    if (contact.email && !contactStr.includes(contact.email)) push('data.contact_details', `Email "${contact.email}" not in contact_details`, { kind: 'contact', which: 'email', value: contact.email });
+    if (contact.phone && !contactStr.includes(contact.phone)) push('data.contact_details', `Phone "${contact.phone}" not in contact_details`, { kind: 'contact', which: 'phone', value: contact.phone });
     // 4. Danger-term / fabrication (TC05)
     const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
-    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt - likely inferred from a title or sector-misused`);
+    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt - likely inferred from a title or sector-misused`, { kind: 'prose', section: 'profile', claim: t });
     // 5. Numeric cross-section: profile's stated years vs server-computed total (no LLM)
     const total = findings.seniority?.years_experience;
     if (typeof total === 'number' && total > 0) {
@@ -1452,13 +1460,13 @@ export function _assemblyChecks(agentKey) {
       if (!words.every(w => bodyLc.includes(w.toLowerCase()))) push('data.cover_letter', `Role title "${meta.position_title}" not reflected in letter`);
     }
     for (const s of body.split(/[.!?]/).map(x => x.trim()).filter(x => /\d{1,3}(,\d{3})*|\d+%|[A-Z][a-z]+ (Program|Initiative|Framework|Centre|Center|Institute)/.test(x))) {
-      if (research && !research.includes(normalizeForMatch(s).slice(0, 30))) push('data.cover_letter.body', `Specific company claim not in research_output: "${s.slice(0, 80)}…"`);
+      if (research && !research.includes(normalizeForMatch(s).slice(0, 30))) push('data.cover_letter.body', `Specific company claim not in research_output: "${s.slice(0, 80)}…"`, { kind: 'prose', section: 'cover_letter', claim: s });
     }
     const wc = body.split(/\s+/).filter(Boolean).length;
     if (wc < 200) push('data.cover_letter', `Letter is ${wc} words - likely incomplete (target 250–350)`);
     if (wc > 420) push('data.cover_letter', `Letter is ${wc} words - exceeds 420 word cap`);
     const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
-    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt - likely fabricated or sector-misused`);
+    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt - likely fabricated or sector-misused`, { kind: 'prose', section: 'cover_letter', claim: t });
   }
   return issues;
 }
@@ -1472,6 +1480,103 @@ function _runAssemblyValidator(phaseAgent) {
   const verdict = { verdict: issues.length ? 'FLAG' : 'APPROVE', agent: agentKey, issues };
   try { writeFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), JSON.stringify(verdict, null, 2)); } catch {}
   console.log(`[Assembly · validator] verdict=${verdict.verdict} for ${agentKey} (${issues.length} issue(s))`);
+  return issues.length ? issues.map(i => `• ${i.field}: ${i.problem}`).join('\n') : '';
+}
+
+// ── Assembly-section auto-remediation ─────────────────────────────────────────
+// Advisory→enforcing: instead of showing a maybe-fabricated section with a "review this" note, the server
+// FIXES what it deterministically can before the user ever sees the section, then re-validates. This
+// protects the user from invalid output and the system's credibility (nothing fabricated is displayed).
+//   • contact mismatch → patched in JS from candidate_profile.json (no LLM).
+//   • prose fabrication (profile / cover-letter: invented metric, fake credential, danger term,
+//     unsupported company claim) → removed via the Style Reviewer __remediate__ re-flow it already owns.
+// Anything with no auto-fix (history metrics, missing company name, word count) rides on as an advisory
+// note; those are also caught hard by the Integrity Checker gate at phase 8.
+const ASM_REMEDIATION_CAP = 2;
+
+// The validator + the user-facing section bubble both read the raw *_output.json; the SR re-flow writes
+// cv_assembly_state.json. Copy the remediated section data back so both see the fix.
+function _syncStateToOutputFile(phaseNumber) {
+  const phase = ASSEMBLY_PHASES[phaseNumber];
+  if (!phase?.outputFile) return;
+  try {
+    const cv = readWorkspaceJSON('cv_assembly_state.json');
+    const data = cv?.phases?.[phaseNumber - 1]?.data;
+    if (!data) return;
+    const out = readWorkspaceJSON(phase.outputFile) || {};
+    out.data = data;
+    writeFileSync(join(WORKSPACE_DIR, phase.outputFile), JSON.stringify(out, null, 2));
+  } catch (e) { console.error('[Assembly · remediation] state→output sync failed:', e.message); }
+}
+
+// Deterministic contact patch: append any profile email/phone missing from the contact block. Operates on
+// cv_assembly_state.json (canonical); the caller syncs it back to the output file. Returns true if changed.
+function _applyContactFix(fixes) {
+  const cvPath = join(WORKSPACE_DIR, 'cv_assembly_state.json');
+  let changed = false;
+  try {
+    const cv = JSON.parse(readFileSync(cvPath, 'utf8'));
+    const cd = cv.phases?.[1]?.data?.contact_details;
+    if (!cd) return false;
+    let txt = cd.formatted_text || '';
+    for (const f of fixes) {
+      if (f.value && !txt.includes(f.value)) { txt = txt ? `${txt} · ${f.value}` : f.value; changed = true; }
+    }
+    if (changed) {
+      cd.formatted_text = txt;
+      cv.metadata && (cv.metadata.last_updated = new Date().toISOString());
+      writeFileSync(cvPath, JSON.stringify(cv, null, 2));
+    }
+  } catch (e) { console.error('[Assembly · remediation] contact fix failed:', e.message); }
+  return changed;
+}
+
+// Hand a claim-removal list to the Style Reviewer's __remediate__ re-flow (same call the IC-remediation
+// path uses). SR removes each claim from its named section and re-flows the prose; facts frozen, adds
+// nothing. Runs silent — SR's own narration is discarded (the "Tidying up…" notice is the only UI line).
+async function _srRemediate(removals) {
+  const payload = JSON.stringify({ remove: removals.map(r => ({ section: r.section, claim: r.claim })) });
+  broadcastMode('auto_running', 'Style Reviewer');
+  await sendToNodeAndWait(ASSEMBLY_PHASES[7].inputNode, 'Style Reviewer', `__remediate__ ${payload}`);
+  await new Promise(r => setTimeout(r, 800));
+}
+
+// Validate a freshly-merged content section, auto-fix in place, re-validate (bounded loop), then write the
+// verdict file. Returns the residual (un-auto-fixable) notes to thread into the Approve/Revise bubble.
+// Only phases with a validator module (PB / HF / CLW) do real work; SC / CF / DF short-circuit to ''.
+async function _remediateAssemblySection(phaseNumber, phaseAgent) {
+  const agentKey = ASSEMBLY_VALIDATOR_AGENT[phaseAgent];
+  if (!agentKey) return '';
+
+  let issues = [];
+  try { issues = _assemblyChecks(agentKey); }
+  catch (err) { console.error('[Assembly · validator] error:', err.message); return ''; }
+
+  let round = 0, announced = false;
+  while (issues.length && round < ASM_REMEDIATION_CAP) {
+    const contactFixes  = issues.filter(i => i.remedy?.kind === 'contact').map(i => i.remedy);
+    const proseRemovals = issues.filter(i => i.remedy?.kind === 'prose').map(i => i.remedy);
+    if (!contactFixes.length && !proseRemovals.length) break; // only advisory issues remain
+
+    if (!announced) {
+      broadcast({ type: 'agent_message', agent: 'System', text: 'Double-checking this section against your details and tidying anything that didn\'t match…' });
+      announced = true;
+    }
+
+    let didFix = false;
+    if (contactFixes.length)  didFix = _applyContactFix(contactFixes) || didFix;
+    if (proseRemovals.length) { try { await _srRemediate(proseRemovals); didFix = true; } catch (e) { console.error('[Assembly · remediation] SR re-flow failed:', e.message); } }
+    if (didFix) _syncStateToOutputFile(phaseNumber);
+    if (!didFix) break; // nothing actually applied — avoid a no-op spin
+
+    round++;
+    try { issues = _assemblyChecks(agentKey); }
+    catch (err) { console.error('[Assembly · validator] re-check error:', err.message); break; }
+  }
+
+  const verdict = { verdict: issues.length ? 'FLAG' : 'APPROVE', agent: agentKey, issues, remediation_rounds: round };
+  try { writeFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), JSON.stringify(verdict, null, 2)); } catch {}
+  console.log(`[Assembly · validator] verdict=${verdict.verdict} for ${agentKey} after ${round} remediation round(s) (${issues.length} residual issue(s))`);
   return issues.length ? issues.map(i => `• ${i.field}: ${i.problem}`).join('\n') : '';
 }
 
@@ -1529,10 +1634,8 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   // SR (7) and IC (8) are gates, not content sections. Their agent text is a long forensic working-log
   // (dual-track notes, per-claim checks) — the handlers below emit a clean server-built summary instead,
   // so don't dump the raw reasoning to the user.
-  if (phaseNumber !== 7 && phaseNumber !== 8) {
-    broadcastAssemblySectionResult(cleanText, phase.agent);
-  }
-
+  // Content sections are broadcast AFTER validate-and-remediate (below) so the user only ever sees a
+  // section that's already been checked and fixed in place. SR (7) / IC (8) never broadcast raw here.
   await new Promise(r => setTimeout(r, 1000));
 
   if (phaseNumber <= 6 || phaseNumber === 9) {
@@ -1552,7 +1655,10 @@ export async function dispatchAssemblyPhase(phaseNumber) {
       return;
     }
     if (state.assemblyRetries) delete state.assemblyRetries[phaseNumber];
-    const notes = await _runAssemblyValidator(phase.agent);
+    // Validate → auto-fix in place → re-validate, BEFORE the section is shown. Residual issues the
+    // server can't auto-fix come back as advisory notes for the Approve/Revise decision.
+    const notes = await _remediateAssemblySection(phaseNumber, phase.agent);
+    broadcastAssemblySectionResult(cleanText, phase.agent);
     _showApproveRevise(phase.agent, notes);
     return;
   }
