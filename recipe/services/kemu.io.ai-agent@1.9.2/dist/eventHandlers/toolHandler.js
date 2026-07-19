@@ -15,6 +15,9 @@ export const registerToolEvent = (config) => {
     if (!toolInstanceMap[recipeUuid]) {
         toolInstanceMap[recipeUuid] = {};
     }
+    if (!toolInstanceMap[recipeUuid].events) {
+        toolInstanceMap[recipeUuid].events = {};
+    }
     let resolveFn;
     let rejectFn;
     const promise = new Promise((resolve, reject) => {
@@ -36,9 +39,7 @@ export const registerToolEvent = (config) => {
         }, timeout * 1000); // Convert seconds to milliseconds
         eventInstance.timeoutHandle = timeoutHandle;
     }
-    toolInstanceMap[recipeUuid].events = {
-        [eventId]: eventInstance,
-    };
+    toolInstanceMap[recipeUuid].events[eventId] = eventInstance;
     return eventInstance;
 };
 /**
@@ -223,13 +224,18 @@ export const handleToolParentEvent = async (event, context) => {
         eventId: executionId,
         toolWidgetId: context.widgetId,
     });
-    await context.setOutputs([
-        {
-            name: 'arguments',
-            type: DataType.JsonObj,
-            value: parsedArgs,
+    await context.setOutputsWithContext({
+        eventContext: {
+            executionId,
         },
-    ]);
+        outputs: [
+            {
+                name: 'arguments',
+                type: DataType.JsonObj,
+                value: parsedArgs,
+            },
+        ],
+    });
     // Wait for the tool to be processed
     await tool.promise.catch((e) => {
         console.log(`Tool execution [${tool.widgetId}] rejected:`, e);

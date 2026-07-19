@@ -246,6 +246,97 @@ export function computeRoleDurations() {
   if (changed) { try { writeFileSync(p, JSON.stringify(profile, null, 2)); } catch (e) { console.warn(`[durations] write failed: ${e.message}`); } }
 }
 
+// Server owns extraction-completeness bucketing (was Extractor Phase 7 — the Flash agent hand-counted
+// field presence into COMPLETE/PARTIAL/INSUFFICIENT and self-gated INSUFFICIENT into a silent stall).
+// Pure presence checks + thresholds → deterministic, same class as researchQuality; a model hand-counting
+// booleans and emitting the right enum is the exact drift this kills. Reads candidate_profile.json.
+// Returns 'COMPLETE' | 'PARTIAL' | 'INSUFFICIENT'; an unreadable/scaffold profile reads as INSUFFICIENT.
+export function extractionQuality() {
+  let p;
+  try { p = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'candidate_profile.json'), 'utf8')); } catch { return 'INSUFFICIENT'; }
+  const str = s => typeof s === 'string' && s.trim().length > 0;
+  const nameOK  = str(p?.personal_info?.name);
+  const emailOK = str(p?.personal_info?.contact?.email);
+  const hasWork = Array.isArray(p?.work_history) && p.work_history.length > 0;
+  const hasSkills = p?.skills && typeof p.skills === 'object' &&
+    Object.values(p.skills).some(a => Array.isArray(a) && a.length > 0);
+  const hasEdu  = Array.isArray(p?.education) && p.education.length > 0;
+  if (nameOK && emailOK && hasWork && hasSkills) return 'COMPLETE';
+  if (nameOK && (hasWork || hasEdu)) return 'PARTIAL';
+  return 'INSUFFICIENT';
+}
+
+// Server owns CV/JD swapped-slot detection (was ProjectSetup Phase 4 — regex heuristic scoring the Flash
+// agent hand-ran, then emitted a `VALIDATION_FAILED:<type>` text tag for the server to scrape). Pure regex
+// counting + a >=3 threshold → deterministic, and an LLM re-running regex pseudocode is a known error
+// source. The upload endpoint writes cv_raw.txt/jd_raw.txt to disk BEFORE ProjectSetup runs (and in the
+// rare MODE B path PS writes them during its turn), so the files are on disk to score directly at PS
+// return. A missing/unreadable file returns null (never a false failure). Returns 'cv_slot_has_jd' |
+// 'jd_slot_has_cv' | null (the errType the message.js action_required flow already keys on).
+const CV_HEURISTICS = [
+  /\b(education|experience|employment|work history|skills)\b/,
+  /\b(19|20)\d{2}\s*[–\-—]\s*(19|20)\d{2}|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{4}\s*[–\-—]/,
+  /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}|\+?[\d\s\-()]{7,}|linkedin\.com\/in\//,
+  /\b(managed|developed|led|designed|implemented|delivered|created|built|spearheaded|coordinated)\b/,
+  /\b(references|available on request)\b/,
+];
+const JD_HEURISTICS = [
+  /\b(we are looking for|about the role|about us|join our team)\b/,
+  /\b(requirements|qualifications|responsibilities|what you.ll do)\b/,
+  /\b(how to apply|send your cv|submit|apply now|apply today)\b/,
+  /\b(salary|package|per annum|au\$|\$\s*\d)/,
+  /\b(ideal candidate|you will|you.ll be|successful applicant)\b/,
+];
+const scoreHeuristics = (text, patterns) => patterns.reduce((n, re) => n + (re.test(text) ? 1 : 0), 0);
+export function validateFileSlots() {
+  let cv, jd;
+  try { cv = readFileSync(join(WORKSPACE_DIR, 'cv_raw.txt'), 'utf8').toLowerCase(); } catch { return null; }
+  try { jd = readFileSync(join(WORKSPACE_DIR, 'jd_raw.txt'), 'utf8').toLowerCase(); } catch { return null; }
+  if (scoreHeuristics(cv, JD_HEURISTICS) >= 3) return 'cv_slot_has_jd'; // JD content sitting in the CV slot
+  if (scoreHeuristics(jd, CV_HEURISTICS) >= 3) return 'jd_slot_has_cv'; // CV content sitting in the JD slot
+  return null;
+}
+
+// Server-owned happy-path ProjectSetup. The PS KEMU node's entire happy path was mechanical — Phase 0
+// return-turn guard (redundant with server pipelineStatus routing), Phase 1 file pre-check, Phase 4 slot
+// validation, Phase 5 project_meta.json write, Phase 6 FILES_SAVED signal. The frontend uploads
+// cv_raw.txt/jd_raw.txt via /api/upload with EXPLICIT targets (cv_raw|jd_raw) before this runs, so there is
+// no CV-vs-JD ambiguity to resolve and nothing for a model to decide. Doing it here skips a whole KEMU
+// round-trip on every new session. Returns one of:
+//   { outcome: 'files_missing' }              — no files on disk → caller falls back to the PS node (the
+//                                                legacy MODE B conversation-upload path; doesn't happen with
+//                                                the REST frontend, kept as a safety valve).
+//   { outcome: 'validation_failed', errType } — validateFileSlots caught a swapped slot.
+//   { outcome: 'files_saved' }                — meta written; caller stamps created_at + advances FILES_SAVED.
+// created_at is carried forward if already set (never rewritten to "last re-ran at") and otherwise left as
+// the __DATE_TODAY__ token for the caller's single stampTimestamp to fill — same discipline as message.js.
+// company/position/sector stay "" (the Extractor populates them); reaching here means extraction hasn't run.
+export function runProjectSetup() {
+  let cv = '', jd = '';
+  try { cv = readFileSync(join(WORKSPACE_DIR, 'cv_raw.txt'), 'utf8'); } catch {}
+  try { jd = readFileSync(join(WORKSPACE_DIR, 'jd_raw.txt'), 'utf8'); } catch {}
+  if (!cv.trim() || !jd.trim()) return { outcome: 'files_missing' };
+
+  const errType = validateFileSlots();
+  if (errType) return { outcome: 'validation_failed', errType };
+
+  const p = join(WORKSPACE_DIR, 'project_meta.json');
+  let existing = {};
+  try { existing = JSON.parse(readFileSync(p, 'utf8')); } catch {}
+  const meta = {
+    company_name:   '',
+    position_title: '',
+    sector:         '',
+    cv_source:      'cv_raw.txt',
+    jd_source:      'jd_raw.txt',
+    created_at:     existing?.created_at || '__DATE_TODAY__T00:00:00Z',
+    version:        '1.0',
+  };
+  try { writeFileSync(p, JSON.stringify(meta, null, 2), 'utf8'); }
+  catch (e) { console.warn(`[ProjectSetup] project_meta.json write failed: ${e.message}`); }
+  return { outcome: 'files_saved' };
+}
+
 const normEmployer = e => String(e || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 // ── Verbatim matching ────────────────────────────────────────────────────────
@@ -1059,7 +1150,16 @@ export function resolveExtractorStatus(parsedStatus) {
   }
   // Success path: the Extractor stored verbatim dates and left duration_years:0. Compute the real
   // per-role durations server-side now, on every successful return (including redos). Idempotent.
-  if (parsedStatus === 'INITIALIZED') computeRoleDurations();
+  if (parsedStatus === 'INITIALIZED') {
+    computeRoleDurations();
+    // Server owns the completeness gate (was Extractor Phase 7). INSUFFICIENT → force EXTRACTION_FAILED
+    // WITHOUT writing failure_reason, so MO Phase 8 Case B (generic — "re-upload your CV") handles it;
+    // name_mismatch (Phase 7.5, which DOES write failure_reason) is already handled by the block above.
+    if (extractionQuality() === 'INSUFFICIENT') {
+      console.warn('[Extractor · gate] extractionQuality=INSUFFICIENT — forcing EXTRACTION_FAILED');
+      return 'EXTRACTION_FAILED';
+    }
+  }
   return parsedStatus;
 }
 

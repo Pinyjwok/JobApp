@@ -1,6 +1,6 @@
 {
   "name": "kemu.io.ai-agent",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "title": "AI Agent",
   "description": "Define AI agents and tools for automated workflows",
   "processor": "js",
@@ -167,5 +167,5 @@
       "color": "#eac43e"
     }
   ],
-  "publicationId": "kemu.io.ai-agent-osx-arm64-1.9.1"
+  "publicationId": "kemu.io.ai-agent-osx-arm64"
 }

@@ -3,7 +3,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { HAPPY_PATH, EXCEPTION_STATUSES, INPUT_NODE_MAP, AGENT_FOREGROUND } from '../config/constants.js';
-import { reShowSectionReview, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch, clearStaleAnalysis, stampTimestamp } from '../lib/dispatch.js';
+import { reShowSectionReview, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch, clearStaleAnalysis, stampTimestamp, runProjectSetup } from '../lib/dispatch.js';
 
 const router = express.Router();
 export default router;
@@ -95,6 +95,19 @@ router.post('/', async (req, res) => {
     console.log(`[user] fallback → ${nextAgent}: ${message.slice(0, 80)}`);
   }
 
+  // Happy-path ProjectSetup is server-owned — no KEMU node round-trip. Uploads arrive with explicit
+  // cv_raw/jd_raw targets, so there's no ambiguity to resolve. Only fall through to the PS node when files
+  // are genuinely missing on disk (legacy MODE B conversation-upload path).
+  if (nextAgent === 'ProjectSetup') {
+    const psResult = runProjectSetup();
+    if (psResult.outcome !== 'files_missing') {
+      res.json({ ok: true });
+      await finishProjectSetup(psResult);
+      return;
+    }
+    console.warn('[ProjectSetup] no files on disk — falling back to the PS node (MODE B)');
+  }
+
   res.json({ ok: true });
   const foreground = AGENT_FOREGROUND.has(nextAgent);
   if (nextAgent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
@@ -115,30 +128,13 @@ function fireUserMessage(node, nextAgent, message, sessionId, foreground) {
       if (nextAgent === 'Extractor') status = resolveExtractorStatus(status);
 
       if (nextAgent === 'ProjectSetup') {
-        const validationMatch = raw.match(/VALIDATION_FAILED:(\S+)/);
-        if (validationMatch) {
-          const errType = validationMatch[1];
-          const errorTexts = {
-            'cv_slot_has_jd': 'The file uploaded as your CV looks like a job description. Please re-upload the correct CV.',
-            'jd_slot_has_cv': 'The file uploaded as your job description looks like a CV. Please re-upload the correct JD.',
-          };
-          const errText = errorTexts[errType] ?? 'File validation failed. Please re-upload the correct files.';
-          broadcast({ type: 'agent_message', agent: 'ProjectSetup', text: errText });
-          broadcast({ type: 'action_required', context: 'validation_failed', prompt: '', actions: [
-            { id: 'cv_revalidate_upload', label: 'Re-upload CV', type: 'upload', target: 'cv_raw', variant: 'primary' },
-            { id: 'jd_revalidate_upload', label: 'Re-upload JD', type: 'upload', target: 'jd_raw', variant: 'ghost'   },
-          ]});
-          broadcast({ type: 'stream_done' });
-          broadcastMode('user_turn', 'ProjectSetup');
-          return; // no status to set
-        } else {
-          // ProjectSetup validated the files and wrote project_meta.json — this is the moment the
-          // project is created, so it's the only honest source for created_at. Stamped here rather
-          // than on the FILES_SAVED status, which an Extractor re-run also sets (message.js RERUNS)
-          // and would silently rewrite created_at into "last re-ran at".
-          stampTimestamp('project_meta.json', 'created_at');
-          broadcastAgentResult(cleanText, 'ProjectSetup', foreground);
-        }
+        // Only reached in the MODE B fallback (no files on disk when the message arrived, so the PS node
+        // was fired to handle a conversation upload). The happy path is server-owned upstream
+        // (runProjectSetup / finishProjectSetup) and never gets here. Stamp created_at at the moment the
+        // project is created — not on the FILES_SAVED status, which an Extractor re-run also sets and would
+        // rewrite created_at into "last re-ran at".
+        stampTimestamp('project_meta.json', 'created_at');
+        broadcastAgentResult(cleanText, 'ProjectSetup', foreground);
       } else {
         broadcastAgentResult(cleanText, nextAgent, foreground);
       }
@@ -153,4 +149,36 @@ function fireUserMessage(node, nextAgent, message, sessionId, foreground) {
       }
     })
     .catch(err => surfaceStall(nextAgent, err));
+}
+
+// Emit the result of the server-owned happy-path ProjectSetup (runProjectSetup). Mirrors what the PS node
+// used to broadcast: a swapped-slot re-upload gate, or a completion bubble + advance to FILES_SAVED.
+async function finishProjectSetup(result) {
+  if (result.outcome === 'validation_failed') {
+    const errorTexts = {
+      'cv_slot_has_jd': 'The file uploaded as your CV looks like a job description. Please re-upload the correct CV.',
+      'jd_slot_has_cv': 'The file uploaded as your job description looks like a CV. Please re-upload the correct JD.',
+    };
+    const errText = errorTexts[result.errType] ?? 'File validation failed. Please re-upload the correct files.';
+    broadcast({ type: 'agent_message', agent: 'ProjectSetup', text: errText });
+    broadcast({ type: 'action_required', context: 'validation_failed', prompt: '', actions: [
+      { id: 'cv_revalidate_upload', label: 'Re-upload CV', type: 'upload', target: 'cv_raw', variant: 'primary' },
+      { id: 'jd_revalidate_upload', label: 'Re-upload JD', type: 'upload', target: 'jd_raw', variant: 'ghost'   },
+    ]});
+    broadcast({ type: 'stream_done' });
+    broadcastMode('user_turn', 'ProjectSetup');
+    return;
+  }
+  // files_saved: created_at is stamped here — the moment the project is created (single source of truth).
+  stampTimestamp('project_meta.json', 'created_at');
+  broadcastAgentResult(
+    '# ✓ ProjectSetup Complete\nProject initialised — CV and JD saved, metadata written.',
+    'ProjectSetup', true,
+  );
+  try {
+    await state.recipe.globalVariables.setValue('pipeline_status', 'FILES_SAVED');
+    state.pipelineStatus = 'FILES_SAVED';
+  } catch (e) {
+    console.warn(`[ProjectSetup] could not set FILES_SAVED: ${e.message}`);
+  }
 }

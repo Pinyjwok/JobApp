@@ -1013,7 +1013,6 @@ const binaryFileToBase64ToolResponse = (file) => {
     };
     return JSON.stringify(result);
 };
-let toolInvocationCounter = Date.now();
 /**
  * Formats tool call results according to OpenRouter specification
  */
@@ -1048,61 +1047,55 @@ const formatToolResult = (toolCall, result) => {
  */
 const processToolCalls = async (toolCalls, context, discoveryEventId) => {
     console.log('Processing tool calls:', toolCalls);
-    const toolMessages = [];
-    if (toolCalls.length > 0) {
-        for (const toolCall of toolCalls) {
-            if (toolCall.type === 'function') {
-                try {
-                    const executionId = `tool-exec-${toolInvocationCounter++}`;
-                    if (!toolCall.function.name) {
-                        throw new Error('Tool call function name is required');
-                    }
-                    // Get timeout for this specific tool
-                    const toolTimeout = discoveryEventId ?
-                        toolRegistry.getToolTimeout(discoveryEventId, toolCall.function.name) :
-                        undefined;
-                    // Register tool event
-                    const tool = registerToolEvent({
-                        recipeUuid: context.recipe.uuid,
-                        eventId: executionId,
-                        timeout: toolTimeout,
-                        agentWidgetId: context.widgetId,
-                    });
-                    const invokeOutputPromise = context.setOutputsWithContext({
-                        // Clear out the event context otherwise the previous event context will be used again.
-                        // This is a BUG in the Kemu Engine.
-                        eventContext: {
-                            executionId,
-                        },
-                        outputs: [
-                            {
-                                name: 'tools',
-                                type: DataType.JsonObj,
-                                value: toolCall
-                            }
-                        ]
-                    });
-                    const [result] = await Promise.all([tool.promise, invokeOutputPromise]);
-                    console.log('Tool result for', toolCall.function.name, ':', result);
-                    // Format the tool result according to OpenRouter specification
-                    const toolMessage = formatToolResult(toolCall, result);
-                    toolMessages.push(toolMessage);
-                }
-                catch (error) {
-                    console.error('Error executing tool call:', toolCall.function.name, error);
-                    // Add error message as tool result
-                    const errorMessage = formatToolResult(toolCall, {
-                        error: error instanceof Error
-                            ? error.message
-                            : (typeof error?.error === 'string'
-                                ? error.error
-                                : 'Unknown error occurred')
-                    });
-                    toolMessages.push(errorMessage);
-                }
+    const toolMessages = await Promise.all(toolCalls
+        .filter((tc) => tc.type === 'function')
+        .map(async (toolCall) => {
+        const executionId = `tool-exec-${createId()}`;
+        try {
+            if (!toolCall.function.name) {
+                throw new Error('Tool call function name is required');
             }
+            // Get timeout for this specific tool
+            const toolTimeout = discoveryEventId ?
+                toolRegistry.getToolTimeout(discoveryEventId, toolCall.function.name) :
+                undefined;
+            // Register tool event
+            const tool = registerToolEvent({
+                recipeUuid: context.recipe.uuid,
+                eventId: executionId,
+                timeout: toolTimeout,
+                agentWidgetId: context.widgetId,
+            });
+            const invokeOutputPromise = context.setOutputsWithContext({
+                // Clear out the event context otherwise the previous event context will be used again.
+                // This is a BUG in the Kemu Engine.
+                eventContext: {
+                    executionId,
+                },
+                outputs: [
+                    {
+                        name: 'tools',
+                        type: DataType.JsonObj,
+                        value: toolCall
+                    }
+                ]
+            });
+            const [result] = await Promise.all([tool.promise, invokeOutputPromise]);
+            console.log('Tool result for', toolCall.function.name, ':', result);
+            // Format the tool result according to OpenRouter specification
+            return formatToolResult(toolCall, result);
         }
-    }
+        catch (error) {
+            console.error('Error executing tool call:', toolCall.function.name, error);
+            return formatToolResult(toolCall, {
+                error: error instanceof Error
+                    ? error.message
+                    : (typeof error?.error === 'string'
+                        ? error.error
+                        : 'Unknown error occurred')
+            });
+        }
+    }));
     return toolMessages;
 };
 /**

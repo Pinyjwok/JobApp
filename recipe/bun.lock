@@ -8,7 +8,7 @@
         "@kemu-io/edge-runtime": "^1.13.2",
       },
     },
-    "services/kemu.io.ai-agent@1.9.1": {
+    "services/kemu.io.ai-agent@1.9.2": {
       "name": "test.kemu.io.ai-agent",
       "version": "0.0.1",
       "dependencies": {
@@ -481,7 +481,7 @@
 
     "terminal-link": ["terminal-link@3.0.0", "", { "dependencies": { "ansi-escapes": "^5.0.0", "supports-hyperlinks": "^2.2.0" } }, "sha512-flFL3m4wuixmf6IfhFJd1YPiLiMuxEc8uHRM1buzIeZPm22Au2pDqBJQgdo7n1WfPU1ONFGv7YDwpFBmHGF6lg=="],
 
-    "test.kemu.io.ai-agent": ["test.kemu.io.ai-agent@workspace:services/kemu.io.ai-agent@1.9.1"],
+    "test.kemu.io.ai-agent": ["test.kemu.io.ai-agent@workspace:services/kemu.io.ai-agent@1.9.2"],
 
     "test.kemu.io.file-system": ["test.kemu.io.file-system@workspace:services/kemu.io.file-system@1.4.1"],
 
