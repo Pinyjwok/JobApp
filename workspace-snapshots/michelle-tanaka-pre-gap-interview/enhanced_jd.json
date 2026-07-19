@@ -1,0 +1,130 @@
+{
+  "original_jd_summary": "UX/UI Designer for Digital Banking at Suncorp Group, Brisbane or Melbourne hybrid. Full-cycle role from user research through to pixel-perfect UI and dev handoff, embedded in Agile squad. Requires 3+ years experience, advanced Figma skills, WCAG 2.1 AA knowledge, and strong portfolio demonstrating end-to-end process. $120K–$140K + super.",
+  "candidate_brief": {
+    "headline": "A full-lifecycle UX/UI role in a digital banking transformation — where research, craft, and collaboration shape products millions use daily.",
+    "role_in_context": "This role places you in the heart of Suncorp's post-divestment digital transformation, designing for 1.8 million banking customers. You'll work embedded in a cross-functional Agile squad with a strong design culture—knowledge-sharing, design critiques, and psychological safety are the norm. While financial services brings compliance and security constraints, Suncorp values evidence-based design and gives designers real influence in shaping product direction.",
+    "what_to_emphasise": [
+      "Your ability to run your own research—plan studies, conduct interviews/usability tests, and translate findings into design decisions (the team values self-sufficient researchers who don't just consume reports)",
+      "End-to-end thinking in your portfolio: show the messy middle (research synthesis, iteration, testing) not just polished final screens, with measurable outcomes where possible",
+      "Collaboration style—how you work with engineers, PMs, and content designers in Agile squads, handle feedback, and communicate design rationale to senior stakeholders",
+      "Accessibility as craft, not compliance: demonstrate WCAG 2.1 AA application in shipped products, with clear rationale for inclusive design choices",
+      "Design system thinking—contributions to component libraries, pattern evolution, and documentation (Suncorp's 'Spark' system is Figma-based and actively evolving)"
+    ],
+    "requirement_notes": [
+      {
+        "requirement": "Portfolio: A strong portfolio demonstrating end-to-end UX/UI work across web and mobile platforms. We want to see your process (research → ideation → testing → iteration), not just final screens.",
+        "why_it_matters": "The hiring panel (designers + product team members) scrutinises portfolios for process, not polish—messy iteration and user-centered thinking are what land the role."
+      },
+      {
+        "requirement": "Research Skills: Demonstrated experience planning and conducting user research, and translating findings into design decisions. We value designers who can run their own research, not just consume research reports.",
+        "why_it_matters": "Suncorp expects you to independently run qualitative studies, not wait for a research team—this autonomy is core to the Digital Experience culture."
+      },
+      {
+        "requirement": "Accessibility: Working knowledge of WCAG 2.1 AA standards and inclusive design principles, with evidence of applying them in shipped products.",
+        "why_it_matters": "Accessibility is a design principle at Suncorp, not a checkbox—expect scrutiny on how you've embedded it in real work, especially in regulated financial services."
+      },
+      {
+        "requirement": "Communication: Ability to articulate design rationale clearly to both technical and non-technical stakeholders, including at senior leadership level.",
+        "why_it_matters": "You'll present to GM-level stakeholders regularly—Suncorp values designers who can translate visual decisions into business and customer impact."
+      }
+    ]
+  },
+  "company_context": {
+    "mission_values": "Suncorp Group is undergoing significant digital transformation following the sale of its insurance arm to Allianz, refocusing on banking. The Digital Experience team is charged with reimagining customer interactions across all digital channels. The company emphasizes customer focus, quality delivery, and a collaborative culture where designers work seamlessly with cross-functional teams. Values include inclusive design practices, evidence-based decision-making over opinion, and psychological safety within teams.",
+    "culture": "The design culture at Suncorp emphasizes cross-functional integration with Product Managers, Developers, UX Researchers, and Content Strategists working closely together. Regular design critique sessions promote constructive dialogue and shared learning, with strong knowledge-sharing practices where team members elevate collective design capability. The environment balances individual design craft with collaborative team effort, embedding designers within Agile squads for daily stand-ups, sprint planning, and retrospectives. As a large financial institution, there is established emphasis on compliance and security, requiring designers to balance user experience with regulatory requirements and business needs. The team operates with a user-centric mindset and data-informed design approach, valuing portfolios that demonstrate measurable impact and product thinking.",
+    "recent_news": [
+      "Sale of insurance arm to Allianz completed, refocusing Suncorp Group squarely on banking operations with $96 billion in assets serving 1.8 million banking customers",
+      "Major digital transformation initiative underway with Digital Experience team reimagining customer interactions across web, app, and emerging channels",
+      "Recognition with Australian Financial Review (AFR) AI Builder award for enterprise GenAI solutions delivered across operations",
+      "Investment in Figma-based design system called 'Spark' requiring component maintenance and pattern evolution",
+      "Active hiring and expansion of Digital Experience — Banking & Wealth team across Brisbane and Melbourne with hybrid work models"
+    ],
+    "strategic_direction": "Suncorp is executing a focused banking strategy following divestment of insurance operations, with digital transformation as a core pillar. The Digital Experience — Banking & Wealth unit is central to this vision, building modern web and mobile experiences for over 1.8 million banking customers. Strategic priorities include scaling the Figma-based 'Spark' design system across product teams, embedding accessibility (WCAG 2.1 AA) and inclusive design as standard practice, leveraging GenAI solutions recognized by industry awards, and expanding design capabilities through hybrid teams in Brisbane and Melbourne. The focus is on evidence-based, data-informed design using analytics platforms like Amplitude and Google Analytics to validate hypotheses and drive measurable customer outcomes, positioning Suncorp as a digitally competitive banking-focused institution."
+  },
+  "role_details": {
+    "overview": "This is a full-lifecycle UX/UI Designer position within Suncorp's Digital Banking squad, embedded in a cross-functional Agile team. You'll design end-to-end experiences—from discovery research through to pixel-perfect UI and developer handoff—for web and native mobile products used by over 1.8 million banking customers. The role balances individual design craft with collaborative team delivery, requiring you to plan and conduct your own user research, design high-fidelity interfaces in Figma, contribute to the 'Spark' design system, ensure WCAG 2.1 AA accessibility compliance, and advocate for the customer in every sprint ceremony. You'll work closely with Product Managers, Engineers, Data Analysts, and Content Designers in daily stand-ups, sprint planning, and retrospectives, presenting design rationale to senior stakeholders (GM level) with clarity and confidence. This is not a 'wireframes only' role—Suncorp values designers who can run research, synthesize insights, prototype interactions, and partner meaningfully with front-end engineers during build.",
+    "key_responsibilities": [
+      "Plan and conduct qualitative user research (interviews, usability testing, contextual inquiry) to inform design decisions",
+      "Synthesise research into personas, journey maps, and actionable insights",
+      "Collaborate with the data analytics team to triangulate qualitative findings with quantitative behavioural data (Amplitude, Google Analytics)",
+      "Champion the voice of the customer in sprint planning and stakeholder forums",
+      "Design end-to-end user flows, wireframes, and high-fidelity UI for web and native mobile (iOS/Android)",
+      "Build and maintain components within Suncorp's Figma-based design system ('Spark')",
+      "Create interactive prototypes for usability testing and stakeholder review",
+      "Ensure all designs meet WCAG 2.1 AA accessibility standards and Suncorp's inclusive design principles",
+      "Apply responsive design principles across breakpoints (mobile-first approach)",
+      "Work within a cross-functional Agile squad, participating in daily stand-ups, sprint planning, retrospectives, and design reviews",
+      "Partner closely with front-end engineers during build, providing detailed specs and redlines via Figma Dev Mode",
+      "Collaborate with Content Designers to ensure copy and UI work seamlessly together",
+      "Present design rationale to senior stakeholders (GM level) with clarity and confidence",
+      "Contribute to the evolution of the 'Spark' design system—proposing new patterns, documenting decisions, and retiring deprecated components",
+      "Participate in cross-squad design critiques and knowledge-sharing sessions",
+      "Mentor junior designers and support the team's inclusive, psychologically safe culture"
+    ],
+    "success_metrics": "Success in this role is measured by the quality and impact of your design outcomes: shipped products that demonstrably improve customer experience (validated through usability testing and analytics), contributions to the 'Spark' design system that elevate team-wide design quality, and your effectiveness in cross-functional collaboration—influencing product direction through evidence-based design rationale, supporting engineers with clear specs and documentation, and building stakeholder confidence through articulate presentation of design decisions. Suncorp values designers who balance individual craft (portfolio-quality work, accessibility rigor, design system thinking) with team outcomes (knowledge-sharing, mentorship, constructive feedback in design critiques), operating with a bias for evidence over opinion and championing the voice of the customer in every sprint."
+  },
+  "requirements": {
+    "required_qualifications": [
+      "Portfolio: A strong portfolio demonstrating end-to-end UX/UI work across web and mobile platforms. We want to see your process (research → ideation → testing → iteration), not just final screens.",
+      "Tools: Advanced proficiency in Figma (including component libraries, auto layout, variables, and Dev Mode). Experience with prototyping and user testing tools (e.g., Maze, UserTesting, Optimal Workshop).",
+      "Research Skills: Demonstrated experience planning and conducting user research, and translating findings into design decisions. We value designers who can run their own research, not just consume research reports.",
+      "Accessibility: Working knowledge of WCAG 2.1 AA standards and inclusive design principles, with evidence of applying them in shipped products.",
+      "Collaboration: Proven ability to work effectively within Agile squads, including constructive collaboration with product managers, engineers, and content designers.",
+      "Communication: Ability to articulate design rationale clearly to both technical and non-technical stakeholders, including at senior leadership level.",
+      "Experience: Minimum 3 years of professional UX/UI design experience (agency, in-house, or contract). Financial services, healthcare, or other regulated-industry experience is highly regarded but not essential.",
+      "National Police Check (conducted by Suncorp)",
+      "Bankruptcy and credit check (standard for financial services roles under APRA prudential standards)",
+      "Evidence of right to work in Australia",
+      "Two professional referees (at least one must be a direct manager or supervisor from the past 3 years)"
+    ],
+    "preferred_qualifications": [
+      "Experience working with or contributing to a large-scale design system",
+      "Familiarity with front-end technologies (HTML, CSS, React) sufficient to collaborate meaningfully with engineers",
+      "Experience with data-informed design—using analytics platforms (Amplitude, Mixpanel, Google Analytics) to validate design hypotheses",
+      "Tertiary qualification in Design, Human-Computer Interaction, Psychology, or a related field (or equivalent practical experience)"
+    ],
+    "cultural_fit_attributes": [
+      "Evidence-based mindset: bias for data and research over opinion, with demonstrated ability to validate design hypotheses through testing and analytics",
+      "Collaborative team player: thrives in cross-functional Agile squads, values knowledge-sharing and design critique culture, and elevates collective design capability",
+      "Constructive feedback handling: demonstrates psychological safety by giving and receiving critique productively, supporting inclusive team culture",
+      "Customer-centric advocate: champions the voice of the customer in product decisions, balancing user needs with business constraints and regulatory requirements",
+      "Design system thinking: contributes to shared design infrastructure, documents decisions, and maintains consistency across products",
+      "Growth and mentorship orientation: supports junior designers, shares best practices, and invests in continuous learning (aligned with $2K annual L&D budget)"
+    ]
+  },
+  "what_you_get": {
+    "company_strengths": [
+      "Established design system ('Spark') with Figma-based component libraries providing structured design infrastructure for consistency and efficiency",
+      "Strong accessibility commitment with WCAG 2.1 AA standards embedded in design principles and inclusive design practices across products",
+      "Collaborative cross-functional Agile culture with flat team structures emphasizing outcomes and data-informed decisions over hierarchy",
+      "Competitive compensation and benefits including $2,000 annual L&D budget, 14 weeks parental leave, hybrid flexibility, and genuine internal career progression pathways",
+      "Significant scale and resources as one of Australia's largest financial services providers with 13,000 employees and $96 billion in assets, designing for 1.8 million banking customers"
+    ],
+    "growth_opportunities": "Suncorp offers genuine career progression pathways within the Digital Experience — Banking & Wealth unit and across the broader Group, with explicit emphasis on promoting from within and supporting lateral moves. The role provides structured learning investment ($2K annual L&D budget), exposure to senior leadership (GM-level stakeholder presentations), and opportunities to shape strategic design direction during the company's digital transformation phase. As the Digital Experience team expands across Brisbane and Melbourne, there are emerging lead and principal design roles for high performers. The collaborative culture of design critiques, knowledge-sharing, and mentorship creates accelerated learning, while the scale and complexity of designing for 1.8 million banking customers across regulated financial services builds deep, transferable expertise. Cross-squad projects, design system leadership, and involvement in GenAI innovation (AFR AI Builder award recognition) provide diverse growth vectors beyond traditional IC-to-manager tracks.",
+    "challenges_to_tackle": [
+      "Balancing user experience innovation with stringent compliance and security requirements inherent in financial services regulation (APRA prudential standards)",
+      "Navigating organizational change following major restructure (insurance divestment) while scaling digital transformation initiatives",
+      "Operating within established processes and legacy systems typical of large financial institutions while driving modern design practices",
+      "Managing complexity of regulated-industry design requiring understanding of privacy laws, credit checks, and financial services compliance frameworks"
+    ]
+  },
+  "interview_preparation": {
+    "likely_focus_areas": "Suncorp's interview process for UX/UI designers is thorough and multi-stage, averaging around 20 days. Candidates should expect an initial HR screening discussing background and software proficiency, followed by hiring manager conversations about design background and career goals. The core technical evaluation centers on a comprehensive portfolio review presentation where candidates present diverse project types to a panel including designers and product team members—the portfolio must demonstrate end-to-end process from research through ideation, testing, and iteration, not just final screens. Interviewers assess collaboration style, stakeholder communication abilities, ability to articulate design rationale to technical and non-technical audiences including senior leadership (GM level), and demonstrated user-centered design thinking with measurable impact. Technical skills in Figma (components, auto layout, Dev Mode), user research capabilities (planning and conducting studies independently), and accessibility knowledge (WCAG 2.1 AA) are heavily scrutinized. Strong emphasis on evaluating cultural fit including constructive feedback handling, cross-functional teamwork within Agile squads, and alignment with Suncorp's values around customer focus, quality, and evidence over opinion. Prior experience in financial services or regulated industries is highly regarded but not essential—the hiring team values strong design methodology and problem-solving abilities as transferable skills.",
+    "key_themes": [
+      "Portfolio process over polish: demonstrate the messy middle (research synthesis, iteration, failure points) with clear articulation of how user feedback shaped design decisions",
+      "Research autonomy: prepare examples of studies you planned and conducted independently, including recruitment, moderation, synthesis, and design application",
+      "Accessibility as craft: expect detailed questions on WCAG 2.1 AA implementation—be ready to walk through specific accessibility decisions in shipped products",
+      "Stakeholder communication: practice articulating design rationale to non-designers, translating visual decisions into business and customer impact (you'll be assessed on GM-level presentation ability)",
+      "Collaboration style: prepare examples of working through disagreement with engineers or PMs, handling design critique, and contributing to team culture",
+      "Design system thinking: if you've worked with component libraries, be ready to discuss contribution process, documentation approach, and balancing consistency with innovation",
+      "Data-informed design: show how you've used analytics (Amplitude, Google Analytics) or testing data to validate hypotheses and iterate on designs",
+      "Regulated-industry awareness: if you have financial services or healthcare experience, lean on it; if not, demonstrate understanding of balancing user needs with compliance constraints"
+    ]
+  },
+  "metadata": {
+    "enhanced_at": "2026-07-19T07:35:53.225Z",
+    "source_jd": "jd_raw.txt",
+    "research_quality": "SUFFICIENT",
+    "dropped_mandatory": []
+  }
+}

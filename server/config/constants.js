@@ -15,6 +15,9 @@ export const DISPATCH_TIMEOUT_MS = 180_000;
 // default tight for the fast linear agents; give the slow ones a generous budget.
 export const NODE_TIMEOUT_MS = {
   analyst_background_input: 600_000, // Analyst full gap analysis — routinely minutes
+  // JD Enhancer synthesizes research + JD into ad-anchored reqs + candidate-facing prose —
+  // same document-synthesis weight as the assembly agents below, not a fast linear pass.
+  jd_enhancer_input:        420_000,
   // Assembly LLM nodes: full-document reasoning (style review, integrity check, section
   // authoring) legitimately runs past the 180s default. A too-tight watchdog turns a
   // slow-but-fine run into a false STALL with no output. Give them a generous budget.

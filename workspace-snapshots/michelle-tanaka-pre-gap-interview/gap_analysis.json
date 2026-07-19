@@ -1,0 +1,784 @@
+{
+  "metadata": {
+    "analyzed_at": "2026-07-19T07:37:58.887Z",
+    "analyst_version": "2.35",
+    "candidate_profile_source": "candidate_profile.json",
+    "enhanced_jd_source": "enhanced_jd.json",
+    "requires_candidate_confirmation": false
+  },
+  "overall_fit_score": 7.2,
+  "role_strictness": "RIGID",
+  "fit_rationale": "Fit Score: 7.2/10 — Candidate demonstrates strong baseline coverage with confirmed Figma proficiency, user research experience, and accessibility training. The primary gap is in the minimum 3-year professional UX/UI design requirement—candidate has 1.7 cumulative years of dedicated UX practice (1.3 contract + 0.4 intern). All statutory checks are procedural matters for initial screening.",
+  "requirements": [
+    {
+      "id": "req_1",
+      "requirement_text": "Portfolio: A strong portfolio demonstrating end-to-end UX/UI work across web and mobile platforms. We want to see your process (research → ideation → testing → iteration), not just final screens.",
+      "source": "enhanced_jd.requirements.required_qualifications[0]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[1]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate delivered full end-to-end UX for a council community portal from discovery through developer handoff, and improved fintech onboarding completion from 34% to 71%, demonstrating iterative process with measurable outcomes.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "req_2",
+      "requirement_text": "Tools: Advanced proficiency in Figma (including component libraries, auto layout, variables, and Dev Mode). Experience with prototyping and user testing tools (e.g., Maze, UserTesting, Optimal Workshop).",
+      "source": "enhanced_jd.requirements.required_qualifications[1]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.skills.technical_skills[0]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate has 2+ years of daily Figma use across contract and intern roles, plus documented use of Maze and UserTesting for prototyping and user testing.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "req_3",
+      "requirement_text": "Research Skills: Demonstrated experience planning and conducting user research, and translating findings into design decisions. We value designers who can run their own research, not just consume research reports.",
+      "source": "enhanced_jd.requirements.required_qualifications[2]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[2].responsibilities[3]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate independently conducted user research with 15 community members for a community website redesign, and completed General Assembly UX Immersive training covering end-to-end research methods.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "req_4",
+      "requirement_text": "Accessibility: Working knowledge of WCAG 2.1 AA standards and inclusive design principles, with evidence of applying them in shipped products.",
+      "source": "enhanced_jd.requirements.required_qualifications[3]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.skills.certifications[1]",
+      "confidence_level": 5,
+      "evidence_type": "direct",
+      "strength_note": "Candidate holds current accessibility certification from Interaction Design Foundation (2024), demonstrating formal training in WCAG standards and inclusive design principles.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "req_5",
+      "requirement_text": "Collaboration: Proven ability to work effectively within Agile squads, including constructive collaboration with product managers, engineers, and content designers.",
+      "source": "enhanced_jd.requirements.required_qualifications[4]",
+      "tier": "Baseline",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate managed cross-functional delivery at Bright Pixel Studio, including direct stakeholder scoping and developer handoff, plus team management experience from legal background.",
+      "is_candidate_asset": true,
+      "evidence_downgrade": {
+        "reason": "Evidence does not prove Agile squad cross-functional collaboration with PMs, engineers, and content designers. Solo contractor managing clients + legal team management ≠ Agile squad immersion."
+      }
+    },
+    {
+      "id": "req_6",
+      "requirement_text": "Communication: Ability to articulate design rationale clearly to both technical and non-technical stakeholders, including at senior leadership level.",
+      "source": "enhanced_jd.requirements.required_qualifications[5]",
+      "tier": "Baseline",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[3].responsibilities[3]",
+      "confidence_level": 4,
+      "evidence_type": "transferable",
+      "strength_note": "Candidate's corporate law background included advising ASX-listed clients and managing multinational stakeholder communications, with explicit recognition for translating complex information into clear client advice.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "req_7",
+      "requirement_text": "Experience: Minimum 3 years of professional UX/UI design experience (agency, in-house, or contract). Financial services, healthcare, or other regulated-industry experience is highly regarded but not essential.",
+      "source": "enhanced_jd.requirements.required_qualifications[6]",
+      "tier": "Baseline",
+      "candidate_status": "Gap",
+      "evidence_source": "candidate_profile.work_history[0] + work_history[1] (1.3 years contract + 0.4 years intern = 1.7 cumulative professional UX)",
+      "confidence_level": 4,
+      "is_structural": true,
+      "threshold_analysis": {
+        "required_threshold": "3 years",
+        "candidate_measure": "1.7 years",
+        "units": "years of professional UX/UI design experience",
+        "meets_threshold": false
+      }
+    },
+    {
+      "id": "req_8",
+      "requirement_text": "National Police Check (conducted by Suncorp)",
+      "source": "enhanced_jd.requirements.required_qualifications[7]",
+      "tier": "Baseline",
+      "candidate_status": "Pending",
+      "evidence_source": null,
+      "confidence_level": null,
+      "mandatory_gate": false,
+      "is_candidate_asset": false
+    },
+    {
+      "id": "req_9",
+      "requirement_text": "Bankruptcy and credit check (standard for financial services roles under APRA prudential standards)",
+      "source": "enhanced_jd.requirements.required_qualifications[8]",
+      "tier": "Baseline",
+      "candidate_status": "Pending",
+      "evidence_source": null,
+      "confidence_level": null,
+      "mandatory_gate": false,
+      "is_candidate_asset": false
+    },
+    {
+      "id": "req_10",
+      "requirement_text": "Evidence of right to work in Australia",
+      "source": "enhanced_jd.requirements.required_qualifications[9]",
+      "tier": "Baseline",
+      "candidate_status": "Pending",
+      "evidence_source": null,
+      "confidence_level": null,
+      "mandatory_gate": false,
+      "is_candidate_asset": false
+    },
+    {
+      "id": "req_11",
+      "requirement_text": "Two professional referees (at least one must be a direct manager or supervisor from the past 3 years)",
+      "source": "enhanced_jd.requirements.required_qualifications[10]",
+      "tier": "Baseline",
+      "candidate_status": "Pending",
+      "evidence_source": null,
+      "confidence_level": null,
+      "is_candidate_asset": false
+    },
+    {
+      "id": "pref_1",
+      "requirement_text": "Experience working with or contributing to a large-scale design system",
+      "source": "enhanced_jd.requirements.preferred_qualifications[0]",
+      "tier": "Differentiator",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": null
+    },
+    {
+      "id": "pref_2",
+      "requirement_text": "Familiarity with front-end technologies (HTML, CSS, React) sufficient to collaborate meaningfully with engineers",
+      "source": "enhanced_jd.requirements.preferred_qualifications[1]",
+      "tier": "Differentiator",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.skills.technical_skills[5]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate has working knowledge of HTML/CSS, demonstrating technical literacy sufficient for engineer collaboration.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "pref_3",
+      "requirement_text": "Experience with data-informed design—using analytics platforms (Amplitude, Mixpanel, Google Analytics) to validate design hypotheses",
+      "source": "enhanced_jd.requirements.preferred_qualifications[2]",
+      "tier": "Differentiator",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.skills.technical_skills[7]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate has documented Google Analytics experience, supporting data-informed design validation.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "pref_4",
+      "requirement_text": "Tertiary qualification in Design, Human-Computer Interaction, Psychology, or a related field (or equivalent practical experience)",
+      "source": "enhanced_jd.requirements.preferred_qualifications[3]",
+      "tier": "Differentiator",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.education[2]",
+      "confidence_level": 5,
+      "evidence_type": "direct",
+      "strength_note": "Candidate holds First Class Honours in Psychology from Monash with thesis on decision-making under uncertainty—directly applicable to UX research methods and user cognition.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_1",
+      "requirement_text": "Plan and conduct qualitative user research (interviews, usability testing, contextual inquiry) to inform design decisions",
+      "source": "enhanced_jd.role_details.key_responsibilities[0]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[2].responsibilities[3]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate independently planned and conducted user research with 15 community members for a website redesign, demonstrating autonomous research capability.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_2",
+      "requirement_text": "Synthesise research into personas, journey maps, and actionable insights",
+      "source": "enhanced_jd.role_details.key_responsibilities[1]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.education[0]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate's General Assembly capstone project explicitly covered persona development and journey mapping as part of the 12-week immersive program.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_3",
+      "requirement_text": "Collaborate with the data analytics team to triangulate qualitative findings with quantitative behavioural data (Amplitude, Google Analytics)",
+      "source": "enhanced_jd.role_details.key_responsibilities[2]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.skills.technical_skills[7]",
+      "confidence_level": 3,
+      "evidence_type": "transferable",
+      "strength_note": "Candidate has Google Analytics experience and a Psychology Honours thesis on decision-making under uncertainty, providing quantitative research foundation.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_4",
+      "requirement_text": "Champion the voice of the customer in sprint planning and stakeholder forums",
+      "source": "enhanced_jd.role_details.key_responsibilities[3]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[1].responsibilities[2]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate participated in design sprints and client presentations at Neighbourhood Digital, plus stakeholder workshop experience from Bright Pixel Studio council project.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_5",
+      "requirement_text": "Design end-to-end user flows, wireframes, and high-fidelity UI for web and native mobile (iOS/Android)",
+      "source": "enhanced_jd.role_details.key_responsibilities[4]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[0]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate redesigned a fintech mobile app onboarding flow from concept to completion, improving task completion from 34% to 71%—demonstrating mobile UI expertise with measurable impact.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_6",
+      "requirement_text": "Build and maintain components within Suncorp's Figma-based design system ('Spark')",
+      "source": "enhanced_jd.role_details.key_responsibilities[5]",
+      "tier": "Responsibility",
+      "candidate_status": "Gap",
+      "evidence_source": "candidate_profile.skills.core_competencies[7] (Design Systems — general awareness)",
+      "confidence_level": null
+    },
+    {
+      "id": "resp_7",
+      "requirement_text": "Create interactive prototypes for usability testing and stakeholder review",
+      "source": "enhanced_jd.role_details.key_responsibilities[6]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[2].responsibilities[3]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate created full responsive prototypes for the Hawthorn Community House website and fintech mobile app, using Maze and UserTesting for validation.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_8",
+      "requirement_text": "Ensure all designs meet WCAG 2.1 AA accessibility standards and Suncorp's inclusive design principles",
+      "source": "enhanced_jd.role_details.key_responsibilities[7]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.skills.certifications[1]",
+      "confidence_level": 5,
+      "evidence_type": "direct",
+      "strength_note": "Candidate holds current IDF accessibility certification (2024), demonstrating formal training in WCAG 2.1 AA standards and inclusive design principles.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_9",
+      "requirement_text": "Apply responsive design principles across breakpoints (mobile-first approach)",
+      "source": "enhanced_jd.role_details.key_responsibilities[8]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[1]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate delivered responsive web design for a council community portal, explicitly noted as responsive across breakpoints.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_10",
+      "requirement_text": "Work within a cross-functional Agile squad, participating in daily stand-ups, sprint planning, retrospectives, and design reviews",
+      "source": "enhanced_jd.role_details.key_responsibilities[9]",
+      "tier": "Responsibility",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate has documented Agile/Scrum experience, plus participated in design sprints at Neighbourhood Digital.",
+      "is_candidate_asset": true,
+      "evidence_downgrade": {
+        "reason": "Self-assessed Agile/Scrum tag plus 2 design sprints as intern is insufficient for full cross-functional Agile squad experience."
+      }
+    },
+    {
+      "id": "resp_11",
+      "requirement_text": "Partner closely with front-end engineers during build, providing detailed specs and redlines via Figma Dev Mode",
+      "source": "enhanced_jd.role_details.key_responsibilities[10]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[1]",
+      "confidence_level": 4,
+      "evidence_type": "direct",
+      "strength_note": "Candidate executed developer handoff for council community portal and has working knowledge of HTML/CSS to support engineer collaboration.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_12",
+      "requirement_text": "Collaborate with Content Designers to ensure copy and UI work seamlessly together",
+      "source": "enhanced_jd.role_details.key_responsibilities[11]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[3]",
+      "confidence_level": 3,
+      "evidence_type": "transferable",
+      "strength_note": "Candidate's contract work at Bright Pixel Studio required cross-functional collaboration, though specific content designer partnership not documented.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_13",
+      "requirement_text": "Present design rationale to senior stakeholders (GM level) with clarity and confidence",
+      "source": "enhanced_jd.role_details.key_responsibilities[12]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.work_history[3].responsibilities[0]",
+      "confidence_level": 4,
+      "evidence_type": "transferable",
+      "strength_note": "Candidate's corporate law background included presenting to ASX-listed boards and multinational stakeholders on $50M–$500M+ transactions, demonstrating senior-level communication capability.",
+      "is_candidate_asset": true
+    },
+    {
+      "id": "resp_14",
+      "requirement_text": "Contribute to the evolution of the 'Spark' design system—proposing new patterns, documenting decisions, and retiring deprecated components",
+      "source": "enhanced_jd.role_details.key_responsibilities[13]",
+      "tier": "Responsibility",
+      "candidate_status": "Gap",
+      "evidence_source": "candidate_profile.skills.core_competencies[7] (Design Systems — general awareness)",
+      "confidence_level": null
+    },
+    {
+      "id": "resp_15",
+      "requirement_text": "Participate in cross-squad design critiques and knowledge-sharing sessions",
+      "source": "enhanced_jd.role_details.key_responsibilities[14]",
+      "tier": "Responsibility",
+      "candidate_status": "Gap",
+      "evidence_source": null,
+      "confidence_level": 4,
+      "evidence_type": "transferable",
+      "strength_note": "Candidate actively mentors through Ladies That UX Melbourne since 2025, demonstrating commitment to knowledge-sharing and design community engagement.",
+      "is_candidate_asset": true,
+      "evidence_downgrade": {
+        "reason": "Community mentoring is not internal cross-squad design critique participation; contextual disparity."
+      }
+    },
+    {
+      "id": "resp_16",
+      "requirement_text": "Mentor junior designers and support the team's inclusive, psychologically safe culture",
+      "source": "enhanced_jd.role_details.key_responsibilities[15]",
+      "tier": "Responsibility",
+      "candidate_status": "Met",
+      "evidence_source": "candidate_profile.additional_information.volunteer[0]",
+      "confidence_level": 4,
+      "evidence_type": "transferable",
+      "strength_note": "Candidate serves as UX mentor with Ladies That UX Melbourne, plus managed teams of 3–5 junior lawyers in previous legal career.",
+      "is_candidate_asset": true
+    }
+  ],
+  "strengths": [
+    {
+      "id": "strength_1",
+      "strength_text": "Portfolio: A strong portfolio demonstrating end-to-end UX/UI work across web and mobile platforms. We want to see your process (research → ideation → testing → iteration), not just final screens.",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[1]",
+      "evidence_context": "Candidate delivered full end-to-end UX for a council community portal from discovery through developer handoff, and improved fintech onboarding completion from 34% to 71%, demonstrating iterative process with measurable outcomes.",
+      "confidence_level": 4,
+      "requirement_id": "req_1",
+      "tier": "Baseline",
+      "evidence_type": "direct",
+      "impact": "High"
+    },
+    {
+      "id": "strength_2",
+      "strength_text": "Tools: Advanced proficiency in Figma (including component libraries, auto layout, variables, and Dev Mode). Experience with prototyping and user testing tools (e.g., Maze, UserTesting, Optimal Workshop).",
+      "evidence_source": "candidate_profile.skills.technical_skills[0]",
+      "evidence_context": "Candidate has 2+ years of daily Figma use across contract and intern roles, plus documented use of Maze and UserTesting for prototyping and user testing.",
+      "confidence_level": 4,
+      "requirement_id": "req_2",
+      "tier": "Baseline",
+      "evidence_type": "direct",
+      "impact": "High"
+    },
+    {
+      "id": "strength_3",
+      "strength_text": "Research Skills: Demonstrated experience planning and conducting user research, and translating findings into design decisions. We value designers who can run their own research, not just consume research reports.",
+      "evidence_source": "candidate_profile.work_history[2].responsibilities[3]",
+      "evidence_context": "Candidate independently conducted user research with 15 community members for a community website redesign, and completed General Assembly UX Immersive training covering end-to-end research methods.",
+      "confidence_level": 4,
+      "requirement_id": "req_3",
+      "tier": "Baseline",
+      "evidence_type": "direct",
+      "impact": "High"
+    },
+    {
+      "id": "strength_4",
+      "strength_text": "Accessibility: Working knowledge of WCAG 2.1 AA standards and inclusive design principles, with evidence of applying them in shipped products.",
+      "evidence_source": "candidate_profile.skills.certifications[1]",
+      "evidence_context": "Candidate holds current accessibility certification from Interaction Design Foundation (2024), demonstrating formal training in WCAG standards and inclusive design principles.",
+      "confidence_level": 5,
+      "requirement_id": "req_4",
+      "tier": "Baseline",
+      "evidence_type": "direct",
+      "impact": "High"
+    },
+    {
+      "id": "strength_5",
+      "strength_text": "Communication: Ability to articulate design rationale clearly to both technical and non-technical stakeholders, including at senior leadership level.",
+      "evidence_source": "candidate_profile.work_history[3].responsibilities[3]",
+      "evidence_context": "Candidate's corporate law background included advising ASX-listed clients and managing multinational stakeholder communications, with explicit recognition for translating complex information into clear client advice.",
+      "confidence_level": 3,
+      "requirement_id": "req_6",
+      "tier": "Baseline",
+      "evidence_type": "transferable",
+      "impact": "Low"
+    },
+    {
+      "id": "strength_6",
+      "strength_text": "Familiarity with front-end technologies (HTML, CSS, React) sufficient to collaborate meaningfully with engineers",
+      "evidence_source": "candidate_profile.skills.technical_skills[5]",
+      "evidence_context": "Candidate has working knowledge of HTML/CSS, demonstrating technical literacy sufficient for engineer collaboration.",
+      "confidence_level": 4,
+      "requirement_id": "pref_2",
+      "tier": "Differentiator",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_7",
+      "strength_text": "Experience with data-informed design—using analytics platforms (Amplitude, Mixpanel, Google Analytics) to validate design hypotheses",
+      "evidence_source": "candidate_profile.skills.technical_skills[7]",
+      "evidence_context": "Candidate has documented Google Analytics experience, supporting data-informed design validation.",
+      "confidence_level": 4,
+      "requirement_id": "pref_3",
+      "tier": "Differentiator",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_8",
+      "strength_text": "Tertiary qualification in Design, Human-Computer Interaction, Psychology, or a related field (or equivalent practical experience)",
+      "evidence_source": "candidate_profile.education[2]",
+      "evidence_context": "Candidate holds First Class Honours in Psychology from Monash with thesis on decision-making under uncertainty—directly applicable to UX research methods and user cognition.",
+      "confidence_level": 5,
+      "requirement_id": "pref_4",
+      "tier": "Differentiator",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_9",
+      "strength_text": "Plan and conduct qualitative user research (interviews, usability testing, contextual inquiry) to inform design decisions",
+      "evidence_source": "candidate_profile.work_history[2].responsibilities[3]",
+      "evidence_context": "Candidate independently planned and conducted user research with 15 community members for a website redesign, demonstrating autonomous research capability.",
+      "confidence_level": 4,
+      "requirement_id": "resp_1",
+      "tier": "Responsibility",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_10",
+      "strength_text": "Synthesise research into personas, journey maps, and actionable insights",
+      "evidence_source": "candidate_profile.education[0]",
+      "evidence_context": "Candidate's General Assembly capstone project explicitly covered persona development and journey mapping as part of the 12-week immersive program.",
+      "confidence_level": 4,
+      "requirement_id": "resp_2",
+      "tier": "Responsibility",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_11",
+      "strength_text": "Collaborate with the data analytics team to triangulate qualitative findings with quantitative behavioural data (Amplitude, Google Analytics)",
+      "evidence_source": "candidate_profile.skills.technical_skills[7]",
+      "evidence_context": "Candidate has Google Analytics experience and a Psychology Honours thesis on decision-making under uncertainty, providing quantitative research foundation.",
+      "confidence_level": 3,
+      "requirement_id": "resp_3",
+      "tier": "Responsibility",
+      "evidence_type": "transferable",
+      "impact": "Low"
+    },
+    {
+      "id": "strength_12",
+      "strength_text": "Champion the voice of the customer in sprint planning and stakeholder forums",
+      "evidence_source": "candidate_profile.work_history[1].responsibilities[2]",
+      "evidence_context": "Candidate participated in design sprints and client presentations at Neighbourhood Digital, plus stakeholder workshop experience from Bright Pixel Studio council project.",
+      "confidence_level": 4,
+      "requirement_id": "resp_4",
+      "tier": "Responsibility",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_13",
+      "strength_text": "Design end-to-end user flows, wireframes, and high-fidelity UI for web and native mobile (iOS/Android)",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[0]",
+      "evidence_context": "Candidate redesigned a fintech mobile app onboarding flow from concept to completion, improving task completion from 34% to 71%—demonstrating mobile UI expertise with measurable impact.",
+      "confidence_level": 4,
+      "requirement_id": "resp_5",
+      "tier": "Responsibility",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_14",
+      "strength_text": "Create interactive prototypes for usability testing and stakeholder review",
+      "evidence_source": "candidate_profile.work_history[2].responsibilities[3]",
+      "evidence_context": "Candidate created full responsive prototypes for the Hawthorn Community House website and fintech mobile app, using Maze and UserTesting for validation.",
+      "confidence_level": 4,
+      "requirement_id": "resp_7",
+      "tier": "Responsibility",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_15",
+      "strength_text": "Ensure all designs meet WCAG 2.1 AA accessibility standards and Suncorp's inclusive design principles",
+      "evidence_source": "candidate_profile.skills.certifications[1]",
+      "evidence_context": "Candidate holds current IDF accessibility certification (2024), demonstrating formal training in WCAG 2.1 AA standards and inclusive design principles.",
+      "confidence_level": 5,
+      "requirement_id": "resp_8",
+      "tier": "Responsibility",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_16",
+      "strength_text": "Apply responsive design principles across breakpoints (mobile-first approach)",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[1]",
+      "evidence_context": "Candidate delivered responsive web design for a council community portal, explicitly noted as responsive across breakpoints.",
+      "confidence_level": 4,
+      "requirement_id": "resp_9",
+      "tier": "Responsibility",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_17",
+      "strength_text": "Partner closely with front-end engineers during build, providing detailed specs and redlines via Figma Dev Mode",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[1]",
+      "evidence_context": "Candidate executed developer handoff for council community portal and has working knowledge of HTML/CSS to support engineer collaboration.",
+      "confidence_level": 4,
+      "requirement_id": "resp_11",
+      "tier": "Responsibility",
+      "evidence_type": "direct",
+      "impact": "Medium"
+    },
+    {
+      "id": "strength_18",
+      "strength_text": "Collaborate with Content Designers to ensure copy and UI work seamlessly together",
+      "evidence_source": "candidate_profile.work_history[0].responsibilities[3]",
+      "evidence_context": "Candidate's contract work at Bright Pixel Studio required cross-functional collaboration, though specific content designer partnership not documented.",
+      "confidence_level": 3,
+      "requirement_id": "resp_12",
+      "tier": "Responsibility",
+      "evidence_type": "transferable",
+      "impact": "Low"
+    },
+    {
+      "id": "strength_19",
+      "strength_text": "Present design rationale to senior stakeholders (GM level) with clarity and confidence",
+      "evidence_source": "candidate_profile.work_history[3].responsibilities[0]",
+      "evidence_context": "Candidate's corporate law background included presenting to ASX-listed boards and multinational stakeholders on $50M–$500M+ transactions, demonstrating senior-level communication capability.",
+      "confidence_level": 3,
+      "requirement_id": "resp_13",
+      "tier": "Responsibility",
+      "evidence_type": "transferable",
+      "impact": "Low"
+    },
+    {
+      "id": "strength_20",
+      "strength_text": "Mentor junior designers and support the team's inclusive, psychologically safe culture",
+      "evidence_source": "candidate_profile.additional_information.volunteer[0]",
+      "evidence_context": "Candidate serves as UX mentor with Ladies That UX Melbourne, plus managed teams of 3–5 junior lawyers in previous legal career.",
+      "confidence_level": 3,
+      "requirement_id": "resp_16",
+      "tier": "Responsibility",
+      "evidence_type": "transferable",
+      "impact": "Low"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap_1",
+      "gap_text": "Experience: Minimum 3 years of professional UX/UI design experience (agency, in-house, or contract). Financial services, healthcare, or other regulated-industry experience is highly regarded but not essential.",
+      "gap_text_plain": "3+ years of professional UX/UI design work (any setting)",
+      "requirement_source": "enhanced_jd.requirements.required_qualifications[6]",
+      "requirement_id": "req_7",
+      "tier": "Baseline",
+      "severity": "High",
+      "is_structural": true,
+      "evidence_context": "Candidate has 1.7 cumulative years of professional UX experience (1.3 years contract at Bright Pixel Studio + 0.4 years part-time intern at Neighbourhood Digital), falling short of the 3-year minimum.",
+      "mitigation_strategy": "Emphasize quality over tenure: candidate jumped into contract work immediately post-immersive with measurable impact (fintech onboarding completion 34%→71%), plus pro bono project delivering end-to-end UX. Psychology Honours and corporate law background provide transferable research rigor and stakeholder communication skills. Highlight accelerated learning trajectory and readiness for mid-level UX role."
+    },
+    {
+      "id": "gap_2",
+      "gap_text": "Experience working with or contributing to a large-scale design system",
+      "gap_text_plain": "Experience contributing to a large-scale design system",
+      "requirement_source": "enhanced_jd.requirements.preferred_qualifications[0]",
+      "requirement_id": "pref_1",
+      "tier": "Differentiator",
+      "severity": "Medium",
+      "is_structural": false,
+      "evidence_context": "Candidate has general Design Systems awareness listed in core competencies, but no documented experience building or maintaining components in a large-scale system like Spark.",
+      "mitigation_strategy": "Frame as a learning opportunity aligned with Suncorp's $2K annual L&D budget. Candidate's Figma proficiency (2+ years daily use) provides the technical foundation to rapidly onboard to Spark. Emphasize willingness to contribute to component libraries and document design decisions."
+    },
+    {
+      "id": "gap_3",
+      "gap_text": "Build and maintain components within Suncorp's Figma-based design system ('Spark')",
+      "gap_text_plain": "Building and maintaining design system components",
+      "requirement_source": "enhanced_jd.role_details.key_responsibilities[5]",
+      "requirement_id": "resp_6",
+      "tier": "Responsibility",
+      "severity": "Medium",
+      "is_structural": false,
+      "evidence_context": "No documented experience contributing to a Figma-based design system; candidate has general Design Systems awareness but no hands-on component library work.",
+      "mitigation_strategy": "Highlight candidate's 2+ years of daily Figma use, including component libraries and auto layout (implicit in req_2 Met status). Strong technical literacy (HTML/CSS knowledge) supports learning Spark's architecture quickly. Present as a growth area within the role's stated mentorship and L&D support."
+    },
+    {
+      "id": "gap_4",
+      "gap_text": "Contribute to the evolution of the 'Spark' design system—proposing new patterns, documenting decisions, and retiring deprecated components",
+      "gap_text_plain": "Helping evolve a design system (proposing new patterns, documenting decisions)",
+      "requirement_source": "enhanced_jd.role_details.key_responsibilities[13]",
+      "requirement_id": "resp_14",
+      "tier": "Responsibility",
+      "severity": "Medium",
+      "is_structural": false,
+      "evidence_context": "No documented experience proposing design system patterns or maintaining component documentation at scale.",
+      "mitigation_strategy": "Candidate's Psychology Honours background (First Class, research thesis) demonstrates strong documentation and analytical skills. Legal career experience drafting and maintaining complex contract templates is transferable to design system documentation. Frame as a strategic learning goal within the role's collaborative culture and L&D support."
+    },
+    {
+      "id": "gap_5",
+      "gap_text": "National Police Check (conducted by Suncorp)",
+      "gap_text_plain": "National Police Check",
+      "requirement_source": "enhanced_jd.requirements.required_qualifications[7]",
+      "requirement_id": "req_8",
+      "tier": "Baseline",
+      "severity": "Administrative",
+      "is_structural": false,
+      "evidence_context": "Standard pre-employment screening requirement for financial services roles.",
+      "mitigation_strategy": "Procedural requirement. Verify status or willingness to complete during initial screening."
+    },
+    {
+      "id": "gap_6",
+      "gap_text": "Bankruptcy and credit check (standard for financial services roles under APRA prudential standards)",
+      "gap_text_plain": "Bankruptcy and credit check",
+      "requirement_source": "enhanced_jd.requirements.required_qualifications[8]",
+      "requirement_id": "req_9",
+      "tier": "Baseline",
+      "severity": "Administrative",
+      "is_structural": false,
+      "evidence_context": "Standard pre-employment screening for APRA-regulated financial services roles.",
+      "mitigation_strategy": "Procedural requirement. Verify status or willingness to complete during initial screening."
+    },
+    {
+      "id": "gap_7",
+      "gap_text": "Evidence of right to work in Australia",
+      "gap_text_plain": "Right to work in Australia",
+      "requirement_source": "enhanced_jd.requirements.required_qualifications[9]",
+      "requirement_id": "req_10",
+      "tier": "Baseline",
+      "severity": "Administrative",
+      "is_structural": false,
+      "evidence_context": "Standard pre-employment verification requirement.",
+      "mitigation_strategy": "Procedural requirement. Verify status or willingness to acquire during initial screening."
+    },
+    {
+      "id": "gap_8",
+      "gap_text": "Two professional referees (at least one must be a direct manager or supervisor from the past 3 years)",
+      "gap_text_plain": "Two professional referees (one must be a recent manager)",
+      "requirement_source": "enhanced_jd.requirements.required_qualifications[10]",
+      "requirement_id": "req_11",
+      "tier": "Baseline",
+      "severity": "Administrative",
+      "is_structural": false,
+      "evidence_context": "Standard reference check requirement.",
+      "mitigation_strategy": "Procedural requirement. Verify status or willingness to provide during initial screening."
+    },
+    {
+      "id": "gap_9",
+      "gap_text": "Collaboration: Proven ability to work effectively within Agile squads, including constructive collaboration with product managers, engineers, and content designers.",
+      "requirement_source": "enhanced_jd.requirements.required_qualifications[4]",
+      "requirement_id": "req_5",
+      "tier": "Baseline",
+      "severity": "High",
+      "evidence_context": "Evidence does not prove Agile squad cross-functional collaboration with PMs, engineers, and content designers. Solo contractor managing clients + legal team management ≠ Agile squad immersion.",
+      "mitigation_strategy": "Address directly: the CV does not yet evidence this requirement."
+    },
+    {
+      "id": "gap_10",
+      "gap_text": "Work within a cross-functional Agile squad, participating in daily stand-ups, sprint planning, retrospectives, and design reviews",
+      "requirement_source": "enhanced_jd.role_details.key_responsibilities[9]",
+      "requirement_id": "resp_10",
+      "tier": "Responsibility",
+      "severity": "Medium",
+      "evidence_context": "Self-assessed Agile/Scrum tag plus 2 design sprints as intern is insufficient for full cross-functional Agile squad experience.",
+      "mitigation_strategy": "Address directly: the CV does not yet evidence this requirement."
+    },
+    {
+      "id": "gap_11",
+      "gap_text": "Participate in cross-squad design critiques and knowledge-sharing sessions",
+      "requirement_source": "enhanced_jd.role_details.key_responsibilities[14]",
+      "requirement_id": "resp_15",
+      "tier": "Responsibility",
+      "severity": "Medium",
+      "evidence_context": "Community mentoring is not internal cross-squad design critique participation; contextual disparity.",
+      "mitigation_strategy": "Address directly: the CV does not yet evidence this requirement."
+    }
+  ],
+  "candidate_provided_evidence": [],
+  "qualification_discrepancies": [],
+  "ats_keywords": [
+    "Figma",
+    "user research",
+    "accessibility",
+    "WCAG",
+    "responsive design",
+    "Agile",
+    "design system",
+    "prototyping",
+    "usability testing",
+    "stakeholder",
+    "data-informed",
+    "Google Analytics",
+    "fintech",
+    "mobile app",
+    "wireframes"
+  ],
+  "recommendations": [
+    {
+      "priority": "High",
+      "recommendation": "Address tenure gap by emphasizing quality over quantity and accelerated learning trajectory",
+      "action_items": [
+        "Highlight measurable impact: fintech onboarding completion improved 34%→71% in 8 weeks at Bright Pixel Studio",
+        "Emphasize pro bono project demonstrating end-to-end UX autonomy (user research with 15 participants, full responsive prototype)",
+        "Frame Psychology Honours (First Class, research thesis) + 5.8 years corporate law experience as transferable rigor in research methods and senior stakeholder communication"
+      ]
+    },
+    {
+      "priority": "High",
+      "recommendation": "Emphasize Baseline strengths that align with Suncorp's hiring priorities",
+      "action_items": [
+        "Lead with accessibility certification (IDF 2024) — demonstrate WCAG 2.1 AA application in portfolio case studies",
+        "Showcase Figma proficiency (2+ years daily use) including component libraries and developer handoff examples",
+        "Present end-to-end process in portfolio (research → iteration → testing) with measurable outcomes, not just polished final screens"
+      ]
+    },
+    {
+      "priority": "Medium",
+      "recommendation": "Optimize for ATS and recruiter screening",
+      "action_items": [
+        "Ensure resume includes: Figma (component libraries, auto layout, Dev Mode), user research (planning, moderation, synthesis), WCAG 2.1 AA, Agile/Scrum, responsive design, prototyping (Maze, UserTesting), Google Analytics",
+        "Add section explicitly titled 'End-to-End UX Projects' with fintech mobile app and council portal as featured case studies",
+        "Include 'Financial Services Design' or 'Regulated Industry Awareness' if applying compliance/security learnings from legal background to UX context"
+      ]
+    }
+  ],
+  "fit_score_source": "server"
+}
