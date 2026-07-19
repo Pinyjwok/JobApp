@@ -108,3 +108,16 @@ body {
 .animate-fade-in { animation: fade-in .25s ease-out; }
 .animate-modal-in { animation: modal-in .35s cubic-bezier(.22,1,.36,1); }
 .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* Enhanced-JD "analysing" strip (EnhancedJDBubble) — degrades to static if unsupported */
+@keyframes jd-shimmer   { 0% { background-position:-140% 0 } 100% { background-position:240% 0 } }
+@keyframes jd-pulse-dot { 0%,100% { opacity:.35; transform:scale(.85) } 50% { opacity:1; transform:scale(1) } }
+.jd-scan-dot { animation: jd-pulse-dot 1.2s ease-in-out infinite; }
+.jd-scan-bar {
+  background: linear-gradient(90deg, transparent, oklch(from var(--accent) l c h / .55), transparent);
+  background-size: 40% 100%; background-repeat: no-repeat;
+  animation: jd-shimmer 1.5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .jd-scan-dot, .jd-scan-bar { animation: none; }
+}

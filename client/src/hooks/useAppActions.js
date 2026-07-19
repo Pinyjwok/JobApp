@@ -3,7 +3,7 @@ import { confirmDialog, toast } from '../lib/toast';
 const WELCOME_MESSAGE = {
   role: 'agent',
   agent: 'JobApp',
-  text: `Got your documents — thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way.`,
+  text: `Got your documents - thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way.`,
 };
 
 // fetch() only rejects on network failure, so every POST goes through here — a 4xx/5xx becomes a
@@ -232,7 +232,7 @@ export function useAppActions(run, modal) {
       setMessages((prev) => [...prev, { role: 'user', text: `Uploaded ${name} → ${target}.txt` }]);
       setUploadedFiles((prev) => ({ ...prev, [target]: name }));
       if (target === 'cover_letter_sample') {
-        await handleSend('Cover letter uploaded — please proceed with the analysis.');
+        await handleSend('Cover letter uploaded - please proceed with the analysis.');
       }
       return true;
     } catch (err) {

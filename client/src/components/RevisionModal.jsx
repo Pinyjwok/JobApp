@@ -30,7 +30,7 @@ export function RevisionModal({ agent, onSubmit, onCancel }) {
           </div>
           <div>
             <h2 id="revise-title" className="text-sm font-semibold text-fg tracking-tight">Revise {agent}</h2>
-            <p className="text-xs text-fg-muted">Describe what to change — the section is regenerated with your notes</p>
+            <p className="text-xs text-fg-muted">Describe what to change - the section is regenerated with your notes</p>
           </div>
         </div>
 

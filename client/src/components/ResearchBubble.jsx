@@ -170,7 +170,7 @@ function SourceRow({ source }) {
             <p className="text-xs text-fg-muted leading-relaxed m-0">{source.snippet}</p>
           ) : (
             <p className="text-xs text-fg-faint font-mono m-0">
-              No summary yet —{' '}
+              No summary yet -{' '}
               <span className="text-fg-faint">
                 persist Tavily <code className="text-accent/70">snippet</code> per-source to enable
               </span>
@@ -328,7 +328,7 @@ export function ResearchBubble({ msg }) {
           {/* Fallback: no structured data loaded (e.g. workspace reset) */}
           {!data && (
             <p className="text-xs text-fg-faint italic">
-              Intelligence not available — research_output.json not found in workspace.
+              Intelligence not available - research_output.json not found in workspace.
             </p>
           )}
         </>

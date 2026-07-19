@@ -119,7 +119,7 @@ export default function App() {
       {(connection === 'reconnecting' || connection === 'closed') && (
         <div className="animate-fade-in fixed top-3 left-1/2 -translate-x-1/2 z-[55] flex items-center gap-2 rounded-full bg-warn/15 ring-1 ring-warn/40 px-3.5 py-1.5 text-xs text-warn shadow-[var(--shadow-panel)]">
           <span className="w-1.5 h-1.5 rounded-full bg-warn animate-pulse" />
-          {connection === 'closed' ? 'Connection lost — reload to reconnect.' : 'Reconnecting…'}
+          {connection === 'closed' ? 'Connection lost - reload to reconnect.' : 'Reconnecting…'}
         </div>
       )}
       {modal.modalState === 'pending' && (
@@ -298,7 +298,6 @@ export default function App() {
         onUpload={actions.handleUpload}
         disabled={inputDisabled}
         pipelineMode={run.pipelineMode}
-        runningAgent={run.runningAgent}
         lastUserMessage={run.lastUserMessage}
       />
     </div>

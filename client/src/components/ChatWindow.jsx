@@ -7,6 +7,7 @@ import { SectionBubble }  from './SectionBubble';
 import { ReviewBubble }   from './ReviewBubble';
 import { CompletionBubble } from './CompletionBubble';
 import { DocumentPreview }  from './DocumentPreview';
+import { EnhancedJDBubble } from './EnhancedJDBubble';
 import { agentLabel }     from '../agentLabels';
 import { toast }          from '../lib/toast';
 
@@ -133,6 +134,12 @@ function isDocument(msg) {
   return !msg.background && msg.documentData != null;
 }
 
+/** JD enhancement done (status JD_ENHANCED) → EnhancedJDBubble. Server tags this message
+ *  kind:'enhanced_jd'; the bubble fetches enhanced_jd.json itself and is read-only. */
+function isEnhancedJD(msg) {
+  return msg.kind === 'enhanced_jd' && !msg.background;
+}
+
 // ── Compact renders (no separate file needed) ─────────────────────────────────
 
 function CheckIcon() {
@@ -148,7 +155,7 @@ function ProjectSetupTick() {
   return (
     <div className="animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-2 border border-line text-xs text-fg-muted max-w-[85%]">
       <CheckIcon />
-      <span className="text-fg-muted">Project initialised — CV and JD saved</span>
+      <span className="text-fg-muted">Project initialised - CV and JD saved</span>
     </div>
   );
 }
@@ -386,6 +393,7 @@ function renderBubble(msg, onAction, onUpload) {
   if (msg.agent === 'System' && !msg.background) return <SystemNotice msg={msg} />;
   if (isCompletion(msg)) return <CompletionBubble meta={msg.meta} doc={msg.documentData} onAction={onAction} />;
   if (isDocument(msg)) return <DocumentPreview doc={msg.documentData} initialTab={msg.initialTab} />;
+  if (isEnhancedJD(msg)) return <EnhancedJDBubble />;
   if (isResearchComplete(msg)) return <ResearchBubble msg={msg} />;
   if (isAnalystComplete(msg)) return <AnalystBubble msg={msg} />;
   if (isAssemblySection(msg)) return <SectionBubble msg={msg} />;
