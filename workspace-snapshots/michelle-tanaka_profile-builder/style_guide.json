@@ -1,0 +1,31 @@
+{
+  "synthesized_at": "2026-07-20T04:39:33.651Z",
+  "source": "server-merge(style_findings.json + sn_output.json)",
+  "register": "direct-practical",
+  "voice_descriptor": "Crisp ownership-driven bullets with strong quantification and clear outcomes; confident professional voice with genuine depth. Cover letter blends authenticity and data — self-aware about career change but backed by concrete metrics and genuine passion. Writing is articulate and direct.",
+  "tense": "past",
+  "voice": "active",
+  "sentence_structure": "Action verb + object + metric or outcome, occasional parenthetical detail",
+  "formality_level": "semi-formal",
+  "quantification_level": "strong",
+  "ownership_framing": {
+    "classification": "Ownership-Driven",
+    "proof": "Led end-to-end UX for a council community engagement portal (responsive web), from stakeholder workshops through to developer handoff"
+  },
+  "signature_phrases": [
+    "Led end-to-end UX",
+    "improving task completion rate",
+    "from stakeholder workshops through to developer handoff",
+    "Drafted, reviewed, and negotiated"
+  ],
+  "voice_examples": [
+    "Redesigned the onboarding flow for a fintech client's mobile app, improving task completion rate from 34% to 71% over 8 weeks",
+    "Led end-to-end UX for a council community engagement portal (responsive web), from stakeholder workshops through to developer handoff",
+    "Advised ASX-listed and multinational clients on M&A transactions, joint ventures, and commercial contracts valued at $50M–$500M+",
+    "Promoted from Graduate (2015) to Senior Associate (2019) — one year ahead of standard progression"
+  ],
+  "agreed_overrides": {
+    "seniority_level": "Junior (1.7 relevant / 8.4 total yrs - confirmed by user)",
+    "profile_voice": "first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)"
+  }
+}

@@ -43,7 +43,7 @@ const PROGRESS = {
 const ASSEMBLY_PROGRESS = {
   'Style Negotiator': 58, 'Profile Builder': 66, 'Skills Curator': 70, 'History Formatter': 74,
   'Credentials Formatter': 78, 'CoverLetter Writer': 82, 'Style Reviewer': 88,
-  'Integrity Checker': 93, 'Document Formatter': 97,
+  'Integrity Checker': 95,
 };
 
 const ASSEMBLY_SUBSTEP = {

@@ -128,8 +128,9 @@ function isCompletion(msg) {
   return msg.kind === 'completion' && !msg.background;
 }
 
-/** Assembled CV / cover-letter preview → DocumentPreview. Carries documentData (tailored_cv +
- *  coverLetter) and an optional initialTab set by the view_cv / view_cover_letter action. */
+/** Assembled CV / cover-letter preview → DocumentPreview. Carries documentData (built server-side by
+ *  buildDocumentData from the per-section output files) and an optional initialTab set by the
+ *  view_cv / view_cover_letter action. */
 function isDocument(msg) {
   return !msg.background && msg.documentData != null;
 }

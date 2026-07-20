@@ -48,8 +48,8 @@ router.post('/dev/status', async (req, res) => {
 // 7 = Style Reviewer gate, 8 = Integrity Checker gate.
 router.post('/dev/phase', async (req, res) => {
   const n = Number(req.body?.phase);
-  if (!Number.isInteger(n) || n < 1 || n > 9) {
-    return res.status(400).json({ error: 'phase required (integer 1–9)' });
+  if (!Number.isInteger(n) || n < 1 || n > 8) {
+    return res.status(400).json({ error: 'phase required (integer 1–8)' });
   }
   if (!state.recipe) return res.status(503).json({ error: 'Recipe not ready' });
   try {

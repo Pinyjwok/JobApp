@@ -1,0 +1,145 @@
+{
+  "current_phase": 3,
+  "metadata": {
+    "started_at": null,
+    "last_updated": "2026-07-20T04:40:14.053Z",
+    "status": "ACTIVE",
+    "total_phases": 9,
+    "completed_phases": 2
+  },
+  "phases": [
+    {
+      "phase_number": 1,
+      "phase_name": "Style Negotiation",
+      "agent": "Style Negotiator",
+      "status": "COMPLETE",
+      "completed_at": "2026-07-20T04:39:33.649Z",
+      "data": {
+        "agreed_overrides": {
+          "seniority_level": "Junior (1.7 relevant / 8.4 total yrs - confirmed by user)",
+          "profile_voice": "first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)"
+        },
+        "negotiation_outcome": "OVERRIDES_APPLIED",
+        "negotiation_summary": "2 override(s) applied across 2 style dimension(s). 2 recommended, 0 kept as-is, 0 customised. Outcome: OVERRIDES_APPLIED.",
+        "original_style": {
+          "tense": "past",
+          "voice": "active",
+          "bullet_format": "verb-led",
+          "uses_pronouns_i": false,
+          "uses_full_sentences": false,
+          "formality_level": "semi-formal",
+          "seniority_inferred": "Junior",
+          "years_experience": 8.4
+        },
+        "user_confirmed": true
+      }
+    },
+    {
+      "phase_number": 2,
+      "phase_name": "Profile Building",
+      "agent": "Profile Builder",
+      "status": "COMPLETE",
+      "completed_at": "2026-07-20T04:40:14.053Z",
+      "data": {
+        "contact_details": {
+          "formatted_text": "Michelle Tanaka | michelle.tanaka.ux@gmail.com | 0431 555 789 | Melbourne, VIC 3000 | linkedin.com/in/michelletanakaux | michelletanaka.design",
+          "components": {
+            "name": "Michelle Tanaka",
+            "email": "michelle.tanaka.ux@gmail.com",
+            "phone": "0431 555 789",
+            "location": "Melbourne, VIC 3000",
+            "linkedin": "linkedin.com/in/michelletanakaux",
+            "portfolio": "michelletanaka.design",
+            "github": null
+          }
+        },
+        "profile_paragraph": {
+          "formatted_text": "UX/UI Designer with demonstrated end-to-end design capability across fintech and public-sector projects. Improved task completion from **34%** to **71%** for fintech mobile onboarding; led responsive council portal from stakeholder workshops through developer handoff. Conduct independent user research, create interactive prototypes in Figma, and apply WCAG 2.1 AA standards. Bring senior-level stakeholder communication honed through advising C-suite clients on **$50M–$500M+** transactions — translating complex requirements into clear deliverables under deadline pressure. Honours graduate in Psychology (decision-making research) with UX Design Immersive distinction.",
+          "framework": "Q.A.R.E.R.",
+          "strengths_highlighted": [
+            "End-to-end UX/UI work across web and mobile platforms",
+            "Independent user research planning and execution",
+            "Senior-level stakeholder communication",
+            "WCAG 2.1 AA accessibility knowledge"
+          ]
+        },
+        "profile_statement": "UX/UI Designer with demonstrated end-to-end design capability across fintech and public-sector projects. Improved task completion from **34%** to **71%** for fintech mobile onboarding; led responsive council portal from stakeholder workshops through developer handoff. Conduct independent user research, create interactive prototypes in Figma, and apply WCAG 2.1 AA standards. Bring senior-level stakeholder communication honed through advising C-suite clients on **$50M–$500M+** transactions — translating complex requirements into clear deliverables under deadline pressure. Honours graduate in Psychology (decision-making research) with UX Design Immersive distinction.",
+        "relevant_years_experience": 1.7,
+        "experience_years": 1.7,
+        "experience_breakdown": {
+          "relevant_years": 1.7,
+          "total_years": 8.4
+        },
+        "key_themes": [
+          "End-to-end UX/UI design",
+          "User research and testing",
+          "Responsive design and accessibility",
+          "Stakeholder communication",
+          "Career transition from law to UX"
+        ],
+        "key_achievements": [],
+        "advisory_warnings": [],
+        "user_confirmed": true
+      }
+    },
+    {
+      "phase_number": 3,
+      "phase_name": "Skills Curation",
+      "agent": "Skills Curator",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 4,
+      "phase_name": "History Formatting",
+      "agent": "History Formatter",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 5,
+      "phase_name": "Credentials Formatting",
+      "agent": "Credentials Formatter",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 6,
+      "phase_name": "Cover Letter Writing",
+      "agent": "CoverLetter Writer",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 7,
+      "phase_name": "Style Review",
+      "agent": "Style Reviewer",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 8,
+      "phase_name": "Integrity Check",
+      "agent": "Integrity Checker",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    },
+    {
+      "phase_number": 9,
+      "phase_name": "Document Formatting",
+      "agent": "Document Formatter",
+      "status": "PENDING",
+      "completed_at": null,
+      "data": null
+    }
+  ],
+  "user_request": null,
+  "final_cv": null,
+  "change_log": []
+}

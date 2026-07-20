@@ -3,7 +3,8 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const PROJECT_DIR   = join(__dirname, '..', '..');
-export const WORKSPACE_DIR = join(PROJECT_DIR, 'workspace');
+// JOBAPP_WORKSPACE_DIR lets tests point the workspace readers at a fixture dir; unset in production.
+export const WORKSPACE_DIR = process.env.JOBAPP_WORKSPACE_DIR || join(PROJECT_DIR, 'workspace');
 export const SNAPSHOTS_DIR = join(PROJECT_DIR, 'workspace-snapshots');
 export const HISTORY_FILE  = join(PROJECT_DIR, 'chat_history.json');
 
@@ -32,7 +33,6 @@ export const NODE_TIMEOUT_MS = {
   // accepted gap evidence — it is *designed* to be slow. This budget is a genuine-crash backstop only,
   // not a slowness policy: a long-but-healthy run salvages its verdict off disk (see dispatchAssemblyPhase).
   integrity_checker_input:    1_200_000,
-  document_formatter_input:   420_000,
 };
 
 // Status-tag fallback (#1): linear agents whose resulting pipeline_status is deterministic.
@@ -74,11 +74,15 @@ export const AGENT_FOREGROUND = new Set([
   'Style Negotiator',
   'Profile Builder', 'Skills Curator', 'History Formatter',
   'Credentials Formatter', 'Cover Letter Writer',
-  'Style Reviewer', 'Integrity Checker', 'Document Formatter',
+  'Style Reviewer', 'Integrity Checker',
 ]);
 
 // Sequential assembly phase map — phaseNumber → agent config
 // outputFile: null for SR/IC which write cv_assembly_state.json directly
+// Integrity Checker (8) is the LAST phase. A clean IC pass dispatches phase 9, which has no entry here
+// → dispatchAssemblyPhase's no-phase branch sets CV_TAILORED + broadcastCompletion. (Document Formatter,
+// the old phase 9, was scrapped 2026-07-20 — its df_output.json/tailored_cv.json were consumed by nothing;
+// the finished-doc render comes from buildDocumentData over the per-section files, not DF.)
 export const ASSEMBLY_PHASES = {
   1: { agent: 'Style Negotiator',     inputNode: 'style_negotiator_input',     outputFile: 'sn_output.json'  },
   2: { agent: 'Profile Builder',       inputNode: 'profile_builder_input',       outputFile: 'pb_output.json'  },
@@ -88,7 +92,6 @@ export const ASSEMBLY_PHASES = {
   6: { agent: 'Cover Letter Writer',   inputNode: 'cover_letter_writer_input',   outputFile: 'clw_output.json' },
   7: { agent: 'Style Reviewer',        inputNode: 'style_reviewer_input',        outputFile: null              },
   8: { agent: 'Integrity Checker',     inputNode: 'integrity_checker_input',     outputFile: null              },
-  9: { agent: 'Document Formatter',    inputNode: 'document_formatter_input',    outputFile: 'df_output.json'  },
 };
 
 export const INPUT_NODE_MAP = {
@@ -149,7 +152,6 @@ const CV_ASSEMBLY_PHASES = [
   { phase_number: 6, phase_name: 'Cover Letter Writing',   agent: 'CoverLetter Writer',    status: 'PENDING', completed_at: null, data: null },
   { phase_number: 7, phase_name: 'Style Review',           agent: 'Style Reviewer',        status: 'PENDING', completed_at: null, data: null },
   { phase_number: 8, phase_name: 'Integrity Check',        agent: 'Integrity Checker',     status: 'PENDING', completed_at: null, data: null },
-  { phase_number: 9, phase_name: 'Document Formatting',    agent: 'Document Formatter',    status: 'PENDING', completed_at: null, data: null },
 ];
 
 export const WORKSPACE_SCAFFOLD = {
@@ -161,10 +163,9 @@ export const WORKSPACE_SCAFFOLD = {
   'research_output.json':  {},
   'enhanced_jd.json':      {},
   'review_audit.json':     {},
-  'tailored_cv.json':      {},
   'cv_assembly_state.json': {
     current_phase: 1,
-    metadata: { started_at: null, last_updated: null, status: 'ACTIVE', total_phases: 9, completed_phases: 0 },
+    metadata: { started_at: null, last_updated: null, status: 'ACTIVE', total_phases: 8, completed_phases: 0 },
     phases: CV_ASSEMBLY_PHASES,
     user_request: null,
     final_cv: null,
@@ -194,5 +195,4 @@ export const WORKSPACE_SCAFFOLD = {
   'hf_output.json':         {},
   'cf_output.json':         {},
   'clw_output.json':        {},
-  'df_output.json':         {},
 };

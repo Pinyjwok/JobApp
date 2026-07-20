@@ -55,7 +55,6 @@ const ASSEMBLY_PHASES_DEV = [
   { phase: 6, label: '6 · Cover Letter Writer' },
   { phase: 7, label: '7 · Style Reviewer' },
   { phase: 8, label: '8 · Integrity Checker' },
-  { phase: 9, label: '9 · Document Formatter' },
 ];
 
 function ThemeToggle({ theme, onToggle }) {

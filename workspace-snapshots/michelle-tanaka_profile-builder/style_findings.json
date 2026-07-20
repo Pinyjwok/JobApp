@@ -1,0 +1,117 @@
+{
+  "seniority": {
+    "level": "Junior",
+    "is_recent_graduate": true,
+    "title_bucket": "UX/UI Designer",
+    "role_classification": [
+      {
+        "employer": "Bright Pixel Studio",
+        "relevant": true,
+        "is_employment": true
+      },
+      {
+        "employer": "Neighbourhood Digital",
+        "relevant": true,
+        "is_employment": true
+      },
+      {
+        "employer": "Self (Primary Carer)",
+        "relevant": false,
+        "is_employment": false
+      },
+      {
+        "employer": "Ashurst (formerly Blake Dawson)",
+        "relevant": false,
+        "is_employment": true
+      }
+    ],
+    "evidence": "Career-changer from law; retraining completed June 2024 (General Assembly) makes this a recent-graduate profile. Only two UX roles are relevant (contract + internship, total ~1.7 years) — Ashurst legal work is not relevant to UX design despite seniority there. Clearly Junior for a UX/UI Designer target despite impressive prior legal career.",
+    "years_experience": 8.4,
+    "relevant_years_experience": 1.7,
+    "career_stage": "recent-graduate"
+  },
+  "register": "direct-practical",
+  "sector": "Financial Services",
+  "style_patterns": {
+    "tense": "past",
+    "voice": "active",
+    "bullet_format": "verb-led",
+    "avg_bullet_word_count": 14,
+    "sentence_structure": "Action verb + object + metric or outcome, occasional parenthetical detail",
+    "formality_level": "semi-formal",
+    "uses_pronouns_i": false,
+    "uses_full_sentences": false,
+    "voice_descriptor": "Crisp ownership-driven bullets with strong quantification and clear outcomes; confident professional voice with genuine depth. Cover letter blends authenticity and data — self-aware about career change but backed by concrete metrics and genuine passion. Writing is articulate and direct.",
+    "quantification_level": "strong",
+    "writing_strengths": [
+      "Consistent verb-led bullet structure",
+      "Strong quantification with concrete metrics (34% to 71%, $50M–$500M+, 40+ interviews)",
+      "Ownership-framed achievements showing clear accountability",
+      "Articulate communication of complex ideas in plain language",
+      "Authentic voice in cover letter without hedging or self-deprecation"
+    ],
+    "writing_weaknesses": [
+      "Some bullets slightly verbose (could be tightened)",
+      "Minor inconsistency in trailing punctuation on bullets"
+    ],
+    "ownership_framing": {
+      "classification": "Ownership-Driven",
+      "proof": "Led end-to-end UX for a council community engagement portal (responsive web), from stakeholder workshops through to developer handoff"
+    },
+    "content_focus": {
+      "classification": "Systems-Centric",
+      "proof": "Redesigned the onboarding flow for a fintech client's mobile app, improving task completion rate from 34% to 71% over 8 weeks"
+    },
+    "signature_phrases": {
+      "intent": "preserve",
+      "phrases": [
+        "Led end-to-end UX",
+        "improving task completion rate",
+        "from stakeholder workshops through to developer handoff",
+        "Drafted, reviewed, and negotiated"
+      ]
+    },
+    "persuasion_strategy": {
+      "classification": "Alignment-Led",
+      "proof": "What draws me to this role at Suncorp is the scale and the complexity. Financial services UX is a problem space I understand — the regulatory constraints, the need for plain-language communication, the tension between compliance and usability."
+    },
+    "examples": [
+      "Redesigned the onboarding flow for a fintech client's mobile app, improving task completion rate from 34% to 71% over 8 weeks",
+      "Led end-to-end UX for a council community engagement portal (responsive web), from stakeholder workshops through to developer handoff",
+      "Advised ASX-listed and multinational clients on M&A transactions, joint ventures, and commercial contracts valued at $50M–$500M+",
+      "Promoted from Graduate (2015) to Senior Associate (2019) — one year ahead of standard progression"
+    ]
+  },
+  "flagged_issues": [
+    {
+      "id": "issue_001",
+      "category": "punctuation",
+      "severity": "low",
+      "description": "Inconsistent trailing punctuation on bullets — some bullets end with periods, most do not",
+      "original": "Participated in 2 design sprints and presented findings to the client",
+      "suggested": "Participated in 2 design sprints and presented findings to the client (standardize: no trailing periods on any bullet)"
+    },
+    {
+      "id": "issue_002",
+      "category": "verbose",
+      "severity": "medium",
+      "description": "Slight verbosity in bullet — could tighten for impact",
+      "original": "Managed own client relationships, scoping, and timeline negotiation",
+      "suggested": "Managed client relationships, scoping, and timeline negotiation"
+    },
+    {
+      "id": "issue_003",
+      "category": "professionalism",
+      "severity": "low",
+      "description": "Referee note could be omitted — 'available upon request' is assumed in professional contexts",
+      "original": "Note: A legal referee from Ashurst is available upon request.",
+      "suggested": "(Omit — referees section already includes two strong referees; additional note is unnecessary)"
+    }
+  ],
+  "source_files": {
+    "cv": "cv_raw.txt",
+    "cover_letter": "cover_letter_sample.txt"
+  },
+  "analyzed_at": "2026-07-20T04:28:32.566Z",
+  "analyzer_version": "4.9"
+}

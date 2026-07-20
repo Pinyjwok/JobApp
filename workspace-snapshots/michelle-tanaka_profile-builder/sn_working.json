@@ -1,0 +1,30 @@
+{
+  "groups": [
+    {
+      "id": "seniority",
+      "title": "Seniority & Career Level",
+      "finding": "Inferred level: Junior. Career-changer from law; retraining completed June 2024 (General Assembly) makes this a recent-graduate profile. Only two UX roles are relevant (contract + internship, total ~1.7 years) — Ashurst legal work is not relevant to UX design despite seniority there. Clearly Junior for a UX/UI Designer target despite impressive prior legal career.",
+      "examples": [],
+      "recommendation": "Confirm as Junior - this controls tone, assertiveness, and how responsibilities are framed throughout the CV.",
+      "insight": "Seniority framing is the single biggest lever on how a recruiter reads every bullet.",
+      "recommended_overrides": {
+        "seniority_level": "Junior (1.7 relevant / 8.4 total yrs - confirmed by user)"
+      }
+    },
+    {
+      "id": "profile_voice",
+      "title": "Professional Summary - Voice",
+      "finding": "Your professional summary can be written in first person (you speaking as yourself) or third person (written about you).",
+      "examples": [
+        "First person: \"Biomedical Science graduate with hands-on laboratory training…\"",
+        "Third person: \"Sarah is a Biomedical Science graduate with hands-on laboratory training…\""
+      ],
+      "recommendation": "Use first person - it reads as direct and modern and is the most common choice today. Prefer third person? Pick \"Customise\" and type \"third person\".",
+      "insight": "First person (or implied first person, with no \"I\") is standard for most professional summaries; third person can suit very senior or academic profiles.",
+      "recommended_overrides": {
+        "profile_voice": "first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)"
+      }
+    }
+  ],
+  "decisions": {}
+}

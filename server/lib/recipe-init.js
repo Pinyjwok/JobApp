@@ -48,7 +48,6 @@ export async function initRecipe(projectDir) {
     'agentReasoning.clw_reasoning':       'Cover Letter Writer',
     'agentReasoning.sr_reasoning':        'Style Reviewer',
     'agentReasoning.ic_reasoning':        'Integrity Checker',
-    'agentReasoning.df_reasoning':        'Document Formatter',
   };
 
   for (const [varName, agentName] of Object.entries(REASONING_VARS)) {

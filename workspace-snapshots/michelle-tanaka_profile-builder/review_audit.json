@@ -1,0 +1,341 @@
+{
+  "metadata": {
+    "reviewed_at": "2026-07-20T04:38:20.568Z",
+    "reviewer_version": "server-1.0",
+    "analyst_version": "2.36",
+    "candidate_backed_gaps": 1
+  },
+  "repairs": {
+    "paths_normalized": [],
+    "strengths_dropped": [],
+    "requirements_retiered": [],
+    "gaps_dropped": [],
+    "gates_demoted": []
+  },
+  "overall_verdict": "APPROVED",
+  "rejection_reason": null,
+  "issues_found": [],
+  "approved_items": [
+    {
+      "category": "Strength",
+      "item_id": "strength_1",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_2",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_3",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_4",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_5",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_6",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_7",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_8",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_9",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_10",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_11",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_12",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_13",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_14",
+      "confidence_level": 3
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_4",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_5",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_6",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_7",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_8",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_9",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_10",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_11",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_12",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_13",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_14",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_15",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_16",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_17",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_4",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_5",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_6",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_7",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_8",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_9",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_10",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_11",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "pref_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "pref_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "pref_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "pref_4",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_4",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_5",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_6",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_7",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_8",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_9",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_10",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_11",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_12",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_13",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_14",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_15",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_16",
+      "confidence_level": 5
+    }
+  ],
+  "summary": {
+    "total_items_audited": 77,
+    "total_issues": 0,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 0,
+    "low_issues": 0,
+    "approved_items": 62,
+    "unresolved_issues": 0,
+    "user_backed_items": 0
+  }
+}

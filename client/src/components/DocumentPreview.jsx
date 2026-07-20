@@ -7,7 +7,8 @@ import { Modal } from './Modal';
 // NEW for the 2026-06 redesign. Renders the two finished artifacts as a page-like surface inside
 // the chat stream, with a segmented CV / Cover-letter toggle and Copy / Download actions.
 //
-// Data contract (fed by tailored_cv.json + the cover-letter object):
+// Data contract (built server-side by buildDocumentData from the per-section output files —
+// pb/sc/hf/cf/clw_output.json — NOT from any single tailored_cv.json):
 //   doc = {
 //     cv: {
 //       name, headline, contact,                       // header

@@ -19,7 +19,6 @@ const AGENT_LABELS = {
   'Cover Letter Writer':   'Your cover letter',
   'Style Reviewer':        'Final polish',
   'Integrity Checker':     'Accuracy check',
-  'Document Formatter':    'Your finished documents',
   'Main Orchestrator':     'Assistant',
   'System':                'System',
 };

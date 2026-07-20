@@ -1,0 +1,129 @@
+{
+  "verdict": "REJECT",
+  "agent": "analyst",
+  "summary": "10 blocking + 0 warning issue(s).",
+  "issues": [
+    {
+      "field": "strengths[1]",
+      "problem": "Evidence source (competitive analysis/heuristic evaluations) does not demonstrate user research. The candidate has pro bono user research with 15 participants, but it was not cited.",
+      "severity": "blocking",
+      "audience": "internal"
+    },
+    {
+      "field": "strengths[2]",
+      "problem": "Accessibility certification shows knowledge, but the requirement explicitly demands evidence of applying WCAG 2.1 AA in shipped products. No such application is evidenced.",
+      "severity": "blocking",
+      "audience": "user"
+    },
+    {
+      "field": "strengths[5]",
+      "problem": "Data-informed design claim rests solely on a self-reported skills list (Google Analytics, Hotjar) with no work history demonstration of using analytics to validate design hypotheses.",
+      "severity": "blocking",
+      "audience": "user"
+    },
+    {
+      "field": "strengths[7]",
+      "problem": "User research tools list does not prove planning and conducting qualitative research. The candidate has pro bono research, but it was not cited.",
+      "severity": "blocking",
+      "audience": "internal"
+    },
+    {
+      "field": "strengths[8]",
+      "problem": "Journey mapping and IA skills list does not demonstrate synthesis into personas, journey maps, and actionable insights. No work history evidence of creating these artifacts.",
+      "severity": "blocking",
+      "audience": "user"
+    },
+    {
+      "field": "strengths[9]",
+      "problem": "Analytics tools list does not prove collaboration with a data analytics team to triangulate findings. No work history evidence of such collaboration.",
+      "severity": "blocking",
+      "audience": "user"
+    },
+    {
+      "field": "strengths[12]",
+      "problem": "Interactive prototyping skills list does not demonstrate creation of prototypes. The candidate built a responsive prototype for pro bono work, but it was not cited.",
+      "severity": "blocking",
+      "audience": "internal"
+    },
+    {
+      "field": "strengths[13]",
+      "problem": "Accessibility certification does not prove application of WCAG 2.1 AA in designs. No evidence of accessibility applied in shipped products.",
+      "severity": "blocking",
+      "audience": "user"
+    },
+    {
+      "field": "strengths[15]",
+      "problem": "Agile/Scrum skills list does not prove participation in cross-functional Agile squads. The candidate participated in design sprints during internship, but it was not cited.",
+      "severity": "blocking",
+      "audience": "internal"
+    },
+    {
+      "field": "strengths[18]",
+      "problem": "Volunteer UX mentoring does not demonstrate participation in cross-squad design critiques and knowledge-sharing sessions. No professional design critique experience evidenced.",
+      "severity": "blocking",
+      "audience": "user"
+    }
+  ],
+  "patch": {
+    "demote_strengths": [
+      {
+        "id": "strength_3",
+        "reason": "Accessibility certification shows knowledge but not application in shipped products as required."
+      },
+      {
+        "id": "strength_6",
+        "reason": "Self-reported analytics tools without work history evidence of using them to validate design hypotheses."
+      },
+      {
+        "id": "strength_9",
+        "reason": "Skills list only; no work history evidence of synthesising research into personas/journey maps."
+      },
+      {
+        "id": "strength_10",
+        "reason": "Skills list only; no evidence of collaborating with data analytics team to triangulate findings."
+      },
+      {
+        "id": "strength_14",
+        "reason": "Certification only; no evidence of applying accessibility standards in designs."
+      },
+      {
+        "id": "strength_19",
+        "reason": "Volunteer mentoring does not equate to cross-squad design critiques in a professional setting."
+      }
+    ],
+    "promote_gaps": [],
+    "correct_evidence_source": [
+      {
+        "id": "strength_2",
+        "new_path": "candidate_profile.work_history[2].achievements[0]"
+      },
+      {
+        "id": "strength_8",
+        "new_path": "candidate_profile.work_history[2].achievements[0]"
+      },
+      {
+        "id": "strength_13",
+        "new_path": "candidate_profile.work_history[2].achievements[0]"
+      },
+      {
+        "id": "strength_16",
+        "new_path": "candidate_profile.work_history[1].responsibilities[2]"
+      }
+    ]
+  },
+  "patch_result": {
+    "applied": [
+      "demote strength_3 → gap (req_4 → Gap)",
+      "demote strength_6 → gap (pref_3 → Gap)",
+      "demote strength_9 → gap (resp_2 → Gap)",
+      "demote strength_10 → gap (resp_3 → Gap)",
+      "demote strength_14 → gap (resp_8 → Gap)",
+      "demote strength_19 → gap (resp_15 → Gap)",
+      "correct strength_2 evidence_source",
+      "correct strength_8 evidence_source",
+      "correct strength_13 evidence_source",
+      "correct strength_16 evidence_source"
+    ],
+    "skipped": []
+  }
+}

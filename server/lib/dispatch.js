@@ -1451,7 +1451,6 @@ export function _assemblyChecks(agentKey) {
   } else if (agentKey === 'coverletter_writer') {
     const cl = readWorkspaceJSON('clw_output.json')?.data?.cover_letter || {};
     const meta = readWorkspaceJSON('project_meta.json') || {};
-    const research = normalizeForMatch(JSON.stringify(readWorkspaceJSON('research_output.json')?.research_data || ''));
     const body = [cl.salutation || '', ...(cl.body_paragraphs || [cl.body || '']), cl.closing_paragraph || '', cl.full_letter || ''].join(' ');
     const bodyLc = body.toLowerCase();
     if (meta.company_name && !body.includes(meta.company_name)) push('data.cover_letter', `Company name "${meta.company_name}" not in letter - may use a hallucinated name`);
@@ -1459,9 +1458,14 @@ export function _assemblyChecks(agentKey) {
       const words = meta.position_title.split(' ').filter(w => w.length > 3);
       if (!words.every(w => bodyLc.includes(w.toLowerCase()))) push('data.cover_letter', `Role title "${meta.position_title}" not reflected in letter`);
     }
-    for (const s of body.split(/[.!?]/).map(x => x.trim()).filter(x => /\d{1,3}(,\d{3})*|\d+%|[A-Z][a-z]+ (Program|Initiative|Framework|Centre|Center|Institute)/.test(x))) {
-      if (research && !research.includes(normalizeForMatch(s).slice(0, 30))) push('data.cover_letter.body', `Specific company claim not in research_output: "${s.slice(0, 80)}…"`, { kind: 'prose', section: 'cover_letter', claim: s });
-    }
+    // NOTE: no "specific company claim" auto-delete here. A prior version flagged every sentence
+    // containing a number as an unsupported company claim and validated it against research_output only,
+    // then (post-2026-07-20) auto-deleted it via the SR re-flow. That validated the candidate's OWN
+    // achievement metrics ("task completion from 34% to 71%", "$50M–$500M") against the company's facts —
+    // a category error — and silently gutted letters. Cover-letter claim vetting is a *semantic* job that
+    // the phase-8 Integrity Checker already owns correctly: candidate metrics are checked against
+    // cv_raw.txt, company facts are exempted (IC instructions §"Context exemption"). Don't re-add a
+    // deterministic duplicate here.
     const wc = body.split(/\s+/).filter(Boolean).length;
     if (wc < 200) push('data.cover_letter', `Letter is ${wc} words - likely incomplete (target 250–350)`);
     if (wc > 420) push('data.cover_letter', `Letter is ${wc} words - exceeds 420 word cap`);
@@ -1638,7 +1642,7 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   // section that's already been checked and fixed in place. SR (7) / IC (8) never broadcast raw here.
   await new Promise(r => setTimeout(r, 1000));
 
-  if (phaseNumber <= 6 || phaseNumber === 9) {
+  if (phaseNumber <= 6) {
     const merged = await mergePhaseOutput(phaseNumber, dispatchStart);
     if (!merged.ok) {
       // The agent didn't produce a real section (e.g. it asked a clarifying question instead of
@@ -1923,7 +1927,13 @@ async function _autoApproveSN(findings = {}) {
 const arr = v => (Array.isArray(v) ? v.filter(Boolean) : []);
 
 function readSectionOutput(file) {
-  return JSON.parse(readFileSync(join(WORKSPACE_DIR, file), 'utf8'))?.data ?? {};
+  // Tolerate a missing section file: return {} so callers degrade gracefully instead of
+  // throwing. buildDocumentData reads five section files — one absent (e.g. hf_output.json
+  // never landed) must not null the whole download; the guard there still requires at least a
+  // CV body or a cover letter. SECTION_BUILDERS already null-check their fields on {}.
+  const path = join(WORKSPACE_DIR, file);
+  if (!existsSync(path)) return {};
+  return JSON.parse(readFileSync(path, 'utf8'))?.data ?? {};
 }
 
 // Profile Builder / Cover Letter Writer reference strengths by id ("strength_1"…). The readable text
@@ -2182,9 +2192,9 @@ export function assemblyResumeAgent() {
     phases = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'))?.phases ?? [];
   } catch { /* no state → SN */ }
   let resumePhase = 1;
-  while (resumePhase <= 9 && phases[resumePhase - 1]?.status === 'COMPLETE') resumePhase++;
+  while (resumePhase <= 8 && phases[resumePhase - 1]?.status === 'COMPLETE') resumePhase++;
   if (resumePhase <= 2) return ASSEMBLY_PHASES[resumePhase].agent;  // SN interview or Profile Builder
-  if (resumePhase > 9) return ASSEMBLY_PHASES[9].agent;            // all done
+  if (resumePhase > 8) return 'Main Orchestrator';                 // all done → completion/arrival state
   return ASSEMBLY_PHASES[Math.min(resumePhase - 1, 6)].agent;     // last content section under review
 }
 
@@ -2202,13 +2212,13 @@ export async function resumeAssembly() {
   }
   const isComplete = n => phases[n - 1]?.status === 'COMPLETE';
 
-  // Lowest phase 1..9 not yet COMPLETE = the next phase to run.
+  // Lowest phase 1..8 not yet COMPLETE = the next phase to run.
   let resumePhase = 1;
-  while (resumePhase <= 9 && isComplete(resumePhase)) resumePhase++;
+  while (resumePhase <= 8 && isComplete(resumePhase)) resumePhase++;
 
-  if (resumePhase > 9) {                       // everything done → finished state
+  if (resumePhase > 8) {                        // everything done → finished state
     console.log('[Resume] all assembly phases complete → CV_TAILORED');
-    await dispatchAssemblyPhase(10);           // no-phase branch sets CV_TAILORED + idle
+    await dispatchAssemblyPhase(9);            // no-phase branch sets CV_TAILORED + idle
     return;
   }
   if (resumePhase === 1) {                      // SN not done → run the interview
@@ -2224,7 +2234,7 @@ export async function resumeAssembly() {
     return;
   }
 
-  // resumePhase 3..9 → re-show the last completed content section (phases 2–6; gates 7/8 + DF 9 auto).
+  // resumePhase 3..8 → re-show the last completed content section (phases 2–6; gates 7/8 auto-advance).
   const lastContent = Math.min(resumePhase - 1, 6);
   const agent = ASSEMBLY_PHASES[lastContent].agent;
   console.log(`[Resume] landing on phase ${lastContent} (${agent}) review`);
