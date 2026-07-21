@@ -266,60 +266,32 @@ export function extractionQuality() {
   return 'INSUFFICIENT';
 }
 
-// Server owns CV/JD swapped-slot detection (was ProjectSetup Phase 4 — regex heuristic scoring the Flash
-// agent hand-ran, then emitted a `VALIDATION_FAILED:<type>` text tag for the server to scrape). Pure regex
-// counting + a >=3 threshold → deterministic, and an LLM re-running regex pseudocode is a known error
-// source. The upload endpoint writes cv_raw.txt/jd_raw.txt to disk BEFORE ProjectSetup runs (and in the
-// rare MODE B path PS writes them during its turn), so the files are on disk to score directly at PS
-// return. A missing/unreadable file returns null (never a false failure). Returns 'cv_slot_has_jd' |
-// 'jd_slot_has_cv' | null (the errType the message.js action_required flow already keys on).
-const CV_HEURISTICS = [
-  /\b(education|experience|employment|work history|skills)\b/,
-  /\b(19|20)\d{2}\s*[–\-—]\s*(19|20)\d{2}|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{4}\s*[–\-—]/,
-  /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}|\+?[\d\s\-()]{7,}|linkedin\.com\/in\//,
-  /\b(managed|developed|led|designed|implemented|delivered|created|built|spearheaded|coordinated)\b/,
-  /\b(references|available on request)\b/,
-];
-const JD_HEURISTICS = [
-  /\b(we are looking for|about the role|about us|join our team)\b/,
-  /\b(requirements|qualifications|responsibilities|what you.ll do)\b/,
-  /\b(how to apply|send your cv|submit|apply now|apply today)\b/,
-  /\b(salary|package|per annum|au\$|\$\s*\d)/,
-  /\b(ideal candidate|you will|you.ll be|successful applicant)\b/,
-];
-const scoreHeuristics = (text, patterns) => patterns.reduce((n, re) => n + (re.test(text) ? 1 : 0), 0);
-export function validateFileSlots() {
-  let cv, jd;
-  try { cv = readFileSync(join(WORKSPACE_DIR, 'cv_raw.txt'), 'utf8').toLowerCase(); } catch { return null; }
-  try { jd = readFileSync(join(WORKSPACE_DIR, 'jd_raw.txt'), 'utf8').toLowerCase(); } catch { return null; }
-  if (scoreHeuristics(cv, JD_HEURISTICS) >= 3) return 'cv_slot_has_jd'; // JD content sitting in the CV slot
-  if (scoreHeuristics(jd, CV_HEURISTICS) >= 3) return 'jd_slot_has_cv'; // CV content sitting in the JD slot
-  return null;
-}
-
 // Server-owned happy-path ProjectSetup. The PS KEMU node's entire happy path was mechanical — Phase 0
-// return-turn guard (redundant with server pipelineStatus routing), Phase 1 file pre-check, Phase 4 slot
-// validation, Phase 5 project_meta.json write, Phase 6 FILES_SAVED signal. The frontend uploads
-// cv_raw.txt/jd_raw.txt via /api/upload with EXPLICIT targets (cv_raw|jd_raw) before this runs, so there is
-// no CV-vs-JD ambiguity to resolve and nothing for a model to decide. Doing it here skips a whole KEMU
-// round-trip on every new session. Returns one of:
-//   { outcome: 'files_missing' }              — no files on disk → caller falls back to the PS node (the
-//                                                legacy MODE B conversation-upload path; doesn't happen with
-//                                                the REST frontend, kept as a safety valve).
-//   { outcome: 'validation_failed', errType } — validateFileSlots caught a swapped slot.
-//   { outcome: 'files_saved' }                — meta written; caller stamps created_at + advances FILES_SAVED.
-// created_at is carried forward if already set (never rewritten to "last re-ran at") and otherwise left as
-// the __DATE_TODAY__ token for the caller's single stampTimestamp to fill — same discipline as message.js.
-// company/position/sector stay "" (the Extractor populates them); reaching here means extraction hasn't run.
+// return-turn guard (redundant with server pipelineStatus routing), Phase 1 file pre-check, Phase 5
+// project_meta.json write, Phase 6 FILES_SAVED signal. The frontend uploads cv_raw.txt/jd_raw.txt via
+// /api/upload with EXPLICIT targets (cv_raw|jd_raw) before this runs. Doing it here skips a whole KEMU
+// round-trip on every new session.
+//
+// Document VALIDATION (is each file a usable CV/JD, in the right slot) is no longer done here. It was a
+// swap-only regex that both false-positived valid docs AND missed genuinely-wrong files (an invalid PDF
+// that isn't a swap sailed through to the Extractor, which then failed). That judgment is semantic, so it
+// moved to the ProjectSetup agent (validateDocs, an LLM call the caller runs in finishProjectSetup) and
+// is non-blocking. runProjectSetup now only gates on presence:
+//   { outcome: 'files_missing' } — no files on disk → caller falls back to the PS node (legacy MODE B
+//                                  conversation-upload path; doesn't happen with the REST frontend).
+//   { outcome: 'files_present' } — both files on disk → caller validates (agent) then completes.
 export function runProjectSetup() {
   let cv = '', jd = '';
   try { cv = readFileSync(join(WORKSPACE_DIR, 'cv_raw.txt'), 'utf8'); } catch {}
   try { jd = readFileSync(join(WORKSPACE_DIR, 'jd_raw.txt'), 'utf8'); } catch {}
   if (!cv.trim() || !jd.trim()) return { outcome: 'files_missing' };
+  return { outcome: 'files_present' };
+}
 
-  const errType = validateFileSlots();
-  if (errType) return { outcome: 'validation_failed', errType };
-
+// Write project_meta.json (idempotent — carries an existing created_at forward, never rewriting it to
+// "last re-ran at"). Split out of runProjectSetup so the swap-rescue path (agent cleared the regex flag)
+// and the "Continue anyway" action can complete a project that runProjectSetup returned early on.
+export function writeProjectMeta() {
   const p = join(WORKSPACE_DIR, 'project_meta.json');
   let existing = {};
   try { existing = JSON.parse(readFileSync(p, 'utf8')); } catch {}
@@ -334,7 +306,47 @@ export function runProjectSetup() {
   };
   try { writeFileSync(p, JSON.stringify(meta, null, 2), 'utf8'); }
   catch (e) { console.warn(`[ProjectSetup] project_meta.json write failed: ${e.message}`); }
-  return { outcome: 'files_saved' };
+}
+
+// Complete a ProjectSetup: write meta, stamp created_at at the moment of creation (single source of
+// truth — not the FILES_SAVED status, which an Extractor re-run also sets and would rewrite), announce
+// completion, advance to FILES_SAVED. Shared by the happy path, the swap-rescue path, and the
+// "Continue anyway" action so all three converge on one behaviour.
+export async function finishFilesSaved() {
+  writeProjectMeta();
+  stampTimestamp('project_meta.json', 'created_at');
+  broadcastAgentResult(
+    '# ✓ ProjectSetup Complete\nProject initialised — CV and JD saved, metadata written.',
+    'ProjectSetup', true,
+  );
+  try {
+    await state.recipe.globalVariables.setValue('pipeline_status', 'FILES_SAVED');
+    state.pipelineStatus = 'FILES_SAVED';
+  } catch (e) {
+    console.warn(`[ProjectSetup] could not set FILES_SAVED: ${e.message}`);
+  }
+}
+
+// Non-blocking document notice. Shown after the ProjectSetup agent (validateDocs) finds a problem with an
+// uploaded file — a swap, or a slot that doesn't hold a usable CV/JD. The user picks: re-upload the
+// offending file(s), OR "Continue anyway" (slot_continue_anyway → finishFilesSaved). Never forced.
+// `problem` is one of validateDocs's keys: 'swap' | 'cv_invalid' | 'jd_invalid' | 'both_invalid'.
+export function broadcastSlotGate(problem) {
+  const errorTexts = {
+    'swap':         "These look swapped — your **CV** slot holds a job description and your **JD** slot holds a CV. Re-upload them the right way round, or continue anyway if this is correct.",
+    'cv_invalid':   "The file in your **CV** slot doesn't look like a CV/resume (it may be the wrong document, or a scan that didn't read cleanly). Re-upload your CV, or continue anyway if it's right.",
+    'jd_invalid':   "The file in your **job description** slot doesn't look like a job description. Re-upload the JD, or continue anyway if it's right.",
+    'both_invalid': "Neither upload looks like a usable CV or job description (they may be the wrong files, or scans that didn't read cleanly). Re-upload the correct files, or continue anyway.",
+  };
+  const errText = errorTexts[problem] ?? 'One of the uploaded files may be the wrong document. Re-upload it, or continue anyway.';
+  broadcast({ type: 'agent_message', agent: 'ProjectSetup', text: errText });
+  broadcast({ type: 'action_required', context: 'validation_failed', prompt: '', actions: [
+    { id: 'cv_revalidate_upload', label: 'Re-upload CV',    type: 'upload', target: 'cv_raw', variant: 'ghost'   },
+    { id: 'jd_revalidate_upload', label: 'Re-upload JD',    type: 'upload', target: 'jd_raw', variant: 'ghost'   },
+    { id: 'slot_continue_anyway', label: 'Continue anyway', type: 'button',                    variant: 'primary' },
+  ]});
+  broadcast({ type: 'stream_done' });
+  broadcastMode('user_turn', 'ProjectSetup');
 }
 
 const normEmployer = e => String(e || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
