@@ -3,7 +3,8 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { HAPPY_PATH, EXCEPTION_STATUSES, INPUT_NODE_MAP, AGENT_FOREGROUND } from '../config/constants.js';
-import { reShowSectionReview, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch, clearStaleAnalysis, stampTimestamp, runProjectSetup } from '../lib/dispatch.js';
+import { reShowSectionReview, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch, clearStaleAnalysis, stampTimestamp, runProjectSetup, finishFilesSaved, broadcastSlotGate } from '../lib/dispatch.js';
+import { validateDocs } from '../lib/doc-slot-validator.js';
 
 const router = express.Router();
 export default router;
@@ -151,34 +152,19 @@ function fireUserMessage(node, nextAgent, message, sessionId, foreground) {
     .catch(err => surfaceStall(nextAgent, err));
 }
 
-// Emit the result of the server-owned happy-path ProjectSetup (runProjectSetup). Mirrors what the PS node
-// used to broadcast: a swapped-slot re-upload gate, or a completion bubble + advance to FILES_SAVED.
+// Emit the result of the server-owned happy-path ProjectSetup (runProjectSetup). The ProjectSetup agent
+// (validateDocs, an LLM call) vets both uploads on every new project: is each a usable CV/JD, in the right
+// slot? A problem surfaces a NON-blocking notice (broadcastSlotGate) that still offers "Continue anyway";
+// a clean verdict (or a fail-open LLM error) proceeds to completion.
 async function finishProjectSetup(result) {
-  if (result.outcome === 'validation_failed') {
-    const errorTexts = {
-      'cv_slot_has_jd': 'The file uploaded as your CV looks like a job description. Please re-upload the correct CV.',
-      'jd_slot_has_cv': 'The file uploaded as your job description looks like a CV. Please re-upload the correct JD.',
-    };
-    const errText = errorTexts[result.errType] ?? 'File validation failed. Please re-upload the correct files.';
-    broadcast({ type: 'agent_message', agent: 'ProjectSetup', text: errText });
-    broadcast({ type: 'action_required', context: 'validation_failed', prompt: '', actions: [
-      { id: 'cv_revalidate_upload', label: 'Re-upload CV', type: 'upload', target: 'cv_raw', variant: 'primary' },
-      { id: 'jd_revalidate_upload', label: 'Re-upload JD', type: 'upload', target: 'jd_raw', variant: 'ghost'   },
-    ]});
-    broadcast({ type: 'stream_done' });
-    broadcastMode('user_turn', 'ProjectSetup');
-    return;
+  if (result.outcome === 'files_present') {
+    broadcastMode('auto_running', 'ProjectSetup'); // the agent vet can take a few seconds — show it working
+    const verdict = await validateDocs(); // { ok, problem } — fail-open to { ok: true }
+    if (!verdict.ok) {
+      console.log(`[ProjectSetup] agent flagged documents: ${verdict.problem}`);
+      broadcastSlotGate(verdict.problem);
+      return;
+    }
   }
-  // files_saved: created_at is stamped here — the moment the project is created (single source of truth).
-  stampTimestamp('project_meta.json', 'created_at');
-  broadcastAgentResult(
-    '# ✓ ProjectSetup Complete\nProject initialised — CV and JD saved, metadata written.',
-    'ProjectSetup', true,
-  );
-  try {
-    await state.recipe.globalVariables.setValue('pipeline_status', 'FILES_SAVED');
-    state.pipelineStatus = 'FILES_SAVED';
-  } catch (e) {
-    console.warn(`[ProjectSetup] could not set FILES_SAVED: ${e.message}`);
-  }
+  await finishFilesSaved();
 }

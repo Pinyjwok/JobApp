@@ -5,7 +5,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, fireTAAndAnalyst, finishAnalystTurn, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, fireTAAndAnalyst, finishAnalystTurn, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument, finishFilesSaved } from '../lib/dispatch.js';
 import { adjudicateGapAnswers } from '../lib/adjudicator.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
@@ -457,6 +457,12 @@ router.post('/', async (req, res) => {
       // in the preview works today. Point there instead of failing silently.
       case 'download':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Open “View CV” or “View cover letter”, then use Copy or .pdf on the preview.', background: false });
+        break;
+
+      // User dismissed the non-blocking swapped-slot notice and chose to keep their files. Complete the
+      // ProjectSetup exactly as the happy path would — the regex flag was overruled by the user.
+      case 'slot_continue_anyway':
+        await finishFilesSaved();
         break;
 
       case 'cl_skip':
