@@ -7,6 +7,7 @@ import { SectionBubble }  from './SectionBubble';
 import { ReviewBubble }   from './ReviewBubble';
 import { CompletionBubble } from './CompletionBubble';
 import { DocumentPreview }  from './DocumentPreview';
+import { EnhancedJDBubble } from './EnhancedJDBubble';
 import { agentLabel }     from '../agentLabels';
 import { toast }          from '../lib/toast';
 
@@ -63,13 +64,16 @@ const ERROR_RE = /\bFAILED\b|✗\s|\bError:/;
 
 // ── Message type detectors ─────────────────────────────────────────────────────
 
-/** Researcher completion → ResearchBubble */
+/** Researcher completion → ResearchBubble.
+ *  Anchor on the stable "Researcher Complete" heading (the completion message the agent always prints),
+ *  NOT a scraped status enum — since Researcher v2.3 the server owns the COMPLETE/PARTIAL/FAILED verdict
+ *  and the agent no longer types it into the prose. Old-format enum kept as a fallback for safety. */
 function isResearchComplete(msg) {
   return (
     msg.agent === 'Researcher' &&
     !msg.background &&
     typeof msg.text === 'string' &&
-    /RESEARCH_(COMPLETE|PARTIAL|FAILED)/.test(msg.text)
+    (/Researcher Complete/i.test(msg.text) || /RESEARCH_(COMPLETE|PARTIAL|FAILED)/.test(msg.text))
   );
 }
 
@@ -124,10 +128,17 @@ function isCompletion(msg) {
   return msg.kind === 'completion' && !msg.background;
 }
 
-/** Assembled CV / cover-letter preview → DocumentPreview. Carries documentData (tailored_cv +
- *  coverLetter) and an optional initialTab set by the view_cv / view_cover_letter action. */
+/** Assembled CV / cover-letter preview → DocumentPreview. Carries documentData (built server-side by
+ *  buildDocumentData from the per-section output files) and an optional initialTab set by the
+ *  view_cv / view_cover_letter action. */
 function isDocument(msg) {
   return !msg.background && msg.documentData != null;
+}
+
+/** JD enhancement done (status JD_ENHANCED) → EnhancedJDBubble. Server tags this message
+ *  kind:'enhanced_jd'; the bubble fetches enhanced_jd.json itself and is read-only. */
+function isEnhancedJD(msg) {
+  return msg.kind === 'enhanced_jd' && !msg.background;
 }
 
 // ── Compact renders (no separate file needed) ─────────────────────────────────
@@ -145,7 +156,7 @@ function ProjectSetupTick() {
   return (
     <div className="animate-fade-in-up flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-2 border border-line text-xs text-fg-muted max-w-[85%]">
       <CheckIcon />
-      <span className="text-fg-muted">Project initialised — CV and JD saved</span>
+      <span className="text-fg-muted">Project initialised - CV and JD saved</span>
     </div>
   );
 }
@@ -198,7 +209,7 @@ function AgentBubble({ msg }) {
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
         <span className="text-xs text-fg-secondary font-semibold">{agentLabel(msg.agent ?? 'Agent')}</span>
         {msg.cost != null && (
-          <span className="text-[10px] text-fg-faint font-mono">${msg.cost.toFixed(4)}</span>
+          <span className="text-xs text-fg-faint font-mono">${msg.cost.toFixed(4)}</span>
         )}
       </div>
       <div className="prose-sm">
@@ -210,13 +221,13 @@ function AgentBubble({ msg }) {
         <div className="mt-2.5 border-t border-line pt-2">
           <button
             onClick={() => setShowReasoning((v) => !v)}
-            className="text-[11px] text-fg-muted hover:text-fg-secondary transition-colors flex items-center gap-1"
+            className="text-xs text-fg-muted hover:text-fg-secondary transition-colors flex items-center gap-1"
           >
-            <span className="text-[9px]">{showReasoning ? '▲' : '▼'}</span>
+            <span className="text-xs">{showReasoning ? '▲' : '▼'}</span>
             {showReasoning ? 'Hide reasoning' : 'Show reasoning'}
           </button>
           {showReasoning && (
-            <pre className="mt-2 text-[11px] text-fg-muted bg-app rounded-lg p-3 overflow-x-auto whitespace-pre-wrap border border-line max-h-64 overflow-y-auto">
+            <pre className="mt-2 text-xs text-fg-muted bg-app rounded-lg p-3 overflow-x-auto whitespace-pre-wrap border border-line max-h-64 overflow-y-auto">
               {msg.reasoning}
             </pre>
           )}
@@ -246,7 +257,7 @@ function ActionBubble({ msg, onAction, onUpload }) {
 
   return (
     <div className="animate-fade-in-up w-full max-w-[85%] rounded-xl bg-surface-2 border border-line border-l-[3px] border-l-accent px-4 py-3 shadow-[var(--shadow-panel)]">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-accent mb-2">Needs your input</div>
+      <div className="text-xs font-semibold uppercase tracking-wider text-accent mb-2">Needs your input</div>
       {msg.prompt && (
         <div className="text-sm text-fg mb-3 prose-sm">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
@@ -342,7 +353,7 @@ function CollapsedTicks({ items }) {
         <CheckIcon />
         <span className="text-fg-secondary truncate">{tickLabel(latest)}</span>
         <span className="text-fg-faint whitespace-nowrap">· {items.length} steps done</span>
-        <span className="ml-auto text-[9px] text-fg-faint">{open ? '▾' : '▸'}</span>
+        <span className="ml-auto text-xs text-fg-faint">{open ? '▾' : '▸'}</span>
       </button>
       {open && (
         <div className="mt-1.5 ml-1 pl-3 border-l border-line flex flex-col gap-1 animate-fade-in">
@@ -383,6 +394,7 @@ function renderBubble(msg, onAction, onUpload) {
   if (msg.agent === 'System' && !msg.background) return <SystemNotice msg={msg} />;
   if (isCompletion(msg)) return <CompletionBubble meta={msg.meta} doc={msg.documentData} onAction={onAction} />;
   if (isDocument(msg)) return <DocumentPreview doc={msg.documentData} initialTab={msg.initialTab} />;
+  if (isEnhancedJD(msg)) return <EnhancedJDBubble />;
   if (isResearchComplete(msg)) return <ResearchBubble msg={msg} />;
   if (isAnalystComplete(msg)) return <AnalystBubble msg={msg} />;
   if (isAssemblySection(msg)) return <SectionBubble msg={msg} />;
@@ -433,8 +445,8 @@ export function ChatWindow({ messages, isWaiting, onAction, onUpload }) {
   }
 
   return (
-    <div className="relative flex-1 min-h-0 flex flex-col bg-chat">
-      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
+    <div className="relative flex-1 min-w-0 min-h-0 flex flex-col bg-chat">
+      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 min-w-0 overflow-y-auto px-6 py-5 space-y-3">
         {groups.map((g) => {
           if (g.type === 'ticks') {
             return (

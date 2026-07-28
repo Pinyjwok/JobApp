@@ -44,12 +44,13 @@ const HIGHLIGHT_KEYS = new Set(HIGHLIGHTS.map(h => h.key));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Parse company name, field count, quality from the researcher's markdown text */
+/** Parse the company name from the researcher's completion message.
+ *  Quality + field counts are NO LONGER scraped from prose — the server owns the verdict and stamps it
+ *  into research_output.json (read below), since Researcher v2.3 dropped the status/quality text.
+ *  Tolerates both the v2.3 message ("…gathered for Suncorp Group.") and the old em-dash form. */
 function parseResearchMsg(text) {
-  const company = (text.match(/for \*?\*?([^*\n—–-]+?)\*?\*?\s*[—–-]/) ?? [])[1]?.trim() ?? null;
-  const [, f, t] = text.match(/(\d+)\/(\d+) fields/) ?? [];
-  const quality  = (text.match(/quality:\s*(RESEARCH_\w+)/) ?? [])[1] ?? 'RESEARCH_COMPLETE';
-  return { company, filled: f ? +f : null, total: t ? +t : null, quality };
+  const company = (text.match(/gathered for\s+\*?\*?(.+?)\*?\*?\s*(?:[—–.]|$)/m) ?? [])[1]?.trim() ?? null;
+  return { company };
 }
 
 /** Normalise a research_data field value to a readable string */
@@ -76,7 +77,7 @@ function Chevron({ open }) {
 function QualityBadge({ quality, filled, total }) {
   const ok = quality === 'RESEARCH_COMPLETE';
   return (
-    <span className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded font-mono font-semibold border ${
+    <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-mono font-semibold border ${
       ok ? 'text-success border-success/20 bg-success/10' : 'text-warn border-warn/20 bg-warn/10'
     }`}>
       {filled != null && total != null ? `${filled}/${total} · ` : ''}
@@ -93,18 +94,18 @@ function HighlightCard({ item, hue }) {
   return (
     <div className="rounded-lg px-3 py-2" style={{ borderRadius: 8, ...hue.bgStyle }}>
       <div
-        className="text-[9.5px] font-bold uppercase tracking-[.07em] mb-1 font-mono"
+        className="text-xs font-bold uppercase tracking-[.07em] mb-1 font-mono"
         style={hue.colorStyle}
       >
         {hue.label}
       </div>
-      <p className="text-[12.5px] text-fg-secondary leading-relaxed m-0">
+      <p className="text-xs text-fg-secondary leading-relaxed m-0">
         {exp || !long ? item.content : item.content.slice(0, CUT) + '…'}
       </p>
       {long && (
         <button
           onClick={() => setExp(v => !v)}
-          className="mt-1 text-[11.5px] bg-transparent border-none cursor-pointer p-0 hover:opacity-75 transition-opacity"
+          className="mt-1 text-xs bg-transparent border-none cursor-pointer p-0 hover:opacity-75 transition-opacity"
           style={hue.colorStyle}
         >
           {exp ? 'Show less' : 'Show more'}
@@ -121,11 +122,11 @@ function IntelRow({ item, active, onToggle }) {
         onClick={onToggle}
         className={`flex items-center gap-2 w-full px-2 py-[5px] rounded-md border-none bg-transparent cursor-pointer text-left transition-colors hover:bg-accent/5 ${active ? 'bg-accent/5' : ''}`}
       >
-        <span className="text-[12.5px] text-fg-secondary font-medium flex-1">{item.label}</span>
+        <span className="text-xs text-fg-secondary font-medium flex-1">{item.label}</span>
         <span className="text-fg-muted"><Chevron open={active} /></span>
       </button>
       {active && (
-        <p className="text-[12.5px] text-fg-secondary leading-relaxed mx-2 mt-0.5 mb-2">
+        <p className="text-xs text-fg-secondary leading-relaxed mx-2 mt-0.5 mb-2">
           {item.content}
         </p>
       )}
@@ -143,19 +144,19 @@ function SourceRow({ source }) {
         onClick={() => setOpen(v => !v)}
         className={`flex items-center gap-2 w-full px-2 py-[5px] rounded-md border-none bg-transparent cursor-pointer text-left transition-colors hover:bg-accent/5 ${open ? 'bg-accent/5' : ''}`}
       >
-        <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wider flex-shrink-0 ${
+        <span className={`text-xs px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-wider flex-shrink-0 ${
           isCo ? 'text-accent bg-accent/10' : 'text-fg-muted bg-fg-faint/20'
         }`}>
           {isCo ? 'co' : 'sec'}
         </span>
-        <span className="text-[12.5px] text-fg-secondary flex-1 leading-snug">{source.title}</span>
+        <span className="text-xs text-fg-secondary flex-1 leading-snug">{source.title}</span>
         {source.url && (
           <a
             href={source.url}
             target="_blank"
             rel="noopener noreferrer"
             onClick={e => e.stopPropagation()}
-            className="text-[10px] text-fg-faint hover:text-accent transition-colors flex-shrink-0"
+            className="text-xs text-fg-faint hover:text-accent transition-colors flex-shrink-0"
             title={source.url}
           >
             ↗
@@ -168,8 +169,8 @@ function SourceRow({ source }) {
           {source.snippet ? (
             <p className="text-xs text-fg-muted leading-relaxed m-0">{source.snippet}</p>
           ) : (
-            <p className="text-[10.5px] text-fg-faint font-mono m-0">
-              No summary yet —{' '}
+            <p className="text-xs text-fg-faint font-mono m-0">
+              No summary yet -{' '}
               <span className="text-fg-faint">
                 persist Tavily <code className="text-accent/70">snippet</code> per-source to enable
               </span>
@@ -185,7 +186,7 @@ function SourceGroup({ sources, label }) {
   if (!sources.length) return null;
   return (
     <div className="mb-1.5">
-      <div className="text-[9.5px] font-bold font-mono uppercase tracking-widest text-fg-faint px-2 py-1">
+      <div className="text-xs font-bold font-mono uppercase tracking-widest text-fg-faint px-2 py-1">
         {label}
       </div>
       {sources.map((s, i) => <SourceRow key={i} source={s} />)}
@@ -197,6 +198,7 @@ function SourceGroup({ sources, label }) {
 
 export function ResearchBubble({ msg }) {
   const [data, setData]               = useState(null);
+  const [quality, setQuality]         = useState(null);   // server-derived verdict, read from the file
   const [loading, setLoading]         = useState(true);
   const [moreOpen, setMoreOpen]       = useState(false);
   const [activeIntel, setActiveIntel] = useState(null);
@@ -206,8 +208,8 @@ export function ResearchBubble({ msg }) {
   useEffect(() => {
     fetch('/api/workspace?file=research_output.json')
       .then(r => r.json())
-      .then(d => setData(d?.research_data ?? null))
-      .catch(() => setData(null))
+      .then(d => { setData(d?.research_data ?? null); setQuality(d?.quality ?? null); })
+      .catch(() => { setData(null); setQuality(null); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -230,7 +232,10 @@ export function ResearchBubble({ msg }) {
   const companySrcs = sources.filter(s => s.origin === 'company');
   const sectorSrcs  = sources.filter(s => s.origin === 'sector');
 
-  const hasError = parsed.quality === 'RESEARCH_FAILED';
+  // Verdict + counts from the file (server-owned), not the prose. filled/total are display-only.
+  const filled   = intel.length || null;
+  const total    = filled != null ? INTEL_FIELDS.length : null;
+  const hasError = quality === 'RESEARCH_FAILED';
 
   return (
     <div className={`animate-fade-in-up relative w-full max-w-[85%] rounded-xl border border-line border-l-[3px] border-l-line-strong bg-surface-2 px-4 py-3 text-sm text-fg shadow-[var(--shadow-panel)] ${hasError ? 'ring-1 ring-danger/40' : ''}`}>
@@ -240,19 +245,17 @@ export function ResearchBubble({ msg }) {
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
         <span className="text-xs text-fg-secondary font-semibold">Company research</span>
         {msg.cost != null && (
-          <span className="text-[10px] text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
+          <span className="text-xs text-fg-faint font-mono ml-0.5">${msg.cost.toFixed(4)}</span>
         )}
-        <div className="ml-auto">
-          <QualityBadge
-            quality={parsed.quality}
-            filled={parsed.filled}
-            total={parsed.total}
-          />
-        </div>
+        {quality && (
+          <div className="ml-auto">
+            <QualityBadge quality={quality} filled={filled} total={total} />
+          </div>
+        )}
       </div>
 
       {/* Title */}
-      <div className="font-bold text-[15px] mb-1">
+      <div className="font-bold text-base mb-1">
         <span className="text-success">✓</span> Here's what we found
       </div>
 
@@ -287,11 +290,11 @@ export function ResearchBubble({ msg }) {
             <div className="border-t border-line mt-2.5">
               <button
                 onClick={() => setMoreOpen(v => !v)}
-                className="flex items-center gap-1.5 w-full py-2 bg-transparent border-none cursor-pointer text-fg-muted text-[10.5px] font-bold uppercase tracking-[.07em] hover:text-fg-secondary transition-colors"
+                className="flex items-center gap-1.5 w-full py-2 bg-transparent border-none cursor-pointer text-fg-muted text-xs font-bold uppercase tracking-[.07em] hover:text-fg-secondary transition-colors"
               >
                 <span className="text-fg-muted"><Chevron open={moreOpen} /></span>
                 More Intelligence
-                <span className="ml-auto text-fg-faint normal-case tracking-normal font-normal text-[11px]">
+                <span className="ml-auto text-fg-faint normal-case tracking-normal font-normal text-xs">
                   {remaining.length} fields
                 </span>
               </button>
@@ -313,7 +316,7 @@ export function ResearchBubble({ msg }) {
           {/* ── Sources ── */}
           {(companySrcs.length > 0 || sectorSrcs.length > 0) && (
             <div className="border-t border-line mt-2.5">
-              <div className="py-2 text-fg-muted text-[10.5px] font-bold uppercase tracking-[.07em]">
+              <div className="py-2 text-fg-muted text-xs font-bold uppercase tracking-[.07em]">
                 Sources
               </div>
               <SourceGroup sources={companySrcs} label="Company" />
@@ -325,7 +328,7 @@ export function ResearchBubble({ msg }) {
           {/* Fallback: no structured data loaded (e.g. workspace reset) */}
           {!data && (
             <p className="text-xs text-fg-faint italic">
-              Intelligence not available — research_output.json not found in workspace.
+              Intelligence not available - research_output.json not found in workspace.
             </p>
           )}
         </>

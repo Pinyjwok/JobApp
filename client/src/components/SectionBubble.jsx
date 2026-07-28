@@ -41,10 +41,10 @@ function Shell({ msg, title, children }) {
         <span className="w-1.5 h-1.5 rounded-full bg-fg-faint" />
         <span className="text-xs text-fg-secondary font-semibold">{agentLabel(msg.agent)}</span>
         {msg.cost != null && (
-          <span className="text-[10px] text-fg-faint font-mono ml-auto">${msg.cost.toFixed(4)}</span>
+          <span className="text-xs text-fg-faint font-mono ml-auto">${msg.cost.toFixed(4)}</span>
         )}
       </div>
-      <div className="flex items-center gap-2 mb-3 text-[15px] font-semibold text-fg">
+      <div className="flex items-center gap-2 mb-3 text-base font-semibold text-fg">
         <CheckIcon className="w-3.5 h-3.5 text-success" /> {title}
       </div>
       {children}
@@ -57,7 +57,7 @@ function Bullets({ items, success = false }) {
   return (
     <ul className="space-y-1.5">
       {items.map((it, i) => (
-        <li key={i} className="flex gap-2 text-[13px] text-fg-secondary leading-snug">
+        <li key={i} className="flex gap-2 text-sm text-fg-secondary leading-snug">
           {success
             ? <CheckIcon className="w-3.5 h-3.5 text-success mt-[1px]" />
             : <span className="text-fg-faint mt-[1px] shrink-0">•</span>}
@@ -72,7 +72,7 @@ function Pills({ items, className }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((it, i) => (
-        <span key={i} className={`text-[11px] px-2 py-0.5 rounded-md border ${className}`}>{it}</span>
+        <span key={i} className={`text-xs px-2 py-0.5 rounded-md border ${className}`}>{it}</span>
       ))}
     </div>
   );
@@ -84,11 +84,11 @@ function ProfileBody({ d }) {
   const { paragraph, contact, highlights = [], suggestions = [] } = d;
   return (
     <>
-      <Md block className="text-[14px] leading-relaxed text-fg">{paragraph}</Md>
+      <Md block className="text-sm leading-relaxed text-fg">{paragraph}</Md>
 
       {contact && (
         <SectionDivider label="Contact">
-          <p className="text-[12px] text-fg-secondary font-mono leading-snug break-words">{contact}</p>
+          <p className="text-xs text-fg-secondary font-mono leading-snug break-words">{contact}</p>
         </SectionDivider>
       )}
 
@@ -102,7 +102,7 @@ function ProfileBody({ d }) {
         <SectionDivider label="Worth considering" tone="warn" icon={<WarnIcon />}>
           <ul className="space-y-2">
             {suggestions.map((s, i) => (
-              <li key={i} className="text-[13px] leading-snug">
+              <li key={i} className="text-sm leading-snug">
                 {s.issue && <span className="text-fg-secondary">{s.issue}</span>}
                 {s.suggestion && (
                   <span className="block mt-1 pl-3 border-l-2 border-warn/30 text-fg-muted">→ {s.suggestion}</span>
@@ -137,7 +137,7 @@ function SkillsBody({ d }) {
       )}
       {note && (
         <SectionDivider label="Note">
-          <p className="text-[13px] text-fg-secondary leading-snug"><Md>{note}</Md></p>
+          <p className="text-sm text-fg-secondary leading-snug"><Md>{note}</Md></p>
         </SectionDivider>
       )}
     </>
@@ -151,10 +151,10 @@ function HistoryBody({ d }) {
       {roles.map((r, i) => (
         <div key={i} className={i > 0 ? 'border-t border-line pt-3' : ''}>
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[14px] font-semibold text-fg">{r.position}</span>
-            {r.duration && <span className="text-[12px] text-fg-muted font-mono shrink-0">{r.duration}</span>}
+            <span className="text-sm font-semibold text-fg">{r.position}</span>
+            {r.duration && <span className="text-xs text-fg-muted font-mono shrink-0">{r.duration}</span>}
           </div>
-          {r.employer && <div className="text-[12px] text-fg-secondary mt-0.5 mb-1.5">{r.employer}</div>}
+          {r.employer && <div className="text-xs text-fg-secondary mt-0.5 mb-1.5">{r.employer}</div>}
           {r.bullets?.length > 0 && <Bullets items={r.bullets} />}
         </div>
       ))}
@@ -184,14 +184,14 @@ function CoverLetterBody({ d }) {
   const { letter, register = '', highlights = [] } = d;
   return (
     <>
-      <Md block className="text-[14px] leading-relaxed text-fg">{letter}</Md>
+      <Md block className="text-sm leading-relaxed text-fg">{letter}</Md>
       {highlights.length > 0 && (
         <SectionDivider label="What we highlighted" tone="success">
           <Bullets items={highlights} success />
         </SectionDivider>
       )}
       {register && (
-        <p className="text-[12px] text-fg-faint mt-2.5">Written in a {register.replace(/-/g, ' ')} tone.</p>
+        <p className="text-xs text-fg-faint mt-2.5">Written in a {register.replace(/-/g, ' ')} tone.</p>
       )}
     </>
   );

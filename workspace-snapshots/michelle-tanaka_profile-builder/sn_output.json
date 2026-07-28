@@ -1,0 +1,26 @@
+{
+  "phase_number": 1,
+  "phase_name": "Style Negotiation",
+  "agent": "Style Negotiator",
+  "status": "COMPLETE",
+  "completed_at": "2026-07-20T04:39:33.646Z",
+  "data": {
+    "agreed_overrides": {
+      "seniority_level": "Junior (1.7 relevant / 8.4 total yrs - confirmed by user)",
+      "profile_voice": "first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)"
+    },
+    "negotiation_outcome": "OVERRIDES_APPLIED",
+    "negotiation_summary": "2 override(s) applied across 2 style dimension(s). 2 recommended, 0 kept as-is, 0 customised. Outcome: OVERRIDES_APPLIED.",
+    "original_style": {
+      "tense": "past",
+      "voice": "active",
+      "bullet_format": "verb-led",
+      "uses_pronouns_i": false,
+      "uses_full_sentences": false,
+      "formality_level": "semi-formal",
+      "seniority_inferred": "Junior",
+      "years_experience": 8.4
+    },
+    "user_confirmed": true
+  }
+}

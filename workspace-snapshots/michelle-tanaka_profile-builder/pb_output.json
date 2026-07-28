@@ -1,0 +1,48 @@
+{
+  "phase_number": 2,
+  "phase_name": "Profile Building",
+  "agent": "Profile Builder",
+  "status": "COMPLETE",
+  "completed_at": "__DATE_TODAY__T00:00:00Z",
+  "data": {
+    "contact_details": {
+      "formatted_text": "Michelle Tanaka | michelle.tanaka.ux@gmail.com | 0431 555 789 | Melbourne, VIC 3000 | linkedin.com/in/michelletanakaux | michelletanaka.design",
+      "components": {
+        "name": "Michelle Tanaka",
+        "email": "michelle.tanaka.ux@gmail.com",
+        "phone": "0431 555 789",
+        "location": "Melbourne, VIC 3000",
+        "linkedin": "linkedin.com/in/michelletanakaux",
+        "portfolio": "michelletanaka.design",
+        "github": null
+      }
+    },
+    "profile_paragraph": {
+      "formatted_text": "UX/UI Designer with demonstrated end-to-end design capability across fintech and public-sector projects. Improved task completion from **34%** to **71%** for fintech mobile onboarding; led responsive council portal from stakeholder workshops through developer handoff. Conduct independent user research, create interactive prototypes in Figma, and apply WCAG 2.1 AA standards. Bring senior-level stakeholder communication honed through advising C-suite clients on **$50M–$500M+** transactions — translating complex requirements into clear deliverables under deadline pressure. Honours graduate in Psychology (decision-making research) with UX Design Immersive distinction.",
+      "framework": "Q.A.R.E.R.",
+      "strengths_highlighted": [
+        "End-to-end UX/UI work across web and mobile platforms",
+        "Independent user research planning and execution",
+        "Senior-level stakeholder communication",
+        "WCAG 2.1 AA accessibility knowledge"
+      ]
+    },
+    "profile_statement": "UX/UI Designer with demonstrated end-to-end design capability across fintech and public-sector projects. Improved task completion from **34%** to **71%** for fintech mobile onboarding; led responsive council portal from stakeholder workshops through developer handoff. Conduct independent user research, create interactive prototypes in Figma, and apply WCAG 2.1 AA standards. Bring senior-level stakeholder communication honed through advising C-suite clients on **$50M–$500M+** transactions — translating complex requirements into clear deliverables under deadline pressure. Honours graduate in Psychology (decision-making research) with UX Design Immersive distinction.",
+    "relevant_years_experience": 1.7,
+    "experience_years": 1.7,
+    "experience_breakdown": {
+      "relevant_years": 1.7,
+      "total_years": 8.4
+    },
+    "key_themes": [
+      "End-to-end UX/UI design",
+      "User research and testing",
+      "Responsive design and accessibility",
+      "Stakeholder communication",
+      "Career transition from law to UX"
+    ],
+    "key_achievements": [],
+    "advisory_warnings": [],
+    "user_confirmed": true
+  }
+}

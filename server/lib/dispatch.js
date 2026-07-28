@@ -1,10 +1,11 @@
-import { readFileSync, writeFileSync, existsSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, rmSync, statSync } from 'fs';
 import { join } from 'path';
-import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND } from '../config/constants.js';
+import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND, COMPLETION_CONTRACTS } from '../config/constants.js';
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
 import { adjudicateGapAnswers } from './adjudicator.js';
+import { runAnalystValidator } from './analyst-validator.js';
 
 // ── Status-tag fallback + stall recovery (#1 / #2) ────────────────────────────
 
@@ -19,6 +20,92 @@ export function resolveAgentStatus(agentName, parsedStatus) {
     return inferred;
   }
   return null;
+}
+
+// ── File-driven completion (replaces the fragile `pipeline_status:` prose tag) ─────────────────
+
+// Faithful port of Researcher Phase 4 quality assessment (researcher_agent_instructions.md:302-346).
+// The pseudocode collapses: both COMPLETE branches are identical and totalWithData never changes the
+// outcome — the real signal is validCount over the 5 required fields at their min floors. Max ceilings
+// are intentionally dropped (over-length data is still real; downgrading it would be perverse). Server
+// owns this math rather than trusting Flash to hand-count validCount + emit the right enum.
+export function researchQuality(data) {
+  const rd = data?.research_data;
+  if (rd == null) return 'RESEARCH_FAILED';
+  const strOK = (s, min) => typeof s === 'string' && s.trim().length >= min;
+  const arrOK = (a, min) => Array.isArray(a) && a.length >= min;
+  let valid = 0;
+  if (strOK(rd.mission_values,   50))  valid++;
+  if (strOK(rd.culture_overview, 100)) valid++;
+  if (arrOK(rd.key_strengths,     2))  valid++;
+  if (strOK(rd.strategic_plan,   100)) valid++;
+  if (strOK(rd.interview_focus,  100)) valid++;
+  return valid >= 5 ? 'RESEARCH_COMPLETE'
+       : valid >= 3 ? 'RESEARCH_PARTIAL'
+       : 'RESEARCH_FAILED';
+}
+
+// The COMPLETE/PARTIAL/FAILED verdict is the SERVER's (researchQuality), not the agent's — since
+// Researcher v2.3 the agent no longer types a `pipeline_status:` tag or a "quality:" line for the
+// client to scrape. The ResearchBubble still needs to badge the result, so persist the derived verdict
+// into research_output.json (the file the bubble already fetches on render) → one source of truth, no
+// re-derived threshold rule drifting on the client. Idempotent; a write failure is a warn, not a crash.
+// Must run BEFORE the completion text is broadcast (callers resolve-then-broadcast) so the stamped file
+// is on disk before the client fetches it.
+function persistResearchQuality(data, status) {
+  try {
+    if (!data || data.quality === status) return;
+    data.quality = status;
+    writeFileSync(join(WORKSPACE_DIR, 'research_output.json'), JSON.stringify(data, null, 2));
+  } catch (e) { console.warn(`[research quality] write failed: ${e.message}`); }
+}
+
+// Core predicate for both the linear resolver and the analysis join. The node round-trip already told
+// us the agent FINISHED; this tells us it actually produced its artifact THIS turn. Bounded poll (mirror
+// checkJoin's 20×100ms) for the contract file, requiring:
+//   1. mtime >= dispatchStart — a stale file from a prior run (redo/resume reuse the same filenames)
+//      cannot satisfy the guard; the fresh write must land first.
+//   2. the contract's ready(data) shape check — rejects the {} scaffold / a clarifying-question turn.
+// Returns { ready, data }. No contract → { ready: true, data: null } (caller falls back to inference).
+//
+// This is also where the artifact's completion timestamp is stamped (contract.stamp): the moment
+// freshness is proven is the truest "the agent finished" time available, and stamping at this single
+// choke point means no agent-written date can reach disk as a raw `__DATE_TODAY__` token. `data` is
+// returned pre-stamp — no caller reads a timestamp off it, they re-read the file.
+export async function awaitOutputReady(agentName, dispatchStart = 0) {
+  const contract = COMPLETION_CONTRACTS[agentName];
+  if (!contract) return { ready: true, data: null };
+  const path = join(WORKSPACE_DIR, contract.file);
+  for (let i = 0; i < 20; i++) {
+    try {
+      if (existsSync(path) && statSync(path).mtimeMs >= dispatchStart) {
+        const parsed = JSON.parse(readFileSync(path, 'utf8'));
+        if (contract.ready(parsed)) {
+          if (contract.stamp) stampTimestamp(contract.file, contract.stamp);
+          return { ready: true, data: parsed };
+        }
+      }
+    } catch {}
+    await new Promise(r => setTimeout(r, 100));
+  }
+  console.warn(`[${agentName}] output file ${contract.file} never became ready (fresh + shape-valid)`);
+  return { ready: false, data: null };
+}
+
+// Linear-agent status resolution from the output file (not the tag). Waits for the artifact, then
+// derives the next pipeline_status from its content. Returns { status, ready }; ready:false means no
+// usable output landed (caller should surfaceStall). Agents with no contract fall back to the existing
+// EXPECTED_STATUS inference.
+export async function resolveStatusFromOutput(agentName, dispatchStart = 0) {
+  if (!COMPLETION_CONTRACTS[agentName]) return { status: resolveAgentStatus(agentName, null), ready: true };
+  const { ready, data } = await awaitOutputReady(agentName, dispatchStart);
+  if (!ready) return { status: null, ready: false };
+  let status;
+  if (agentName === 'Extractor')       status = resolveExtractorStatus('INITIALIZED'); // failure_reason override wins
+  else if (agentName === 'Researcher') { status = researchQuality(data); persistResearchQuality(data, status); }
+  else if (agentName === 'JD Enhancer')status = 'JD_ENHANCED';
+  else                                 status = resolveAgentStatus(agentName, null);
+  return { status, ready: true };
 }
 
 // Single recovery affordance for #1 (no inference rule) and #2 (timeout/throw): surface a
@@ -37,24 +124,27 @@ export function surfaceStall(agentName, err) {
   broadcastMode('action_required');
 }
 
-// Consolidated fire → parse → advance for the linear happy-path agents. Registers a retry
-// thunk, applies the Extractor failure gate then the status-tag fallback, and either advances
-// (setValue → onChange drives the next step) or surfaces a stall.
+// Consolidated fire → advance for the linear happy-path agents. Registers a retry thunk, then takes
+// the next status from the agent's OUTPUT FILE (resolveStatusFromOutput) — not the fragile prose tag —
+// and either advances (setValue → onChange drives the next step) or surfaces a stall. parseAndStripStatus
+// is kept only to clean the display text.
 export async function runLinearDispatch({ node, agent, query = '__auto__', foreground }) {
   state.retryThunk = () => runLinearDispatch({ node, agent, query, foreground });
   const fg = foreground ?? AGENT_FOREGROUND.has(agent);
   broadcastMode('auto_running', agent);
+  const dispatchStart = Date.now();
   try {
     const r = await sendToNodeAndWait(node, agent, query);
-    let { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
-    if (agent === 'Extractor') status = resolveExtractorStatus(status);
-    status = resolveAgentStatus(agent, status);
+    const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
+    // Resolve from the output file FIRST — this also stamps the server-derived Researcher quality into
+    // research_output.json — so the file is final on disk before the broadcast triggers the client fetch.
+    const { status, ready } = await resolveStatusFromOutput(agent, dispatchStart);
     broadcastAgentResult(cleanText, agent, fg);
-    if (status) {
+    if (ready && status) {
       await state.recipe.globalVariables.setValue('pipeline_status', status);
       state.pipelineStatus = status;
     } else {
-      surfaceStall(agent, new Error('no status tag and no inference rule'));
+      surfaceStall(agent, new Error(`no usable ${agent} output on disk`));
     }
   } catch (err) {
     surfaceStall(agent, err);
@@ -76,7 +166,7 @@ export function clearStaleAnalysis() {
   try {
     rmSync(join(WORKSPACE_DIR, 'gap_analysis.json'), { force: true });
   } catch (err) {
-    console.error('[clearStaleAnalysis] could not remove gap_analysis.json:', err);
+    console.error('[Analysis · clear-stale] could not remove gap_analysis.json:', err);
   }
 }
 
@@ -88,25 +178,175 @@ export function clearStaleAnalysis() {
 // per-role relevance + recent-graduate flag (in style_findings.seniority.role_classification[]).
 // Mirrors the fit-score offload (LLM tags, server computes the number). Fault-tolerant: any missing
 // input leaves the TA's own values untouched (back-compat with pre-offload output).
+const MONTH_ABBR = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+// Parse a work-history date to { y, mo } (or 'NOW' for ongoing, null if unparseable). The Extractor now
+// stores dates VERBATIM (it no longer computes durations — that's server-owned), so this tolerates the
+// common shapes a CV actually uses: 2025-03, 2025/03, 03/2025, "March 2025", "Mar 2025", bare 2025, and
+// "Present"/"Current"/"ongoing". Kept lenient on purpose — it only ever runs on date fields.
+const validMonth = mo => mo >= 1 && mo <= 12;
 function parseYearMonth(s) {
   if (!s) return null;
   const str = String(s).trim();
-  if (/^(present|current|now|ongoing)$/i.test(str)) return 'NOW';
-  let m = str.match(/^(\d{4})-(\d{1,2})/);      // 2025-03
-  if (m) return { y: +m[1], mo: +m[2] };
-  m = str.match(/^(\d{4})$/);                    // 2025
-  if (m) return { y: +m[1], mo: 6 };             // mid-year midpoint when only a year is given
+  // An ongoing marker wins outright, even alongside a year ("2020 - Present" as an end_date means
+  // ongoing, not 2020). A year-guard here would fall through to the bare-year rule below and date the
+  // role's end to mid-2020, silently truncating every current role by its whole tenure.
+  if (/\b(present|current|now|ongoing|to\s*date)\b/i.test(str)) return 'NOW';
+  // Each shape falls through to the next when the month is out of range, so a malformed "2025-13"
+  // degrades to the bare-year rule rather than yielding month 13.
+  let m = str.match(/\b(\d{4})[-/](\d{1,2})\b/);          // 2025-03 / 2025/03
+  if (m && validMonth(+m[2])) return { y: +m[1], mo: +m[2] };
+  m = str.match(/\b(\d{1,2})[-/](\d{4})\b/);              // 03/2025
+  if (m && validMonth(+m[1])) return { y: +m[2], mo: +m[1] };
+  m = str.match(/([A-Za-z]{3,})\.?\s+(\d{4})/);           // March 2025 / Mar 2025
+  if (m) { const mo = MONTH_ABBR[m[1].slice(0, 3).toLowerCase()]; if (mo) return { y: +m[2], mo }; }
+  m = str.match(/\b(\d{4})\b/);                            // bare 2025
+  if (m) return { y: +m[1], mo: 6 };                      // mid-year midpoint when only a year is given
   return null;
 }
 
+// Years between a role's start and end, or null when the start date can't be read at all. A missing or
+// unparseable END date still means "ongoing" (the common "Present" case), but without a start there is
+// nothing to measure from — null, never 0. Callers must treat null as unknown, not as zero tenure.
 function roleDurationYears(role) {
   const start = parseYearMonth(role.start_date);
-  if (!start || start === 'NOW') return 0;
+  if (!start || start === 'NOW') return null;
   const endRaw = parseYearMonth(role.end_date);
   const now = new Date();
   const end = (!endRaw || endRaw === 'NOW') ? { y: now.getFullYear(), mo: now.getMonth() + 1 } : endRaw;
   const months = (end.y - start.y) * 12 + (end.mo - start.mo);
   return months > 0 ? Math.round((months / 12) * 10) / 10 : 0;
+}
+
+// Server owns per-role duration math (deterministic — was Extractor Phase 4.3, a Flash-hand-computed
+// float and a hallucination source, same class as the Tone Analyst seniority loop). After a successful
+// extraction, read candidate_profile.json, compute duration_years for each work_history role from its
+// verbatim start/end dates, and write them back. Consumers are unchanged (Analyst min-years gap +
+// History Formatter read work_history[].duration_years). Idempotent; safe to call on every Extractor return.
+export function computeRoleDurations() {
+  const p = join(WORKSPACE_DIR, 'candidate_profile.json');
+  let profile;
+  try { profile = JSON.parse(readFileSync(p, 'utf8')); } catch { return; }
+  const work = profile.work_history;
+  if (!Array.isArray(work) || !work.length) return;
+  let changed = false;
+  for (const role of work) {
+    if (!role || typeof role !== 'object') continue;
+    const dur = roleDurationYears(role);
+    // Unreadable start date → leave duration_years off the role entirely. Writing 0 would assert
+    // "spent no time here", and the Analyst sums this field for its minimum-years requirement check —
+    // a 0 there turns a qualified candidate into a false Gap. Absent reads as unknown; 0 reads as a lie.
+    if (dur == null) {
+      console.warn(`[durations] ${role.employer ?? '?'} — ${role.position ?? '?'}: cannot read start_date ` +
+                   `(start="${role.start_date ?? ''}" end="${role.end_date ?? ''}"), leaving duration_years unset`);
+      if ('duration_years' in role) { delete role.duration_years; changed = true; }
+      continue;
+    }
+    if (role.duration_years !== dur) { role.duration_years = dur; changed = true; }
+  }
+  if (changed) { try { writeFileSync(p, JSON.stringify(profile, null, 2)); } catch (e) { console.warn(`[durations] write failed: ${e.message}`); } }
+}
+
+// Server owns extraction-completeness bucketing (was Extractor Phase 7 — the Flash agent hand-counted
+// field presence into COMPLETE/PARTIAL/INSUFFICIENT and self-gated INSUFFICIENT into a silent stall).
+// Pure presence checks + thresholds → deterministic, same class as researchQuality; a model hand-counting
+// booleans and emitting the right enum is the exact drift this kills. Reads candidate_profile.json.
+// Returns 'COMPLETE' | 'PARTIAL' | 'INSUFFICIENT'; an unreadable/scaffold profile reads as INSUFFICIENT.
+export function extractionQuality() {
+  let p;
+  try { p = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'candidate_profile.json'), 'utf8')); } catch { return 'INSUFFICIENT'; }
+  const str = s => typeof s === 'string' && s.trim().length > 0;
+  const nameOK  = str(p?.personal_info?.name);
+  const emailOK = str(p?.personal_info?.contact?.email);
+  const hasWork = Array.isArray(p?.work_history) && p.work_history.length > 0;
+  const hasSkills = p?.skills && typeof p.skills === 'object' &&
+    Object.values(p.skills).some(a => Array.isArray(a) && a.length > 0);
+  const hasEdu  = Array.isArray(p?.education) && p.education.length > 0;
+  if (nameOK && emailOK && hasWork && hasSkills) return 'COMPLETE';
+  if (nameOK && (hasWork || hasEdu)) return 'PARTIAL';
+  return 'INSUFFICIENT';
+}
+
+// Server-owned happy-path ProjectSetup. The PS KEMU node's entire happy path was mechanical — Phase 0
+// return-turn guard (redundant with server pipelineStatus routing), Phase 1 file pre-check, Phase 5
+// project_meta.json write, Phase 6 FILES_SAVED signal. The frontend uploads cv_raw.txt/jd_raw.txt via
+// /api/upload with EXPLICIT targets (cv_raw|jd_raw) before this runs. Doing it here skips a whole KEMU
+// round-trip on every new session.
+//
+// Document VALIDATION (is each file a usable CV/JD, in the right slot) is no longer done here. It was a
+// swap-only regex that both false-positived valid docs AND missed genuinely-wrong files (an invalid PDF
+// that isn't a swap sailed through to the Extractor, which then failed). That judgment is semantic, so it
+// moved to the ProjectSetup agent (validateDocs, an LLM call the caller runs in finishProjectSetup) and
+// is non-blocking. runProjectSetup now only gates on presence:
+//   { outcome: 'files_missing' } — no files on disk → caller falls back to the PS node (legacy MODE B
+//                                  conversation-upload path; doesn't happen with the REST frontend).
+//   { outcome: 'files_present' } — both files on disk → caller validates (agent) then completes.
+export function runProjectSetup() {
+  let cv = '', jd = '';
+  try { cv = readFileSync(join(WORKSPACE_DIR, 'cv_raw.txt'), 'utf8'); } catch {}
+  try { jd = readFileSync(join(WORKSPACE_DIR, 'jd_raw.txt'), 'utf8'); } catch {}
+  if (!cv.trim() || !jd.trim()) return { outcome: 'files_missing' };
+  return { outcome: 'files_present' };
+}
+
+// Write project_meta.json (idempotent — carries an existing created_at forward, never rewriting it to
+// "last re-ran at"). Split out of runProjectSetup so the swap-rescue path (agent cleared the regex flag)
+// and the "Continue anyway" action can complete a project that runProjectSetup returned early on.
+export function writeProjectMeta() {
+  const p = join(WORKSPACE_DIR, 'project_meta.json');
+  let existing = {};
+  try { existing = JSON.parse(readFileSync(p, 'utf8')); } catch {}
+  const meta = {
+    company_name:   '',
+    position_title: '',
+    sector:         '',
+    cv_source:      'cv_raw.txt',
+    jd_source:      'jd_raw.txt',
+    created_at:     existing?.created_at || '__DATE_TODAY__T00:00:00Z',
+    version:        '1.0',
+  };
+  try { writeFileSync(p, JSON.stringify(meta, null, 2), 'utf8'); }
+  catch (e) { console.warn(`[ProjectSetup] project_meta.json write failed: ${e.message}`); }
+}
+
+// Complete a ProjectSetup: write meta, stamp created_at at the moment of creation (single source of
+// truth — not the FILES_SAVED status, which an Extractor re-run also sets and would rewrite), announce
+// completion, advance to FILES_SAVED. Shared by the happy path, the swap-rescue path, and the
+// "Continue anyway" action so all three converge on one behaviour.
+export async function finishFilesSaved() {
+  writeProjectMeta();
+  stampTimestamp('project_meta.json', 'created_at');
+  broadcastAgentResult(
+    '# ✓ ProjectSetup Complete\nProject initialised — CV and JD saved, metadata written.',
+    'ProjectSetup', true,
+  );
+  try {
+    await state.recipe.globalVariables.setValue('pipeline_status', 'FILES_SAVED');
+    state.pipelineStatus = 'FILES_SAVED';
+  } catch (e) {
+    console.warn(`[ProjectSetup] could not set FILES_SAVED: ${e.message}`);
+  }
+}
+
+// Non-blocking document notice. Shown after the ProjectSetup agent (validateDocs) finds a problem with an
+// uploaded file — a swap, or a slot that doesn't hold a usable CV/JD. The user picks: re-upload the
+// offending file(s), OR "Continue anyway" (slot_continue_anyway → finishFilesSaved). Never forced.
+// `problem` is one of validateDocs's keys: 'swap' | 'cv_invalid' | 'jd_invalid' | 'both_invalid'.
+export function broadcastSlotGate(problem) {
+  const errorTexts = {
+    'swap':         "These look swapped — your **CV** slot holds a job description and your **JD** slot holds a CV. Re-upload them the right way round, or continue anyway if this is correct.",
+    'cv_invalid':   "The file in your **CV** slot doesn't look like a CV/resume (it may be the wrong document, or a scan that didn't read cleanly). Re-upload your CV, or continue anyway if it's right.",
+    'jd_invalid':   "The file in your **job description** slot doesn't look like a job description. Re-upload the JD, or continue anyway if it's right.",
+    'both_invalid': "Neither upload looks like a usable CV or job description (they may be the wrong files, or scans that didn't read cleanly). Re-upload the correct files, or continue anyway.",
+  };
+  const errText = errorTexts[problem] ?? 'One of the uploaded files may be the wrong document. Re-upload it, or continue anyway.';
+  broadcast({ type: 'agent_message', agent: 'ProjectSetup', text: errText });
+  broadcast({ type: 'action_required', context: 'validation_failed', prompt: '', actions: [
+    { id: 'cv_revalidate_upload', label: 'Re-upload CV',    type: 'upload', target: 'cv_raw', variant: 'ghost'   },
+    { id: 'jd_revalidate_upload', label: 'Re-upload JD',    type: 'upload', target: 'jd_raw', variant: 'ghost'   },
+    { id: 'slot_continue_anyway', label: 'Continue anyway', type: 'button',                    variant: 'primary' },
+  ]});
+  broadcast({ type: 'stream_done' });
+  broadcastMode('user_turn', 'ProjectSetup');
 }
 
 const normEmployer = e => String(e || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -180,7 +420,7 @@ export function runToneValidation() {
   const verdict = {
     verdict: dropped.length ? 'FLAG' : 'APPROVE',
     agent: 'tone_analyst',
-    issues: dropped.map(d => ({ field: d.field, problem: `Quote "${d.quote}…" not found verbatim in source — dropped`, severity: 'resolved' })),
+    issues: dropped.map(d => ({ field: d.field, problem: `Quote "${d.quote}…" not found verbatim in source - dropped`, severity: 'resolved' })),
     findings_for_sn: [],
     summary: `${dropped.length} ungrounded quote(s) stripped server-side.`,
   };
@@ -238,63 +478,94 @@ export function fireTAAndAnalyst() {
   state.analystDone = false;
   state.taDone      = false;
   state.analystOutputText = null;
-  // BUG-126: JD Enhancer just finished — stamp the real enhancement time before consumers read it.
-  stampTimestamp('enhanced_jd.json', 'metadata.enhanced_at');
   broadcastMode('auto_running', 'Analysis');
   state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
   state.pipelineStatus = 'PARALLEL_ANALYSIS';
-  sendToNodeAndWait('tone_analyst_input', 'Tone Analyst', '__tone_analysis__')
-    .then(async r => {
-      const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
-      const { status, cleanText } = parseAndStripStatus(raw);
-      // Tone validation is now server-owned (runToneValidation below) — it strips any ungrounded quote
-      // from style_findings.json and writes tone_validator_verdict.json (the Style Negotiator reads
-      // findings_for_sn from it). There is no tone_validator LLM node anymore. We then own the seniority
-      // year math + timestamp, broadcast TA's completion bubble, and join.
-      runToneValidation();    // server owns verbatim-quote validation (strips ungrounded quotes) — was the tone_validator LLM node
-      computeSeniorityYears(); // server owns the seniority date/years math (TA only tags relevance) — kills the cyclic-reasoning loop
-      stampTimestamp('style_findings.json', 'analyzed_at'); // BUG-126 class — TA hallucinates this; server owns it
-      broadcastAgentResult(cleanText, 'Tone Analyst', false);
-      if (status) {
-        state.taDone = true;
-        await checkJoin();
-      } else {
-        console.warn('[Tone Analyst] missing pipeline_status tag');
-      }
-    })
-    .catch(err => console.error('[TA] error:', err));
-  sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+  const dispatchStart = Date.now();  // mtime freshness floor — a stale prior-run file can't satisfy the guard
+  // One combined header for the parallel pair (both run in the background, completions land separately
+  // below). quietBanner suppresses each node's own start banner so the group reads cleanly; logLabel
+  // names the Analyst in the console without switching AgentSelector (it stays a zero-output bg agent).
+  const RULE = '─'.repeat(72);
+  console.log(`\n┌${RULE}`);
+  console.log('│ ▶ PARALLEL ANALYSIS (background) — starting both:');
+  console.log('│    · Tone Analyst  → node:tone_analyst_input       (timeout 180s)');
+  console.log('│    · Analyst       → node:analyst_background_input (timeout 600s)');
+  console.log(`└${RULE}`);
+  sendToNodeAndWait('tone_analyst_input', 'Tone Analyst', '__tone_analysis__', 'default', { quietBanner: true })
     .then(async r => {
       const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
       const { cleanText } = parseAndStripStatus(raw);
-      state.analystOutputText = cleanText; // validator is now called as a tool by the Analyst itself
-      // The inline analyst_validator writes analyst_validator_verdict.json as the source of truth.
-      // Read it here so checkJoin can surface a compact verdict bubble to the user (the validator
-      // is otherwise invisible — it runs inside the LLM node, the server never fires it).
-      state.analystValidatorSummary = buildAnalystValidatorSummary();
-      state.analystDone = true;
+      broadcastAgentResult(cleanText, 'Tone Analyst', false);
+      // taDone now flips on the FILE, not the prose tag. The common failure was TA writing
+      // style_findings.json but dropping the `pipeline_status:` tag → taDone stayed false → the
+      // analysis join hung silently. Gate on a fresh, shape-valid file instead.
+      const { ready } = await awaitOutputReady('Tone Analyst', dispatchStart);
+      if (ready) {
+        // Server-owned post-processing (only meaningful once real findings exist): strip ungrounded
+        // quotes (runToneValidation, was the tone_validator LLM node) and compute seniority years (kills
+        // the cyclic-reasoning loop; TA only tags relevance). analyzed_at is already stamped by
+        // awaitOutputReady above, via the contract.
+        runToneValidation();
+        computeSeniorityYears();
+        state.taDone = true;
+        await checkJoin();
+      } else {
+        console.warn('[Tone Analyst] style_findings.json not fresh/valid — analysis join cannot advance');
+      }
+    })
+    .catch(err => console.error('[Tone Analyst] error:', err));
+  sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { quietBanner: true, logLabel: 'Analyst' })
+    .then(async r => {
+      const raw = typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : '');
+      const { cleanText } = parseAndStripStatus(raw);
+      state.analystOutputText = cleanText;
+      await finishAnalystTurn(dispatchStart);
       syncTADone();
       await checkJoin();
     })
     .catch(err => console.error('[Analyst] error:', err));
 }
 
-// Read the analyst validator's verdict file and render a compact one-liner for the UI.
-// Returns null if the file is missing/unreadable/empty (e.g. validator never ran).
-function buildAnalystValidatorSummary() {
+// Shared tail for EVERY Analyst dispatch — the parallel-analysis fire above plus the four re-fire
+// paths (action.js research_confirm/redo_analyst/analysis_retry, pipeline-state.js resume). All of
+// them previously just set `state.analystDone = true` the moment the KEMU promise resolved.
+//
+// That was safe only by accident. It relied on the Analyst's Phase 9 (validator + fix pass) running
+// synchronously inside its own KEMU turn, which meant gap_analysis.json was necessarily final before
+// the promise resolved — which is why 9b10002 could note "Analyst branch already tag-free" and leave
+// COMPLETION_CONTRACTS.Analyst unused. Moving Phase 9 to the server removes that guarantee: the turn
+// now resolves right after Phase 8, with nothing proving the write landed before we read it. That is
+// the exact race 9b10002 already fixed for the Tone Analyst (TA wrote style_findings.json but dropped
+// its tag → the join hung). So gate on the same freshness contract the TA branch uses, then run the
+// validator against a file we know is this turn's.
+export async function finishAnalystTurn(dispatchStart) {
+  const { ready } = await awaitOutputReady('Analyst', dispatchStart); // COMPLETION_CONTRACTS.Analyst
+  if (!ready) {
+    console.warn('[Analyst] gap_analysis.json not fresh/valid — skipping validator, analysis join cannot advance');
+    return;
+  }
+  // Build strengths[] from the requirements[] the Analyst just wrote (Phase 4 is gone — the agent tags
+  // each requirement, the server assembles the array). This must land BEFORE runAnalystValidator so the
+  // audit has strengths to attack; the validator patches requirements, so re-derive after it too.
+  deriveStrengthsOnDisk();
+  // Discarded by checkJoin (the verdict stays internal — see the note there); kept for parity.
+  state.analystValidatorSummary = await runAnalystValidator();
+  deriveStrengthsOnDisk();
+  state.analystDone = true;
+}
+
+// Read gap_analysis + candidate_profile off disk, rebuild strengths[], write back. Thin wrapper over the
+// pure deriveStrengths for the two finishAnalystTurn hooks (runReviewAudit already has both in memory).
+function deriveStrengthsOnDisk() {
   try {
-    const verdict = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'analyst_validator_verdict.json'), 'utf8'));
-    if (!verdict || !verdict.verdict) return null;
-    const issues = verdict.issues ?? verdict.notes ?? [];
-    const count = issues.length;
-    let text = `🔍 **Validator: ${verdict.verdict}** — ${count} issue${count === 1 ? '' : 's'}`;
-    if ((verdict.verdict === 'FLAG' || verdict.verdict === 'REJECT') && count) {
-      text += '\n' + issues.map(i => `• ${i.field}: ${i.problem ?? i.note}`).join('\n');
-    }
-    return text;
-  } catch (err) {
-    console.error('[Validator] analyst verdict read error:', err.message);
-    return null;
+    const gapPath = join(WORKSPACE_DIR, 'gap_analysis.json');
+    const gapAnalysis = JSON.parse(readFileSync(gapPath, 'utf8'));
+    const candidateProfile = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'candidate_profile.json'), 'utf8'));
+    const { dropped } = deriveStrengths(gapAnalysis, candidateProfile);
+    writeFileSync(gapPath, JSON.stringify(gapAnalysis, null, 2), 'utf8');
+    if (dropped.length) console.log(`[Analyst] deriveStrengths dropped ${dropped.length} unbackable strength(s): ${dropped.map(d => d.id).join(', ')}`);
+  } catch (e) {
+    console.error('[Analyst] deriveStrengths failed:', e.message);
   }
 }
 
@@ -320,16 +591,22 @@ function calculateFitScore(gapAnalysis) {
   // from the baseline/differentiator denominator AND from the mandatory-cert gate below. The semantic
   // decision of *what* is Pending lives in the Analyst; the server only does the deterministic math.
   const isPending = r => r.candidate_status === 'Pending';
-  // Scored set = genuine requirements only (tier filter + source guard against responsibility mislabeling).
-  const baseline = reqs.filter(r => r.tier === 'Baseline' && !isResponsibility(r) && !isPending(r));
-  const differentiator = reqs.filter(r => r.tier === 'Differentiator' && !isResponsibility(r) && !isPending(r));
+  // Scored set = genuine requirements only. Tier is server-owned: `_computeTier` derives it from the
+  // requirement's `source` (which enhanced_jd list the JD Enhancer filed it under), falling back to the
+  // Analyst's `r.tier` only when source is unresolvable. This matches the gate + summary, which already
+  // use `_computeTier`, so the FIRST score shown at the join can no longer disagree with the post-repair
+  // score. Measured 0 delta across 6 real fixtures (the `!isResponsibility` guard already neutralised the
+  // common "responsibility mislabelled Baseline" case; this closes the residual Baseline↔Differentiator gap).
+  const tierOf = r => _computeTier(r) ?? r.tier;
+  const baseline = reqs.filter(r => tierOf(r) === 'Baseline' && !isResponsibility(r) && !isPending(r));
+  const differentiator = reqs.filter(r => tierOf(r) === 'Differentiator' && !isResponsibility(r) && !isPending(r));
   const baselineMet = baseline.filter(isMet).length;
   const differentiatorMet = differentiator.filter(isMet).length;
 
   const tag = gapAnalysis.role_strictness;
   const weights = STRICTNESS_WEIGHTS[tag] ?? STRICTNESS_WEIGHTS.STANDARD;
   if (!STRICTNESS_WEIGHTS[tag]) {
-    console.warn(`[fit_score] unknown role_strictness="${tag}" — defaulting to STANDARD`);
+    console.warn(`[Analysis · fit-score] unknown role_strictness="${tag}" — defaulting to STANDARD`);
   }
 
   const baselineScore = baseline.length > 0 ? (baselineMet / baseline.length) * weights.baseline : 0;
@@ -346,8 +623,50 @@ function calculateFitScore(gapAnalysis) {
     (r.mandatory_gate === true || STATUTORY_CERT.test(String(r.requirement_text ?? ''))));
   if (gateApplied && total > GATE_CEILING) total = GATE_CEILING;
 
-  console.log(`[fit_score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} gated=${gateApplied} total=${total}`);
+  console.log(`[Analysis · fit-score] strictness=${tag ?? 'STANDARD(default)'} baseline=${baselineScore.toFixed(2)} diff=${differentiatorScore.toFixed(2)} gated=${gateApplied} total=${total}`);
   return { score: total, gateApplied };
+}
+
+// ── Analysis summary census (derive-on-read, deliberately NOT stored) ─────────
+// Counts over requirements[]/strengths[]/gaps[] — total & met per tier, strengths/
+// gaps/critical counts. The Analyst used to hand-tally these WHILE reasoning, which
+// drifted between passes (a captured live trace re-tallied "25 met / 32", "7+3=10",
+// and even a phantom "78% match" across ~4 rebuilds). A count is a .filter().length,
+// not a judgment: the model owns Met/Gap/Pending per requirement; counting is ours.
+//
+// It is NOT written back to gap_analysis.json, on purpose. The file's arrays are
+// mutated at FOUR points after the Analyst returns — runAnalystValidator (semantic
+// corrections), _repairGapAnalysis (drops strengths / retiers), and _ingestGapAnswers
+// on both the gap-interview and IC-remediation paths. A stored census would have to be
+// re-stamped at every one of those or go stale on disk; and grep confirms nothing reads
+// it (the UI bubble reads the arrays directly). So this stays a pure derive-on-read
+// helper: any future consumer (a report/export) calls it on the freshly-read object and
+// gets a count that cannot drift, because it is computed at the moment of use.
+export function computeAnalysisSummary(gapAnalysis) {
+  const reqs = Array.isArray(gapAnalysis?.requirements) ? gapAnalysis.requirements : [];
+  const strengths = Array.isArray(gapAnalysis?.strengths) ? gapAnalysis.strengths : [];
+  const gaps = Array.isArray(gapAnalysis?.gaps) ? gapAnalysis.gaps : [];
+  const isMet = r => r.candidate_status === 'Met' || r.candidate_status === 'Met (Candidate Evidence)';
+
+  // Scored tiers exclude responsibilities (context/duties, never scored). baseline_requirements
+  // is a census of ALL Baseline items — unlike the fit-score denominator it does NOT drop Pending.
+  // Trust the server's own _computeTier over any stale Analyst tier label.
+  const scored = reqs.filter(r => !isResponsibility(r));
+  const baseline = scored.filter(r => (_computeTier(r) ?? r.tier) === 'Baseline');
+  const differentiator = scored.filter(r => (_computeTier(r) ?? r.tier) === 'Differentiator');
+
+  return {
+    total_requirements: reqs.length,
+    baseline_requirements: baseline.length,
+    differentiator_requirements: differentiator.length,
+    responsibility_requirements: reqs.filter(isResponsibility).length,
+    requirements_met: reqs.filter(isMet).length,
+    baseline_met: baseline.filter(isMet).length,
+    differentiator_met: differentiator.filter(isMet).length,
+    strengths_count: strengths.length,
+    gaps_count: gaps.length,
+    critical_gaps: gaps.filter(g => String(g.severity).toLowerCase() === 'high').length,
+  };
 }
 
 export function applyFitScore(gapAnalysisPath) {
@@ -355,12 +674,12 @@ export function applyFitScore(gapAnalysisPath) {
   const { score, gateApplied } = calculateFitScore(gapAnalysis);
   // Idempotent: strip any prior "Fit Score: X/10 — " prefix and trailing gate marker before reapplying.
   const qualitative = String(gapAnalysis.fit_rationale ?? '')
-    .replace(/^Fit Score: \d+(\.\d+)?\/10\s*—\s*/, '')
-    .replace(/\s*\(capped — unmet mandatory credential\)\s*$/, '')
+    .replace(/^Fit Score: \d+(\.\d+)?\/10\s*[—-]\s*/, '')
+    .replace(/\s*\(capped [—-] unmet mandatory credential\)\s*$/, '')
     .trim();
-  const marker = gateApplied ? ' (capped — unmet mandatory credential)' : '';
+  const marker = gateApplied ? ' (capped - unmet mandatory credential)' : '';
   gapAnalysis.overall_fit_score = score;
-  gapAnalysis.fit_rationale = (qualitative ? `Fit Score: ${score}/10 — ${qualitative}` : `Fit Score: ${score}/10`) + marker;
+  gapAnalysis.fit_rationale = (qualitative ? `Fit Score: ${score}/10 - ${qualitative}` : `Fit Score: ${score}/10`) + marker;
   gapAnalysis.fit_score_source = 'server';
   // BUG-126: server owns the timestamp — LLMs cannot reliably read "today".
   gapAnalysis.metadata = gapAnalysis.metadata || {};
@@ -438,29 +757,91 @@ function _computeTier(r) {
   return null;
 }
 
+// ── Server-owned strengths[] derivation ──────────────────────────────────────
+// The Analyst used to hand-BUILD strengths[] in a Phase 4 that rebuilt the whole array ~4× per run,
+// flip-flopping individual items between direct/transferable + conf 3/4 — the worst reasoning-stability
+// sink in a captured trace. The per-requirement JUDGMENT (Met? confidence? direct vs transferable? the
+// 1-sentence narrative) is irreducibly the model's and STAYS on the requirement. What's mechanical — and
+// what moved here — is the ASSEMBLY: membership filter, impact map, id assignment, path validation.
+//
+// A strength is derived from a requirement iff ALL hold:
+//   • candidate_status Met (a "Met (Candidate Evidence)" backed gap carries no evidence_type and lives in
+//     candidate_backed_strengths[], not here). Responsibilities ARE eligible — they're excluded from the
+//     fit-SCORE denominator, but a demonstrably-performed duty is a real, displayable strength.
+//   • is_candidate_asset !== false (the agent's employer-side/admin exclusion flag; absent = asset)
+//   • membership: (evidence_type "direct" AND confidence_level >= 4) OR evidence_type "transferable"
+//   • passes the publications/grants asset guards (mechanical: claim keyword vs empty profile array)
+//   • evidence_source resolves in candidate_profile (repair a mangled path if possible, else drop)
+//
+// Pure + idempotent: it REPLACES gapAnalysis.strengths wholesale from the CURRENT requirements[], so it is
+// safe to call at every point requirements settle (after the validator patch, after _repairGapAnalysis).
+// ids are strength_N in requirement order — stable across re-derivation because requirements never reorder,
+// and every id consumer (review audit, _resolveStrengthIds for PB/CLW) runs after the last derivation.
+// Returns { strengths, dropped } — dropped = requirements that qualified but whose path never resolved,
+// surfaced in the review-repair summary. Mutates gapAnalysis.strengths and any repaired evidence_source.
+function _failsAssetGuard(r, candidateProfile) {
+  const t = String(r.requirement_text || '').toLowerCase();
+  const empty = k => !Array.isArray(candidateProfile?.[k]) || candidateProfile[k].length === 0;
+  if (/publication|journal|peer[- ]review/.test(t) && empty('publications')) return true;
+  if (/\bgrant|funding|chief investigator/.test(t) && empty('grants')) return true;
+  return false;
+}
+
+export function deriveStrengths(gapAnalysis, candidateProfile) {
+  const isMet = r => r.candidate_status === 'Met' || r.candidate_status === 'Met (Candidate Evidence)';
+  const strengths = [];
+  const dropped = [];
+  let n = 0;
+  for (const r of (gapAnalysis.requirements || [])) {
+    if (!isMet(r)) continue;
+    if (r.is_candidate_asset === false) continue; // agent-flagged employer-side/admin item
+    const et = r.evidence_type;
+    const conf = r.confidence_level;
+    const member = (et === 'direct' && Number(conf) >= 4) || et === 'transferable';
+    if (!member) continue;
+    if (_failsAssetGuard(r, candidateProfile)) continue;
+
+    // Evidence path must resolve; try to repair a mangled one, else the claim is unbackable → drop it
+    // (never ship an unverifiable strength into the CV — parity with the old _repairGapAnalysis drop).
+    let path = r.evidence_source;
+    if (resolvePath(candidateProfile, path, 'candidate_profile') == null) {
+      const fixed = _repairPath(candidateProfile, path, 'candidate_profile');
+      if (!fixed) { dropped.push({ id: r.id, evidence_source: path, strength_text: r.requirement_text }); continue; }
+      path = fixed; r.evidence_source = fixed;
+    }
+
+    const tier = _computeTier(r) ?? r.tier;
+    const impact = et === 'transferable' ? 'Low' : (tier === 'Baseline' ? 'High' : 'Medium');
+    n += 1;
+    strengths.push({
+      id: `strength_${n}`,
+      strength_text: r.requirement_text,           // verbatim requirement_text (Analyst Critical Rule 4)
+      evidence_source: path,
+      evidence_context: r.strength_note ?? '',      // the one irreducibly-LLM narrative, tagged on the req
+      confidence_level: et === 'transferable' ? Math.min(Number(conf) || 3, 3) : conf,
+      requirement_id: r.id,
+      tier,
+      evidence_type: et,
+      impact,
+    });
+  }
+  gapAnalysis.strengths = strengths;
+  return { strengths, dropped };
+}
+
 // Layers 1+2 — deterministic pre-audit repair, run before the verdict phases. The Analyst can ship
 // gap_analysis.json with malformed evidence_source paths (descriptive text appended, "and"-joined) even
 // after a validator REJECT, because its retry loop is capped ("proceed regardless of the second verdict").
 // Those non-resolving paths would otherwise surface as Critical 'A - Evidence Mismatch' → REVIEW_FAILED →
 // a blunt redo-everything menu that re-runs the same nondeterministic node and reproduces the defect.
-// Fix them here where the server owns the truth: normalize+re-resolve (repair), drop the strength if it's
-// still unverifiable (never ship an unbackable claim into the CV), overwrite a provably-wrong requirement
-// tier with the computed-correct one, and drop unbacked orphan gaps whose requirement_source isn't in the
-// JD. Mutates gapAnalysis in place; returns a repair record for the audit + summary.
+// Fix them here where the server owns the truth: overwrite a provably-wrong requirement tier with the
+// computed-correct one, and drop unbacked orphan gaps whose requirement_source isn't in the JD. Strength
+// path-validation + the "drop an unbackable strength" rule now live in deriveStrengths (which rebuilds
+// strengths[] from requirements[] right after this runs), so this no longer touches strengths[].
+// Mutates gapAnalysis in place; returns a repair record for the audit + summary (strengths_dropped is
+// filled in by the caller from the derivation result).
 function _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD) {
   const repairs = { paths_normalized: [], strengths_dropped: [], requirements_retiered: [], gaps_dropped: [], gates_demoted: [] };
-
-  const keptStrengths = [];
-  for (const s of (gapAnalysis.strengths || [])) {
-    if (resolvePath(candidateProfile, s.evidence_source, 'candidate_profile') != null) { keptStrengths.push(s); continue; }
-    const fixed = _repairPath(candidateProfile, s.evidence_source, 'candidate_profile');
-    if (fixed) {
-      repairs.paths_normalized.push({ id: s.id, from: s.evidence_source, to: fixed });
-      s.evidence_source = fixed; keptStrengths.push(s); continue;
-    }
-    repairs.strengths_dropped.push({ id: s.id, evidence_source: s.evidence_source, strength_text: s.strength_text });
-  }
-  gapAnalysis.strengths = keptStrengths;
 
   for (const r of (gapAnalysis.requirements || [])) {
     const correct = _computeTier(r);
@@ -577,9 +958,12 @@ export function runReviewAudit(gapAnswers = []) {
   // BEFORE the verdict phases see the data, then persist (downstream agents read the cleaned file).
   _ingestGapAnswers(gapAnalysis, gapAnswers);
   const repairs = _repairGapAnalysis(gapAnalysis, candidateProfile, enhancedJD);
+  // Re-derive strengths[] off the just-repaired requirements[] (retiers + any validator-flipped statuses).
+  // This owns strength path-validation now, so feed its drop list back into the repair summary.
+  repairs.strengths_dropped = deriveStrengths(gapAnalysis, candidateProfile).dropped;
   const repairCount = repairs.paths_normalized.length + repairs.strengths_dropped.length
                     + repairs.requirements_retiered.length + repairs.gaps_dropped.length + repairs.gates_demoted.length;
-  if (repairCount > 0) console.log(`[runReviewAudit] pre-audit repair: ${repairs.paths_normalized.length} path(s) normalized, ${repairs.strengths_dropped.length} strength(s) dropped, ${repairs.requirements_retiered.length} re-tiered, ${repairs.gaps_dropped.length} orphan gap(s) dropped, ${repairs.gates_demoted.length} gate(s) demoted`);
+  if (repairCount > 0) console.log(`[Review · audit] pre-audit repair: ${repairs.paths_normalized.length} path(s) normalized, ${repairs.strengths_dropped.length} strength(s) dropped, ${repairs.requirements_retiered.length} re-tiered, ${repairs.gaps_dropped.length} orphan gap(s) dropped, ${repairs.gates_demoted.length} gate(s) demoted`);
   writeFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), JSON.stringify(gapAnalysis, null, 2), 'utf8');
 
   const audit = { strengths: [], gaps: [], requirements: [], ats_keywords: [] };
@@ -693,7 +1077,7 @@ export function runReviewAudit(gapAnswers = []) {
   writeFileSync(join(WORKSPACE_DIR, 'review_audit.json'), JSON.stringify(reviewAudit, null, 2), 'utf8');
 
   const backableIssues = issuesFound.filter(i => BACKABLE_ISSUE_TYPES.includes(i.issue_type));
-  console.log(`[runReviewAudit] verdict=${overall_verdict} issues=${issuesFound.length} backable=${backableIssues.length} approved=${approvedItems.length}`);
+  console.log(`[Review · audit] verdict=${overall_verdict} issues=${issuesFound.length} backable=${backableIssues.length} approved=${approvedItems.length}`);
   return { audit: reviewAudit, backableIssues };
 }
 
@@ -732,7 +1116,7 @@ export function buildReviewSummary(audit) {
   }
   lines.push('', '---', '');
   lines.push(audit.overall_verdict === 'APPROVED'
-    ? 'Analysis validated and approved.\n\n**Next:** the assembly phase will begin — starting with style negotiation.'
+    ? 'Analysis validated and approved.\n\n**Next:** the assembly phase will begin - starting with style negotiation.'
     : 'Quality issues detected. Main Orchestrator will present correction options.');
   return lines.join('\n');
 }
@@ -769,12 +1153,24 @@ export function resolveExtractorStatus(parsedStatus) {
     const meta = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
     if (meta && meta.failure_reason) {
       if (parsedStatus !== 'EXTRACTION_FAILED') {
-        console.warn(`[extractor-gate] project_meta.failure_reason="${meta.failure_reason}" but tag was "${parsedStatus ?? 'missing'}" — forcing EXTRACTION_FAILED`);
+        console.warn(`[Extractor · gate] project_meta.failure_reason="${meta.failure_reason}" but tag was "${parsedStatus ?? 'missing'}" — forcing EXTRACTION_FAILED`);
       }
       return 'EXTRACTION_FAILED';
     }
   } catch (e) {
-    console.warn(`[extractor-gate] could not read project_meta.json: ${e.message}`);
+    console.warn(`[Extractor · gate] could not read project_meta.json: ${e.message}`);
+  }
+  // Success path: the Extractor stored verbatim dates and left duration_years:0. Compute the real
+  // per-role durations server-side now, on every successful return (including redos). Idempotent.
+  if (parsedStatus === 'INITIALIZED') {
+    computeRoleDurations();
+    // Server owns the completeness gate (was Extractor Phase 7). INSUFFICIENT → force EXTRACTION_FAILED
+    // WITHOUT writing failure_reason, so MO Phase 8 Case B (generic — "re-upload your CV") handles it;
+    // name_mismatch (Phase 7.5, which DOES write failure_reason) is already handled by the block above.
+    if (extractionQuality() === 'INSUFFICIENT') {
+      console.warn('[Extractor · gate] extractionQuality=INSUFFICIENT — forcing EXTRACTION_FAILED');
+      return 'EXTRACTION_FAILED';
+    }
   }
   return parsedStatus;
 }
@@ -793,9 +1189,9 @@ export function clearExtractorFailure() {
     delete meta.failure_reason;
     delete meta.alternate_name_detected;
     writeFileSync(p, JSON.stringify(meta, null, 2), 'utf8');
-    console.log('[extractor-gate] cleared stale failure markers before Extractor dispatch');
+    console.log('[Extractor · gate] cleared stale failure markers before Extractor dispatch');
   } catch (e) {
-    console.warn(`[extractor-gate] could not clear failure markers: ${e.message}`);
+    console.warn(`[Extractor · gate] could not clear failure markers: ${e.message}`);
   }
 }
 
@@ -814,7 +1210,7 @@ export function writeMODispatch(status) {
       'utf8',
     );
   } catch (e) {
-    console.warn(`[mo-dispatch] could not write mo_dispatch.json: ${e.message}`);
+    console.warn(`[Orchestrator · dispatch] could not write mo_dispatch.json: ${e.message}`);
   }
 }
 
@@ -836,10 +1232,10 @@ function stripAnalystNarration(text) {
 
 export async function checkJoin() {
   if (!state.recipe) return;
-  console.log(`[checkJoin] analystDone=${state.analystDone} taDone=${state.taDone}`);
+  console.log(`[Analysis · join] analystDone=${state.analystDone} taDone=${state.taDone}`);
   if (!state.analystDone || !state.taDone) {
     if (state.taDone && !state.analystDone) {
-      broadcast({ type: 'agent_message', agent: 'System', text: 'Analysis still running in background — will begin gap review shortly…', background: true });
+      broadcast({ type: 'agent_message', agent: 'System', text: 'Analysis still running in background - will begin gap review shortly…', background: true });
     }
     return;
   }
@@ -860,14 +1256,14 @@ export async function checkJoin() {
     } catch {}
     if (!gapAnalysisReady) { retries++; await new Promise(r => setTimeout(r, 100)); }
   }
-  if (!gapAnalysisReady) console.error('[checkJoin] gap_analysis.json never became ready — proceeding anyway');
+  if (!gapAnalysisReady) console.error('[Analysis · join] gap_analysis.json never became ready — proceeding anyway');
 
   let computedScore = null;
   try {
     computedScore = applyFitScore(gapAnalysisPath);
-    console.log(`[join] gap_analysis ready, server fit score ${computedScore}`);
+    console.log(`[Analysis · join] gap_analysis ready, server fit score ${computedScore}`);
   } catch (err) {
-    console.error('[join] applyFitScore error:', err.message);
+    console.error('[Analysis · join] applyFitScore error:', err.message);
   }
 
   // Authoritative strength/gap lists for the UI come from gap_analysis.json (server owns the source
@@ -888,7 +1284,7 @@ export async function checkJoin() {
       gaps,
     };
   } catch (err) {
-    console.error('[checkJoin] could not build analystData for bubble:', err.message);
+    console.error('[Analysis · join] could not build analystData for bubble:', err.message);
   }
 
   if (state.analystOutputText) {
@@ -914,14 +1310,14 @@ export async function checkJoin() {
     // High + Medium (Administrative excluded) — strong CVs were getting only one High item.
     highGaps = (gapData.gaps ?? []).filter(g => g.severity === 'High' || g.severity === 'Medium');
   } catch (e) {
-    console.error('[checkJoin] failed to read high gaps for modal:', e.message);
+    console.error('[Analysis · join] failed to read high gaps for modal:', e.message);
   }
   // Fresh interview: reset the 2-round adjudication loop state.
   state.gapRound = 1;
   state.gapAnswersAccum = {};
   state.gapAccepted = [];
   state.gapPending = [];
-  console.log(`[checkJoin] broadcasting gap_interview_start (round 1) with ${highGaps.length} high gaps`);
+  console.log(`[Analysis · join] broadcasting gap_interview_start (round 1) with ${highGaps.length} high gaps`);
   broadcast({ type: 'gap_interview_start', round: 1, accepted: [], gaps: highGaps });
   broadcastMode('action_required');
 }
@@ -948,7 +1344,7 @@ export async function checkResearchRedoJoin() {
         context: 'research_confirm',
         prompt: researchSummary + '\n\nHappy with this? We\'ll use it to see how well you fit the role.',
         actions: [
-          { id: 'research_confirm', label: 'Looks good — keep going', variant: 'primary' },
+          { id: 'research_confirm', label: 'Looks good - keep going', variant: 'primary' },
           { id: 'research_redo',    label: 'Research again',          variant: 'ghost'   },
         ],
       });
@@ -956,10 +1352,10 @@ export async function checkResearchRedoJoin() {
       await state.recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
       state.pipelineStatus = 'RESEARCH_CONFIRM';
     } else {
-      broadcast({ type: 'agent_message', agent: 'System', text: researchSummary + '\n\n*(Research updated — gap analysis will use this once your style interview completes.)*' });
+      broadcast({ type: 'agent_message', agent: 'System', text: researchSummary + '\n\n*(Research updated - gap analysis will use this once your style interview completes.)*' });
     }
   } catch (err) {
-    console.error('[research redo join] error:', err.message);
+    console.error('[Research · redo-join] error:', err.message);
   }
 }
 
@@ -988,9 +1384,15 @@ function readWorkspaceText(file) {
   try { return readFileSync(join(WORKSPACE_DIR, file), 'utf8'); } catch { return ''; }
 }
 
+// Each issue may carry a `remedy` describing how the server can fix it in place BEFORE the user sees the
+// section (see _remediateAssemblySection):
+//   { kind: 'prose',   section, claim }  → hand the claim to the Style Reviewer __remediate__ re-flow
+//   { kind: 'contact', which, value }    → deterministic JS patch of the contact block
+// Issues with no `remedy` are advisory only (structural, or backstopped by the Integrity Checker gate)
+// and still ride in the section-review notes so nothing is silently hidden.
 export function _assemblyChecks(agentKey) {
   const issues = [];
-  const push = (field, problem) => issues.push({ field, problem });
+  const push = (field, problem, remedy) => issues.push(remedy ? { field, problem, remedy } : { field, problem });
 
   if (agentKey === 'style_negotiator') {
     const data = readWorkspaceJSON('sn_output.json')?.data || {};
@@ -1004,7 +1406,7 @@ export function _assemblyChecks(agentKey) {
       if (!STANDARD.includes(key) && !key.endsWith('_custom') && !inTA) push(`data.agreed_overrides.${key}`, `Override "${key}" not in TA findings and not a standard option`);
     }
     if (agreed.telegraphic && agreed.full_sentences) push('data.agreed_overrides', 'Contradictory overrides: telegraphic and full_sentences both active');
-    if (!data.negotiation_summary || !String(data.negotiation_summary).trim()) push('data.negotiation_summary', 'Missing or empty — must summarise what was agreed');
+    if (!data.negotiation_summary || !String(data.negotiation_summary).trim()) push('data.negotiation_summary', 'Missing or empty - must summarise what was agreed');
 
   } else if (agentKey === 'profile_builder') {
     const data = readWorkspaceJSON('pb_output.json')?.data || {};
@@ -1016,26 +1418,28 @@ export function _assemblyChecks(agentKey) {
       (profile.education || []).map(e => `${e.qualification || ''} ${e.institution || ''}`).join(' ')).toLowerCase();
     for (const term of ['credentialled', 'certified', 'registered', 'accredited', 'diplomate', 'fellowship', 'fellow of', 'member of']) {
       const re = new RegExp(term, 'i');
-      if (re.test(paragraph) && !re.test(credSrc)) push('data.profile_paragraph', `Claims "${term}" credential but no matching entry in education[]/certifications[]`);
+      if (re.test(paragraph) && !re.test(credSrc)) push('data.profile_paragraph', `Claims "${term}" credential but no matching entry in education[]/certifications[]`, { kind: 'prose', section: 'profile', claim: term });
     }
     // 2. Numeric claim traceability
     const profileText = normalizeForMatch(JSON.stringify(profile));
-    for (const m of (paragraph.match(/\b(\d+\.?\d*\s*%|\d+\+?\s*(?:year|yr)s?|\$[\d,]+|\d{4})\b/gi) || [])) {
-      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json — may be invented`);
+    // Per-alternative leading \b (no trailing \b): a trailing \b can never match after "%" or "$…"
+    // (both end in a non-word char), which silently let every invented percentage/dollar metric through.
+    for (const m of (paragraph.match(/\b\d+\.?\d*\s*%|\b\d+\+?\s*(?:year|yr)s?|\$[\d,]+|\b\d{4}\b/gi) || [])) {
+      if (!profileText.includes(normalizeForMatch(m))) push('data.profile_paragraph', `Numeric claim "${m.trim()}" not found in candidate_profile.json - may be invented`, { kind: 'prose', section: 'profile', claim: m.trim() });
     }
-    // 3. Contact accuracy
+    // 3. Contact accuracy — deterministically patchable (the value comes straight from candidate_profile.json)
     const contact = profile.personal_info?.contact || {};
     const contactStr = data.contact_details?.formatted_text || '';
-    if (contact.email && !contactStr.includes(contact.email)) push('data.contact_details', `Email "${contact.email}" not in contact_details`);
-    if (contact.phone && !contactStr.includes(contact.phone)) push('data.contact_details', `Phone "${contact.phone}" not in contact_details`);
+    if (contact.email && !contactStr.includes(contact.email)) push('data.contact_details', `Email "${contact.email}" not in contact_details`, { kind: 'contact', which: 'email', value: contact.email });
+    if (contact.phone && !contactStr.includes(contact.phone)) push('data.contact_details', `Phone "${contact.phone}" not in contact_details`, { kind: 'contact', which: 'phone', value: contact.phone });
     // 4. Danger-term / fabrication (TC05)
     const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
-    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt — likely inferred from a title or sector-misused`);
+    for (const t of ASM_DANGER_TERMS) if (paragraph.toLowerCase().includes(t) && cvRaw && !cvRaw.includes(t)) push('data.profile_paragraph', `Term "${t}" in profile but not in cv_raw.txt - likely inferred from a title or sector-misused`, { kind: 'prose', section: 'profile', claim: t });
     // 5. Numeric cross-section: profile's stated years vs server-computed total (no LLM)
     const total = findings.seniority?.years_experience;
     if (typeof total === 'number' && total > 0) {
       const ym = paragraph.match(/(\d+)\+?\s*years?/i);
-      if (ym && Number(ym[1]) > total + 1.5) push('data.profile_paragraph', `Profile claims ${ym[1]} years but the work history totals ~${total} — overstated`);
+      if (ym && Number(ym[1]) > total + 1.5) push('data.profile_paragraph', `Profile claims ${ym[1]} years but the work history totals ~${total} - overstated`);
     }
 
   } else if (agentKey === 'history_formatter') {
@@ -1051,7 +1455,7 @@ export function _assemblyChecks(agentKey) {
       const srcText = src ? normalizeForMatch(JSON.stringify([...(src.responsibilities || []), ...(src.achievements || [])])) : '';
       (entry.bullets || []).forEach((b, j) => {
         for (const num of (b.match(/\b\d+\.?\d*\s*%|\b\d+\+?\s*(?:patients?|staff|team|year|yr)|\$[\d,]+/gi) || [])) {
-          if (srcText && !srcText.includes(normalizeForMatch(num))) push(`data.work_history[${i}].bullets[${j}]`, `Metric "${num.trim()}" not in source job data — may be invented`);
+          if (srcText && !srcText.includes(normalizeForMatch(num))) push(`data.work_history[${i}].bullets[${j}]`, `Metric "${num.trim()}" not in source job data - may be invented`);
         }
       });
     });
@@ -1059,22 +1463,26 @@ export function _assemblyChecks(agentKey) {
   } else if (agentKey === 'coverletter_writer') {
     const cl = readWorkspaceJSON('clw_output.json')?.data?.cover_letter || {};
     const meta = readWorkspaceJSON('project_meta.json') || {};
-    const research = normalizeForMatch(JSON.stringify(readWorkspaceJSON('research_output.json')?.research_data || ''));
     const body = [cl.salutation || '', ...(cl.body_paragraphs || [cl.body || '']), cl.closing_paragraph || '', cl.full_letter || ''].join(' ');
     const bodyLc = body.toLowerCase();
-    if (meta.company_name && !body.includes(meta.company_name)) push('data.cover_letter', `Company name "${meta.company_name}" not in letter — may use a hallucinated name`);
+    if (meta.company_name && !body.includes(meta.company_name)) push('data.cover_letter', `Company name "${meta.company_name}" not in letter - may use a hallucinated name`);
     if (meta.position_title) {
       const words = meta.position_title.split(' ').filter(w => w.length > 3);
       if (!words.every(w => bodyLc.includes(w.toLowerCase()))) push('data.cover_letter', `Role title "${meta.position_title}" not reflected in letter`);
     }
-    for (const s of body.split(/[.!?]/).map(x => x.trim()).filter(x => /\d{1,3}(,\d{3})*|\d+%|[A-Z][a-z]+ (Program|Initiative|Framework|Centre|Center|Institute)/.test(x))) {
-      if (research && !research.includes(normalizeForMatch(s).slice(0, 30))) push('data.cover_letter.body', `Specific company claim not in research_output: "${s.slice(0, 80)}…"`);
-    }
+    // NOTE: no "specific company claim" auto-delete here. A prior version flagged every sentence
+    // containing a number as an unsupported company claim and validated it against research_output only,
+    // then (post-2026-07-20) auto-deleted it via the SR re-flow. That validated the candidate's OWN
+    // achievement metrics ("task completion from 34% to 71%", "$50M–$500M") against the company's facts —
+    // a category error — and silently gutted letters. Cover-letter claim vetting is a *semantic* job that
+    // the phase-8 Integrity Checker already owns correctly: candidate metrics are checked against
+    // cv_raw.txt, company facts are exempted (IC instructions §"Context exemption"). Don't re-add a
+    // deterministic duplicate here.
     const wc = body.split(/\s+/).filter(Boolean).length;
-    if (wc < 200) push('data.cover_letter', `Letter is ${wc} words — likely incomplete (target 250–350)`);
-    if (wc > 420) push('data.cover_letter', `Letter is ${wc} words — exceeds 420 word cap`);
+    if (wc < 200) push('data.cover_letter', `Letter is ${wc} words - likely incomplete (target 250–350)`);
+    if (wc > 420) push('data.cover_letter', `Letter is ${wc} words - exceeds 420 word cap`);
     const cvRaw = readWorkspaceText('cv_raw.txt').toLowerCase();
-    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt — likely fabricated or sector-misused`);
+    for (const t of ASM_DANGER_TERMS) if (bodyLc.includes(t) && cvRaw && !cvRaw.includes(t)) push('data.cover_letter', `Term "${t}" in letter but not in cv_raw.txt - likely fabricated or sector-misused`, { kind: 'prose', section: 'cover_letter', claim: t });
   }
   return issues;
 }
@@ -1084,10 +1492,107 @@ function _runAssemblyValidator(phaseAgent) {
   if (!agentKey) return '';
   let issues = [];
   try { issues = _assemblyChecks(agentKey); }
-  catch (err) { console.error('[Validator] assembly error:', err.message); return ''; }
+  catch (err) { console.error('[Assembly · validator] error:', err.message); return ''; }
   const verdict = { verdict: issues.length ? 'FLAG' : 'APPROVE', agent: agentKey, issues };
   try { writeFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), JSON.stringify(verdict, null, 2)); } catch {}
-  console.log(`[Validator] verdict=${verdict.verdict} for ${agentKey} (${issues.length} issue(s))`);
+  console.log(`[Assembly · validator] verdict=${verdict.verdict} for ${agentKey} (${issues.length} issue(s))`);
+  return issues.length ? issues.map(i => `• ${i.field}: ${i.problem}`).join('\n') : '';
+}
+
+// ── Assembly-section auto-remediation ─────────────────────────────────────────
+// Advisory→enforcing: instead of showing a maybe-fabricated section with a "review this" note, the server
+// FIXES what it deterministically can before the user ever sees the section, then re-validates. This
+// protects the user from invalid output and the system's credibility (nothing fabricated is displayed).
+//   • contact mismatch → patched in JS from candidate_profile.json (no LLM).
+//   • prose fabrication (profile / cover-letter: invented metric, fake credential, danger term,
+//     unsupported company claim) → removed via the Style Reviewer __remediate__ re-flow it already owns.
+// Anything with no auto-fix (history metrics, missing company name, word count) rides on as an advisory
+// note; those are also caught hard by the Integrity Checker gate at phase 8.
+const ASM_REMEDIATION_CAP = 2;
+
+// The validator + the user-facing section bubble both read the raw *_output.json; the SR re-flow writes
+// cv_assembly_state.json. Copy the remediated section data back so both see the fix.
+function _syncStateToOutputFile(phaseNumber) {
+  const phase = ASSEMBLY_PHASES[phaseNumber];
+  if (!phase?.outputFile) return;
+  try {
+    const cv = readWorkspaceJSON('cv_assembly_state.json');
+    const data = cv?.phases?.[phaseNumber - 1]?.data;
+    if (!data) return;
+    const out = readWorkspaceJSON(phase.outputFile) || {};
+    out.data = data;
+    writeFileSync(join(WORKSPACE_DIR, phase.outputFile), JSON.stringify(out, null, 2));
+  } catch (e) { console.error('[Assembly · remediation] state→output sync failed:', e.message); }
+}
+
+// Deterministic contact patch: append any profile email/phone missing from the contact block. Operates on
+// cv_assembly_state.json (canonical); the caller syncs it back to the output file. Returns true if changed.
+function _applyContactFix(fixes) {
+  const cvPath = join(WORKSPACE_DIR, 'cv_assembly_state.json');
+  let changed = false;
+  try {
+    const cv = JSON.parse(readFileSync(cvPath, 'utf8'));
+    const cd = cv.phases?.[1]?.data?.contact_details;
+    if (!cd) return false;
+    let txt = cd.formatted_text || '';
+    for (const f of fixes) {
+      if (f.value && !txt.includes(f.value)) { txt = txt ? `${txt} · ${f.value}` : f.value; changed = true; }
+    }
+    if (changed) {
+      cd.formatted_text = txt;
+      cv.metadata && (cv.metadata.last_updated = new Date().toISOString());
+      writeFileSync(cvPath, JSON.stringify(cv, null, 2));
+    }
+  } catch (e) { console.error('[Assembly · remediation] contact fix failed:', e.message); }
+  return changed;
+}
+
+// Hand a claim-removal list to the Style Reviewer's __remediate__ re-flow (same call the IC-remediation
+// path uses). SR removes each claim from its named section and re-flows the prose; facts frozen, adds
+// nothing. Runs silent — SR's own narration is discarded (the "Tidying up…" notice is the only UI line).
+async function _srRemediate(removals) {
+  const payload = JSON.stringify({ remove: removals.map(r => ({ section: r.section, claim: r.claim })) });
+  broadcastMode('auto_running', 'Style Reviewer');
+  await sendToNodeAndWait(ASSEMBLY_PHASES[7].inputNode, 'Style Reviewer', `__remediate__ ${payload}`);
+  await new Promise(r => setTimeout(r, 800));
+}
+
+// Validate a freshly-merged content section, auto-fix in place, re-validate (bounded loop), then write the
+// verdict file. Returns the residual (un-auto-fixable) notes to thread into the Approve/Revise bubble.
+// Only phases with a validator module (PB / HF / CLW) do real work; SC / CF / DF short-circuit to ''.
+async function _remediateAssemblySection(phaseNumber, phaseAgent) {
+  const agentKey = ASSEMBLY_VALIDATOR_AGENT[phaseAgent];
+  if (!agentKey) return '';
+
+  let issues = [];
+  try { issues = _assemblyChecks(agentKey); }
+  catch (err) { console.error('[Assembly · validator] error:', err.message); return ''; }
+
+  let round = 0, announced = false;
+  while (issues.length && round < ASM_REMEDIATION_CAP) {
+    const contactFixes  = issues.filter(i => i.remedy?.kind === 'contact').map(i => i.remedy);
+    const proseRemovals = issues.filter(i => i.remedy?.kind === 'prose').map(i => i.remedy);
+    if (!contactFixes.length && !proseRemovals.length) break; // only advisory issues remain
+
+    if (!announced) {
+      broadcast({ type: 'agent_message', agent: 'System', text: 'Double-checking this section against your details and tidying anything that didn\'t match…' });
+      announced = true;
+    }
+
+    let didFix = false;
+    if (contactFixes.length)  didFix = _applyContactFix(contactFixes) || didFix;
+    if (proseRemovals.length) { try { await _srRemediate(proseRemovals); didFix = true; } catch (e) { console.error('[Assembly · remediation] SR re-flow failed:', e.message); } }
+    if (didFix) _syncStateToOutputFile(phaseNumber);
+    if (!didFix) break; // nothing actually applied — avoid a no-op spin
+
+    round++;
+    try { issues = _assemblyChecks(agentKey); }
+    catch (err) { console.error('[Assembly · validator] re-check error:', err.message); break; }
+  }
+
+  const verdict = { verdict: issues.length ? 'FLAG' : 'APPROVE', agent: agentKey, issues, remediation_rounds: round };
+  try { writeFileSync(join(WORKSPACE_DIR, 'assembly_validator_verdict.json'), JSON.stringify(verdict, null, 2)); } catch {}
+  console.log(`[Assembly · validator] verdict=${verdict.verdict} for ${agentKey} after ${round} remediation round(s) (${issues.length} residual issue(s))`);
   return issues.length ? issues.map(i => `• ${i.field}: ${i.problem}`).join('\n') : '';
 }
 
@@ -1134,7 +1639,7 @@ export async function dispatchAssemblyPhase(phaseNumber) {
     // underlying call, IC keeps going and *does* write its verdict to disk shortly after. Don't burn a
     // 20-min re-run discarding that result: poll for a fresh verdict before declaring a dead stall.
     if (phaseNumber === 8 && await _salvageIntegrityVerdict(dispatchStart)) {
-      console.log('[assembly] IC watchdog fired but a fresh verdict landed — salvaging, running gate');
+      console.log('[Assembly] IC watchdog fired but a fresh verdict landed — salvaging, running gate');
       await _handleGate(8);
       return;
     }
@@ -1145,21 +1650,19 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   // SR (7) and IC (8) are gates, not content sections. Their agent text is a long forensic working-log
   // (dual-track notes, per-claim checks) — the handlers below emit a clean server-built summary instead,
   // so don't dump the raw reasoning to the user.
-  if (phaseNumber !== 7 && phaseNumber !== 8) {
-    broadcastAssemblySectionResult(cleanText, phase.agent);
-  }
-
+  // Content sections are broadcast AFTER validate-and-remediate (below) so the user only ever sees a
+  // section that's already been checked and fixed in place. SR (7) / IC (8) never broadcast raw here.
   await new Promise(r => setTimeout(r, 1000));
 
-  if (phaseNumber <= 6 || phaseNumber === 9) {
-    const merged = await mergePhaseOutput(phaseNumber);
+  if (phaseNumber <= 6) {
+    const merged = await mergePhaseOutput(phaseNumber, dispatchStart);
     if (!merged.ok) {
       // The agent didn't produce a real section (e.g. it asked a clarifying question instead of
       // building). Don't advance or show Approve/Revise on a phantom section: auto-retry once, then stall.
       const retries = (state.assemblyRetries ??= {});
       if ((retries[phaseNumber] ?? 0) < 1) {
         retries[phaseNumber] = (retries[phaseNumber] ?? 0) + 1;
-        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running ${phase.agent} — the last attempt didn't produce a finished section.` });
+        broadcast({ type: 'agent_message', agent: 'System', text: `Re-running ${phase.agent} - the last attempt didn't produce a finished section.` });
         await new Promise(r => setTimeout(r, 500));
         return dispatchAssemblyPhase(phaseNumber);
       }
@@ -1168,7 +1671,10 @@ export async function dispatchAssemblyPhase(phaseNumber) {
       return;
     }
     if (state.assemblyRetries) delete state.assemblyRetries[phaseNumber];
-    const notes = await _runAssemblyValidator(phase.agent);
+    // Validate → auto-fix in place → re-validate, BEFORE the section is shown. Residual issues the
+    // server can't auto-fix come back as advisory notes for the Approve/Revise decision.
+    const notes = await _remediateAssemblySection(phaseNumber, phase.agent);
+    broadcastAssemblySectionResult(cleanText, phase.agent);
     _showApproveRevise(phase.agent, notes);
     return;
   }
@@ -1191,13 +1697,13 @@ async function _advisoryStyleReview() {
     const cvState = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'));
     issueCount = (cvState.phases[6]?.data?.issues_found ?? []).length;
   } catch (e) {
-    console.error('[assembly] advisory style review read failed:', e.message);
+    console.error('[Assembly] advisory style review read failed:', e.message);
   }
   broadcast({
     type: 'agent_message', agent: 'System',
     text: issueCount > 0
-      ? `Style review is advisory — ${issueCount} note(s) above for reference. Continuing to the integrity check.`
-      : 'Style review passed — continuing to the integrity check.',
+      ? `Style review is advisory - ${issueCount} note(s) above for reference. Continuing to the integrity check.`
+      : 'Style review passed - continuing to the integrity check.',
   });
   await dispatchAssemblyPhase(8);
 }
@@ -1217,7 +1723,7 @@ async function _startSNInterview() {
   try {
     await sendToNodeAndWait('style_negotiator_input', 'Style Negotiator', '__style_analyze__');
   } catch (e) {
-    console.error('[SN] node error:', e.message);
+    console.error('[Style Negotiator] node error:', e.message);
   }
   await new Promise(r => setTimeout(r, 1000));
 
@@ -1270,7 +1776,7 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
       title: 'Seniority & Career Level',
       finding: `Inferred level: ${level}. ${s.evidence || 'Based on work-history dates.'}`,
       examples: [],
-      recommendation: `Confirm as ${level} — this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
+      recommendation: `Confirm as ${level} - this controls tone, assertiveness, and how responsibilities are framed throughout the CV.`,
       insight: 'Seniority framing is the single biggest lever on how a recruiter reads every bullet.',
       recommended_overrides: { seniority_level: `${level} (confirmed by user)` },
     });
@@ -1282,15 +1788,15 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
   if (!has('profile_voice')) {
     out.push({
       id: 'profile_voice',
-      title: 'Professional Summary — Voice',
+      title: 'Professional Summary - Voice',
       finding: 'Your professional summary can be written in first person (you speaking as yourself) or third person (written about you).',
       examples: [
         'First person: "Biomedical Science graduate with hands-on laboratory training…"',
         'Third person: "Sarah is a Biomedical Science graduate with hands-on laboratory training…"',
       ],
-      recommendation: 'Use first person — it reads as direct and modern and is the most common choice today. Prefer third person? Pick "Customise" and type "third person".',
+      recommendation: 'Use first person - it reads as direct and modern and is the most common choice today. Prefer third person? Pick "Customise" and type "third person".',
       insight: 'First person (or implied first person, with no "I") is standard for most professional summaries; third person can suit very senior or academic profiles.',
-      recommended_overrides: { profile_voice: 'first person — the summary speaks as the candidate (implied first person, no name and no third-person pronouns)' },
+      recommended_overrides: { profile_voice: 'first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)' },
     });
   }
 
@@ -1300,11 +1806,11 @@ export function enforceSNFloor(groups, meta = {}, findings = {}) {
     out.push({
       id: 'key_achievements',
       title: 'Key Achievements Section',
-      finding: `Senior role detected (${roleName || 'this role'}) — a Key Achievements section is standard at this level.`,
+      finding: `Senior role detected (${roleName || 'this role'}) - a Key Achievements section is standard at this level.`,
       examples: [],
       recommendation: 'Add a Key Achievements section (2–3 bolded, quantified bullets) immediately after the profile paragraph.',
-      insight: 'Senior-role screens run under 30 seconds — this section is the primary attention anchor.',
-      recommended_overrides: { key_achievements_section: 'Include Key Achievements section — 2–3 bullet points with bold metrics immediately after profile paragraph' },
+      insight: 'Senior-role screens run under 30 seconds - this section is the primary attention anchor.',
+      recommended_overrides: { key_achievements_section: 'Include Key Achievements section - 2–3 bullet points with bold metrics immediately after profile paragraph' },
     });
   }
   return out;
@@ -1321,7 +1827,7 @@ export function stampSeniorityOverride(groups, findings = {}) {
   const totStr = s.years_experience          != null ? `${s.years_experience} total` : null;
   const yearsStr = [relStr, totStr].filter(Boolean).join(' / ') || 'experience unspecified';
   g.recommended_overrides = g.recommended_overrides || {};
-  g.recommended_overrides.seniority_level = `${level} (${yearsStr} yrs — confirmed by user)`;
+  g.recommended_overrides.seniority_level = `${level} (${yearsStr} yrs - confirmed by user)`;
   return groups;
 }
 
@@ -1408,10 +1914,10 @@ async function _autoApproveSN(findings = {}) {
     data: {
       agreed_overrides: {
         bold_achievements:   'Bold numeric metrics and key results in work history bullets',
-        improve_conciseness: 'Keep bullets concise — under 18 words where possible',
+        improve_conciseness: 'Keep bullets concise - under 18 words where possible',
       },
       negotiation_outcome: 'NO_ISSUES_FOUND',
-      negotiation_summary: 'No style findings available — default professional overrides applied.',
+      negotiation_summary: 'No style findings available - default professional overrides applied.',
       original_style: { tense: p.tense, voice: p.voice, bullet_format: p.bullet_format },
       user_confirmed: true,
     },
@@ -1419,7 +1925,7 @@ async function _autoApproveSN(findings = {}) {
   writeFileSync(join(WORKSPACE_DIR, 'sn_output.json'), JSON.stringify(output, null, 2));
   await mergePhaseOutput(1);
   const notes = await _runAssemblyValidator('Style Negotiator');
-  broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found — default professional enhancements applied.' });
+  broadcast({ type: 'agent_message', agent: 'Style Negotiator', text: 'No significant style issues found - default professional enhancements applied.' });
   await _advanceFromSN(notes);
 }
 
@@ -1433,7 +1939,13 @@ async function _autoApproveSN(findings = {}) {
 const arr = v => (Array.isArray(v) ? v.filter(Boolean) : []);
 
 function readSectionOutput(file) {
-  return JSON.parse(readFileSync(join(WORKSPACE_DIR, file), 'utf8'))?.data ?? {};
+  // Tolerate a missing section file: return {} so callers degrade gracefully instead of
+  // throwing. buildDocumentData reads five section files — one absent (e.g. hf_output.json
+  // never landed) must not null the whole download; the guard there still requires at least a
+  // CV body or a cover letter. SECTION_BUILDERS already null-check their fields on {}.
+  const path = join(WORKSPACE_DIR, file);
+  if (!existsSync(path)) return {};
+  return JSON.parse(readFileSync(path, 'utf8'))?.data ?? {};
 }
 
 // Profile Builder / Cover Letter Writer reference strengths by id ("strength_1"…). The readable text
@@ -1445,7 +1957,7 @@ function _resolveStrengthIds(ids) {
     const ga = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'), 'utf8'));
     for (const s of (ga.strengths ?? [])) if (s?.id) map[s.id] = s.strength_text ?? s.id;
   } catch (e) {
-    console.error('[assembly] _resolveStrengthIds: gap_analysis read failed:', e.message);
+    console.error('[Assembly] _resolveStrengthIds: gap_analysis read failed:', e.message);
   }
   return arr(ids).map(id => map[id] ?? id);
 }
@@ -1507,7 +2019,7 @@ function buildSectionData(agent) {
   try {
     return builder();
   } catch (e) {
-    console.error(`[assembly] buildSectionData(${agent}) failed:`, e.message);
+    console.error(`[Assembly] buildSectionData(${agent}) failed:`, e.message);
     return null;
   }
 }
@@ -1581,7 +2093,7 @@ export function buildDocumentData() {
     if (!cv.profile && !experience.length && !coverLetter) return null;
     return { cv, coverLetter };
   } catch (e) {
-    console.error('[completion] buildDocumentData failed:', e.message);
+    console.error('[Assembly · completion] buildDocumentData failed:', e.message);
     return null;
   }
 }
@@ -1624,43 +2136,54 @@ function _phaseHasRealOutput(phase, outputData) {
 // Merge a phase's output into cv_assembly_state.json and advance current_phase. Returns
 // { ok, reason } — callers MUST NOT advance/show Approve-Revise when ok is false (empty output would
 // otherwise lock the phase ahead and break Revise).
-export async function mergePhaseOutput(phaseNumber) {
+//
+// `dispatchStart` (ms epoch) is the freshness floor for the stale-output check; 0/omitted skips it, for
+// callers (resume, revise re-merge) that aren't driving a fresh agent turn.
+export async function mergePhaseOutput(phaseNumber, dispatchStart = 0) {
   const phase = ASSEMBLY_PHASES[phaseNumber];
   if (!phase?.outputFile) return { ok: true }; // SR/IC write cv_assembly_state.json themselves
   try {
     const outputData = JSON.parse(readFileSync(join(WORKSPACE_DIR, phase.outputFile), 'utf8'));
     // GUARD: don't mark COMPLETE / advance unless the agent actually produced output.
     if (!_phaseHasRealOutput(phase, outputData)) {
-      console.warn(`[assembly] phase ${phaseNumber} (${phase.agent}) produced no usable output — NOT advancing (stays PENDING)`);
+      console.warn(`[Assembly] phase ${phaseNumber} (${phase.agent}) produced no usable output — NOT advancing (stays PENDING)`);
       return { ok: false, reason: 'empty_output' };
     }
     const cvStatePath = join(WORKSPACE_DIR, 'cv_assembly_state.json');
     const cvState = JSON.parse(readFileSync(cvStatePath, 'utf8'));
     const idx = phaseNumber - 1;
     cvState.phases[idx].status       = 'COMPLETE';
-    cvState.phases[idx].completed_at = outputData.completed_at ?? new Date().toISOString();
+    // Server owns the time. The agent's own completed_at is the literal `__DATE_TODAY__` token, and
+    // copying it through (the old `outputData.completed_at ?? …` — the ?? only caught it being absent,
+    // never it being a token) leaked that token straight into cv_assembly_state.json.
+    cvState.phases[idx].completed_at = new Date().toISOString();
     cvState.phases[idx].data         = outputData.data;
     cvState.current_phase            = phaseNumber + 1;
     cvState.metadata.completed_phases = phaseNumber;
     cvState.metadata.last_updated    = new Date().toISOString();
     writeFileSync(cvStatePath, JSON.stringify(cvState, null, 2));
-    console.log(`[assembly] merged phase ${phaseNumber} (${phase.agent}) → cv_assembly_state.json`);
+    console.log(`[Assembly] merged phase ${phaseNumber} (${phase.agent}) → cv_assembly_state.json`);
   } catch (e) {
-    console.error(`[assembly] merge phase ${phaseNumber} failed:`, e.message);
+    console.error(`[Assembly] merge phase ${phaseNumber} failed:`, e.message);
     return { ok: false, reason: 'merge_error' };
   }
 
-  // Stale output detection — warn if output file was written more than 5 minutes ago
+  // Stale output detection: did the agent actually write this artifact THIS turn? File mtime is the only
+  // honest signal. This used to read the agent's own `completed_at`, which cannot work in either
+  // direction — the agent writes the literal `__DATE_TODAY__` token, so `new Date(token)` is Invalid
+  // Date, the age is NaN, and `NaN > 300_000` is false, so the check silently never fired. Had the token
+  // been substituted it would resolve to midnight today and fire on every afternoon run instead. Same
+  // mtime >= dispatchStart guard awaitOutputReady uses for the linear agents.
   try {
-    const outputData = JSON.parse(readFileSync(join(WORKSPACE_DIR, phase.outputFile), 'utf8'));
-    if (outputData.completed_at) {
-      const outputAge = Date.now() - new Date(outputData.completed_at).getTime();
-      if (outputAge > 300_000) {
-        console.warn(`[assembly] phase ${phaseNumber} output stale (${Math.round(outputAge / 1000)}s old)`);
+    if (dispatchStart) {
+      const mtime = statSync(join(WORKSPACE_DIR, phase.outputFile)).mtimeMs;
+      if (mtime < dispatchStart) {
+        const age = Math.round((dispatchStart - mtime) / 1000);
+        console.warn(`[Assembly] phase ${phaseNumber} output stale (${phase.outputFile} predates dispatch by ${age}s)`);
         broadcast({
           type: 'agent_message', agent: 'System',
-          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output appears stale — completed_at is ${outputData.completed_at}. ` +
-                `The agent may not have run this turn. Check if ${phase.outputFile} was freshly written.`,
+          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output looks stale - ${phase.outputFile} was last written ` +
+                `${age}s before this step started, so the agent may not have run this turn.`,
         });
       }
     }
@@ -1681,9 +2204,9 @@ export function assemblyResumeAgent() {
     phases = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'))?.phases ?? [];
   } catch { /* no state → SN */ }
   let resumePhase = 1;
-  while (resumePhase <= 9 && phases[resumePhase - 1]?.status === 'COMPLETE') resumePhase++;
+  while (resumePhase <= 8 && phases[resumePhase - 1]?.status === 'COMPLETE') resumePhase++;
   if (resumePhase <= 2) return ASSEMBLY_PHASES[resumePhase].agent;  // SN interview or Profile Builder
-  if (resumePhase > 9) return ASSEMBLY_PHASES[9].agent;            // all done
+  if (resumePhase > 8) return 'Main Orchestrator';                 // all done → completion/arrival state
   return ASSEMBLY_PHASES[Math.min(resumePhase - 1, 6)].agent;     // last content section under review
 }
 
@@ -1697,36 +2220,36 @@ export async function resumeAssembly() {
   try {
     phases = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8'))?.phases ?? [];
   } catch (e) {
-    console.error('[resume] cv_assembly_state unreadable — restarting SN:', e.message);
+    console.error('[Resume] cv_assembly_state unreadable — restarting SN:', e.message);
   }
   const isComplete = n => phases[n - 1]?.status === 'COMPLETE';
 
-  // Lowest phase 1..9 not yet COMPLETE = the next phase to run.
+  // Lowest phase 1..8 not yet COMPLETE = the next phase to run.
   let resumePhase = 1;
-  while (resumePhase <= 9 && isComplete(resumePhase)) resumePhase++;
+  while (resumePhase <= 8 && isComplete(resumePhase)) resumePhase++;
 
-  if (resumePhase > 9) {                       // everything done → finished state
-    console.log('[resume] all assembly phases complete → CV_TAILORED');
-    await dispatchAssemblyPhase(10);           // no-phase branch sets CV_TAILORED + idle
+  if (resumePhase > 8) {                        // everything done → finished state
+    console.log('[Resume] all assembly phases complete → CV_TAILORED');
+    await dispatchAssemblyPhase(9);            // no-phase branch sets CV_TAILORED + idle
     return;
   }
   if (resumePhase === 1) {                      // SN not done → run the interview
-    console.log('[resume] SN not complete → style negotiation');
+    console.log('[Resume] SN not complete → style negotiation');
     state.snState = null;
     await dispatchAssemblyPhase(1);
     return;
   }
   if (resumePhase === 2) {                      // only SN done; SN has no review bubble → run PB
-    console.log('[resume] SN complete, Profile Builder next');
+    console.log('[Resume] SN complete, Profile Builder next');
     state.currentAssemblyPhase = 1;
     await dispatchAssemblyPhase(2);
     return;
   }
 
-  // resumePhase 3..9 → re-show the last completed content section (phases 2–6; gates 7/8 + DF 9 auto).
+  // resumePhase 3..8 → re-show the last completed content section (phases 2–6; gates 7/8 auto-advance).
   const lastContent = Math.min(resumePhase - 1, 6);
   const agent = ASSEMBLY_PHASES[lastContent].agent;
-  console.log(`[resume] landing on phase ${lastContent} (${agent}) review`);
+  console.log(`[Resume] landing on phase ${lastContent} (${agent}) review`);
   state.currentAssemblyPhase = lastContent;
   state.fallbackAgent = agent;
   broadcast({ type: 'agent_switch', agent });
@@ -1826,7 +2349,7 @@ function buildIntegritySummary(phaseData) {
   const bits = [];
   if (checked != null) bits.push(`${checked} claim${checked === 1 ? '' : 's'} checked`);
   bits.push(flagged ? `${flagged} flagged` : 'nothing flagged');
-  return `✓ Accuracy check passed — ${bits.join(', ')}. Everything in your CV traces back to what you provided.`;
+  return `✓ Accuracy check passed - ${bits.join(', ')}. Everything in your CV traces back to what you provided.`;
 }
 
 // Poll cv_assembly_state.json for an IC verdict that landed AFTER the watchdog fired (a slow-but-healthy
@@ -1870,7 +2393,7 @@ function _stripListClaims(listClaims) {
       cv.metadata && (cv.metadata.last_updated = new Date().toISOString());
       writeFileSync(cvPath, JSON.stringify(cv, null, 2));
     }
-  } catch (e) { console.error('[ic-remediation] skills strip failed:', e.message); }
+  } catch (e) { console.error('[Assembly · IC-remediation] skills strip failed:', e.message); }
 
   // additional_information lives in candidate_profile.json (publications/awards) — best effort.
   const addl = listClaims.filter(c => c.section === 'additional_information');
@@ -1886,7 +2409,7 @@ function _stripListClaims(listClaims) {
         });
       }
       writeFileSync(cpPath, JSON.stringify(cp, null, 2));
-    } catch (e) { console.error('[ic-remediation] additional_information strip failed:', e.message); }
+    } catch (e) { console.error('[Assembly · IC-remediation] additional_information strip failed:', e.message); }
   }
   return removed;
 }
@@ -1926,7 +2449,7 @@ export async function runIcRemediation(decisions = {}) {
       verdicts = await adjudicateGapAnswers(evidenceItems.map(e => ({
         gap_id: e.gap_id, requirement: e.gap_text, answer: e.answer,
       })));
-    } catch (e) { console.error('[ic-remediation] adjudicator error:', e.message); }
+    } catch (e) { console.error('[Assembly · IC-remediation] adjudicator error:', e.message); }
     const vById = new Map(verdicts.map(v => [v.gap_id, v]));
     const accepted = [];
     for (const e of evidenceItems) {
@@ -1944,7 +2467,7 @@ export async function runIcRemediation(decisions = {}) {
         _ingestGapAnswers(ga, accepted);
         writeFileSync(gaPath, JSON.stringify(ga, null, 2));
         broadcast({ type: 'agent_message', agent: 'System', text: `Backed up ${accepted.length} claim${accepted.length === 1 ? '' : 's'} with your evidence.` });
-      } catch (e) { console.error('[ic-remediation] gap ingest failed:', e.message); }
+      } catch (e) { console.error('[Assembly · IC-remediation] gap ingest failed:', e.message); }
       // A gap that's now ACCEPTED backs *every* claim tracing to it — so don't also strip/re-flow a
       // sibling claim the user happened to mark "remove". The accepted evidence wins; IC will pass it.
       const acceptedGapIds = new Set(accepted.map(a => a.gap_id));
@@ -1957,7 +2480,7 @@ export async function runIcRemediation(decisions = {}) {
   const proseRemovals = removeList.filter(c => c.sectionType === 'prose');
   const otherRemovals = removeList.filter(c => c.sectionType === 'other'); // fold into list-strip best-effort
   const strippedCount = _stripListClaims([...listRemovals, ...otherRemovals]);
-  if (strippedCount) console.log(`[ic-remediation] stripped ${strippedCount} list-section claim(s) server-side`);
+  if (strippedCount) console.log(`[Assembly · IC-remediation] stripped ${strippedCount} list-section claim(s) server-side`);
 
   // 3) Date corrections — re-run History Formatter (existing pattern).
   if (dateClaims.length) {
@@ -2068,7 +2591,7 @@ async function _handleGate(phaseNumber) {
       broadcastMode('action_required');
     }
   } catch (e) {
-    console.error(`[assembly] gate check phase ${phaseNumber} failed:`, e.message);
+    console.error(`[Assembly] gate check phase ${phaseNumber} failed:`, e.message);
     // Never strand the pipeline on a gate-read error. Previously this swallowed the error and left
     // the run stuck in auto_running (the user only saw the 45s "pipeline is active" stall banner,
     // never a button). Always surface a continuation so the user can proceed or re-run.
@@ -2156,10 +2679,10 @@ function _advanceFromSN(notes = '') {
   // SN validator notes are internal QA (the verdict file is already written by _runAssemblyValidator).
   // Unlike the section agents, SN has no Approve/Revise bubble to thread them into, so surfacing them
   // rendered as a contentless background tick. Keep them in the log only — don't show the user.
-  if (notes) console.log(`[Validator] style-negotiation notes (not shown to user):\n${notes}`);
+  if (notes) console.log(`[Style Negotiator · validator] notes (not shown to user):\n${notes}`);
   state.snState = null;
   setTimeout(() => {
     dispatchAssemblyPhase(2).catch(err =>
-      console.error('[advanceFromSN] Profile Builder dispatch failed:', err.message));
+      console.error('[Assembly · advance-SN] Profile Builder dispatch failed:', err.message));
   }, 500);
 }

@@ -97,7 +97,7 @@ export function IntegrityReviewModal({ claims = [], onSubmit, onHide, minimized 
             </div>
             <div>
               <h2 id="ic-title" className="text-sm font-semibold text-fg tracking-tight">A quick accuracy check</h2>
-              <p className="text-xs text-fg-muted">A few claims need backing up — or leaving out</p>
+              <p className="text-xs text-fg-muted">A few claims need backing up - or leaving out</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -110,7 +110,7 @@ export function IntegrityReviewModal({ claims = [], onSubmit, onHide, minimized 
             {onHide && (
               <button
                 onClick={onHide}
-                title="Hide — finish later to continue"
+                title="Hide - finish later to continue"
                 className="text-xs text-fg-secondary hover:text-fg bg-surface-2 border border-line hover:border-line-strong rounded-lg px-2.5 py-1 transition-all"
               >
                 Hide
@@ -127,7 +127,7 @@ export function IntegrityReviewModal({ claims = [], onSubmit, onHide, minimized 
             return (
               <div key={g.key} className="flex flex-col gap-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">{g.heading}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">{g.heading}</p>
                   <p className="text-xs text-fg-faint mt-0.5">{g.blurb}</p>
                 </div>
                 {items.map(c => {

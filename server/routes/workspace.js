@@ -69,10 +69,10 @@ router.get('/pending-interview', (_req, res) => {
 const WORKSPACE_ALLOWED = [
   'project_meta.json', 'candidate_profile.json',
   'research_output.json', 'enhanced_jd.json', 'gap_analysis.json',
-  'review_audit.json', 'tailored_cv.json',
+  'review_audit.json',
   'style_findings.json', 'tone_validator_verdict.json', 'assembly_validator_verdict.json',
   'cv_assembly_state.json', 'sn_groups.json', 'sn_output.json', 'sn_working.json',
-  'pb_output.json', 'sc_output.json', 'hf_output.json', 'cf_output.json', 'clw_output.json', 'df_output.json',
+  'pb_output.json', 'sc_output.json', 'hf_output.json', 'cf_output.json', 'clw_output.json',
 ];
 
 router.get('/workspace', (req, res) => {
@@ -334,6 +334,12 @@ router.post('/restore', async (req, res) => {
     state.retryThunk           = null;
     state.lastDispatch         = null;
     state.pipelineStatus       = status;
+    // Gap-interview round state is in-memory only; a round-2 re-ask can't be reconstructed from a
+    // snapshot (gapPending never hits disk). Reset to a clean round 1 so /api/pending-interview
+    // rebuilds the gap modal from gap_analysis.json on disk instead of serving stale cards.
+    state.gapRound             = 1;
+    state.gapAccepted          = [];
+    state.gapPending           = [];
 
     if (status) {
       try { await state.recipe.globalVariables.setValue('pipeline_status', status); } catch {}

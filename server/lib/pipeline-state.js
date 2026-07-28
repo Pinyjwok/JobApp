@@ -7,7 +7,7 @@ import {
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, stampTimestamp, resolveExtractorStatus, resolveAgentStatus, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
+import { syncTADone, checkJoin, checkResearchRedoJoin, dispatchAssemblyPhase, resumeAssembly, fireTAAndAnalyst, finishAnalystTurn, stampTimestamp, resolveStatusFromOutput, surfaceStall, clearExtractorFailure, writeMODispatch } from './dispatch.js';
 
 export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (!status) return;
@@ -19,13 +19,13 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   // phase is active — mirrors the AgentSelector onChange ProjectSetup guard (recipe-init.js).
   if (!resume && state.currentAssemblyPhase > 0 &&
       (status === 'STYLE_FAILED' || status === 'INTEGRITY_FAILED')) {
-    console.log(`[handlePipelineStatus] ${status} ignored — assembly phase ${state.currentAssemblyPhase} owns the gate`);
+    console.log(`[Status] ${status} ignored — assembly phase ${state.currentAssemblyPhase} owns the gate`);
     return;
   }
   if (!resume) {
     const last = state.recentlyDispatched.get(status);
     if (last && Date.now() - last < 30_000) {
-      console.log(`[handlePipelineStatus] ${status} already dispatched ${Date.now() - last}ms ago — skip`);
+      console.log(`[Status] ${status} already dispatched ${Date.now() - last}ms ago — skip`);
       return;
     }
     state.recentlyDispatched.set(status, Date.now());
@@ -38,15 +38,17 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     if (status === 'JD_ENHANCED' || status === 'PARALLEL_ANALYSIS') {
       const gapExists     = (() => { try { readFileSync(join(WORKSPACE_DIR, 'gap_analysis.json'));   return true; } catch { return false; } })();
       const findingsExists = (() => { try { readFileSync(join(WORKSPACE_DIR, 'style_findings.json')); return true; } catch { return false; } })();
+      // JD enhancement is no longer a gate — on resume at JD_ENHANCED we just re-drive the analysis
+      // (re-fire TA/Analyst for whichever artifact is missing), same as PARALLEL_ANALYSIS.
       state.analystDone = gapExists;
       state.taDone      = findingsExists;
       state.analystOutputText = null;
-      console.log(`[resume] ${status} — analystDone=${state.analystDone} taDone=${state.taDone}`);
+      console.log(`[Resume] ${status} — analystDone=${state.analystDone} taDone=${state.taDone}`);
       if (state.analystDone && state.taDone) {
         await checkJoin();
       } else {
         if (!state.taDone) {
-          console.log('[resume] style_findings missing — re-firing Tone Analyst (background)');
+          console.log('[Resume] style_findings missing — re-firing Tone Analyst (background)');
           broadcastMode('auto_running', 'Tone Analyst');
           sendToNodeAndWait('tone_analyst_input', 'Tone Analyst', '__begin_interview__')
             .then(async r => {
@@ -54,35 +56,37 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
               broadcastAgentResult(cleanText, 'Tone Analyst', false);
               state.taDone = true; await checkJoin();
             })
-            .catch(err => console.error('[TA resume] error:', err));
+            .catch(err => console.error('[Tone Analyst · resume] error:', err));
         }
         if (!state.analystDone) {
-          console.log('[resume] gap_analysis missing — re-firing Analyst');
-          sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+          console.log('[Resume] gap_analysis missing — re-firing Analyst');
+          const analystStart = Date.now();  // mtime freshness floor for finishAnalystTurn's gate
+          sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
             .then(async r => {
               const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
               broadcastAgentResult(cleanText, 'Analyst', false);
-              state.analystDone = true; syncTADone(); await checkJoin();
+              await finishAnalystTurn(analystStart); syncTADone(); await checkJoin();
             })
-            .catch(err => console.error('[Analyst resume] error:', err));
+            .catch(err => console.error('[Analyst · resume] error:', err));
         }
       }
     } else if (status === 'SN_START' || status === 'STYLE_NEGOTIATING' || status === 'CV_BUILDING'
                || status === 'REVIEW_COMPLETE' || status === 'TONE_ANALYZED') {
-      console.log('[resume] phase-aware assembly resume');
+      console.log('[Resume] phase-aware assembly resume');
       await resumeAssembly();
     } else if (status === 'RESEARCH_CONFIRM') {
-      console.log('[resume] RESEARCH_CONFIRM — re-displaying research summary');
+      console.log('[Resume] RESEARCH_CONFIRM — re-displaying research summary');
       await handlePipelineStatus('RESEARCH_COMPLETE');
     }
     return;
   }
 
   if (status === 'RESEARCH_COMPLETE') {
-    // BUG-126: Researcher just finished — stamp the real completion time before the gate displays it.
-    stampTimestamp('research_output.json', 'completed_at');
+    // completed_at is stamped by awaitOutputReady when the Researcher's artifact lands (contract.stamp).
+    // Not re-stamped here on purpose: 'research_skip' also routes through this branch without the
+    // Researcher having run, and claiming a completion time for a run that never happened is a lie.
     broadcast({ type: 'action_required', context: 'research_pre_confirm', prompt: '', actions: [
-      { id: 'research_pre_confirm', label: 'Yes — continue',  variant: 'primary' },
+      { id: 'research_pre_confirm', label: 'Yes - continue',  variant: 'primary' },
       { id: 'research_pre_redo',   label: 'Research again',  variant: 'ghost'   },
     ]});
     await state.recipe.globalVariables.setValue('pipeline_status', 'RESEARCH_CONFIRM');
@@ -108,27 +112,12 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
         if (buttons) broadcast({ type: 'action_required', context: status.toLowerCase(), prompt: '', actions: buttons });
         if (newStatus) { await state.recipe.globalVariables.setValue('pipeline_status', newStatus); state.pipelineStatus = newStatus; }
       })
-      .catch(err => console.error('[MO exception] error:', err));
+      .catch(err => console.error('[Orchestrator · exception] error:', err));
     return;
   }
 
   if (status === 'JD_ENHANCED') {
-    const clPath = join(WORKSPACE_DIR, 'cover_letter_sample.txt');
-    if (!existsSync(clPath)) {
-      broadcast({
-        type: 'action_required',
-        context: 'cl_upload_prompt',
-        prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not — we\'ll work from your CV alone.',
-        actions: [
-          { id: 'ta_upload_cover', label: 'Add a cover letter', type: 'upload', variant: 'primary' },
-          { id: 'cl_skip',         label: 'Skip — use my CV only', variant: 'ghost' },
-        ],
-      });
-      broadcastMode('action_required');
-      state.pendingTADispatch = true;
-      return;
-    }
-    fireTAAndAnalyst();
+    revealEnhancedJD();
     return;
   }
 
@@ -152,17 +141,27 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   }
 
   if (status === 'RESEARCH_REDO') {
+    state.retryThunk = () => { state.recentlyDispatched.delete(status); return handlePipelineStatus(status); };
     broadcastMode('auto_running', 'Researcher');
+    // checkResearchRedoJoin only re-opens the confirm gate while research_confirmed === 0.
     await state.recipe.globalVariables.setValue('research_confirmed', 0);
+    const redoStart = Date.now();
     sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
       .then(async r => {
-        const { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+        // Status from the freshly-rewritten research_output.json, not the prose tag. The mtime floor
+        // ensures we don't read the prior run's file (redo reuses the same filename).
+        const { status: newStatus, ready } = await resolveStatusFromOutput('Researcher', redoStart);
+        if (!ready || !newStatus) {
+          surfaceStall('Researcher', new Error('no fresh research_output.json on disk'));
+          return;
+        }
+        const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
         broadcastAgentResult(cleanText, 'Researcher', true);
-        if (newStatus) { await state.recipe.globalVariables.setValue('pipeline_status', newStatus); state.pipelineStatus = newStatus; }
-        else console.warn('[Researcher RESEARCH_REDO] missing pipeline_status tag');
-        checkResearchRedoJoin();
+        await state.recipe.globalVariables.setValue('pipeline_status', newStatus);
+        state.pipelineStatus = newStatus;
+        await checkResearchRedoJoin();
       })
-      .catch(err => console.error('[Researcher redo] error:', err));
+      .catch(err => surfaceStall('Researcher', err));
     await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
     state.pipelineStatus = 'PARALLEL_ANALYSIS';
     return;
@@ -171,7 +170,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (status === 'SN_START' || status === 'REVIEW_COMPLETE') {
     // Server owns assembly dispatch — bypass AC, start SN interview directly
     if (state.snState) {
-      console.log(`[handlePipelineStatus] SN already active (snState=${state.snState}), skip re-dispatch`);
+      console.log(`[Status] SN already active (snState=${state.snState}), skip re-dispatch`);
       return;
     }
     await state.recipe.globalVariables.setValue('pipeline_status', 'CV_BUILDING');
@@ -187,16 +186,18 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     const agent = HAPPY_PATH[status];
     if (!node) return;
     broadcastMode('auto_running', agent);
-    console.log(`[pipeline_status] auto-fire ${status} → ${node}`);
+    console.log(`[Status · auto-fire] ${status} → ${node}`);
     if (agent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
     state.retryThunk = () => { state.recentlyDispatched.delete(status); return handlePipelineStatus(status); };
+    const autoStart = Date.now();
     sendToNodeAndWait(node, agent)
       .then(async r => {
-        let { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-        // Deterministic failure gate: if the Extractor wrote a failure_reason but dropped
-        // the EXTRACTION_FAILED tag, force it — don't retain a stale prior status.
-        if (agent === 'Extractor') newStatus = resolveExtractorStatus(newStatus);
-        newStatus = resolveAgentStatus(agent, newStatus);  // #1: infer expected status on dropped tag
+        const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+        // Status from the agent's OUTPUT FILE, not the prose tag. resolveStatusFromOutput folds in the
+        // Extractor failure_reason gate and the Researcher quality recompute (COMPLETE/PARTIAL/FAILED),
+        // and stamps that verdict into research_output.json. Resolve BEFORE broadcasting so the file the
+        // client's ResearchBubble fetches on render is already final on disk.
+        const { status: newStatus, ready } = await resolveStatusFromOutput(agent, autoStart);
         broadcastAgentResult(cleanText, agent, AGENT_FOREGROUND.has(agent));
         if (status === 'INITIALIZED' && state.researchPartial) {
           state.researchPartial = false;
@@ -211,13 +212,39 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
             ],
           });
         }
-        if (newStatus) {
+        if (ready && newStatus) {
           await state.recipe.globalVariables.setValue('pipeline_status', newStatus);
           state.pipelineStatus = newStatus;
         } else {
-          surfaceStall(agent, new Error('no status tag and no inference rule'));
+          surfaceStall(agent, new Error(`no usable ${agent} output on disk`));
         }
       })
       .catch(err => surfaceStall(agent, err));
   }
+}
+
+// ── Enhanced-JD reveal (informational, no gate) ───────────────────────────────
+// After the JD Enhancer writes enhanced_jd.json we surface a structured, read-only bubble
+// (EnhancedJDBubble on the client, which fetches the JSON itself) AND immediately advance the pipeline.
+// JD enhancement is not user-customisable, so there is nothing to approve: the user sees the sharpened
+// JD while the next step is already visibly running. Then prompt for an optional cover letter (if none
+// was uploaded), otherwise fan out into Tone Analyst + Analyst.
+export function revealEnhancedJD() {
+  broadcast({ type: 'agent_message', kind: 'enhanced_jd', agent: 'JD Enhancer', text: '' });
+  const clPath = join(WORKSPACE_DIR, 'cover_letter_sample.txt');
+  if (!existsSync(clPath)) {
+    broadcast({
+      type: 'action_required',
+      context: 'cl_upload_prompt',
+      prompt: '**Add a cover letter? (optional)**\n\nIf you share a cover letter you\'ve written, we can match your writing style across both documents. No problem if not - we\'ll work from your CV alone.',
+      actions: [
+        { id: 'ta_upload_cover', label: 'Add a cover letter', type: 'upload', variant: 'primary' },
+        { id: 'cl_skip',         label: 'Skip - use my CV only', variant: 'ghost' },
+      ],
+    });
+    broadcastMode('action_required');
+    state.pendingTADispatch = true;
+    return;
+  }
+  fireTAAndAnalyst();
 }

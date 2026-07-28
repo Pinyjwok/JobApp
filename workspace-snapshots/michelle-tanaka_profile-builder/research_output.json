@@ -1,0 +1,125 @@
+{
+  "research_data": {
+    "mission_values": "Suncorp's purpose is to build futures and protect what matters – a focus maintained for over 100 years. Following the sale of its insurance arm to Allianz, the Group is refocusing squarely on banking. Core values emphasise customer-centricity, trust, empowerment, flexibility, diversity of thought as the key to innovation, and bringing your whole, authentic self to work. The company champions a workplace culture where every voice is heard, actions matter, and employees can make a difference to thousands of customers each day.",
+    "culture_overview": "Suncorp operates with a workplace culture built on trust, empowerment, and flexibility designed to help employees unlock their full potential. The organisation values every perspective and listens to every voice, idea, and opinion, recognising diversity of thought as the key to innovation and transformation. Cross-functional integration is central to work practices – designers work seamlessly with Product Managers, Developers, UX Researchers, and Content Strategists in an Agile environment. Design critique culture encourages constructive dialogue and shared learning, with regular feedback sessions and design reviews. Employees are trusted to work flexibly and design their career pathways in ways that work best for them. The culture emphasises collaboration over silos, with room to thrive and explore opportunities at every career stage.",
+    "recent_developments": [
+      "Significant digital transformation underway following sale of insurance arm to Allianz, refocusing the Group squarely on banking",
+      "Digital Experience team charged with reimagining how customers interact with Suncorp Bank across web, app, and emerging channels",
+      "Recognition at Good Design Awards 2025 and Merchant Payment Awards by WeMoney Financial Services Awards (September 2025)",
+      "Building of 'Spark' design system in Figma – a large-scale enterprise design system for cross-brand consistency",
+      "Expansion of hybrid working model (3 days in office, 2 from home) across Brisbane and Melbourne hubs"
+    ],
+    "key_strengths": [
+      "One of Australia and New Zealand's largest financial services providers with $96 billion in assets and 1.8 million banking customers",
+      "Strong design maturity with established Figma-based design system ('Spark'), investment in cross-functional Agile squads, and design operations infrastructure",
+      "Commitment to accessibility (WCAG 2.1 AA standards) and inclusive design principles embedded in product development",
+      "Supportive employee investment including $2,000 annual L&D budget, 14 weeks paid parental leave, genuine career progression, and flexible hybrid working",
+      "Portfolio of trusted Australian brands (AAMI, GIO, Vero, Bingle, Apia) providing diverse design exposure across customer segments"
+    ],
+    "known_challenges": [
+      "Navigating significant organisational restructuring and strategic pivot from insurance to banking-focused business model",
+      "Balancing user experience innovation with regulatory compliance requirements and security standards inherent to financial services",
+      "Operating within established enterprise processes and governance frameworks typical of large financial institutions",
+      "Managing design consistency across multiple brands and platforms while maintaining speed of delivery in Agile sprints"
+    ],
+    "strategic_plan": "Suncorp is in the midst of a major digital transformation, repositioning as a banking-focused organisation following the divestment of its insurance operations. The Digital Experience team is central to this strategy, tasked with reimagining customer interactions across digital channels (web, mobile app, and emerging platforms) to modernise the banking experience for millions of Australians. Investment in design systems ('Spark'), cross-functional Agile squads, and accessibility standards signals a long-term commitment to design maturity. The strategic direction emphasises innovation, customer-centricity, and leveraging technology to differentiate in the competitive Australian banking landscape. Career development pathways, diversity and inclusion initiatives, and flexible working models are integral to attracting and retaining talent to support this transformation agenda.",
+    "interview_focus": "Suncorp's interview process for UX/UI designers centres on portfolio review demonstrating end-to-end design thinking – from research through to high-fidelity UI and developer handoff. Expect multi-stage evaluation including initial HR screening (background, tool proficiency, experience), hiring manager discussion (design background, career goals), and portfolio presentation to a panel of designers and product team members. Key assessment areas include: (1) Design process – ability to show research → ideation → testing → iteration, not just final screens; (2) User research capability – planning and conducting research independently, translating findings into design decisions; (3) Collaboration skills – working effectively within Agile squads with product managers, engineers, and content designers; (4) Accessibility knowledge – applying WCAG 2.1 AA standards in shipped products; (5) Communication – articulating design rationale clearly to technical and non-technical stakeholders, including senior leadership (GM level); (6) Tool mastery – advanced Figma proficiency including component libraries, auto layout, variables, Dev Mode; (7) Design systems thinking – contributing to and extending large-scale enterprise systems. Cultural fit assessment focuses on customer-centricity, constructive collaboration, ability to receive feedback, and alignment with Suncorp's values of trust, empowerment, and diversity of thought. Prior financial services experience is regarded highly but not essential if strong design methodology and problem-solving skills are demonstrated. Expect questions on handling complexity, balancing business requirements with user needs, and working within regulatory constraints.",
+    "hiring_unit": "Digital Experience — Banking & Wealth",
+    "hiring_unit_intelligence": "The Digital Experience — Banking & Wealth team is the specialised business unit responsible for designing customer interactions with Suncorp Bank across all digital channels following the Group's strategic pivot from insurance to banking-focused operations. This unit operates cross-functional Agile squads embedding designers alongside product managers, engineers, data analysts, and content designers. The team owns the 'Spark' design system (Figma-based) and is charged with reimagining the digital banking experience for 1.8 million customers. The Design Lead, Digital Banking (the reporting manager for this role) oversees design delivery and is likely part of a broader design leadership structure that includes design operations, research specialists, and content design functions. The unit emphasises evidence-based design (research + analytics via Amplitude/Google Analytics), accessibility compliance (WCAG 2.1 AA), and developer collaboration via Figma Dev Mode. Design critiques, knowledge-sharing sessions, and mentorship of junior designers are part of the team culture. The unit is distributed across Brisbane and Melbourne hubs with hybrid working (3 days in office). Recent outputs have earned recognition at Good Design Awards 2025 and industry awards, indicating design maturity and investment in craft. The team operates within the regulated environment of Australian banking (APRA prudential standards), requiring designers who can balance innovation with compliance and security requirements.",
+    "data_source": "merged",
+    "sources": [
+      {
+        "title": "UI Visual and UX Designer at Suncorp",
+        "url": "https://designproject.io/jobs/ui-visual-and-ux-designer-at-suncorp-fgi8ft",
+        "snippet": "Collaboration Style: Cross-Functional Integration: Designers are expected to work seamlessly with Product Managers, Developers, UX Researchers, and Content Strategists. Design Critique Culture: Regular feedback sessions and design reviews are likely part of the process, encouraging constructive dialogue and shared learning. Knowledge Sharing: An environment where team members share best practices, insights, and learnings to elevate the collective design capability.",
+        "origin": "company"
+      },
+      {
+        "title": "Sun Life Financial UX/UI Designer Interview Questions 2026",
+        "url": "https://dataford.io/interview-guides/sun-life-financial/ux-ui-designer",
+        "snippet": "Stakeholder Collaboration & Communication – Designing in a large corporate environment requires strong alignment skills. You must demonstrate that you can effectively communicate your design decisions to non-designers, receive feedback constructively, and collaborate productively with product and engineering partners. The interview process is thorough and designed to evaluate both your technical capabilities and your cultural fit. Candidates should expect a multi-stage process that typically spans several weeks, emphasizing collaboration, structured design reviews, and leadership alignment.",
+        "origin": "company"
+      },
+      {
+        "title": "Nick Li",
+        "url": "https://au.linkedin.com/in/nicklxy",
+        "snippet": "Suncorp Group, Ringwood East, Victoria, Australia. Good Design Awards 2025, Merchant Payment Awards WeMoney Financial Services Awards (September 2025), Building Technology of the Year Finalist PropTech Hub WA Awards (July 2025).",
+        "origin": "company"
+      },
+      {
+        "title": "Suncorp Group hiring UI Visual and UX Designer in Australia",
+        "url": "https://au.linkedin.com/jobs/view/ui-visual-and-ux-designer-at-suncorp-group-4427897996",
+        "snippet": "LinkedIn job listing for UI Visual and UX Designer at Suncorp Group, showing related roles at Canva, Atlassian, Commonwealth Bank, REA Group, and other major Australian employers.",
+        "origin": "company"
+      },
+      {
+        "title": "Careers - Suncorp Group",
+        "url": "https://www.suncorpgroup.com.au/careers",
+        "snippet": "Our people are at the core of our business, which is why we have a workplace that's supportive and flexible. Your career at Suncorp will give you room to thrive in a way that works for you and an environment where you can bring your whole self to work. We champion a diverse and inclusive culture, that values every perspective. We value every perspective and listen to every voice, idea and opinion – because diversity of thought is the key to innovation and transformation. We empower our people to explore every opportunity.",
+        "origin": "company"
+      },
+      {
+        "title": "Suncorp Group - Since 1902, Suncorp has been building futures and protecting what matters",
+        "url": "https://au.linkedin.com/company/suncorp/life",
+        "snippet": "Our purpose is to build futures and protect what matters – the focus of our company for more than 100 years. Our ambition is to be the leading Trans-Tasman insurer. We put our customers at the heart of every decision. At Suncorp, we are big on culture, which is built on trust, empowerment, and flexibility, to help our people unlock their full potential and unleash their best and brightest selves.",
+        "origin": "company"
+      },
+      {
+        "title": "David Tran",
+        "url": "https://au.linkedin.com/in/davidhgtran",
+        "snippet": "UX/UI designer at Suncorp Group, Greater Brisbane Area. Passionate about designing digital products. ITEE Innovation Showcase 2019: Best Non-Thesis Project, University of Queensland.",
+        "origin": "company"
+      },
+      {
+        "title": "UX Designer Careers in Australia: Roles, Salary & Immigration",
+        "url": "https://employmentforimmigration.nz/ux-designer-roles-in-australia",
+        "snippet": "Typical employers include Commonwealth Bank, NAB, ANZ, Westpac (Sydney and Melbourne – large in-house design teams), Canva (world-class product design culture), Atlassian, Seek, REA Group, Afterpay. The big four banks all have large in-house digital experience teams and are among the highest-volume employers of UX and product design professionals in the country.",
+        "origin": "sector"
+      },
+      {
+        "title": "UI Visual and UX Designer at Suncorp",
+        "url": "https://designproject.io/jobs/ui-visual-and-ux-designer-at-suncorp-fgi8ft",
+        "snippet": "This role is positioned as a Mid-Level UI Visual Designer, requiring 2-4 years of experience. As a large financial institution, Suncorp likely has established processes and a strong emphasis on compliance and security in its digital offerings. The design team's role is crucial in balancing user experience with these business requirements. Learning & Development Opportunities: Mastery of Design Systems, Exposure to Financial Services UX, Advanced Prototyping.",
+        "origin": "sector"
+      },
+      {
+        "title": "UX Designer Jobs in Australia | Hays",
+        "url": "https://www.hays.com.au/it/ux-designer-jobs",
+        "snippet": "Typical employers include large technology companies, government & not for profit, financial services industry, creative agencies, media & communications, retail, logistics. You will need to be comfortable using design software such as Photoshop, Illustrator and InDesign and tools like Balsamiq, Sketch and Figma.",
+        "origin": "sector"
+      },
+      {
+        "title": "Hire UI/UX Designers in Australia | Asanify's EOR Guide for 2025",
+        "url": "https://asanify.com/blog/hiring-in-australia/hire-ui-ux-designer-in-australia-guide-2025",
+        "snippet": "Mid-Level (3-5 years) salary range AUD 85,000-115,000, contract rates AUD 70-100/hour. Soft Skills: Problem-solving, communication, collaboration, empathy, adaptability, critical thinking, time management. Create comprehensive onboarding plan covering design tools, brand guidelines, and product knowledge.",
+        "origin": "sector"
+      },
+      {
+        "title": "Entry Level UX Designer Jobs & Programs in Australia",
+        "url": "https://au.prosple.com/entry-level-ux-designer-jobs-programs-in-australia",
+        "snippet": "UX Designer (2-5 years): Independently handle design projects, conduct user research, create wireframes and mockups. Senior UX Designer (5-8 years): Lead complex design projects, mentor junior designers, contribute to design strategy. Career Growth: With experience and certifications, UX designers can progress to senior roles and leadership positions.",
+        "origin": "sector"
+      },
+      {
+        "title": "How to Become a UX Designer in Australia | Dapth Insights",
+        "url": "https://dapth.com/insights/ux-designer-role",
+        "snippet": "Key soft skills include communication skills, problem-solving skills, understanding of design principles, collaboration, interview skills, storytelling, presentation skills, creativity and adaptability, and critical thinking. Specialisations in UX design can vary, with some focusing more on UI design while others concentrate more on research and analytics.",
+        "origin": "sector"
+      },
+      {
+        "title": "What is going on with the Australian UX & product design job market? Some hypothesises.",
+        "url": "https://ben-gilmore.medium.com/what-is-going-on-with-the-australian-ux-product-design-job-market-some-hypothesises-a55c7f86e42e",
+        "snippet": "Banks have started to shift technology roles to India and Vietnam. Execution-heavy roles such as UI design and development have been most affected, while strategic and regulated work tended to remain onshore. The shift from 'UX Designer' to 'Product Designer' reframed expectations. Many organisations began to equate the role with UI design and delivery, sidelining research and strategy.",
+        "origin": "sector"
+      },
+      {
+        "title": "Lead UX Designer (Mobile & Self-Service) at SwiftCruit - Melbourne",
+        "url": "https://haystackapp.io/jobs/8afbe59d-9418-44f5-b72d-8d90ee251724",
+        "snippet": "7+ years' UX design experience, including experience leading or mentoring designers. Strong experience designing mobile app experiences and customer-facing digital products. Experience working within regulated environments such as banking, financial services, insurance, or fintech. Excellent stakeholder management, communication, and influencing skills.",
+        "origin": "sector"
+      }
+    ]
+  },
+  "completed_at": "__DATE_TODAY__T00:00:00Z",
+  "quality": "RESEARCH_COMPLETE"
+}

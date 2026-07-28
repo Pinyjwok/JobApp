@@ -1,0 +1,63 @@
+{
+  "verdict": "REJECT",
+  "agent": "analyst",
+  "summary": "3 blocking + 1 warning issue(s).",
+  "issues": [
+    {
+      "field": "strengths[0] (strength_1 / req_1)",
+      "problem": "Evidence is thin for a direct/High strength on end-to-end process. The cited path mentions two projects (council portal, fintech app) but the evidence_context blends them in a way that overstates process depth. The council portal should be individually assessed for true end-to-end narrative. However, the candidate's own responsibilities[1] describes 'Led end-to-end UX... from stakeholder workshops through to developer handoff' which does map to the requirement. Not blocking; the evidence is present and sufficient.",
+      "severity": "warning",
+      "audience": "user"
+    },
+    {
+      "field": "strengths[4] (strength_5 / req_5)",
+      "problem": "The cited evidence (work_history[0].responsibilities[3]) says 'Managed own client relationships, scoping, and timeline negotiation'. This is cross-functional delivery but does not explicitly mention engineers, product managers, or content designers. The candidate is a solo contractor managing clients. The 'plus team management experience from legal background' note references a different source. The direct Agile squad collaboration claim relies on generic solo-contractor work plus past legal management, not demonstrated Agile cross-functionality.",
+      "severity": "blocking",
+      "audience": "user"
+    },
+    {
+      "field": "strengths[17] (strength_18 / resp_10)",
+      "problem": "Requirement is 'Work within a cross-functional Agile squad...' (full immersive team experience). Evidence source is skills.technical_skills[9] which is a line item 'Agile/Scrum workflows'. The evidence_context notes 'participated in design sprints at Neighbourhood Digital' which references a different path. A self-assessed skill tag plus participation in two sprints as an intern is thin for a direct/Medium strength on full Agile squad integration; this is better tagged transferable with lower confidence.",
+      "severity": "blocking",
+      "audience": "internal"
+    },
+    {
+      "field": "strengths[8] (strength_9 / pref_4)",
+      "problem": "The candidate holds First Class Honours in Psychology, which directly satisfies the tertiary qualification requirement. No issue.",
+      "severity": "warning",
+      "audience": "user"
+    },
+    {
+      "field": "strengths[21] (strength_22 / resp_15)",
+      "problem": "Requirement: 'Participate in cross-squad design critiques and knowledge-sharing sessions'. Evidence: volunteering as a UX mentor with Ladies That UX. Mentoring is distinct from participating in internal team design critiques; it's community work, not squad-level practice. This is a contextual disparity. Demote to gap.",
+      "severity": "blocking",
+      "audience": "user"
+    }
+  ],
+  "patch": {
+    "demote_strengths": [
+      {
+        "id": "strength_5",
+        "reason": "Evidence does not prove Agile squad cross-functional collaboration with PMs, engineers, and content designers. Solo contractor managing clients + legal team management ≠ Agile squad immersion."
+      },
+      {
+        "id": "strength_18",
+        "reason": "Self-assessed Agile/Scrum tag plus 2 design sprints as intern is insufficient for full cross-functional Agile squad experience."
+      },
+      {
+        "id": "strength_22",
+        "reason": "Community mentoring is not internal cross-squad design critique participation; contextual disparity."
+      }
+    ],
+    "promote_gaps": [],
+    "correct_evidence_source": []
+  },
+  "patch_result": {
+    "applied": [
+      "demote strength_5 → gap (req_5 → Gap)",
+      "demote strength_18 → gap (resp_10 → Gap)",
+      "demote strength_22 → gap (resp_15 → Gap)"
+    ],
+    "skipped": []
+  }
+}

@@ -23,7 +23,7 @@ function ToastCard({ t, onDone }) {
       <svg className={`w-4 h-4 mt-0.5 shrink-0 ${tone.icon}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <path d={tone.glyph} />
       </svg>
-      <p className="flex-1 text-[13px] leading-snug text-fg-secondary">{t.message}</p>
+      <p className="flex-1 text-sm leading-snug text-fg-secondary">{t.message}</p>
       <button onClick={onDone} aria-label="Dismiss" className="text-fg-faint hover:text-fg-secondary transition-colors -mr-1 -mt-0.5">
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
       </button>
@@ -38,7 +38,7 @@ function ConfirmDialog({ c, onClose }) {
     <Modal onClose={() => answer(false)} labelledBy={titleId}
       className="animate-modal-in bg-surface border border-line-strong rounded-2xl p-7 w-full max-w-sm shadow-[var(--shadow-float)]">
       <h2 id={titleId} className="text-sm font-semibold text-fg tracking-tight">{c.title ?? 'Are you sure?'}</h2>
-      {c.message && <p className="text-[13px] text-fg-muted mt-2 leading-relaxed">{c.message}</p>}
+      {c.message && <p className="text-sm text-fg-muted mt-2 leading-relaxed">{c.message}</p>}
       <div className="flex items-center gap-2 mt-6">
         <div className="flex-1" />
         <button

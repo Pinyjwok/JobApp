@@ -40,7 +40,6 @@ export async function initRecipe(projectDir) {
     'agentReasoning.analyst_reasoning':   'Analyst',
     'agentReasoning.reviewer_reasoning':  'Reviewer',
     'agentReasoning.ta_reasoning':        'Tone Analyst',
-    'agentReasoning.ac_reasoning':        'Assembly Coordinator',
     'agentReasoning.sn_reasoning':        'Style Negotiator',
     'agentReasoning.pb_reasoning':        'Profile Builder',
     'agentReasoning.sc_reasoning':        'Skills Curator',
@@ -49,7 +48,6 @@ export async function initRecipe(projectDir) {
     'agentReasoning.clw_reasoning':       'Cover Letter Writer',
     'agentReasoning.sr_reasoning':        'Style Reviewer',
     'agentReasoning.ic_reasoning':        'Integrity Checker',
-    'agentReasoning.df_reasoning':        'Document Formatter',
   };
 
   for (const [varName, agentName] of Object.entries(REASONING_VARS)) {

@@ -4,7 +4,7 @@
   "type": "module",
   "workspaces": [
     "services/kemu.io.scriptHttp@1.0.0",
-    "services/kemu.io.ai-agent@1.9.1",
+    "services/kemu.io.ai-agent@1.9.2",
     "services/kemu.io.file-system@1.4.1"
   ],
   "dependencies": {

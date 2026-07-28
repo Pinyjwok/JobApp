@@ -46,7 +46,6 @@ export function broadcastMode(mode, agent = null) {
 const ASSEMBLY_AGENTS = new Set([
   'Style Negotiator', 'Profile Builder', 'Skills Curator', 'History Formatter',
   'Credentials Formatter', 'CoverLetter Writer', 'Style Reviewer', 'Integrity Checker',
-  'Document Formatter',
 ]);
 function stripAssemblyPreamble(text) {
   const m = text.match(/^#{1,2}\s+\S/m);

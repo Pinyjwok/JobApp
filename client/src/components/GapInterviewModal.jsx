@@ -80,7 +80,7 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
             {onHide && (
               <button
                 onClick={onHide}
-                title="Hide — finish later to continue"
+                title="Hide - finish later to continue"
                 className="text-xs text-fg-secondary hover:text-fg bg-surface-2 border border-line hover:border-line-strong rounded-lg px-2.5 py-1 transition-all flex items-center gap-1"
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -108,14 +108,14 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
               <span className="text-xs font-semibold text-success">
                 {accepted.length} {accepted.length === 1 ? 'answer counted' : 'answers counted'}
               </span>
-              <span className="ml-auto text-[9px] text-success">{acceptedOpen ? '▾' : '▸'}</span>
+              <span className="ml-auto text-xs text-success">{acceptedOpen ? '▾' : '▸'}</span>
             </button>
             {acceptedOpen && (
               <ul className="flex flex-col gap-1 mt-2 animate-fade-in">
                 {accepted.map((a, i) => (
                   <li key={i} className="text-xs text-fg-secondary leading-relaxed pl-[22px]">
                     {a.gap_text}
-                    {a.mitigated && <span className="text-fg-muted"> — strengthened</span>}
+                    {a.mitigated && <span className="text-fg-muted"> - strengthened</span>}
                   </li>
                 ))}
               </ul>
@@ -128,7 +128,7 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
           {/* tier as eyebrow, then question as the focus */}
           <div>
             <Eyebrow tone={isBaseline ? 'warn' : 'muted'}>{isBaseline ? 'Important' : 'Nice to have'}</Eyebrow>
-            <p className="text-[15px] font-medium text-fg leading-relaxed mt-1.5">{gap.gap_text_plain ?? gap.gap_text}</p>
+            <p className="text-base font-medium text-fg leading-relaxed mt-1.5">{gap.gap_text_plain ?? gap.gap_text}</p>
           </div>
 
           {/* hint vs re-ask warning */}
@@ -136,7 +136,7 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
             <div className="bg-warn/10 border border-warn/30 rounded-lg px-3 py-2">
               <Eyebrow tone="warn" icon={<WarnIcon />} className="mb-1">Needs more detail</Eyebrow>
               <p className="text-xs text-warn leading-relaxed">
-                {gap.mitigation_strategy ?? 'Your last answer was a bit thin — can you add a concrete example or date?'}
+                {gap.mitigation_strategy ?? 'Your last answer was a bit thin - can you add a concrete example or date?'}
               </p>
             </div>
           ) : gap.mitigation_strategy && (
@@ -162,7 +162,7 @@ export function GapInterviewModal({ gaps, accepted = [], onSubmit, onHide, minim
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Skip — we'll leave this one out
+            Skip - we'll leave this one out
           </button>
         </div>
 

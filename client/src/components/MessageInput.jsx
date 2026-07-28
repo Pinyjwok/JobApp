@@ -7,7 +7,7 @@ const UPLOAD_TARGETS = [
   { label: 'Cover Letter Sample', value: 'cover_letter_sample' },
 ];
 
-export function MessageInput({ onSend, onUpload, disabled, pipelineMode, runningAgent, lastUserMessage }) {
+export function MessageInput({ onSend, onUpload, disabled, pipelineMode, lastUserMessage }) {
   const [text, setText] = useState('');
   const [injectMode, setInjectMode] = useState(false);
   const [uploadTarget, setUploadTarget] = useState(null);
@@ -55,7 +55,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
   const placeholder = injectMode
     ? 'Inject agent message...'
     : isAutoRunning
-      ? `Running: ${runningAgent ?? 'Pipeline'}…`
+      ? 'Working on it…'
       : isActionRequired
         ? 'Select an option above…'
         : 'Type a message…';
@@ -112,7 +112,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
-          {uploadTarget && <span className="text-[10px]">{targetLabel}</span>}
+          {uploadTarget && <span className="text-xs">{targetLabel}</span>}
         </button>
       </div>
 
@@ -161,7 +161,7 @@ export function MessageInput({ onSend, onUpload, disabled, pipelineMode, running
           type="button"
           onClick={() => setInjectMode((v) => !v)}
           aria-pressed={injectMode}
-          className={`rounded-xl border text-[10px] px-2.5 py-2.5 transition-all font-medium tracking-wide uppercase ${
+          className={`rounded-xl border text-xs px-2.5 py-2.5 transition-all font-medium tracking-wide uppercase ${
             injectMode
               ? 'bg-warn/10 border-warn/40 text-warn'
               : 'bg-surface-2 border-line text-fg-muted hover:text-fg-secondary'

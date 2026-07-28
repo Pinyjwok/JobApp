@@ -5,7 +5,7 @@ import { state } from '../lib/state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from '../lib/broadcast.js';
 import { sendToNodeAndWait } from '../lib/node-communication.js';
 import { ASSEMBLY_PHASES, WORKSPACE_DIR } from '../config/constants.js';
-import { syncTADone, checkJoin, checkResearchRedoJoin, fireTAAndAnalyst, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument } from '../lib/dispatch.js';
+import { syncTADone, checkJoin, fireTAAndAnalyst, finishAnalystTurn, clearStaleAnalysis, dispatchAssemblyPhase, mergePhaseOutput, submitSNAnswers, applyFitScore, runReviewAudit, buildReviewSummary, runLinearDispatch, surfaceStall, reShowSectionReview, broadcastAssemblySectionResult, resumeAssembly, runIcRemediation, broadcastDocument, finishFilesSaved } from '../lib/dispatch.js';
 import { adjudicateGapAnswers } from '../lib/adjudicator.js';
 import { handlePipelineStatus } from '../lib/pipeline-state.js';
 
@@ -24,36 +24,29 @@ router.post('/', async (req, res) => {
   try {
     switch (id) {
       case 'research_confirm':
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed — running gap analysis…' });
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed - running gap analysis…' });
         broadcastMode('auto_running', 'Analyst');
         await state.recipe.globalVariables.setValue('research_confirmed', 1);
         await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
         state.pipelineStatus = 'PARALLEL_ANALYSIS';
         state.analystDone = false;
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
-        sendToNodeAndWait('analyst_background_input', null, '__analyze__')
-          .then(async r => {
-            const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Analyst', false);
-            state.analystDone = true; syncTADone(); await checkJoin();
-          })
-          .catch(err => surfaceStall('Analyst', err));
+        {
+          const dispatchStart = Date.now();  // mtime freshness floor for finishAnalystTurn's gate
+          sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
+            .then(async r => {
+              const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
+              broadcastAgentResult(cleanText, 'Analyst', false);
+              await finishAnalystTurn(dispatchStart); syncTADone(); await checkJoin();
+            })
+            .catch(err => surfaceStall('Analyst', err));
+        }
         break;
 
       case 'research_redo':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research…' });
-        broadcastMode('auto_running', 'Researcher');
-        await state.recipe.globalVariables.setValue('pipeline_status', 'PARALLEL_ANALYSIS');
-        state.pipelineStatus = 'PARALLEL_ANALYSIS';
-        sendToNodeAndWait('researcher_input', 'Researcher', '__redo__')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Researcher', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-            else console.warn('[Researcher redo] missing pipeline_status tag');
-            checkResearchRedoJoin();
-          })
-          .catch(err => surfaceStall('Researcher', err));
+        state.recentlyDispatched.delete('RESEARCH_REDO');  // a user click must never hit the 30s dedupe
+        await handlePipelineStatus('RESEARCH_REDO');
         break;
 
       case 'redo_analyst': {
@@ -64,11 +57,12 @@ router.post('/', async (req, res) => {
         state.analystDone = false;
         syncTADone();
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
-        sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+        const dispatchStart = Date.now();  // mtime freshness floor for finishAnalystTurn's gate
+        sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
-            state.analystDone = true; syncTADone(); await checkJoin();
+            await finishAnalystTurn(dispatchStart); syncTADone(); await checkJoin();
           })
           .catch(err => surfaceStall('Analyst', err));
         break;
@@ -87,7 +81,7 @@ router.post('/', async (req, res) => {
         break;
 
       case 'research_pre_confirm':
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed — running JD enhancement…' });
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Research confirmed - running JD enhancement…' });
         state.pipelineStatus = 'RESEARCH_COMPLETE';
         runLinearDispatch({ node: 'jd_enhancer_input', agent: 'JD Enhancer' });
         break;
@@ -126,7 +120,7 @@ router.post('/', async (req, res) => {
         break;
 
       case 'research_skip':
-        broadcast({ type: 'agent_message', agent: 'System', text: 'Skipping research — continuing with available data…' });
+        broadcast({ type: 'agent_message', agent: 'System', text: 'Skipping research - continuing with available data…' });
         await handlePipelineStatus('RESEARCH_COMPLETE');
         break;
 
@@ -138,11 +132,12 @@ router.post('/', async (req, res) => {
         state.analystDone = false;
         syncTADone();
         state.retryThunk = fireTAAndAnalyst;  // stall recovery re-runs the analysis
-        sendToNodeAndWait('analyst_background_input', null, '__analyze__')
+        const dispatchStart = Date.now();  // mtime freshness floor for finishAnalystTurn's gate
+        sendToNodeAndWait('analyst_background_input', null, '__analyze__', 'default', { logLabel: 'Analyst' })
           .then(async r => {
             const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
             broadcastAgentResult(cleanText, 'Analyst', false);
-            state.analystDone = true; syncTADone(); await checkJoin();
+            await finishAnalystTurn(dispatchStart); syncTADone(); await checkJoin();
           })
           .catch(err => surfaceStall('Analyst', err));
         break;
@@ -152,28 +147,6 @@ router.post('/', async (req, res) => {
         broadcast({ type: 'agent_message', agent: 'System', text: 'Re-running research before retrying analysis…' });
         state.pipelineStatus = 'INITIALIZED';
         runLinearDispatch({ node: 'researcher_input', agent: 'Researcher', query: '__redo__' });
-        break;
-
-      case 'ac_proceed':
-        broadcastMode('auto_running', 'Assembly Coordinator');
-        sendToNodeAndWait('assembly_coordinator_input', 'Assembly Coordinator', 'proceed')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Assembly Coordinator', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-          })
-          .catch(err => surfaceStall('Assembly Coordinator', err));
-        break;
-
-      case 'ac_redo':
-        broadcastMode('auto_running', 'Main Orchestrator');
-        sendToNodeAndWait(' Message', 'Main Orchestrator', 'redo')
-          .then(async r => {
-            const { cleanText, status } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
-            broadcastAgentResult(cleanText, 'Main Orchestrator', true);
-            if (status) { await state.recipe.globalVariables.setValue('pipeline_status', status); state.pipelineStatus = status; }
-          })
-          .catch(err => surfaceStall('Main Orchestrator', err));
         break;
 
       // ── SN style interview (single-fire modal) ────────────────────────────
@@ -432,9 +405,9 @@ router.post('/', async (req, res) => {
           const bits = [];
           if (full) bits.push(`added ${full} backed point${full === 1 ? '' : 's'} to your CV`);
           if (mit)  bits.push(`strengthened your position on ${mit} requirement${mit === 1 ? '' : 's'} we can't fully close`);
-          if (open) bits.push(`couldn't fully evidence ${open} — we'll frame ${open === 1 ? 'it' : 'them'} honestly`);
+          if (open) bits.push(`couldn't fully evidence ${open} - we'll frame ${open === 1 ? 'it' : 'them'} honestly`);
           if (bits.length) {
-            broadcast({ type: 'agent_message', agent: 'System', text: `Thanks — ${bits.join(', ')}.` });
+            broadcast({ type: 'agent_message', agent: 'System', text: `Thanks - ${bits.join(', ')}.` });
             await new Promise(r => setTimeout(r, 600));
           }
         }
@@ -484,6 +457,12 @@ router.post('/', async (req, res) => {
       // in the preview works today. Point there instead of failing silently.
       case 'download':
         broadcast({ type: 'agent_message', agent: 'System', text: 'Open “View CV” or “View cover letter”, then use Copy or .pdf on the preview.', background: false });
+        break;
+
+      // User dismissed the non-blocking swapped-slot notice and chose to keep their files. Complete the
+      // ProjectSetup exactly as the happy path would — the regex flag was overruled by the user.
+      case 'slot_continue_anyway':
+        await finishFilesSaved();
         break;
 
       case 'cl_skip':

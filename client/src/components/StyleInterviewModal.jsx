@@ -12,7 +12,7 @@ import { Modal } from './Modal';
 //   • the three choices carry a leading radio glyph + warmer copy so the pre-seeded default reads as selected.
 
 const SEVERITY_OPTIONS = [
-  { value: 'high',   label: 'A must — weight it hard' },
+  { value: 'high',   label: 'A must - weight it hard' },
   { value: 'medium', label: 'Strong preference' },
   { value: 'low',    label: 'Nice to have' },
 ];
@@ -121,7 +121,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
             {onHide && (
               <button
                 onClick={onHide}
-                title="Hide — finish later to continue"
+                title="Hide - finish later to continue"
                 className="text-xs text-fg-secondary hover:text-fg bg-surface-2 border border-line hover:border-line-strong rounded-lg px-2.5 py-1 transition-all flex items-center gap-1"
               >
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -149,7 +149,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
               value={note.text}
               onChange={e => setNote(n => ({ ...n, text: e.target.value }))}
               onFocus={() => markVisited(NOTE_ID)}
-              placeholder="e.g. Keep my volunteering section — it's relevant to this role"
+              placeholder="e.g. Keep my volunteering section - it's relevant to this role"
               rows={4}
               className="w-full bg-surface-2 border border-line-strong rounded-xl px-4 py-3 text-sm text-fg placeholder-fg-faint focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 resize-none transition-all"
             />
@@ -171,7 +171,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
           <div className="flex flex-col gap-3">
             {/* kicker + headline */}
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-muted">{card.title}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-fg-muted">{card.title}</p>
               <h3 className="text-base font-semibold text-fg leading-snug mt-1">{card.recommendation ?? card.title}</h3>
             </div>
 
@@ -183,7 +183,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
                 onToggle={() => setOpenEvidence(prev => ({ ...prev, [card.id]: !prev[card.id] }))}
               >
                 {card.finding && (
-                  <p className="text-[13px] text-fg-secondary leading-relaxed whitespace-pre-line">{card.finding}</p>
+                  <p className="text-sm text-fg-secondary leading-relaxed whitespace-pre-line">{card.finding}</p>
                 )}
                 {(card.examples ?? []).length > 0 && (
                   <div className="flex flex-col gap-1.5 border-l-2 border-line pl-3">
@@ -214,7 +214,7 @@ export function StyleInterviewModal({ groups, onSubmit, onHide, minimized = fals
                   >
                     <Radio active={active} />
                     <span className="flex-1">{opt.label}</span>
-                    {opt.sub && <span className="text-[11px] text-fg-muted">{opt.sub}</span>}
+                    {opt.sub && <span className="text-xs text-fg-muted">{opt.sub}</span>}
                   </button>
                 );
               })}

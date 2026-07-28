@@ -3,7 +3,8 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const PROJECT_DIR   = join(__dirname, '..', '..');
-export const WORKSPACE_DIR = join(PROJECT_DIR, 'workspace');
+// JOBAPP_WORKSPACE_DIR lets tests point the workspace readers at a fixture dir; unset in production.
+export const WORKSPACE_DIR = process.env.JOBAPP_WORKSPACE_DIR || join(PROJECT_DIR, 'workspace');
 export const SNAPSHOTS_DIR = join(PROJECT_DIR, 'workspace-snapshots');
 export const HISTORY_FILE  = join(PROJECT_DIR, 'chat_history.json');
 
@@ -15,6 +16,9 @@ export const DISPATCH_TIMEOUT_MS = 180_000;
 // default tight for the fast linear agents; give the slow ones a generous budget.
 export const NODE_TIMEOUT_MS = {
   analyst_background_input: 600_000, // Analyst full gap analysis — routinely minutes
+  // JD Enhancer synthesizes research + JD into ad-anchored reqs + candidate-facing prose —
+  // same document-synthesis weight as the assembly agents below, not a fast linear pass.
+  jd_enhancer_input:        420_000,
   // Assembly LLM nodes: full-document reasoning (style review, integrity check, section
   // authoring) legitimately runs past the 180s default. A too-tight watchdog turns a
   // slow-but-fine run into a false STALL with no output. Give them a generous budget.
@@ -29,7 +33,6 @@ export const NODE_TIMEOUT_MS = {
   // accepted gap evidence — it is *designed* to be slow. This budget is a genuine-crash backstop only,
   // not a slowness policy: a long-but-healthy run salvages its verdict off disk (see dispatchAssemblyPhase).
   integrity_checker_input:    1_200_000,
-  document_formatter_input:   420_000,
 };
 
 // Status-tag fallback (#1): linear agents whose resulting pipeline_status is deterministic.
@@ -42,16 +45,44 @@ export const EXPECTED_STATUS = {
   'JD Enhancer': 'JD_ENHANCED',
 };
 
+// Output-file completion contracts — the file-driven replacement for the fragile
+// `pipeline_status:` prose tag. Each agent writes exactly one artifact whose presence + shape
+// (+ mtime freshness, checked in awaitOutputReady) proves it actually finished this turn. The
+// server derives routing from the FILE, not the LLM's typed sentence (which Flash drops). The
+// per-agent status/join effect lives in the callers (they need dispatch.js helpers); this map
+// owns only `file`, the `ready(data)` shape guard, and `stamp`. Mirrors the assembly phases, which
+// already route this way (mergePhaseOutput / _phaseHasRealOutput).
+//
+// `stamp` — dot-path of the artifact's completion timestamp, or null when it has none. Agents write
+// the literal `__DATE_TODAY__` token there and the server is the only source of "now": awaitOutputReady
+// stamps this the instant the artifact is proven fresh+valid, which is the truest "agent finished" time
+// we have. Substitution alone is NOT enough — it only runs on the display path (broadcast + GET
+// /api/workspace), so an unstamped field keeps the raw token ON DISK, where the next agent's ReadFile
+// and any server-side date math both see garbage. Stamp every timestamp an agent is asked to write.
+export const COMPLETION_CONTRACTS = {
+  Extractor:     { file: 'candidate_profile.json', ready: d => !!d?.personal_info?.name && Array.isArray(d?.work_history), stamp: null },
+  Researcher:    { file: 'research_output.json',   ready: d => d?.research_data === null || !!d?.research_data?.mission_values, stamp: 'completed_at' },
+  'JD Enhancer': { file: 'enhanced_jd.json',       ready: d => !!d?.candidate_brief?.headline, stamp: 'metadata.enhanced_at' },
+  // Analysis join (background, no next-status): each branch flips a boolean and calls checkJoin.
+  // register + flagged_issues are written by the TA itself before it returns; the {} scaffold fails.
+  'Tone Analyst':{ file: 'style_findings.json',    ready: d => Array.isArray(d?.flagged_issues) && typeof d?.register === 'string' && d.register.length > 0, stamp: 'analyzed_at' },
+  Analyst:       { file: 'gap_analysis.json',      ready: d => Array.isArray(d?.requirements), stamp: 'metadata.analyzed_at' },
+};
+
 export const AGENT_FOREGROUND = new Set([
   'Main Orchestrator', 'ProjectSetup', 'Researcher',
-  'Assembly Coordinator', 'Style Negotiator',
+  'Style Negotiator',
   'Profile Builder', 'Skills Curator', 'History Formatter',
   'Credentials Formatter', 'Cover Letter Writer',
-  'Style Reviewer', 'Integrity Checker', 'Document Formatter',
+  'Style Reviewer', 'Integrity Checker',
 ]);
 
 // Sequential assembly phase map — phaseNumber → agent config
 // outputFile: null for SR/IC which write cv_assembly_state.json directly
+// Integrity Checker (8) is the LAST phase. A clean IC pass dispatches phase 9, which has no entry here
+// → dispatchAssemblyPhase's no-phase branch sets CV_TAILORED + broadcastCompletion. (Document Formatter,
+// the old phase 9, was scrapped 2026-07-20 — its df_output.json/tailored_cv.json were consumed by nothing;
+// the finished-doc render comes from buildDocumentData over the per-section files, not DF.)
 export const ASSEMBLY_PHASES = {
   1: { agent: 'Style Negotiator',     inputNode: 'style_negotiator_input',     outputFile: 'sn_output.json'  },
   2: { agent: 'Profile Builder',       inputNode: 'profile_builder_input',       outputFile: 'pb_output.json'  },
@@ -61,7 +92,6 @@ export const ASSEMBLY_PHASES = {
   6: { agent: 'Cover Letter Writer',   inputNode: 'cover_letter_writer_input',   outputFile: 'clw_output.json' },
   7: { agent: 'Style Reviewer',        inputNode: 'style_reviewer_input',        outputFile: null              },
   8: { agent: 'Integrity Checker',     inputNode: 'integrity_checker_input',     outputFile: null              },
-  9: { agent: 'Document Formatter',    inputNode: 'document_formatter_input',    outputFile: 'df_output.json'  },
 };
 
 export const INPUT_NODE_MAP = {
@@ -100,7 +130,7 @@ export const EXCEPTION_ACTION_BUTTONS = {
     { id: 'redo_analyst',     label: 'Look at how I fit again', variant: 'ghost'   },
     { id: 'redo_researcher',  label: 'Research the company again', variant: 'ghost'   },
     { id: 'redo_jd_enhancer', label: 'Re-read the job ad',      variant: 'ghost'   },
-    { id: 'accept_anyway',    label: 'Looks good — keep going',  variant: 'primary' },
+    { id: 'accept_anyway',    label: 'Looks good - keep going',  variant: 'primary' },
     { id: 'details',          label: 'Show me the details',     variant: 'ghost'   },
   ],
   'RESEARCH_FAILED': [
@@ -122,7 +152,6 @@ const CV_ASSEMBLY_PHASES = [
   { phase_number: 6, phase_name: 'Cover Letter Writing',   agent: 'CoverLetter Writer',    status: 'PENDING', completed_at: null, data: null },
   { phase_number: 7, phase_name: 'Style Review',           agent: 'Style Reviewer',        status: 'PENDING', completed_at: null, data: null },
   { phase_number: 8, phase_name: 'Integrity Check',        agent: 'Integrity Checker',     status: 'PENDING', completed_at: null, data: null },
-  { phase_number: 9, phase_name: 'Document Formatting',    agent: 'Document Formatter',    status: 'PENDING', completed_at: null, data: null },
 ];
 
 export const WORKSPACE_SCAFFOLD = {
@@ -134,10 +163,9 @@ export const WORKSPACE_SCAFFOLD = {
   'research_output.json':  {},
   'enhanced_jd.json':      {},
   'review_audit.json':     {},
-  'tailored_cv.json':      {},
   'cv_assembly_state.json': {
     current_phase: 1,
-    metadata: { started_at: null, last_updated: null, status: 'ACTIVE', total_phases: 9, completed_phases: 0 },
+    metadata: { started_at: null, last_updated: null, status: 'ACTIVE', total_phases: 8, completed_phases: 0 },
     phases: CV_ASSEMBLY_PHASES,
     user_request: null,
     final_cv: null,
@@ -149,9 +177,10 @@ export const WORKSPACE_SCAFFOLD = {
   // Validator verdict files — pre-created so the validator agents OVERWRITE an existing file.
   // KEMU's WriteFile creates a nested dir (<name>/<name>) when the target doesn't already exist,
   // which then breaks the server's readFileSync (EISDIR). Scaffolding them avoids the create path.
-  // analyst_validator_verdict.json is file-backed again (2026-06-17): the inline analyst_validator
-  // writes it as the source of truth; the server reads it to broadcast the verdict bubble and the
-  // Analyst reads it for its APPROVE/FLAG/REJECT branch (no longer parses the tool-call text).
+  // analyst_validator_verdict.json is now SERVER-written (2026-07-16), not KEMU-written: the audit
+  // moved off the inline analyst_validator tool call into server/lib/analyst-validator.js. Nothing
+  // reads it anymore — it is a pure audit trail for an otherwise invisible internal QA step. Kept
+  // scaffolded so the file always exists with a readable shape.
   'analyst_validator_verdict.json':  {},
   'tone_validator_verdict.json':     {},
   'assembly_validator_verdict.json': {},
@@ -166,5 +195,4 @@ export const WORKSPACE_SCAFFOLD = {
   'hf_output.json':         {},
   'cf_output.json':         {},
   'clw_output.json':        {},
-  'df_output.json':         {},
 };

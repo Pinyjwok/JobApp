@@ -1,0 +1,13 @@
+{
+  "verdict": "FLAG",
+  "agent": "tone_analyst",
+  "issues": [
+    {
+      "field": "signature_phrases.phrases",
+      "problem": "Quote \"translated complex business requirements…\" not found verbatim in source — dropped",
+      "severity": "resolved"
+    }
+  ],
+  "findings_for_sn": [],
+  "summary": "1 ungrounded quote(s) stripped server-side."
+}

@@ -23,9 +23,9 @@ const STATUS_MAP = {
 };
 
 const FAILED_MAP = {
-  EXTRACTION_FAILED: { phase: 'analyse', done: [],                    substep: "Could not read a file — let's fix that." },
-  RESEARCH_FAILED:   { phase: 'analyse', done: [],                    substep: "Research hit a snag — let's retry." },
-  ANALYSIS_FAILED:   { phase: 'analyse', done: [],                    substep: "Analysis hit a snag — let's retry." },
+  EXTRACTION_FAILED: { phase: 'analyse', done: [],                    substep: "Could not read a file - let's fix that." },
+  RESEARCH_FAILED:   { phase: 'analyse', done: [],                    substep: "Research hit a snag - let's retry." },
+  ANALYSIS_FAILED:   { phase: 'analyse', done: [],                    substep: "Analysis hit a snag - let's retry." },
   REVIEW_FAILED:     { phase: 'analyse', done: [],                    substep: 'A few things to review together.' },
   STYLE_FAILED:      { phase: 'build',   done: ['analyse', 'polish'], substep: 'A style check needs your input.' },
   INTEGRITY_FAILED:  { phase: 'build',   done: ['analyse', 'polish'], substep: 'An accuracy check needs your input.' },
@@ -43,16 +43,16 @@ const PROGRESS = {
 const ASSEMBLY_PROGRESS = {
   'Style Negotiator': 58, 'Profile Builder': 66, 'Skills Curator': 70, 'History Formatter': 74,
   'Credentials Formatter': 78, 'CoverLetter Writer': 82, 'Style Reviewer': 88,
-  'Integrity Checker': 93, 'Document Formatter': 97,
+  'Integrity Checker': 95,
 };
 
 const ASSEMBLY_SUBSTEP = {
   'Style Negotiator':       'Agreeing your style with you…',
-  'Profile Builder':        'Writing your profile — review & approve.',
-  'Skills Curator':         'Curating your skills — review & approve.',
-  'History Formatter':      'Shaping your work history — review & approve.',
-  'Credentials Formatter':  'Formatting your credentials — review & approve.',
-  'CoverLetter Writer':     'Drafting your cover letter — review & approve.',
+  'Profile Builder':        'Writing your profile - review & approve.',
+  'Skills Curator':         'Curating your skills - review & approve.',
+  'History Formatter':      'Shaping your work history - review & approve.',
+  'Credentials Formatter':  'Formatting your credentials - review & approve.',
+  'CoverLetter Writer':     'Drafting your cover letter - review & approve.',
   'Style Reviewer':         'Polishing the wording…',
   'Integrity Checker':      'Double-checking every claim…',
 };
@@ -131,7 +131,7 @@ export function StatusBar({ status, activeAgent, running = false }) {
 
       {substep && (
         <div className="flex items-center justify-center mt-2">
-          <span className={`text-[11px] transition-colors ${hasFailure ? 'text-danger' : isComplete ? 'text-success' : 'text-fg-secondary'}`}>
+          <span className={`text-xs transition-colors ${hasFailure ? 'text-danger' : isComplete ? 'text-success' : 'text-fg-secondary'}`}>
             {!isComplete && !hasFailure && <span className="text-accent mr-1">▸</span>}
             {substep}
           </span>

@@ -58,7 +58,7 @@ function DocRow({ label, badge, hint, file, onFile }) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-fg">{label}</span>
           {badge && (
-            <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
+            <span className={`text-xs font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
               badge === 'Required' ? 'bg-accent/10 text-accent' : 'bg-surface text-fg-muted'
             }`}>{badge}</span>
           )}
@@ -75,7 +75,7 @@ function DocRow({ label, badge, hint, file, onFile }) {
 const STEPS = [
   { n: '1', title: 'Analyse', body: 'We read your CV and the job, research the company, and map your fit.' },
   { n: '2', title: 'Polish',  body: 'We learn your writing voice so everything sounds like you.' },
-  { n: '3', title: 'Build',   body: 'We build each section and your cover letter — you approve as we go.' },
+  { n: '3', title: 'Build',   body: 'We build each section and your cover letter - you approve as we go.' },
 ];
 
 // The fresh-start flow: hero + steps + document uploads. Shared by first-time users and the
@@ -127,8 +127,8 @@ function FreshStart({ onStart, onBack }) {
           <h2 className="text-sm font-semibold text-fg">Your documents</h2>
           <span className="text-xs text-fg-muted">{requiredCount} of 2 required</span>
         </div>
-        <DocRow label="CV / Resume"   badge="Required"    hint="PDF or TXT — drag or click" file={cvFile} onFile={setCvFile} />
-        <DocRow label="Job Description" badge="Required"  hint="PDF or TXT — drag or click" file={jdFile} onFile={setJdFile} />
+        <DocRow label="CV / Resume"   badge="Required"    hint="PDF or TXT - drag or click" file={cvFile} onFile={setCvFile} />
+        <DocRow label="Job Description" badge="Required"  hint="PDF or TXT - drag or click" file={jdFile} onFile={setJdFile} />
         <DocRow label="Cover Letter Sample" badge="Recommended" hint="Lets us match your writing voice" file={clFile} onFile={setClFile} />
       </div>
 

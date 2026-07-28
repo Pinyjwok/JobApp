@@ -1,0 +1,203 @@
+{
+  "personal_info": {
+    "name": "Michelle Tanaka",
+    "alternate_name": "",
+    "contact": {
+      "email": "michelle.tanaka.ux@gmail.com",
+      "phone": "0431 555 789",
+      "location": "Melbourne, VIC 3000",
+      "linkedin": "linkedin.com/in/michelletanakaux",
+      "portfolio": "michelletanaka.design",
+      "github": ""
+    }
+  },
+  "professional_summary": "UX/UI Designer with 2+ years of professional design experience and a unique background in corporate law. Proven ability to conduct end-to-end UX work from user research through to high-fidelity design and developer handoff. Experienced in responsive design systems, accessibility standards, and Agile workflows. Strong stakeholder communication skills developed through senior legal advisory roles. Successfully transitioned from law to UX design through rigorous retraining and hands-on contract work.",
+  "work_history": [
+    {
+      "employer": "Bright Pixel Studio",
+      "position": "UX Designer (Contract)",
+      "location": "Melbourne",
+      "employment_type": "Contract",
+      "start_date": "March 2025",
+      "end_date": "Present",
+      "duration_years": 1.3,
+      "responsibilities": [
+        "Redesigned onboarding flow for fintech client's mobile app",
+        "Led end-to-end UX for council community engagement portal (responsive web) from stakeholder workshops through to developer handoff",
+        "Conducted competitive analysis and heuristic evaluations for 3 client projects",
+        "Managed own client relationships, scoping, and timeline negotiation"
+      ],
+      "achievements": [
+        "Improved task completion rate from 34% to 71% over 8 weeks for fintech onboarding flow"
+      ]
+    },
+    {
+      "employer": "Neighbourhood Digital",
+      "position": "UX Design Intern (Part-Time)",
+      "location": "Richmond, VIC",
+      "employment_type": "Part-Time Internship",
+      "start_date": "September 2024",
+      "end_date": "February 2025",
+      "duration_years": 0.4,
+      "responsibilities": [
+        "Supported senior designer on healthcare patient portal redesign",
+        "Created wireframes and low-fidelity prototypes in Figma for not-for-profit website migration",
+        "Participated in 2 design sprints and presented findings to clients"
+      ],
+      "achievements": []
+    },
+    {
+      "employer": "Self (Primary Carer)",
+      "position": "Career Break — Primary Carer",
+      "location": "Melbourne",
+      "employment_type": "Career Break",
+      "start_date": "January 2021",
+      "end_date": "August 2024",
+      "duration_years": 3.6,
+      "responsibilities": [
+        "Primary carer for two children (born 2020 and 2022)",
+        "Completed UX design retraining during this period",
+        "Maintained professional development through volunteer design work"
+      ],
+      "achievements": [
+        "Redesigned website for Hawthorn Community House (pro bono) including user research with 15 community members and full responsive prototype"
+      ]
+    },
+    {
+      "employer": "Ashurst (formerly Blake Dawson)",
+      "position": "Senior Associate — Corporate & Commercial",
+      "location": "Melbourne",
+      "employment_type": "Full-Time",
+      "start_date": "February 2015",
+      "end_date": "December 2020",
+      "duration_years": 5.8,
+      "responsibilities": [
+        "Advised ASX-listed and multinational clients on M&A transactions, joint ventures, and commercial contracts valued at $50M–$500M+",
+        "Drafted, reviewed, and negotiated complex commercial agreements under time pressure",
+        "Managed teams of 3–5 junior lawyers and coordinated with international offices on cross-border deals",
+        "Distilled complex legal concepts into plain-English client advice"
+      ],
+      "achievements": [
+        "Promoted from Graduate (2015) to Senior Associate (2019) — one year ahead of standard progression"
+      ]
+    },
+    {
+      "employer": "Ashurst (formerly Blake Dawson)",
+      "position": "Graduate-at-Law / Seasonal Clerk",
+      "location": "Melbourne",
+      "employment_type": "Full-Time",
+      "start_date": "February 2014",
+      "end_date": "January 2015",
+      "duration_years": 0.9,
+      "responsibilities": [
+        "Completed rotations across Corporate, Litigation, and Real Estate groups"
+      ],
+      "achievements": [
+        "Selected from 800+ applicants for the seasonal clerkship program"
+      ]
+    }
+  ],
+  "skills": {
+    "core_competencies": [
+      "User Research & Discovery",
+      "Interaction & Visual Design",
+      "Responsive Design Systems",
+      "Accessibility Standards (WCAG 2.1 AA)",
+      "Stakeholder Communication",
+      "Design Thinking",
+      "Information Architecture",
+      "Usability Testing"
+    ],
+    "technical_skills": [
+      "Figma (daily use for 2+ years)",
+      "Adobe Creative Suite (Photoshop, Illustrator)",
+      "Miro",
+      "HTML/CSS (working knowledge)",
+      "Agile/Scrum workflows",
+      "Jira",
+      "Hotjar",
+      "Google Analytics",
+      "UserTesting",
+      "Maze",
+      "Card sorting",
+      "Tree testing",
+      "Contextual inquiry",
+      "Journey mapping",
+      "Wireframing",
+      "Interactive prototyping"
+    ],
+    "soft_skills": [
+      "Client relationship management",
+      "Contract negotiation",
+      "Presenting to senior stakeholders",
+      "Facilitating design critiques",
+      "Translating complex requirements into clear user flows",
+      "Team management",
+      "Cross-border coordination",
+      "Plain-language communication"
+    ],
+    "certifications": [
+      "Google UX Design Professional Certificate (Coursera, 2024)",
+      "Interaction Design Foundation: Accessibility — How to Design for All (2024)",
+      "Admitted to Practice — Supreme Court of Victoria (2014) [no longer holding a practising certificate]"
+    ],
+    "languages": []
+  },
+  "education": [
+    {
+      "institution": "General Assembly",
+      "qualification": "UX Design Immersive (Full-Time, 12 weeks)",
+      "field_of_study": "UX Design",
+      "completion_date": "June 2024",
+      "location": "Melbourne Campus",
+      "grade": "Distinction (Capstone project)",
+      "details": "Capstone project: 'MedConnect' — a GP appointment booking app for elderly users (received Distinction). Covered: Design Thinking, User Research, Information Architecture, Prototyping, Usability Testing"
+    },
+    {
+      "institution": "Melbourne Law School, The University of Melbourne",
+      "qualification": "Juris Doctor (JD)",
+      "field_of_study": "Law",
+      "completion_date": "2013",
+      "location": "Melbourne",
+      "grade": "Dean's Honours List (2012)",
+      "details": ""
+    },
+    {
+      "institution": "Monash University",
+      "qualification": "Bachelor of Arts (Honours)",
+      "field_of_study": "Psychology",
+      "completion_date": "2010",
+      "location": "Clayton",
+      "grade": "First Class Honours",
+      "details": "Thesis: 'Decision-Making Under Uncertainty' (relevant to UX research methods)"
+    }
+  ],
+  "publications": [],
+  "grants": [],
+  "awards": [],
+  "additional_information": {
+    "memberships": [],
+    "volunteer": [
+      {
+        "organisation": "Ladies That UX Melbourne",
+        "role": "UX Mentor",
+        "period": "2025 – Present"
+      },
+      {
+        "organisation": "Hawthorn Community House",
+        "role": "Pro bono website redesign",
+        "period": "2023"
+      },
+      {
+        "organisation": "Ashurst Pro Bono Committee",
+        "role": "Committee Member",
+        "period": "2017 – 2020"
+      },
+      {
+        "organisation": "Asylum Seeker Resource Centre",
+        "role": "Volunteer Legal Advisor",
+        "period": "2016 – 2018"
+      }
+    ]
+  }
+}

@@ -1,0 +1,127 @@
+POSITION DESCRIPTION
+
+UX/UI DESIGNER — DIGITAL BANKING
+
+Organisation:       Suncorp Group
+Business Unit:      Digital Experience — Banking & Wealth
+Location:           Brisbane (QLD) or Melbourne (VIC) — Hybrid (3 days in office)
+Employment Type:    Full-Time, Permanent
+Classification:     Individual Contributor (Senior Band)
+Salary Range:       $120,000 – $140,000 + 11.5% Superannuation
+Reports To:         Design Lead, Digital Banking
+Date:               March 2026
+Reference:          SUN-DIG-2026-112
+
+------------------------------------------------------------------------------
+
+ABOUT SUNCORP GROUP
+
+Suncorp Group is one of Australia and New Zealand's largest financial services providers, with approximately 13,000 employees and $96 billion in assets. Our banking brands — including Suncorp Bank — serve over 1.8 million customers.
+
+We are in the middle of a significant digital transformation following the sale of our insurance arm to Allianz, refocusing the Group squarely on banking. Our Digital Experience team is charged with reimagining how customers interact with Suncorp Bank across web, app, and emerging channels.
+
+------------------------------------------------------------------------------
+
+ABOUT THE ROLE
+
+We're looking for a UX/UI Designer to join our Digital Banking squad. You'll work across the full design lifecycle — from discovery research through to pixel-perfect UI and developer handoff — on products that millions of Australians use every day.
+
+This is not a "wireframes only" role. We need someone who can conduct user research, synthesise insights, design interaction flows, create high-fidelity interfaces in Figma, and advocate for the customer in every sprint ceremony. You'll work embedded in a cross-functional Agile squad alongside product managers, engineers, data analysts, and content designers.
+
+The ideal candidate brings a strong portfolio demonstrating end-to-end design thinking, a bias for evidence over opinion, and the communication skills to influence product direction.
+
+------------------------------------------------------------------------------
+
+KEY RESPONSIBILITIES
+
+Research & Discovery (25%)
+
+- Plan and conduct qualitative user research (interviews, usability testing, contextual inquiry) to inform design decisions
+- Synthesise research into personas, journey maps, and actionable insights
+- Collaborate with the data analytics team to triangulate qualitative findings with quantitative behavioural data (Amplitude, Google Analytics)
+- Champion the voice of the customer in sprint planning and stakeholder forums
+
+Design & Prototyping (45%)
+
+- Design end-to-end user flows, wireframes, and high-fidelity UI for web and native mobile (iOS/Android)
+- Build and maintain components within Suncorp's Figma-based design system ("Spark")
+- Create interactive prototypes for usability testing and stakeholder review
+- Ensure all designs meet WCAG 2.1 AA accessibility standards and Suncorp's inclusive design principles
+- Apply responsive design principles across breakpoints (mobile-first approach)
+
+Collaboration & Delivery (20%)
+
+- Work within a cross-functional Agile squad, participating in daily stand-ups, sprint planning, retrospectives, and design reviews
+- Partner closely with front-end engineers during build, providing detailed specs and redlines via Figma Dev Mode
+- Collaborate with Content Designers to ensure copy and UI work seamlessly together
+- Present design rationale to senior stakeholders (GM level) with clarity and confidence
+
+Design Operations & Culture (10%)
+
+- Contribute to the evolution of the "Spark" design system — proposing new patterns, documenting decisions, and retiring deprecated components
+- Participate in cross-squad design critiques and knowledge-sharing sessions
+- Mentor junior designers and support the team's inclusive, psychologically safe culture
+
+------------------------------------------------------------------------------
+
+KEY SELECTION CRITERIA
+
+Essential
+
+1. Portfolio: A strong portfolio demonstrating end-to-end UX/UI work across web and mobile platforms. We want to see your process (research → ideation → testing → iteration), not just final screens.
+
+2. Tools: Advanced proficiency in Figma (including component libraries, auto layout, variables, and Dev Mode). Experience with prototyping and user testing tools (e.g., Maze, UserTesting, Optimal Workshop).
+
+3. Research Skills: Demonstrated experience planning and conducting user research, and translating findings into design decisions. We value designers who can run their own research, not just consume research reports.
+
+4. Accessibility: Working knowledge of WCAG 2.1 AA standards and inclusive design principles, with evidence of applying them in shipped products.
+
+5. Collaboration: Proven ability to work effectively within Agile squads, including constructive collaboration with product managers, engineers, and content designers.
+
+6. Communication: Ability to articulate design rationale clearly to both technical and non-technical stakeholders, including at senior leadership level.
+
+7. Experience: Minimum 3 years of professional UX/UI design experience (agency, in-house, or contract). Financial services, healthcare, or other regulated-industry experience is highly regarded but not essential.
+
+Desirable
+
+8. Experience working with or contributing to a large-scale design system.
+9. Familiarity with front-end technologies (HTML, CSS, React) sufficient to collaborate meaningfully with engineers.
+10. Experience with data-informed design — using analytics platforms (Amplitude, Mixpanel, Google Analytics) to validate design hypotheses.
+11. Tertiary qualification in Design, Human-Computer Interaction, Psychology, or a related field (or equivalent practical experience).
+
+------------------------------------------------------------------------------
+
+WHAT WE OFFER
+
+- Hybrid flexibility: 3 days in office, 2 from home (Melbourne or Brisbane)
+- $2,000 annual learning & development budget
+- 14 weeks paid parental leave (all parents)
+- Discounted banking products and salary packaging
+- Employee Assistance Program (EAP) and wellbeing days
+- Genuine career progression — we promote from within and support lateral moves across the Group
+
+------------------------------------------------------------------------------
+
+PRE-EMPLOYMENT REQUIREMENTS
+
+- National Police Check (conducted by Suncorp)
+- Bankruptcy and credit check (standard for financial services roles under APRA prudential standards)
+- Evidence of right to work in Australia
+- Two professional referees (at least one must be a direct manager or supervisor from the past 3 years)
+
+------------------------------------------------------------------------------
+
+HOW TO APPLY
+
+Submit your application via Suncorp Careers, including:
+1. Your CV/resume
+2. A link to your design portfolio (Behance, personal site, or PDF)
+3. A brief cover letter (optional but encouraged)
+
+For questions about the role, contact:
+Amy Nguyen
+Talent Acquisition Partner — Technology & Digital
+Email: digital.careers@suncorp.com.au
+Phone: (07) 3835 5200
+
+Suncorp Group is committed to building a diverse, inclusive, and flexible workforce. We encourage applications from Aboriginal and Torres Strait Islander peoples, people with disability, people from culturally diverse backgrounds, and the LGBTIQ+ community. If you require adjustments to the recruitment process, please let us know.

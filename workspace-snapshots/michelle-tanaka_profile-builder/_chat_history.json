@@ -1,0 +1,329 @@
+[
+  {
+    "role": "agent",
+    "agent": "JobApp",
+    "text": "Got your documents - thanks. I'm starting on the analysis now, I'll walk you through each step and check in with you along the way."
+  },
+  {
+    "role": "user",
+    "text": "Files are saved to disk as cv_raw.txt and jd_raw.txt. Please initialise the project."
+  },
+  {
+    "role": "agent",
+    "agent": "ProjectSetup",
+    "text": "# ✓ ProjectSetup Complete\nProject initialised — CV and JD saved, metadata written.",
+    "reasoning": "",
+    "background": false,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "Extractor",
+    "text": "# ✓ Extractor Complete\nProfile extracted — 5 roles. Candidate: Michelle Tanaka.",
+    "reasoning": "",
+    "background": true,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "Researcher",
+    "text": "# ✓ Researcher Complete\nCompany intelligence gathered for Suncorp Group.\n\n**Sources:**\n1. [UI Visual and UX Designer at Suncorp](https://designproject.io/jobs/ui-visual-and-ux-designer-at-suncorp-fgi8ft) _(company)_\n2. [Sun Life Financial UX/UI Designer Interview Questions 2026](https://dataford.io/interview-guides/sun-life-financial/ux-ui-designer) _(company)_\n3. [Nick Li](https://au.linkedin.com/in/nicklxy) _(company)_\n4. [Suncorp Group hiring UI Visual and UX Designer in Australia](https://au.linkedin.com/jobs/view/ui-visual-and-ux-designer-at-suncorp-group-4427897996) _(company)_\n5. [Careers - Suncorp Group](https://www.suncorpgroup.com.au/careers) _(company)_\n6. [Suncorp Group - Since 1902, Suncorp has been building futures and protecting what matters](https://au.linkedin.com/company/suncorp/life) _(company)_\n7. [David Tran](https://au.linkedin.com/in/davidhgtran) _(company)_\n8. [UX Designer Careers in Australia: Roles, Salary & Immigration](https://employmentforimmigration.nz/ux-designer-roles-in-australia) _(sector)_\n9. [UI Visual and UX Designer at Suncorp](https://designproject.io/jobs/ui-visual-and-ux-designer-at-suncorp-fgi8ft) _(sector)_\n10. [UX Designer Jobs in Australia | Hays](https://www.hays.com.au/it/ux-designer-jobs) _(sector)_\n11. [Hire UI/UX Designers in Australia | Asanify's EOR Guide for 2025](https://asanify.com/blog/hiring-in-australia/hire-ui-ux-designer-in-australia-guide-2025) _(sector)_\n12. [Entry Level UX Designer Jobs & Programs in Australia](https://au.prosple.com/entry-level-ux-designer-jobs-programs-in-australia) _(sector)_\n13. [How to Become a UX Designer in Australia | Dapth Insights](https://dapth.com/insights/ux-designer-role) _(sector)_\n14. [What is going on with the Australian UX & product design job market? Some hypothesises.](https://ben-gilmore.medium.com/what-is-going-on-with-the-australian-ux-product-design-job-market-some-hypothesises-a55c7f86e42e) _(sector)_\n15. [Lead UX Designer (Mobile & Self-Service) at SwiftCruit - Melbourne](https://haystackapp.io/jobs/8afbe59d-9418-44f5-b72d-8d90ee251724) _(sector)_",
+    "reasoning": "",
+    "background": false,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "actions",
+    "context": "research_pre_confirm",
+    "prompt": "",
+    "actions": [
+      {
+        "id": "research_pre_confirm",
+        "label": "Yes - continue",
+        "variant": "primary"
+      },
+      {
+        "id": "research_pre_redo",
+        "label": "Research again",
+        "variant": "ghost"
+      }
+    ],
+    "used": true
+  },
+  {
+    "role": "agent",
+    "agent": "System",
+    "text": "Research confirmed - running JD enhancement…",
+    "reasoning": "",
+    "background": false,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "JD Enhancer",
+    "text": "# ✓ Job description enhanced\n\nCaptured 11 required + 4 preferred qualifications and 16 responsibilities, and prepared your role brief.",
+    "reasoning": "",
+    "background": true,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "JD Enhancer",
+    "text": "",
+    "reasoning": "",
+    "background": false,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": "enhanced_jd",
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "Tone Analyst",
+    "text": "# ✓ Tone Analyst Complete\nStyle analysis complete — 3 issue(s) flagged.",
+    "reasoning": "",
+    "background": true,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "System",
+    "text": "Analysis still running in background - will begin gap review shortly…",
+    "reasoning": "",
+    "background": true,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "Analyst",
+    "text": "**Fit Score: 5.2/10**\n\n# ✓ Analyst Complete\nGap analysis written.\nKey gap: Experience: Minimum 3 years of professional UX/UI design experience (agency, in-house, or contract). Financial services, healthcare, or other regulated-industry experience is highly regarded but not essential. (severity: High)",
+    "reasoning": "",
+    "background": false,
+    "analystData": {
+      "score": 5.2,
+      "strengths": [
+        {
+          "text": "Portfolio: A strong portfolio demonstrating end-to-end UX/UI work across web and mobile platforms. We want to see your process (research → ideation → testing → iteration), not just final screens."
+        },
+        {
+          "text": "Research Skills: Demonstrated experience planning and conducting user research, and translating findings into design decisions. We value designers who can run their own research, not just consume research reports."
+        },
+        {
+          "text": "Collaboration: Proven ability to work effectively within Agile squads, including constructive collaboration with product managers, engineers, and content designers."
+        },
+        {
+          "text": "Communication: Ability to articulate design rationale clearly to both technical and non-technical stakeholders, including at senior leadership level."
+        },
+        {
+          "text": "Tertiary qualification in Design, Human-Computer Interaction, Psychology, or a related field (or equivalent practical experience)."
+        },
+        {
+          "text": "Plan and conduct qualitative user research (interviews, usability testing, contextual inquiry) to inform design decisions"
+        },
+        {
+          "text": "Champion the voice of the customer in sprint planning and stakeholder forums"
+        },
+        {
+          "text": "Design end-to-end user flows, wireframes, and high-fidelity UI for web and native mobile (iOS/Android)"
+        },
+        {
+          "text": "Create interactive prototypes for usability testing and stakeholder review"
+        },
+        {
+          "text": "Apply responsive design principles across breakpoints (mobile-first approach)"
+        },
+        {
+          "text": "Work within a cross-functional Agile squad, participating in daily stand-ups, sprint planning, retrospectives, and design reviews"
+        },
+        {
+          "text": "Collaborate with Content Designers to ensure copy and UI work seamlessly together"
+        },
+        {
+          "text": "Present design rationale to senior stakeholders (GM level) with clarity and confidence"
+        },
+        {
+          "text": "Mentor junior designers and support the team's inclusive, psychologically safe culture"
+        }
+      ],
+      "gaps": [
+        {
+          "text": "Experience: Minimum 3 years of professional UX/UI design experience (agency, in-house, or contract). Financial services, healthcare, or other regulated-industry experience is highly regarded but not essential.",
+          "severity": "High"
+        },
+        {
+          "text": "Tools: Advanced proficiency in Figma (including component libraries, auto layout, variables, and Dev Mode). Experience with prototyping and user testing tools (e.g., Maze, UserTesting, Optimal Workshop).",
+          "severity": "High"
+        },
+        {
+          "text": "Accessibility: Working knowledge of WCAG 2.1 AA standards and inclusive design principles, with evidence of applying them in shipped products.",
+          "severity": "High"
+        },
+        {
+          "text": "Experience working with or contributing to a large-scale design system.",
+          "severity": "Medium"
+        },
+        {
+          "text": "Familiarity with front-end technologies (HTML, CSS, React) sufficient to collaborate meaningfully with engineers.",
+          "severity": "Medium"
+        },
+        {
+          "text": "Build and maintain components within Suncorp's Figma-based design system ('Spark')",
+          "severity": "Medium"
+        },
+        {
+          "text": "Partner closely with front-end engineers during build, providing detailed specs and redlines via Figma Dev Mode",
+          "severity": "Medium"
+        },
+        {
+          "text": "Contribute to the evolution of the 'Spark' design system — proposing new patterns, documenting decisions, and retiring deprecated components",
+          "severity": "Medium"
+        },
+        {
+          "text": "Experience with data-informed design — using analytics platforms (Amplitude, Mixpanel, Google Analytics) to validate design hypotheses.",
+          "severity": "Medium"
+        },
+        {
+          "text": "Synthesise research into personas, journey maps, and actionable insights",
+          "severity": "Medium"
+        },
+        {
+          "text": "Collaborate with the data analytics team to triangulate qualitative findings with quantitative behavioural data (Amplitude, Google Analytics)",
+          "severity": "Medium"
+        },
+        {
+          "text": "Ensure all designs meet WCAG 2.1 AA accessibility standards and Suncorp's inclusive design principles",
+          "severity": "Medium"
+        },
+        {
+          "text": "Participate in cross-squad design critiques and knowledge-sharing sessions",
+          "severity": "Medium"
+        },
+        {
+          "text": "National Police Check (conducted by Suncorp)",
+          "severity": "Administrative"
+        },
+        {
+          "text": "Bankruptcy and credit check (standard for financial services roles under APRA prudential standards)",
+          "severity": "Administrative"
+        },
+        {
+          "text": "Evidence of right to work in Australia",
+          "severity": "Administrative"
+        },
+        {
+          "text": "Two professional referees (at least one must be a direct manager or supervisor from the past 3 years)",
+          "severity": "Administrative"
+        }
+      ]
+    },
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "System",
+    "text": "Thanks - strengthened your position on 1 requirement we can't fully close.",
+    "reasoning": "",
+    "background": false,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "Analysis",
+    "text": "**Fit Score: 5.2/10**\n\n# ✓ Quality Review Complete\n\n**Overall Verdict:** APPROVED\n\n---\n\n## Audit Summary\n\n**Items Audited:** 77\n**Approved Items:** 62\n**Issues Found:** 0\n\n**Gap Evidence Provided:** 1 gap(s) resolved via candidate evidence\n\n**Issues by Severity:**\n- Critical: 0\n- High: 0\n- Medium: 0\n- Low: 0\n\n---\n\nAnalysis validated and approved.\n\n**Next:** the assembly phase will begin - starting with style negotiation.",
+    "reasoning": "",
+    "background": false,
+    "analystData": null,
+    "sectionData": null,
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "agent",
+    "agent": "Profile Builder",
+    "text": "Profile Builder Complete",
+    "reasoning": "",
+    "background": false,
+    "analystData": null,
+    "sectionData": {
+      "kind": "profile",
+      "paragraph": "UX/UI Designer with demonstrated end-to-end design capability across fintech and public-sector projects. Improved task completion from **34%** to **71%** for fintech mobile onboarding; led responsive council portal from stakeholder workshops through developer handoff. Conduct independent user research, create interactive prototypes in Figma, and apply WCAG 2.1 AA standards. Bring senior-level stakeholder communication honed through advising C-suite clients on **$50M–$500M+** transactions — translating complex requirements into clear deliverables under deadline pressure. Honours graduate in Psychology (decision-making research) with UX Design Immersive distinction.",
+      "contact": "Michelle Tanaka | michelle.tanaka.ux@gmail.com | 0431 555 789 | Melbourne, VIC 3000 | linkedin.com/in/michelletanakaux | michelletanaka.design",
+      "highlights": [
+        "End-to-end UX/UI work across web and mobile platforms",
+        "Independent user research planning and execution",
+        "Senior-level stakeholder communication",
+        "WCAG 2.1 AA accessibility knowledge"
+      ],
+      "suggestions": []
+    },
+    "documentData": null,
+    "initialTab": null,
+    "kind": null,
+    "meta": null
+  },
+  {
+    "role": "actions",
+    "context": "assembly_section_review",
+    "actions": [
+      {
+        "id": "assembly_approve",
+        "label": "Looks good",
+        "variant": "primary"
+      },
+      {
+        "id": "assembly_revise",
+        "label": "Make a change…",
+        "variant": "ghost"
+      }
+    ],
+    "used": false
+  }
+]
