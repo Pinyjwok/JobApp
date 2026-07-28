@@ -51,5 +51,4 @@ client/restyle/
 .claude/skills/lavish
 .agents/skills/lavish/SKILL.md
 skills-lock.json
-.lavish/chat-bubbles.html
-.lavish/ui-deep-dive.html
+.lavish/
