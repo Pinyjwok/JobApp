@@ -28,7 +28,7 @@ export function resolveAgentStatus(agentName, parsedStatus) {
 // The pseudocode collapses: both COMPLETE branches are identical and totalWithData never changes the
 // outcome — the real signal is validCount over the 5 required fields at their min floors. Max ceilings
 // are intentionally dropped (over-length data is still real; downgrading it would be perverse). Server
-// owns this math rather than trusting Flash to hand-count validCount + emit the right enum.
+// owns this math rather than trusting the LLM to hand-count validCount + emit the right enum.
 export function researchQuality(data) {
   const rd = data?.research_data;
   if (rd == null) return 'RESEARCH_FAILED';

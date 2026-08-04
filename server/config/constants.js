@@ -48,7 +48,7 @@ export const EXPECTED_STATUS = {
 // Output-file completion contracts — the file-driven replacement for the fragile
 // `pipeline_status:` prose tag. Each agent writes exactly one artifact whose presence + shape
 // (+ mtime freshness, checked in awaitOutputReady) proves it actually finished this turn. The
-// server derives routing from the FILE, not the LLM's typed sentence (which Flash drops). The
+// server derives routing from the FILE, not the LLM's typed sentence (which the linear agents can drop). The
 // per-agent status/join effect lives in the callers (they need dispatch.js helpers); this map
 // owns only `file`, the `ready(data)` shape guard, and `stamp`. Mirrors the assembly phases, which
 // already route this way (mergePhaseOutput / _phaseHasRealOutput).
