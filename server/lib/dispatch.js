@@ -1988,10 +1988,12 @@ const SECTION_BUILDERS = {
   },
   'Credentials Formatter': () => {
     const d = readSectionOutput('cf_output.json');
+    // No length guard here: a candidate can legitimately have zero education/certification entries
+    // (test users, early-career candidates). Empty arrays are a valid section, not a missing one —
+    // _phaseHasRealOutput checks the raw file for that distinction instead of this section data.
     const education = arr(d.education).map(e =>
       e.formatted_text || [e.qualification, e.institution, e.year].filter(Boolean).join(', '));
     const certifications = arr(d.certifications);
-    if (!education.length && !certifications.length) return null;
     return { kind: 'credentials', education, certifications };
   },
   'Cover Letter Writer': () => {
@@ -2121,6 +2123,12 @@ export function broadcastCompletion() {
 // section); otherwise require a non-empty data object.
 function _phaseHasRealOutput(phase, outputData) {
   const data = outputData?.data;
+  // Credentials Formatter can legitimately produce empty education[]/certifications[] (candidate has
+  // none) — that's a real, complete section, not a failed turn. Check the schema landed instead of
+  // checking for non-empty arrays (which buildSectionData no longer requires either).
+  if (phase.agent === 'Credentials Formatter') {
+    return !!(data && Array.isArray(data.education) && Array.isArray(data.certifications));
+  }
   if (SECTION_BUILDERS[phase.agent]) return buildSectionData(phase.agent) != null;
   return !!(data && typeof data === 'object' && Object.keys(data).length > 0);
 }
