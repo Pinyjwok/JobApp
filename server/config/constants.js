@@ -83,15 +83,31 @@ export const AGENT_FOREGROUND = new Set([
 // → dispatchAssemblyPhase's no-phase branch sets CV_TAILORED + broadcastCompletion. (Document Formatter,
 // the old phase 9, was scrapped 2026-07-20 — its df_output.json/tailored_cv.json were consumed by nothing;
 // the finished-doc render comes from buildDocumentData over the per-section files, not DF.)
+// `task` is the plain-language imperative sent as the dispatch query (dispatch.js
+// dispatchAssemblyPhase). It replaces a single generic `__build_section__ role="…" company="…"`
+// token that used to be shared by every phase. No agent actually reads the role/company params —
+// each one pulls position_title/company_name straight from project_meta.json — so the token was
+// pure noise, and worse: a bare `__build_section__` reads to a smaller model like an unset
+// parameter list rather than a go-ahead. Haiku-class agents (History Formatter, Skills Curator,
+// Credentials Formatter) would sometimes treat it as an incomplete request and stall instead of
+// starting. Each phase now gets an explicit, agent-specific command sentence instead.
 export const ASSEMBLY_PHASES = {
-  1: { agent: 'Style Negotiator',     inputNode: 'style_negotiator_input',     outputFile: 'sn_output.json'  },
-  2: { agent: 'Profile Builder',       inputNode: 'profile_builder_input',       outputFile: 'pb_output.json'  },
-  3: { agent: 'Skills Curator',        inputNode: 'skills_curator_input',        outputFile: 'sc_output.json'  },
-  4: { agent: 'History Formatter',     inputNode: 'history_formatter_input',     outputFile: 'hf_output.json'  },
-  5: { agent: 'Credentials Formatter', inputNode: 'credentials_formatter_input', outputFile: 'cf_output.json'  },
-  6: { agent: 'Cover Letter Writer',   inputNode: 'cover_letter_writer_input',   outputFile: 'clw_output.json' },
-  7: { agent: 'Style Reviewer',        inputNode: 'style_reviewer_input',        outputFile: null              },
-  8: { agent: 'Integrity Checker',     inputNode: 'integrity_checker_input',     outputFile: null              },
+  1: { agent: 'Style Negotiator',     inputNode: 'style_negotiator_input',     outputFile: 'sn_output.json',
+       task: 'Run the style negotiation interview now.' },
+  2: { agent: 'Profile Builder',       inputNode: 'profile_builder_input',       outputFile: 'pb_output.json',
+       task: 'Write the professional profile section now.' },
+  3: { agent: 'Skills Curator',        inputNode: 'skills_curator_input',        outputFile: 'sc_output.json',
+       task: 'Curate the skills section now.' },
+  4: { agent: 'History Formatter',     inputNode: 'history_formatter_input',     outputFile: 'hf_output.json',
+       task: 'Format the career history section now.' },
+  5: { agent: 'Credentials Formatter', inputNode: 'credentials_formatter_input', outputFile: 'cf_output.json',
+       task: 'Format the education and certifications section now.' },
+  6: { agent: 'Cover Letter Writer',   inputNode: 'cover_letter_writer_input',   outputFile: 'clw_output.json',
+       task: 'Write the cover letter now.' },
+  7: { agent: 'Style Reviewer',        inputNode: 'style_reviewer_input',        outputFile: null,
+       task: 'Run the final style review and polish pass now.' },
+  8: { agent: 'Integrity Checker',     inputNode: 'integrity_checker_input',     outputFile: null,
+       task: 'Run the integrity check now.' },
 };
 
 export const INPUT_NODE_MAP = {

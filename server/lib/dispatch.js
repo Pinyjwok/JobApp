@@ -1619,20 +1619,12 @@ export async function dispatchAssemblyPhase(phaseNumber) {
   // Register a retry thunk and surface the stall here, mirroring runLinearDispatch.
   state.retryThunk = () => dispatchAssemblyPhase(phaseNumber);
 
-  let ctx = '';
-  try {
-    const meta = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'), 'utf8'));
-    // No today= injection: agents write the literal __DATE_TODAY__ token and the
-    // server substitutes the real AU date at display time (see broadcast.js).
-    ctx = ` role="${meta.position_title}" company="${meta.company_name}"`;
-  } catch {}
-
   broadcastMode('auto_running', phase.agent);
   const dispatchStart = Date.now();
 
   let result;
   try {
-    result = await sendToNodeAndWait(phase.inputNode, phase.agent, `__build_section__${ctx}`);
+    result = await sendToNodeAndWait(phase.inputNode, phase.agent, phase.task);
   } catch (err) {
     // The Integrity Checker is a forensic full-document check — designed to run long. The watchdog
     // can fire while the node is still healthily working; because Promise.race doesn't cancel the
