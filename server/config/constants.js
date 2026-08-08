@@ -110,6 +110,24 @@ export const ASSEMBLY_PHASES = {
        task: 'Run the integrity check now.' },
 };
 
+// Same-class fix as ASSEMBLY_PHASES.task: the linear main-pipeline dispatch paths
+// (pipeline-state.js auto-fire, runLinearDispatch's default) were sending the bare '__auto__'
+// sentinel as these agents' entire turn content. '__auto__' is only meaningful to Main
+// Orchestrator's own prompt (the one place it's referenced in recipe.kemu) — Extractor,
+// Researcher, and JD Enhancer's instructions never mention it, so each turn handed them an
+// unexplained token instead of an instruction. ProjectSetup is intentionally absent: its happy
+// path is server-owned (runProjectSetup, no KEMU round-trip) and its rare MODE B KEMU fallback
+// (message.js fireUserMessage) always forwards the real user chat message, never '__auto__'.
+export const LINEAR_TASKS = {
+  Extractor:     'Extract the candidate profile from the uploaded CV now.',
+  Researcher:    'Research the company and sector now.',
+  'JD Enhancer': 'Enhance the job description now.',
+};
+
+// Generic fallback for any dispatch that reaches sendToNodeAndWait with no query — replaces the
+// old '__auto__' sentinel, which no agent besides Main Orchestrator's own prompt ever defined.
+export const DEFAULT_TASK = 'Start now.';
+
 export const INPUT_NODE_MAP = {
   'FILES_SAVED':        'extractor_input',
   'INITIALIZED':        'researcher_input',

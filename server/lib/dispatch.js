@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, rmSync, statSync } from 'fs';
 import { join } from 'path';
-import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND, COMPLETION_CONTRACTS } from '../config/constants.js';
+import { WORKSPACE_DIR, ASSEMBLY_PHASES, EXPECTED_STATUS, AGENT_FOREGROUND, COMPLETION_CONTRACTS, LINEAR_TASKS, DEFAULT_TASK } from '../config/constants.js';
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
 import { sendToNodeAndWait } from './node-communication.js';
@@ -128,13 +128,16 @@ export function surfaceStall(agentName, err) {
 // the next status from the agent's OUTPUT FILE (resolveStatusFromOutput) — not the fragile prose tag —
 // and either advances (setValue → onChange drives the next step) or surfaces a stall. parseAndStripStatus
 // is kept only to clean the display text.
-export async function runLinearDispatch({ node, agent, query = '__auto__', foreground }) {
-  state.retryThunk = () => runLinearDispatch({ node, agent, query, foreground });
+export async function runLinearDispatch({ node, agent, query, foreground }) {
+  // Explicit query (e.g. '__redo__') wins; otherwise use the agent's plain-language task
+  // imperative (LINEAR_TASKS), falling back to the generic DEFAULT_TASK — never '__auto__'.
+  const q = query ?? LINEAR_TASKS[agent] ?? DEFAULT_TASK;
+  state.retryThunk = () => runLinearDispatch({ node, agent, query: q, foreground });
   const fg = foreground ?? AGENT_FOREGROUND.has(agent);
   broadcastMode('auto_running', agent);
   const dispatchStart = Date.now();
   try {
-    const r = await sendToNodeAndWait(node, agent, query);
+    const r = await sendToNodeAndWait(node, agent, q);
     const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : (r != null ? JSON.stringify(r) : ''));
     // Resolve from the output file FIRST — this also stamps the server-derived Researcher quality into
     // research_output.json — so the file is final on disk before the broadcast triggers the client fetch.
