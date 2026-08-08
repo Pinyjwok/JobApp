@@ -1,5 +1,6 @@
 import { state } from './state.js';
 import { DISPATCH_TIMEOUT_MS, NODE_TIMEOUT_MS, DEFAULT_TASK } from '../config/constants.js';
+import { healNestedArtifacts } from './workspace-heal.js';
 
 // Log separators so each agent's execution block stands apart in the server console.
 // Every agent dispatch flows through sendToNodeAndWait, so this is the one place a
@@ -67,5 +68,10 @@ export async function sendToNodeAndWait(nodeName, agentName, query = DEFAULT_TAS
     );
     footer(label, true, `${JSON.stringify(fallback)?.length ?? 0} chars (fallback)`, startedAt);
     return fallback;
+  } finally {
+    // Every agent turn funnels through here, so this is the one place that reliably sits between an
+    // agent's WriteFile and the server's read of it. In `finally` on purpose: a stalled turn (IC in
+    // particular) can still have written its artifact, and _salvageIntegrityVerdict goes looking for it.
+    healNestedArtifacts();
   }
 }

@@ -1,7 +1,0 @@
-{
-  "verdict": "APPROVE",
-  "agent": "tone_analyst",
-  "issues": [],
-  "findings_for_sn": [],
-  "summary": "0 ungrounded quote(s) stripped server-side."
-}
