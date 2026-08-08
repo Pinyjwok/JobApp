@@ -54,11 +54,10 @@ client/restyle/
 .claude/skills/lavish
 .agents/skills/lavish/SKILL.md
 skills-lock.json
-.lavish/chat-bubbles.html
-.lavish/ui-deep-dive.html
-.lavish/jd-enhancer-plan.html
-.gitignore
-.lavish/model-fit.html
 
 #workspace snapshots
 /workspace-snapshots
+
+#doc visualisation skill
+.lavish/
+
