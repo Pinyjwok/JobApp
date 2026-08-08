@@ -30,32 +30,52 @@ export async function initRecipe(projectDir) {
     console.warn('Could not reset AgentSelector:', err.message);
   }
 
-  // Per-agent reasoning vars — agent identity comes from the var name, not AgentSelector
+  // Per-agent reasoning vars — agent identity comes from the var name, not AgentSelector.
+  // Name prefix must match the KEMU canvas group name exactly: "Agent Reasoning." (capitalized,
+  // with a space) — NOT the camelCase "agentReasoning." this previously used, which silently
+  // never matched any real variable (onChange on a name that doesn't exist just never fires,
+  // no error), so this whole reasoning stream — server log AND the client's "Show reasoning"
+  // panel — has been dead since it was added.
   const REASONING_VARS = {
-    'agentReasoning.mo_reasoning':        'Main Orchestrator',
-    'agentReasoning.ps_reasoning':        'ProjectSetup',
-    'agentReasoning.extractor_reasoning': 'Extractor',
-    'agentReasoning.researcher_reasoning':'Researcher',
-    'agentReasoning.jde_reasoning':       'JD Enhancer',
-    'agentReasoning.analyst_reasoning':   'Analyst',
-    'agentReasoning.reviewer_reasoning':  'Reviewer',
-    'agentReasoning.ta_reasoning':        'Tone Analyst',
-    'agentReasoning.sn_reasoning':        'Style Negotiator',
-    'agentReasoning.pb_reasoning':        'Profile Builder',
-    'agentReasoning.sc_reasoning':        'Skills Curator',
-    'agentReasoning.hf_reasoning':        'History Formatter',
-    'agentReasoning.cf_reasoning':        'Credentials Formatter',
-    'agentReasoning.clw_reasoning':       'Cover Letter Writer',
-    'agentReasoning.sr_reasoning':        'Style Reviewer',
-    'agentReasoning.ic_reasoning':        'Integrity Checker',
+    'Agent Reasoning.mo_reasoning':        'Main Orchestrator',
+    'Agent Reasoning.ps_reasoning':        'ProjectSetup',
+    'Agent Reasoning.extractor_reasoning': 'Extractor',
+    'Agent Reasoning.researcher_reasoning':'Researcher',
+    'Agent Reasoning.jde_reasoning':       'JD Enhancer',
+    'Agent Reasoning.analyst_reasoning':   'Analyst',
+    'Agent Reasoning.reviewer_reasoning':  'Reviewer',
+    'Agent Reasoning.ta_reasoning':        'Tone Analyst',
+    'Agent Reasoning.sn_reasoning':        'Style Negotiator',
+    'Agent Reasoning.pb_reasoning':        'Profile Builder',
+    'Agent Reasoning.sc_reasoning':        'Skills Curator',
+    'Agent Reasoning.hf_reasoning':        'History Formatter',
+    'Agent Reasoning.cf_reasoning':        'Credentials Formatter',
+    'Agent Reasoning.clw_reasoning':       'Cover Letter Writer',
+    'Agent Reasoning.sr_reasoning':        'Style Reviewer',
+    'Agent Reasoning.ic_reasoning':        'Integrity Checker',
   };
+
+  // Reasoning vars are wired to the model's stream port — they fire on every token/chunk, not
+  // once per turn. Logging/broadcasting each change floods the console log with near-duplicate
+  // lines for one turn's reasoning. Debounce per var: only emit once a var has gone quiet for
+  // REASONING_DEBOUNCE_MS, with the latest (fullest) accumulated text.
+  const REASONING_DEBOUNCE_MS = 5000;
+  const reasoningTimers = new Map(); // varName -> timeout handle
+
+  function scheduleReasoningFlush(varName, agentName, text) {
+    clearTimeout(reasoningTimers.get(varName));
+    reasoningTimers.set(varName, setTimeout(() => {
+      reasoningTimers.delete(varName);
+      console.log(`[reasoning:${agentName}] ${text}`);
+      broadcast({ type: 'reasoning', agent: agentName, text });
+    }, REASONING_DEBOUNCE_MS));
+  }
 
   for (const [varName, agentName] of Object.entries(REASONING_VARS)) {
     state.recipe.globalVariables.onChange(varName, (variable) => {
       const text = serializeVar(variable);
       if (!text) return;
-      console.log(`[reasoning:${agentName}] ${text}`);
-      broadcast({ type: 'reasoning', agent: agentName, text });
+      scheduleReasoningFlush(varName, agentName, text);
     });
   }
 
@@ -64,8 +84,7 @@ export async function initRecipe(projectDir) {
     const text = serializeVar(variable);
     if (!text) return;
     const agent = state.fallbackAgent ?? 'Unknown';
-    console.log(`[reasoning:${agent}] ${text}`);
-    broadcast({ type: 'reasoning', agent, text });
+    scheduleReasoningFlush('AgentReasoning', agent, text);
   });
 
   state.recipe.globalVariables.onChange('AgentDebug', (variable) => {
