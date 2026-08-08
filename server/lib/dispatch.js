@@ -2271,11 +2271,15 @@ const IC_REMEDIATION_CAP = 2; // attempts before the gate falls back to "Use it 
 
 // List sections hold an array of claim strings → a removal is a clean splice (no LLM). Prose sections
 // embed the claim mid-sentence → removal needs the Style Reviewer to re-flow.
-const IC_LIST_SECTIONS  = new Set(['skills', 'additional_information']);
+// career_history (work_history[].bullets) and key_achievements are arrays of independent, self-contained
+// strings — a bullet splices out cleanly, so they belong here, not in the SR re-flow path. They were
+// missing entirely before, which made those claims impossible to clear (they re-flagged every round).
+const IC_LIST_SECTIONS  = new Set(['skills', 'additional_information', 'career_history', 'key_achievements']);
 const IC_PROSE_SECTIONS = new Set(['profile', 'cover_letter']);
 const IC_SECTION_LABEL  = {
   profile: 'your summary', skills: 'your skills', career_history: 'your work history',
   cover_letter: 'your cover letter', additional_information: 'your extra details',
+  key_achievements: 'your key achievements',
 };
 
 // Tokenise for fuzzy claim↔gap linking — lowercase, strip punctuation, drop short noise words.
@@ -2371,32 +2375,84 @@ async function _salvageIntegrityVerdict(dispatchStart) {
   return false;
 }
 
-// Remove exact claim strings from the list-section arrays in cv_assembly_state.json (skills) and, best
-// effort, from the publications/awards source (additional_information). Returns the count removed.
+// Remove flagged claims from the list-shaped sections: the skills arrays, key_achievements and the
+// work_history bullets in cv_assembly_state.json (each phase's output file is re-synced), plus, best
+// effort, the publications/awards source in candidate_profile.json. Returns the count removed.
 function _stripListClaims(listClaims) {
   if (!listClaims.length) return 0;
   let removed = 0;
   const norm = s => _icTokens(s).join(' ');
   const wanted = new Map(listClaims.map(c => [norm(c.claim), c]));
+  // Skills are matched exactly (the claim IS the skill string). Bullets and achievements are full
+  // sentences and IC often quotes a fragment of one, so those match by containment — the same
+  // best-effort rule additional_information already uses below.
+  // Containment is scoped to claims naming that exact section: a short `skills` claim would otherwise
+  // delete every work-history bullet that merely mentions the skill. Claims with an unrecognised section
+  // label stay best-effort but must match a whole item, which can't over-delete that way.
+  const normsFor = section => listClaims.filter(c => c.section === section).map(c => norm(c.claim)).filter(Boolean);
+  const otherNorms = listClaims.filter(c => c.sectionType === 'other').map(c => norm(c.claim)).filter(Boolean);
+  const matches = (norms, text) => { const t = norm(text); return !!t && (norms.some(cn => t.includes(cn)) || otherNorms.includes(t)); };
+  const itemText = item => (typeof item === 'string' ? item : (item?.text ?? item?.achievement ?? item?.name ?? ''));
 
   const cvPath = join(WORKSPACE_DIR, 'cv_assembly_state.json');
+  const touchedPhases = new Set();   // phase numbers whose output file needs re-syncing
   try {
     const cv = JSON.parse(readFileSync(cvPath, 'utf8'));
+
     const skills = cv.phases?.[2]?.data;
     if (skills) {
       for (const field of ['technical_skills', 'soft_skills', 'certifications']) {
         if (!Array.isArray(skills[field])) continue;
         const before = skills[field].length;
         skills[field] = skills[field].filter(s => !wanted.has(norm(typeof s === 'string' ? s : s?.name ?? '')));
+        if (skills[field].length !== before) touchedPhases.add(3);
         removed += before - skills[field].length;
       }
       if (typeof skills.total_skills === 'number') {
         skills.total_skills = (skills.technical_skills?.length ?? 0) + (skills.soft_skills?.length ?? 0);
       }
+    }
+
+    // key_achievements — a sibling array of profile_paragraph, written by the Profile Builder.
+    const profile = cv.phases?.[1]?.data;
+    if (Array.isArray(profile?.key_achievements)) {
+      const kaNorms = normsFor('key_achievements');
+      const before = profile.key_achievements.length;
+      profile.key_achievements = profile.key_achievements.filter(a => !matches(kaNorms, itemText(a)));
+      if (profile.key_achievements.length !== before) touchedPhases.add(2);
+      removed += before - profile.key_achievements.length;
+    }
+
+    // career_history — one power-bullet per string inside each work_history entry (History Formatter).
+    const history = cv.phases?.[3]?.data;
+    if (Array.isArray(history?.work_history)) {
+      const chNorms = normsFor('career_history');
+      let bulletsRemoved = 0;
+      for (const entry of history.work_history) {
+        if (!Array.isArray(entry?.bullets)) continue;
+        const before = entry.bullets.length;
+        entry.bullets = entry.bullets.filter(b => !matches(chNorms, itemText(b)));
+        bulletsRemoved += before - entry.bullets.length;
+      }
+      if (bulletsRemoved) {
+        if (typeof history.total_bullets === 'number') {
+          history.total_bullets = history.work_history
+            .reduce((n, e) => n + (Array.isArray(e?.bullets) ? e.bullets.length : 0), 0);
+        }
+        touchedPhases.add(4);
+        removed += bulletsRemoved;
+      }
+    }
+
+    if (touchedPhases.size) {
       cv.metadata && (cv.metadata.last_updated = new Date().toISOString());
       writeFileSync(cvPath, JSON.stringify(cv, null, 2));
+      // cv_assembly_state is what IC re-reads, but the delivered document is built from the per-section
+      // output files (buildDocumentData → pb/sc/hf_output.json). Without this sync a removal would clear
+      // the integrity check and still ship in the CV.
+      for (const p of touchedPhases) _syncStateToOutputFile(p);
     }
-  } catch (e) { console.error('[Assembly · IC-remediation] skills strip failed:', e.message); }
+  } catch (e) { console.error('[Assembly · IC-remediation] list-section strip failed:', e.message); }
 
   // additional_information lives in candidate_profile.json (publications/awards) — best effort.
   const addl = listClaims.filter(c => c.section === 'additional_information');
@@ -2415,6 +2471,29 @@ function _stripListClaims(listClaims) {
     } catch (e) { console.error('[Assembly · IC-remediation] additional_information strip failed:', e.message); }
   }
   return removed;
+}
+
+// Read the prose sections back and return the removals that are STILL present. The Style Reviewer's
+// __remediate__ call can land partially (live-observed: the cover-letter half applied, the profile half
+// silently didn't) and sendToNodeAndWait can't see that — every other phase dispatch proves its write via
+// mergePhaseOutput; this is the equivalent landing check for the prose path.
+// A section we can't read is treated as resolved: guessing "unresolved" would spin the retry for nothing.
+function _unresolvedProseClaims(claims) {
+  if (!claims.length) return [];
+  const norm = s => _icTokens(s).join(' ');
+  let cv;
+  try { cv = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'cv_assembly_state.json'), 'utf8')); }
+  catch (e) { console.error('[Assembly · IC-remediation] prose verify read failed:', e.message); return []; }
+
+  const sectionText = {
+    profile:      cv.phases?.[1]?.data?.profile_paragraph?.formatted_text ?? '',
+    cover_letter: cv.phases?.[5]?.data?.cover_letter?.full_letter ?? '',
+  };
+  return claims.filter(c => {
+    const text = norm(sectionText[c.section] ?? '');
+    const claim = norm(c.claim);
+    return !!text && !!claim && text.includes(claim);
+  });
 }
 
 // Apply the user's per-claim integrity decisions, then re-run IC. Decisions: { [claimId]: { action, evidence } }.
@@ -2505,15 +2584,25 @@ export async function runIcRemediation(decisions = {}) {
   //    SR runs SILENT here (like the Style Negotiator): the "Tidying up…" notice is the only user-facing
   //    line, and we discard SR's own text so a stray narration ("You are now talking to…") can't leak —
   //    model-proof regardless of whether SR v3.1's output-discipline block is uploaded yet.
+  //    The edit is verified after the call and retried once if it didn't take (same retry-once shape
+  //    dispatchAssemblyPhase uses for phases 1–6) — otherwise a no-op round still burns one of only two
+  //    IC_REMEDIATION_CAP attempts and the user sees the identical "found N things" prompt again.
   if (proseRemovals.length) {
-    broadcastMode('auto_running', 'Style Reviewer');
     broadcast({ type: 'agent_message', agent: 'System', text: `Tidying up your summary and cover letter…` });
-    const payload = JSON.stringify({
-      remove: proseRemovals.map(c => ({ section: c.section, claim: c.claim })),
-    });
     try {
-      await sendToNodeAndWait(ASSEMBLY_PHASES[7].inputNode, 'Style Reviewer', `__remediate__ ${payload}`);
-      await new Promise(res => setTimeout(res, 800));
+      await _srRemediate(proseRemovals);
+      let unresolved = _unresolvedProseClaims(proseRemovals);
+      if (unresolved.length) {
+        console.warn(`[Assembly · IC-remediation] SR left ${unresolved.length} prose claim(s) in place — retrying once`);
+        await _srRemediate(unresolved);
+        unresolved = _unresolvedProseClaims(unresolved);
+        if (unresolved.length) {
+          console.error(`[Assembly · IC-remediation] ${unresolved.length} prose claim(s) still present after retry (${unresolved.map(c => c.section).join(', ')}) — IC will re-flag them`);
+        }
+      }
+      // Same reason as the list strip: SR writes cv_assembly_state, but the delivered document is built
+      // from pb_output.json / clw_output.json.
+      for (const p of new Set(proseRemovals.map(c => (c.section === 'cover_letter' ? 6 : 2)))) _syncStateToOutputFile(p);
     } catch (e) { surfaceStall('Style Reviewer', e); return; }
   }
 
