@@ -2387,7 +2387,10 @@ async function _salvageIntegrityVerdict(dispatchStart) {
 // Remove flagged claims from the list-shaped sections: the skills arrays, key_achievements and the
 // work_history bullets in cv_assembly_state.json (each phase's output file is re-synced), plus, best
 // effort, the publications/awards source in candidate_profile.json. Returns the count removed.
-function _stripListClaims(listClaims) {
+// Exported for server/test/ic-list-claim-strip.test.js — the over-deletion guard (a short skills claim
+// must not splice work-history bullets) is only observable at this level; runIcRemediation around it
+// needs a live KEMU node for the prose half.
+export function _stripListClaims(listClaims) {
   if (!listClaims.length) return 0;
   let removed = 0;
   const norm = s => _icTokens(s).join(' ');
