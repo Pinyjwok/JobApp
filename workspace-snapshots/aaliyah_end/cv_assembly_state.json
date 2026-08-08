@@ -1,0 +1,339 @@
+{
+  "current_phase": 9,
+  "metadata": {
+    "started_at": null,
+    "last_updated": "__DATE_TODAY__T00:00:00Z",
+    "status": "ACTIVE",
+    "total_phases": 8,
+    "completed_phases": 8
+  },
+  "phases": [
+    {
+      "phase_number": 1,
+      "phase_name": "Style Negotiation",
+      "agent": "Style Negotiator",
+      "status": "COMPLETE",
+      "completed_at": "2026-08-08T12:16:08.581Z",
+      "data": {
+        "agreed_overrides": {
+          "seniority_level": "Junior (2.3 relevant / 5.9 total yrs - confirmed by user)",
+          "profile_voice": "first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)"
+        },
+        "negotiation_outcome": "OVERRIDES_APPLIED",
+        "negotiation_summary": "2 override(s) applied across 2 style dimension(s). 2 recommended, 0 kept as-is, 0 customised. Outcome: OVERRIDES_APPLIED.",
+        "original_style": {
+          "tense": "past",
+          "voice": "active",
+          "bullet_format": "verb-led",
+          "uses_pronouns_i": false,
+          "uses_full_sentences": false,
+          "formality_level": "semi-formal",
+          "seniority_inferred": "Junior",
+          "years_experience": 5.9
+        },
+        "user_confirmed": true
+      }
+    },
+    {
+      "phase_number": 2,
+      "phase_name": "Profile Building",
+      "agent": "Profile Builder",
+      "status": "COMPLETE",
+      "completed_at": "2026-08-08T12:16:48.062Z",
+      "data": {
+        "contact_details": {
+          "formatted_text": "Aaliyah Jade Vas | aaliyah.vas@outlook.com | 0406 272 607",
+          "components": {
+            "name": "Aaliyah Jade Vas",
+            "email": "aaliyah.vas@outlook.com",
+            "phone": "0406 272 607",
+            "location": null,
+            "linkedin": null,
+            "portfolio": null,
+            "github": null
+          }
+        },
+        "profile_paragraph": {
+          "formatted_text": "Diploma-qualified Community Services professional with direct client-facing experience in case management and employment support across refugee, asylum seeker, and CALD communities at Sisterworks Dandenong. Built and implemented individual case plans by assessing client goals, barriers, and strengths; maintained accurate records using CRM platforms and Excel while ensuring compliance with privacy standards. Skilled in building trust through trauma-informed, culturally sensitive approaches; conducted VEVO checks to verify work rights. Strong communication and de-escalation capabilities proven across diverse customer service and education settings, managing high-volume interactions and navigating complex stakeholder relationships with patience and professionalism.",
+          "framework": "Q.A.R.E.R.",
+          "strengths_highlighted": [
+            "Detail-oriented, organized, and can juggle time like a pro",
+            "Comfortable chatting with business owners and have strong communication skills",
+            "Great at solving problems and navigating challenges"
+          ]
+        },
+        "profile_statement": "Diploma-qualified Community Services professional with direct client-facing experience in case management and employment support across refugee, asylum seeker, and CALD communities at Sisterworks Dandenong. Built and implemented individual case plans by assessing client goals, barriers, and strengths; maintained accurate records using CRM platforms and Excel while ensuring compliance with privacy standards. Skilled in building trust through trauma-informed, culturally sensitive approaches; conducted VEVO checks to verify work rights. Strong communication and de-escalation capabilities proven across diverse customer service and education settings, managing high-volume interactions and navigating complex stakeholder relationships with patience and professionalism.",
+        "relevant_years_experience": 2.3,
+        "experience_years": 2.3,
+        "experience_breakdown": {
+          "relevant_years": 2.3,
+          "total_years": 5.9
+        },
+        "key_themes": [
+          "Case management and employment support",
+          "Client assessment and individual planning",
+          "CRM and data compliance",
+          "Trauma-informed practice",
+          "Stakeholder communication"
+        ],
+        "key_achievements": [],
+        "advisory_warnings": [],
+        "user_confirmed": true
+      }
+    },
+    {
+      "phase_number": 3,
+      "phase_name": "Skills Curation",
+      "agent": "Skills Curator",
+      "status": "COMPLETE",
+      "completed_at": "2026-08-08T12:18:05.145Z",
+      "data": {
+        "technical_skills": [
+          "CRM platforms",
+          "Excel (data management & reporting)",
+          "VEVO compliance verification"
+        ],
+        "soft_skills": [
+          "Strong communication & interpersonal skills",
+          "Detail-oriented & organisational skills",
+          "Problem-solving & adaptability",
+          "Client-focused relationship-building",
+          "Highly empathetic",
+          "Stakeholder engagement",
+          "Professional demeanor"
+        ],
+        "certifications": [
+          "First Aid Certificate"
+        ],
+        "total_skills": 10,
+        "ats_optimized": true,
+        "tailoring_notes": "Included ATS keywords: stakeholder engagement; employment support (core competencies); compliance verification; organisational prioritization reflects role's need for detail, multi-client management, and stakeholder communication.",
+        "user_confirmed": true
+      }
+    },
+    {
+      "phase_number": 4,
+      "phase_name": "History Formatting",
+      "agent": "History Formatter",
+      "status": "COMPLETE",
+      "completed_at": "2026-08-08T12:19:12.770Z",
+      "data": {
+        "work_history": [
+          {
+            "employer": "Sisterworks Dandenong",
+            "position": "Engagement Coordinator and Admin Assistant",
+            "employment_type": "Full-time",
+            "duration": "Sep 2025 – Present",
+            "duration_years": 0.9,
+            "bullets": [
+              "Work directly with refugee, asylum seeker, and CALD women to build employability, confidence, and independence through trauma-informed, strengths-based support.",
+              "Build and implement individual case plans by assessing each client's goals, barriers, strengths, and support needs.",
+              "Support clients in developing practical, entrepreneurial, and employability skills through **workshops**, **one-on-one sessions**, and referrals to relevant services.",
+              "Maintain accurate, confidential records of client progress and outcomes using CRM platforms and Excel, ensuring compliance with organisational and privacy standards.",
+              "Manage referrals and follow up on outcomes to provide joined-up support across multiple clients simultaneously.",
+              "Work with internal teams and volunteers to coordinate services and ensure smooth delivery of programs.",
+              "Perform VEVO checks to verify work rights and eligibility for program participation.",
+              "Promote inclusion by adapting communication and program delivery to accommodate different literacy levels, cultural expectations, and learning styles."
+            ]
+          },
+          {
+            "employer": "Vicinity Centres Chadstone",
+            "position": "Concierge & Guest Experience",
+            "employment_type": "Full-time",
+            "duration": "Sep 2024 – Present",
+            "duration_years": 1.9,
+            "bullets": [
+              "Provide professional and welcoming support, offering information, directions, and assistance to visitors from diverse backgrounds.",
+              "Communicate clearly and empathetically with a diverse range of local and international guests, including those from different linguistic and cultural backgrounds.",
+              "De-escalate customer concerns with professionalism, patience, and active listening.",
+              "Stay informed on store relocations, renovations, and new openings to provide accurate and updated information.",
+              "Work with concierge, security, and valet teams to ensure smooth issue resolution and service delivery."
+            ]
+          },
+          {
+            "employer": "Berwick Primary School OSHC",
+            "position": "Educator",
+            "employment_type": "Full-time",
+            "duration": "Apr 2024 – Sep 2025",
+            "duration_years": 1.4,
+            "bullets": [
+              "Support children's social, emotional, and behavioural development through inclusive, strengths-based approaches.",
+              "Maintain compliance with child protection and duty of care requirements.",
+              "Maintain accurate attendance, incident, and behavioural records.",
+              "Adapt care and communication strategies to support children with ADHD, autism, and other neurodiverse needs."
+            ]
+          },
+          {
+            "employer": "AAMI Insurance",
+            "position": "Customer Service and Risk Assessment Specialist",
+            "employment_type": "Full-time",
+            "duration": "Apr 2022 – Apr 2023",
+            "duration_years": 1,
+            "bullets": [
+              "Conduct detailed client assessments and deliver tailored advice, demonstrating problem-solving and analytical skills.",
+              "Communicate complex information clearly to clients from diverse backgrounds, maintaining patience and empathy.",
+              "Maintain accurate records and exceed **KPIs** through proactive, client-focused service while meeting organisational standards for compliance and data integrity."
+            ]
+          },
+          {
+            "employer": "Department of Health",
+            "position": "Customer Service Specialist",
+            "employment_type": "Full-time",
+            "duration": "May 2021 – Jan 2022",
+            "duration_years": 0.7,
+            "bullets": [
+              "Support members of the community during COVID-19 by providing clear, helpful information about health guidelines, vaccinations, and travel rules.",
+              "Support people from diverse cultural and linguistic backgrounds with patience, empathy, and understanding.",
+              "Make outbound calls for contact tracing and vaccination bookings, ensuring people received the right support and information.",
+              "Help new staff learn procedures and provide guidance to ensure consistent, community-focused service.",
+              "Maintain accurate records and protect clients' privacy while delivering support to the public."
+            ]
+          }
+        ],
+        "total_entries": 5,
+        "total_bullets": 22,
+        "style_overrides_applied": [
+          "implicit_first_person_voice"
+        ],
+        "user_confirmed": true
+      }
+    },
+    {
+      "phase_number": 5,
+      "phase_name": "Credentials Formatting",
+      "agent": "Credentials Formatter",
+      "status": "COMPLETE",
+      "completed_at": "2026-08-08T12:20:10.025Z",
+      "data": {
+        "education": [
+          {
+            "institution": "Holmesglen Institute Moorabbin",
+            "qualification": "Diploma of Community Services",
+            "year": "",
+            "formatted_text": "Diploma of Community Services, Holmesglen Institute Moorabbin"
+          }
+        ],
+        "certifications": [
+          "First Aid Certificate"
+        ],
+        "education_count": 1,
+        "certifications_count": 1,
+        "tailoring_notes": "Diploma completion date not specified in candidate profile; please confirm the year for CV. NDIS Screening Check and Working With Children's Check are compliance clearances and are not listed as certifications.",
+        "user_confirmed": true
+      }
+    },
+    {
+      "phase_number": 6,
+      "phase_name": "Cover Letter Writing",
+      "agent": "CoverLetter Writer",
+      "status": "COMPLETE",
+      "completed_at": "2026-08-08T12:21:20.943Z",
+      "data": {
+        "cover_letter": {
+          "header": "Aaliyah Jade Vas\naaliyah.vas@outlook.com | 0406 272 607",
+          "date": "__DATE_TODAY__",
+          "re_line": "Re: Junior People & Culture Consultant — The Save Group Pty Ltd",
+          "salutation": "Dear Hiring Manager,",
+          "opening_paragraph": "My work at Sisterworks Dandenong has prepared me to support small business clients through complex HR situations: I routinely assess barriers, build individual case plans, and navigate sensitive client conversations with empathy and professionalism. Building that trust in trauma-informed, culturally diverse contexts translates directly to working alongside SME owners who need practical guidance without unnecessary complexity.",
+          "connection_paragraph": "My work at Sisterworks Dandenong has prepared me to support small business clients through complex HR situations: I routinely assess barriers, build individual case plans, and navigate sensitive client conversations with empathy and professionalism. Building that trust in trauma-informed, culturally diverse contexts translates directly to working alongside SME owners who need practical guidance without unnecessary complexity.",
+          "offer_paragraph": "At Sisterworks, I manage multiple client cases simultaneously, maintaining accurate records using CRM platforms and Excel while ensuring compliance with privacy and organisational standards. I conduct VEVO checks to verify work rights, build employability support plans, and coordinate with internal teams and external service providers to deliver joined-up solutions. Earlier, at AAMI Insurance, I conducted detailed client assessments, communicated complex information clearly to diverse clients, and exceeded KPIs through proactive, client-focused service.",
+          "research_paragraph": "The Save Group's practical, no-nonsense approach to HR resonates with how I work. Your focus on delivering flexible support that helps small businesses stay compliant and build great teams, rather than imposing overly complex processes, aligns with what I value: real solutions grounded in genuine client needs. I'm motivated to build a consulting career where I learn from experienced Lead Consultants through the TSG Academy and contribute meaningfully to client outcomes across diverse industries.",
+          "closing_paragraph": "I would welcome the opportunity to discuss how my case management experience, attention to compliance detail, and client relationship skills position me to contribute to your consulting team from day one.",
+          "sign_off": "Kind regards,\n\nAaliyah Jade Vas",
+          "full_letter": "Aaliyah Jade Vas\naaliyah.vas@outlook.com | 0406 272 607\n\n__DATE_TODAY__\n\nRe: Junior People & Culture Consultant — The Save Group Pty Ltd\n\nDear Hiring Manager,\n\nMy work at Sisterworks Dandenong has prepared me to support small business clients through complex HR situations: I routinely assess barriers, build individual case plans, and navigate sensitive client conversations with empathy and professionalism. Building that trust in trauma-informed, culturally diverse contexts translates directly to working alongside SME owners who need practical guidance without unnecessary complexity.\n\nAt Sisterworks, I manage multiple client cases simultaneously, maintaining accurate records using CRM platforms and Excel while ensuring compliance with privacy and organisational standards. I conduct VEVO checks to verify work rights, build employability support plans, and coordinate with internal teams and external service providers to deliver joined-up solutions. Earlier, at AAMI Insurance, I conducted detailed client assessments, communicated complex information clearly to diverse clients, and exceeded KPIs through proactive, client-focused service.\n\nThe Save Group's practical, no-nonsense approach to HR resonates with how I work. Your focus on delivering flexible support that helps small businesses stay compliant and build great teams, rather than imposing overly complex processes, aligns with what I value: real solutions grounded in genuine client needs. I'm motivated to build a consulting career where I learn from experienced Lead Consultants through the TSG Academy and contribute meaningfully to client outcomes across diverse industries.\n\nI would welcome the opportunity to discuss how my case management experience, attention to compliance detail, and client relationship skills position me to contribute to your consulting team from day one.\n\nKind regards,\n\nAaliyah Jade Vas"
+        },
+        "register_used": "confident-professional",
+        "framework": "C.O.R.E.",
+        "strengths_used": [
+          "Detail-oriented, organized, and can juggle time like a pro",
+          "Comfortable chatting with business owners and have strong communication skills",
+          "Great at solving problems and navigating challenges"
+        ],
+        "company_insight_used": true,
+        "user_confirmed": true
+      }
+    },
+    {
+      "phase_number": 7,
+      "phase_name": "Style Review",
+      "agent": "Style Reviewer",
+      "status": "COMPLETE",
+      "completed_at": "__DATE_TODAY__T00:00:00Z",
+      "data": {
+        "style_compliance": "PASS",
+        "verdict": "PASS",
+        "register": "direct-practical",
+        "polish_applied": [
+          {
+            "section": "profile",
+            "change": "Tightened verbose verb phrases ('Developed → Built') for direct-practical register"
+          },
+          {
+            "section": "history",
+            "change": "Replaced passive/clinical constructions throughout: 'enhance' → 'build', 'Conduct referrals' → 'Manage referrals', 'Collaborate with' → 'Work with', 'ensuring positive experiences' (redundant clause) → removed, 'Assist people' → 'Support people', ensuring an inclusive and supportive environment' (redundant clause) → removed. Simplified for plain, concrete voice expected in direct-practical register."
+          },
+          {
+            "section": "cover_letter",
+            "change": "Replaced passive phrasing: 'equipped me' → 'prepared me'; 'develop and implement' → 'build'; 'holistic solutions' (clinical jargon) → 'joined-up solutions' (plain, practical alternative)"
+          }
+        ],
+        "sections_checked": 5,
+        "section_verdicts": {
+          "profile": {
+            "checked": true,
+            "on_register": true,
+            "edits": 1
+          },
+          "skills": {
+            "checked": true,
+            "on_register": true,
+            "edits": 0
+          },
+          "history": {
+            "checked": true,
+            "on_register": true,
+            "edits": 7
+          },
+          "credentials": {
+            "checked": true,
+            "on_register": true,
+            "edits": 0
+          },
+          "coverletter": {
+            "checked": true,
+            "on_register": true,
+            "edits": 3
+          }
+        }
+      }
+    },
+    {
+      "phase_number": 8,
+      "phase_name": "Integrity Check",
+      "agent": "Integrity Checker",
+      "status": "COMPLETE",
+      "completed_at": "__DATE_TODAY__T00:00:00Z",
+      "data": {
+        "integrity_status": "PASSED",
+        "total_claims_checked": 75,
+        "unsupported_claims": 0,
+        "unsupported_claims_detail": [],
+        "ic_corrections": [],
+        "fabrications_found": [],
+        "checks_performed": [
+          "profile",
+          "skills",
+          "career_history",
+          "cover_letter",
+          "additional_information"
+        ],
+        "evidence_verification": {
+          "method": "semantic_entailment"
+        }
+      }
+    }
+  ],
+  "user_request": null,
+  "final_cv": null,
+  "change_log": []
+}

@@ -1,0 +1,229 @@
+{
+  "metadata": {
+    "reviewed_at": "2026-08-08T12:02:44.524Z",
+    "reviewer_version": "server-1.0",
+    "analyst_version": "2.36",
+    "candidate_backed_gaps": 0
+  },
+  "repairs": {
+    "paths_normalized": [],
+    "strengths_dropped": [],
+    "requirements_retiered": [],
+    "gaps_dropped": [],
+    "gates_demoted": []
+  },
+  "overall_verdict": "APPROVED",
+  "rejection_reason": null,
+  "issues_found": [
+    {
+      "category": "ATS Keyword",
+      "item_id": "stakeholder management",
+      "issue_type": "A - Evidence Mismatch",
+      "severity": "Medium",
+      "confidence_level": 1
+    }
+  ],
+  "approved_items": [
+    {
+      "category": "Strength",
+      "item_id": "strength_1",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_2",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_3",
+      "confidence_level": 3
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_4",
+      "confidence_level": 4
+    },
+    {
+      "category": "Strength",
+      "item_id": "strength_5",
+      "confidence_level": 3
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_4",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_5",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_6",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_7",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_8",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_9",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_10",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_11",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_12",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_13",
+      "confidence_level": 5
+    },
+    {
+      "category": "Gap",
+      "item_id": "gap_14",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_4",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_5",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_6",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_7",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_8",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_9",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "req_10",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "pref_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_1",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_2",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_3",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_4",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_5",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_6",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_7",
+      "confidence_level": 5
+    },
+    {
+      "category": "Requirement",
+      "item_id": "resp_8",
+      "confidence_level": 5
+    }
+  ],
+  "summary": {
+    "total_items_audited": 52,
+    "total_issues": 1,
+    "critical_issues": 0,
+    "high_issues": 0,
+    "medium_issues": 1,
+    "low_issues": 0,
+    "approved_items": 38,
+    "unresolved_issues": 1,
+    "user_backed_items": 0
+  }
+}

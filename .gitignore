@@ -59,3 +59,6 @@ skills-lock.json
 .lavish/jd-enhancer-plan.html
 .gitignore
 .lavish/model-fit.html
+
+#test snapshots
+workspace-snaphots/

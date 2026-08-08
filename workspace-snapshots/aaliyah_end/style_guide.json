@@ -1,0 +1,29 @@
+{
+  "synthesized_at": "2026-08-08T12:16:08.584Z",
+  "source": "server-merge(style_findings.json + sn_output.json)",
+  "register": "direct-practical",
+  "voice_descriptor": "Formal, verbose, process-heavy. Bullets are verb-led and well-structured but consistently over-explain context (e.g., 'Communicated clearly and empathetically with a diverse range of local and international guests, including those from different linguistic and cultural backgrounds, ensuring positive experiences'). Reads like policy documentation rather than achievement snapshots. Ownership-driven but lacks quantification—no scale, no metrics, no outcomes measured.",
+  "tense": "past",
+  "voice": "active",
+  "sentence_structure": "Action verb + detailed object + prepositional phrase or subordinate clause; consistently structured but verbose",
+  "formality_level": "semi-formal",
+  "quantification_level": "none",
+  "ownership_framing": {
+    "classification": "Ownership-Driven",
+    "proof": "Develop and implement individual case plans by assessing each client's goals, barriers, strengths, and support needs"
+  },
+  "signature_phrases": [
+    "client-centred, trauma-informed, and strengths-based approach",
+    "diverse cultural and linguistic backgrounds",
+    "patience and empathy"
+  ],
+  "voice_examples": [
+    "Work directly with refugee, asylum seeker and CALD women to enhance employability, confidence, and independence.",
+    "Communicated clearly and empathetically with a diverse range of local and international guests, including those from different linguistic and cultural backgrounds, ensuring positive experiences.",
+    "Conducted detailed client assessments and delivered tailored advice, demonstrating problem-solving and analytical skills."
+  ],
+  "agreed_overrides": {
+    "seniority_level": "Junior (2.3 relevant / 5.9 total yrs - confirmed by user)",
+    "profile_voice": "first person - the summary speaks as the candidate (implied first person, no name and no third-person pronouns)"
+  }
+}

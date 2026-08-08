@@ -1,0 +1,31 @@
+{
+  "phase_number": 6,
+  "phase_name": "Cover Letter Writing",
+  "agent": "CoverLetter Writer",
+  "status": "COMPLETE",
+  "completed_at": "__DATE_TODAY__T00:00:00Z",
+  "data": {
+    "cover_letter": {
+      "header": "Aaliyah Jade Vas\naaliyah.vas@outlook.com | 0406 272 607",
+      "date": "__DATE_TODAY__",
+      "re_line": "Re: Junior People & Culture Consultant — The Save Group Pty Ltd",
+      "salutation": "Dear Hiring Manager,",
+      "opening_paragraph": "My work at Sisterworks Dandenong has equipped me to support small business clients through complex HR situations: I routinely assess barriers, develop individual case plans, and navigate sensitive client conversations with empathy and professionalism. Building that trust in trauma-informed, culturally diverse contexts translates directly to working alongside SME owners who need practical guidance without unnecessary complexity.",
+      "connection_paragraph": "My work at Sisterworks Dandenong has equipped me to support small business clients through complex HR situations: I routinely assess barriers, develop individual case plans, and navigate sensitive client conversations with empathy and professionalism. Building that trust in trauma-informed, culturally diverse contexts translates directly to working alongside SME owners who need practical guidance without unnecessary complexity.",
+      "offer_paragraph": "At Sisterworks, I manage multiple client cases simultaneously, maintaining accurate records using CRM platforms and Excel while ensuring compliance with privacy and organisational standards. I conduct VEVO checks to verify work rights, develop employability support plans, and coordinate with internal teams and external service providers to deliver holistic solutions. Earlier, at AAMI Insurance, I conducted detailed client assessments, communicated complex information clearly to diverse clients, and exceeded KPIs through proactive, client-focused service.",
+      "research_paragraph": "The Save Group's practical, no-nonsense approach to HR resonates with how I work. Your focus on delivering flexible support that helps small businesses stay compliant and build great teams, rather than imposing overly complex processes, aligns with what I value: real solutions grounded in genuine client needs. I'm motivated to build a consulting career where I learn from experienced Lead Consultants through the TSG Academy and contribute meaningfully to client outcomes across diverse industries.",
+      "closing_paragraph": "I would welcome the opportunity to discuss how my case management experience, attention to compliance detail, and client relationship skills position me to contribute to your consulting team from day one.",
+      "sign_off": "Kind regards,\n\nAaliyah Jade Vas",
+      "full_letter": "Aaliyah Jade Vas\naaliyah.vas@outlook.com | 0406 272 607\n\n__DATE_TODAY__\n\nRe: Junior People & Culture Consultant — The Save Group Pty Ltd\n\nDear Hiring Manager,\n\nMy work at Sisterworks Dandenong has equipped me to support small business clients through complex HR situations: I routinely assess barriers, develop individual case plans, and navigate sensitive client conversations with empathy and professionalism. Building that trust in trauma-informed, culturally diverse contexts translates directly to working alongside SME owners who need practical guidance without unnecessary complexity.\n\nAt Sisterworks, I manage multiple client cases simultaneously, maintaining accurate records using CRM platforms and Excel while ensuring compliance with privacy and organisational standards. I conduct VEVO checks to verify work rights, develop employability support plans, and coordinate with internal teams and external service providers to deliver holistic solutions. Earlier, at AAMI Insurance, I conducted detailed client assessments, communicated complex information clearly to diverse clients, and exceeded KPIs through proactive, client-focused service.\n\nThe Save Group's practical, no-nonsense approach to HR resonates with how I work. Your focus on delivering flexible support that helps small businesses stay compliant and build great teams, rather than imposing overly complex processes, aligns with what I value: real solutions grounded in genuine client needs. I'm motivated to build a consulting career where I learn from experienced Lead Consultants through the TSG Academy and contribute meaningfully to client outcomes across diverse industries.\n\nI would welcome the opportunity to discuss how my case management experience, attention to compliance detail, and client relationship skills position me to contribute to your consulting team from day one.\n\nKind regards,\n\nAaliyah Jade Vas"
+    },
+    "register_used": "confident-professional",
+    "framework": "C.O.R.E.",
+    "strengths_used": [
+      "Detail-oriented, organized, and can juggle time like a pro",
+      "Comfortable chatting with business owners and have strong communication skills",
+      "Great at solving problems and navigating challenges"
+    ],
+    "company_insight_used": true,
+    "user_confirmed": true
+  }
+}
