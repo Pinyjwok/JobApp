@@ -1716,7 +1716,13 @@ async function _startSNInterview() {
   // Fire SN once — it writes sn_groups.json. SN is silent (like TA / the gap interview): the modal
   // carries all the content, so we discard its text output.
   try {
-    await sendToNodeAndWait('style_negotiator_input', 'Style Negotiator', '__style_analyze__');
+    // Send the configured phase-1 imperative, not the old `__style_analyze__` sentinel — same fix as
+    // the `__auto__` / `__build_section__` removals: SN has no input routing (it does the same single
+    // pass whatever it receives), so the token bought nothing and read to the model as an unset
+    // parameter rather than a go-ahead. ASSEMBLY_PHASES[1] is otherwise dead config, since phase 1
+    // never reaches the generic dispatch path.
+    const phase1 = ASSEMBLY_PHASES[1];
+    await sendToNodeAndWait(phase1.inputNode, phase1.agent, phase1.task);
   } catch (e) {
     console.error('[Style Negotiator] node error:', e.message);
   }
@@ -2147,10 +2153,34 @@ export async function mergePhaseOutput(phaseNumber, dispatchStart = 0) {
   if (!phase?.outputFile) return { ok: true }; // SR/IC write cv_assembly_state.json themselves
   try {
     const outputData = JSON.parse(readFileSync(join(WORKSPACE_DIR, phase.outputFile), 'utf8'));
-    // GUARD: don't mark COMPLETE / advance unless the agent actually produced output.
+    // GUARD 1: don't mark COMPLETE / advance unless the agent actually produced output.
     if (!_phaseHasRealOutput(phase, outputData)) {
       console.warn(`[Assembly] phase ${phaseNumber} (${phase.agent}) produced no usable output — NOT advancing (stays PENDING)`);
       return { ok: false, reason: 'empty_output' };
+    }
+    // GUARD 2 (freshness): the shape check above can't tell this turn's artifact from the last run's —
+    // a stale file with a valid schema (Credentials Formatter's legitimately-empty education[]/
+    // certifications[] is the easiest way to hit this) would otherwise be merged as COMPLETE and the
+    // user shown a previous run's section. mtime is the only honest signal that the agent wrote THIS
+    // turn. Fail instead of warning: the caller auto-retries once, then offers Retry — the same
+    // fail-closed handling as empty output. This used to run AFTER the write and only warn, which
+    // meant the bad state was already on disk by the time anyone was told. It also used to read the
+    // agent's own `completed_at`, which cannot work in either direction — the agent writes the literal
+    // `__DATE_TODAY__` token, so `new Date(token)` is Invalid Date, the age is NaN, and `NaN > 300_000`
+    // is false, so the check silently never fired. Same mtime >= dispatchStart guard awaitOutputReady
+    // uses for the linear agents.
+    if (dispatchStart) {
+      const mtime = statSync(join(WORKSPACE_DIR, phase.outputFile)).mtimeMs;
+      if (mtime < dispatchStart) {
+        const age = Math.round((dispatchStart - mtime) / 1000);
+        console.warn(`[Assembly] phase ${phaseNumber} output stale (${phase.outputFile} predates dispatch by ${age}s) — NOT advancing`);
+        broadcast({
+          type: 'agent_message', agent: 'System',
+          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output looks stale - ${phase.outputFile} was last written ` +
+                `${age}s before this step started, so the agent didn't write it this turn.`,
+        });
+        return { ok: false, reason: 'stale_output' };
+      }
     }
     const cvStatePath = join(WORKSPACE_DIR, 'cv_assembly_state.json');
     const cvState = JSON.parse(readFileSync(cvStatePath, 'utf8'));
@@ -2170,27 +2200,6 @@ export async function mergePhaseOutput(phaseNumber, dispatchStart = 0) {
     console.error(`[Assembly] merge phase ${phaseNumber} failed:`, e.message);
     return { ok: false, reason: 'merge_error' };
   }
-
-  // Stale output detection: did the agent actually write this artifact THIS turn? File mtime is the only
-  // honest signal. This used to read the agent's own `completed_at`, which cannot work in either
-  // direction — the agent writes the literal `__DATE_TODAY__` token, so `new Date(token)` is Invalid
-  // Date, the age is NaN, and `NaN > 300_000` is false, so the check silently never fired. Had the token
-  // been substituted it would resolve to midnight today and fire on every afternoon run instead. Same
-  // mtime >= dispatchStart guard awaitOutputReady uses for the linear agents.
-  try {
-    if (dispatchStart) {
-      const mtime = statSync(join(WORKSPACE_DIR, phase.outputFile)).mtimeMs;
-      if (mtime < dispatchStart) {
-        const age = Math.round((dispatchStart - mtime) / 1000);
-        console.warn(`[Assembly] phase ${phaseNumber} output stale (${phase.outputFile} predates dispatch by ${age}s)`);
-        broadcast({
-          type: 'agent_message', agent: 'System',
-          text: `⚠ Phase ${phaseNumber} (${phase.agent}) output looks stale - ${phase.outputFile} was last written ` +
-                `${age}s before this step started, so the agent may not have run this turn.`,
-        });
-      }
-    }
-  } catch {}
   return { ok: true };
 }
 
