@@ -16,6 +16,9 @@ client/dist/
 # Runtime workspace (generated per job application)
 workspace/
 
+# Dev-server console/reasoning log files (generated per run)
+logs/
+
 # macOS
 .DS_Store
 **/.DS_Store
@@ -51,4 +54,10 @@ client/restyle/
 .claude/skills/lavish
 .agents/skills/lavish/SKILL.md
 skills-lock.json
+
+#workspace snapshots
+/workspace-snapshots
+
+#doc visualisation skill
 .lavish/
+

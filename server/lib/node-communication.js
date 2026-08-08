@@ -1,5 +1,6 @@
 import { state } from './state.js';
-import { DISPATCH_TIMEOUT_MS, NODE_TIMEOUT_MS } from '../config/constants.js';
+import { DISPATCH_TIMEOUT_MS, NODE_TIMEOUT_MS, DEFAULT_TASK } from '../config/constants.js';
+import { healNestedArtifacts } from './workspace-heal.js';
 
 // Log separators so each agent's execution block stands apart in the server console.
 // Every agent dispatch flows through sendToNodeAndWait, so this is the one place a
@@ -7,7 +8,7 @@ import { DISPATCH_TIMEOUT_MS, NODE_TIMEOUT_MS } from '../config/constants.js';
 // from dispatch.js then sit visibly under a named header.
 const RULE = '─'.repeat(72);
 function banner(agent, nodeName, query, timeoutMs) {
-  const q = query === '__auto__' ? '' : `  ·  query:${query}`;
+  const q = query === DEFAULT_TASK ? '' : `  ·  query:${query}`;
   console.log(`\n┌${RULE}`);
   console.log(`│ ▶ ${agent ?? '(no agent)'}  ·  node:${nodeName}${q}  ·  timeout ${Math.round(timeoutMs / 1000)}s`);
   console.log(`└${RULE}`);
@@ -31,7 +32,7 @@ function withTimeout(promise, ms, label) {
 // AgentSelector — used for the background Analyst (agentName=null keeps the UI off it, but the console
 // should still read "Analyst", not "(no agent)"). quietBanner suppresses the per-node start banner so
 // a caller (fireTAAndAnalyst) can print one combined header for a parallel group; the footer still fires.
-export async function sendToNodeAndWait(nodeName, agentName, query = '__auto__', sessionId = 'default', opts = {}) {
+export async function sendToNodeAndWait(nodeName, agentName, query = DEFAULT_TASK, sessionId = 'default', opts = {}) {
   const label = opts.logLabel ?? agentName;
   if (agentName) {
     await state.recipe.globalVariables.setValue('AgentSelector', agentName);
@@ -67,5 +68,10 @@ export async function sendToNodeAndWait(nodeName, agentName, query = '__auto__',
     );
     footer(label, true, `${JSON.stringify(fallback)?.length ?? 0} chars (fallback)`, startedAt);
     return fallback;
+  } finally {
+    // Every agent turn funnels through here, so this is the one place that reliably sits between an
+    // agent's WriteFile and the server's read of it. In `finally` on purpose: a stalled turn (IC in
+    // particular) can still have written its artifact, and _salvageIntegrityVerdict goes looking for it.
+    healNestedArtifacts();
   }
 }

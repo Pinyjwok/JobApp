@@ -3,6 +3,7 @@ import { join } from 'path';
 import {
   WORKSPACE_DIR, INPUT_NODE_MAP, HAPPY_PATH,
   EXCEPTION_STATUSES, AUTO_FIRE_STATUSES, AGENT_FOREGROUND, EXCEPTION_ACTION_BUTTONS,
+  LINEAR_TASKS, DEFAULT_TASK,
 } from '../config/constants.js';
 import { state } from './state.js';
 import { broadcast, broadcastMode, broadcastAgentResult, parseAndStripStatus } from './broadcast.js';
@@ -104,7 +105,11 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
   if (EXCEPTION_STATUSES.has(status)) {
     broadcastMode('user_turn', 'Main Orchestrator');
     writeMODispatch(status);  // authoritative status → MO reads mo_dispatch.json, not the global
-    sendToNodeAndWait(' Message', 'Main Orchestrator')
+    // '__auto__' is intentional here, not the dead sentinel we purged elsewhere: MO's own prompt
+    // (recipe.kemu) explicitly checks `userMessage === '__auto__'` to distinguish this exception
+    // hand-off from a real init/user message. DEFAULT_TASK would read to MO as a fresh first
+    // message and misroute into the init protocol instead of the exception handler.
+    sendToNodeAndWait(' Message', 'Main Orchestrator', '__auto__')
       .then(async r => {
         const { cleanText, status: newStatus } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
         broadcastAgentResult(cleanText, 'Main Orchestrator', true);
@@ -190,7 +195,7 @@ export async function handlePipelineStatus(status, { resume = false } = {}) {
     if (agent === 'Extractor') clearExtractorFailure();  // fresh failure signal each attempt
     state.retryThunk = () => { state.recentlyDispatched.delete(status); return handlePipelineStatus(status); };
     const autoStart = Date.now();
-    sendToNodeAndWait(node, agent)
+    sendToNodeAndWait(node, agent, LINEAR_TASKS[agent] ?? DEFAULT_TASK)
       .then(async r => {
         const { cleanText } = parseAndStripStatus(typeof r === 'string' ? r : JSON.stringify(r));
         // Status from the agent's OUTPUT FILE, not the prose tag. resolveStatusFromOutput folds in the

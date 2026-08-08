@@ -3,12 +3,18 @@
 // Supersedes evidence-classifier.js. Classifying EVIDENCE vs INTENT and judging whether the evidence
 // actually clears the requirement's bar are the SAME cognitive act — read the candidate's free-text
 // answer against the requirement and decide what it is worth. So they collapse into one LLM call that
-// returns a single verdict per gap. Only ACCEPTED grants credit; the other three keep the gap open.
+// returns a single verdict per gap. Only ACCEPTED grants full credit; ACCEPTED_MITIGATED captures the
+// evidence without closing a structural gap; the other three keep the gap open.
 // Everything downstream (path resolution, bucketing, fit score) stays deterministic on the server.
 //
 // Verdicts:
 //   ACCEPTED        concrete, presently-true fact that satisfies the requirement AND names where it
 //                   happened (role/employer/project/credential held) → counts as Met (Candidate Evidence)
+//   ACCEPTED_MITIGATED  requirement is STRUCTURAL (is_structural=true, e.g. a minimum-years shortfall no
+//                   answer can retroactively close) but the answer gives real, anchored evidence that
+//                   strengthens the case. Coerced server-side for structural items — never plain
+//                   ACCEPTED, INCLUDING when the answer looks like it clears the bar outright. The
+//                   rubric's examples must show that same coercion or the model learns the opposite.
 //   REQUIRES_ANCHOR concrete fact but UNANCHORED — no role/project a CV writer could attach it to.
 //                   Carries anchor_prompt; the gap interview re-asks for the anchor.
 //   REJECTED        a fact-claim, but too weak/partial to satisfy THIS requirement.
@@ -47,7 +53,7 @@ Rules:
 
 Examples:
 - requirement "Evidence of right to work in Australia" (is_structural=false) | answer "I have Australian citizenship" -> ACCEPTED
-- requirement "5+ years registered nursing" (is_structural=true) | answer "I worked as an RN at St Vincent's for 6 years" -> ACCEPTED (the years are actually present — not a shortfall)
+- requirement "5+ years registered nursing" (is_structural=true) | answer "I worked as an RN at St Vincent's for 6 years" -> ACCEPTED_MITIGATED (strong anchored evidence, but a structural item never earns plain ACCEPTED — the years belong in the CV, not in a re-scored requirement)
 - requirement "Minimum 3 years professional UX design" (is_structural=true) | answer "I have 1.5 years of contract UX plus a fintech project that lifted conversion 71%" -> ACCEPTED_MITIGATED (real anchored proof, but the 3-year bar isn't met)
 - requirement "Experience with Agile delivery" (is_structural=false) | answer "I've used Agile a lot" -> REQUIRES_ANCHOR (anchor_prompt "Which role or project did you use Agile on?")
 - requirement "Lead a team of 10+" (is_structural=false) | answer "I once helped onboard a new hire" -> REJECTED

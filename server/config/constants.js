@@ -48,7 +48,7 @@ export const EXPECTED_STATUS = {
 // Output-file completion contracts — the file-driven replacement for the fragile
 // `pipeline_status:` prose tag. Each agent writes exactly one artifact whose presence + shape
 // (+ mtime freshness, checked in awaitOutputReady) proves it actually finished this turn. The
-// server derives routing from the FILE, not the LLM's typed sentence (which Flash drops). The
+// server derives routing from the FILE, not the LLM's typed sentence (which the linear agents can drop). The
 // per-agent status/join effect lives in the callers (they need dispatch.js helpers); this map
 // owns only `file`, the `ready(data)` shape guard, and `stamp`. Mirrors the assembly phases, which
 // already route this way (mergePhaseOutput / _phaseHasRealOutput).
@@ -83,16 +83,50 @@ export const AGENT_FOREGROUND = new Set([
 // → dispatchAssemblyPhase's no-phase branch sets CV_TAILORED + broadcastCompletion. (Document Formatter,
 // the old phase 9, was scrapped 2026-07-20 — its df_output.json/tailored_cv.json were consumed by nothing;
 // the finished-doc render comes from buildDocumentData over the per-section files, not DF.)
+// `task` is the plain-language imperative sent as the dispatch query (dispatch.js
+// dispatchAssemblyPhase). It replaces a single generic `__build_section__ role="…" company="…"`
+// token that used to be shared by every phase. No agent actually reads the role/company params —
+// each one pulls position_title/company_name straight from project_meta.json — so the token was
+// pure noise, and worse: a bare `__build_section__` reads to a smaller model like an unset
+// parameter list rather than a go-ahead. Haiku-class agents (History Formatter, Skills Curator,
+// Credentials Formatter) would sometimes treat it as an incomplete request and stall instead of
+// starting. Each phase now gets an explicit, agent-specific command sentence instead.
 export const ASSEMBLY_PHASES = {
-  1: { agent: 'Style Negotiator',     inputNode: 'style_negotiator_input',     outputFile: 'sn_output.json'  },
-  2: { agent: 'Profile Builder',       inputNode: 'profile_builder_input',       outputFile: 'pb_output.json'  },
-  3: { agent: 'Skills Curator',        inputNode: 'skills_curator_input',        outputFile: 'sc_output.json'  },
-  4: { agent: 'History Formatter',     inputNode: 'history_formatter_input',     outputFile: 'hf_output.json'  },
-  5: { agent: 'Credentials Formatter', inputNode: 'credentials_formatter_input', outputFile: 'cf_output.json'  },
-  6: { agent: 'Cover Letter Writer',   inputNode: 'cover_letter_writer_input',   outputFile: 'clw_output.json' },
-  7: { agent: 'Style Reviewer',        inputNode: 'style_reviewer_input',        outputFile: null              },
-  8: { agent: 'Integrity Checker',     inputNode: 'integrity_checker_input',     outputFile: null              },
+  1: { agent: 'Style Negotiator',     inputNode: 'style_negotiator_input',     outputFile: 'sn_output.json',
+       task: 'Run the style negotiation interview now.' },
+  2: { agent: 'Profile Builder',       inputNode: 'profile_builder_input',       outputFile: 'pb_output.json',
+       task: 'Write the professional profile section now.' },
+  3: { agent: 'Skills Curator',        inputNode: 'skills_curator_input',        outputFile: 'sc_output.json',
+       task: 'Curate the skills section now.' },
+  4: { agent: 'History Formatter',     inputNode: 'history_formatter_input',     outputFile: 'hf_output.json',
+       task: 'Format the career history section now.' },
+  5: { agent: 'Credentials Formatter', inputNode: 'credentials_formatter_input', outputFile: 'cf_output.json',
+       task: 'Format the education and certifications section now.' },
+  6: { agent: 'Cover Letter Writer',   inputNode: 'cover_letter_writer_input',   outputFile: 'clw_output.json',
+       task: 'Write the cover letter now.' },
+  7: { agent: 'Style Reviewer',        inputNode: 'style_reviewer_input',        outputFile: null,
+       task: 'Run the final style review and polish pass now.' },
+  8: { agent: 'Integrity Checker',     inputNode: 'integrity_checker_input',     outputFile: null,
+       task: 'Run the integrity check now.' },
 };
+
+// Same-class fix as ASSEMBLY_PHASES.task: the linear main-pipeline dispatch paths
+// (pipeline-state.js auto-fire, runLinearDispatch's default) were sending the bare '__auto__'
+// sentinel as these agents' entire turn content. '__auto__' is only meaningful to Main
+// Orchestrator's own prompt (the one place it's referenced in recipe.kemu) — Extractor,
+// Researcher, and JD Enhancer's instructions never mention it, so each turn handed them an
+// unexplained token instead of an instruction. ProjectSetup is intentionally absent: its happy
+// path is server-owned (runProjectSetup, no KEMU round-trip) and its rare MODE B KEMU fallback
+// (message.js fireUserMessage) always forwards the real user chat message, never '__auto__'.
+export const LINEAR_TASKS = {
+  Extractor:     'Extract the candidate profile from the uploaded CV now.',
+  Researcher:    'Research the company and sector now.',
+  'JD Enhancer': 'Enhance the job description now.',
+};
+
+// Generic fallback for any dispatch that reaches sendToNodeAndWait with no query — replaces the
+// old '__auto__' sentinel, which no agent besides Main Orchestrator's own prompt ever defined.
+export const DEFAULT_TASK = 'Start now.';
 
 export const INPUT_NODE_MAP = {
   'FILES_SAVED':        'extractor_input',
