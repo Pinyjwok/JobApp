@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import pipelineRouter, { initRecipe } from './routes/pipeline.js';
+import { healNestedArtifacts } from './lib/workspace-heal.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_DIR = join(__dirname, '..');
@@ -66,6 +67,10 @@ const PORT = process.env.PORT || 3001;
 async function main() {
   // Ensure workspace directory exists
   mkdirSync(WORKSPACE_DIR, { recursive: true });
+
+  // Lift any KEMU nested writes (workspace/<name>.json/<name>.json) back to the canonical path before
+  // anything reads the workspace — a restore or resume reads these artifacts before any agent runs.
+  healNestedArtifacts();
 
   // Patch recipe.kemu paths for this machine
   patchRecipePaths();

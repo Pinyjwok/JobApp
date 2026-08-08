@@ -1731,8 +1731,14 @@ async function _startSNInterview() {
   let groups = [];
   try {
     groups = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'sn_groups.json'), 'utf8'));
-    if (!Array.isArray(groups)) groups = [];
-  } catch { groups = []; }
+    if (!Array.isArray(groups)) { console.warn('[Style Negotiator] sn_groups.json is not an array — falling back to the floor'); groups = []; }
+  } catch (e) {
+    // Was a bare `catch { groups = [] }`. A missing file IS normal here (the floor covers it), but so
+    // was EISDIR from the KEMU nested-write bug (workspace/sn_groups.json/sn_groups.json), and that
+    // looked identical: SN silently degraded to floor-only groups with nothing in the log. Say which.
+    console.warn(`[Style Negotiator] sn_groups.json unreadable (${e.code ?? e.message}) — falling back to the floor`);
+    groups = [];
+  }
 
   let meta = {}, findings = {};
   try { meta     = JSON.parse(readFileSync(join(WORKSPACE_DIR, 'project_meta.json'),   'utf8')); } catch {}
